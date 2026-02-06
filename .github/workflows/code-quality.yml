@@ -32,7 +32,7 @@ jobs:
         run: npx eslint .
 
       - name: Run Prettier Formatting Check
-        run: prettier --check .
+        run: npx prettier --check .
 
       - name: Run TypeScript Type Check
         run: npx tsc --noEmit
