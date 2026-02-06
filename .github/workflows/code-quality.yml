@@ -1,0 +1,41 @@
+name: Code Quality and Formatting Checks
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-quality:
+    name: Checking Code Quality and Formatting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npx eslint .
+
+      - name: Run Prettier Formatting Check
+        run: prettier --check .
+
+      - name: Run TypeScript Type Check
+        run: npx tsc --noEmit
+
+      - name: Summary
+        run: echo "✅ Code quality and formatting checks completed!"
