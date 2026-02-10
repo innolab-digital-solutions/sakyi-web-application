@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "test:vitest": "vitest",
-    "test:playwright": "playwright test",
+    "test:playwright": "playwright test --ui",
     "lint": "eslint",
     "format": "prettier --write ."
   },
