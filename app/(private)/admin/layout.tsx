@@ -1,20 +1,38 @@
 import TanstackQueryProvider from '@/components/shared/TanstackQueryProvider';
 import { cn } from '@/lib/utils';
 import { Inter } from 'next/font/google';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import DashboardSidebar from '@/components/admin/layouts/DashboardSidebar';
+import DashboardHeader from '@/components/admin/layouts/DashboardHeader';
+import { cookies } from 'next/headers';
 
 const inter = Inter({
   variable: '--font-inter',
   weight: ['400', '500', '600', '700', '800', '900'],
 });
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookie = await cookies();
+  const defaultOpen = cookie.get('sidebar_state')?.value === 'true';
   return (
     <div className={cn('min-h-screen', inter.variable)}>
-      <TanstackQueryProvider>{children}</TanstackQueryProvider>
+      <TanstackQueryProvider>
+        <SidebarProvider defaultOpen={defaultOpen}>
+          {/* Sidebar navigation panel */}
+          <DashboardSidebar />
+
+          {/* Main content: dashboard header & page */}
+          <SidebarInset>
+            <DashboardHeader />
+            {/* Page content*/}
+            <div className="flex-1 flex-col bg-gray-50">{children}</div>
+          </SidebarInset>
+        </SidebarProvider>
+      </TanstackQueryProvider>
     </div>
   );
 }
