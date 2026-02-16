@@ -13,6 +13,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { PATHS } from '@/config/paths';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 const DashboardHeader = () => {
   return (
@@ -23,7 +24,7 @@ const DashboardHeader = () => {
           {/* Sidebar open/close trigger button */}
           <SidebarTrigger
             variant="outline"
-            className="hover:border-primary! h-9 w-9"
+            className="hover:border-border hover:text-foreground h-9 w-9 cursor-pointer hover:bg-gray-100"
           />
 
           <Separator orientation="vertical" className="mx-3 hidden sm:block" />
@@ -53,12 +54,35 @@ const DashboardHeader = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-8">
           {/* Notification bell button */}
           <div>
-            <Button variant="outline" size="icon">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hover:text-foreground relative cursor-pointer rounded-full bg-gray-100 hover:bg-gray-50"
+            >
               <Bell className="h-5 w-5" />
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white">
+                5
+              </span>
             </Button>
+          </div>
+
+          {/* User Name and Profile Picture */}
+          <div className="flex items-center gap-2">
+            <div className="flex flex-col items-end gap-x-1">
+              <h3 className="text-foreground text-sm font-semibold">
+                Aung Thu Zaw
+              </h3>
+              <p className="text--foreground text-xs font-medium">
+                Super Admin
+              </p>
+            </div>
+            <Avatar>
+              <AvatarImage src="https://github.com/shadcn.png" />
+              <AvatarFallback>CN</AvatarFallback>
+            </Avatar>
           </div>
         </div>
       </div>

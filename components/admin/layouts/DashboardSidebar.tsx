@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronDown, LogOut } from 'lucide-react';
+import { ArrowRight, ChevronDown, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sidebar,
@@ -25,7 +25,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 const DashboardSidebar = () => {
   const pathname = usePathname();
@@ -33,30 +32,30 @@ const DashboardSidebar = () => {
   return (
     <Sidebar className="border-border/80 border-r">
       {/* Sidebar header with logo and title */}
-      <SidebarHeader className="border-border/80 bg-background border-b py-3.25">
+      <SidebarHeader className="bg-[#0c96c4] py-3.25">
         <div className="flex items-center gap-3 px-2">
-          <div className="border-border/50 relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-sm border shadow-sm">
+          <div>
             <Image
-              src="/images/logo.png"
+              src="/images/logo-white.png"
               alt="sakyi-logo"
               className="object-contain"
-              width={18}
-              height={18}
+              width={28}
+              height={28}
             />
           </div>
-          <div className="flex flex-col gap-0.5">
-            <h3 className="text-sm font-semibold tracking-tight">
+          <div className="flex flex-col space-y-0.5">
+            <h3 className="text-sm font-semibold text-white">
               SaKyi Health & Wellness
             </h3>
-            <p className="text-muted-foreground text-xs font-medium">
-              Platform-Wide Control Panel
+            <p className="text-[11px] font-medium text-neutral-200">
+              Administrative Control Panel
             </p>
           </div>
         </div>
       </SidebarHeader>
 
       {/* Sidebar navigation content */}
-      <SidebarContent className="scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent bg-background">
+      <SidebarContent className="scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent bg-[#0c96c4] py-3">
         <SidebarGroup>
           <SidebarMenu>
             {DASHBOARD_NAVIGATION.map((item, index) => {
@@ -84,7 +83,7 @@ const DashboardSidebar = () => {
                         <SidebarMenuButton
                           isActive={isActive}
                           tooltip={item.name}
-                          className="px-3 py-5 text-neutral-700"
+                          className="px-3 py-5 text-white hover:bg-white/15 hover:text-white data-[active=true]:bg-white/25 data-[active=true]:text-white"
                         >
                           {Icon ? <Icon className="mr-1 h-4 w-4" /> : null}
                           <span className="text-[12.5px] font-semibold">
@@ -94,7 +93,7 @@ const DashboardSidebar = () => {
                         </SidebarMenuButton>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
-                        <SidebarMenuSub>
+                        <SidebarMenuSub className="ml-4.5">
                           {/* Render all submenu items */}
                           {item.subitems!.map((subitem, subIndex) => {
                             // Check if this subitem is active
@@ -107,7 +106,7 @@ const DashboardSidebar = () => {
                                 <SidebarMenuSubButton
                                   asChild
                                   isActive={isSubActive}
-                                  className="px-3 py-5 text-neutral-700"
+                                  className="px-3 py-5 text-white hover:bg-white/15 hover:text-white data-[active=true]:bg-white/25 data-[active=true]:text-white"
                                 >
                                   <Link href={subitem.path}>
                                     <span className="text-[12.5px] font-semibold">
@@ -132,7 +131,7 @@ const DashboardSidebar = () => {
                     asChild
                     isActive={isActive}
                     tooltip={item.name}
-                    className="px-3 py-5 text-neutral-700"
+                    className="px-3 py-5 text-white hover:bg-white/15 hover:text-white data-[active=true]:bg-white/25 data-[active=true]:text-white"
                   >
                     <Link href={item.path}>
                       {Icon ? <Icon className="mr-1 h-4 w-4" /> : null}
@@ -148,25 +147,20 @@ const DashboardSidebar = () => {
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Sidebar footer with user information and logout button */}
-      <SidebarFooter className="border-border/80 bg-background border-t py-3.25">
-        <div className="flex items-center justify-between gap-3 px-2">
+      {/* Logout */}
+      <SidebarFooter className="bg-[#0c96c4] py-3.25">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full cursor-pointer! justify-between px-3 py-5 text-white hover:bg-white/15 hover:text-white"
+        >
           <div className="flex items-center gap-2">
-            <Avatar>
-              <AvatarImage src="https://github.com/shadcn.png" />
-              <AvatarFallback>CN</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col gap-0.5">
-              <h3 className="text-sm font-semibold tracking-tight">
-                Aung Thu Zaw
-              </h3>
-              <p className="text-primary text-xs font-medium">Super Admin</p>
-            </div>
+            <LogOut className="h-4 w-4 shrink-0" />
+            <span className="text-[12.5px] font-semibold">Logout</span>
           </div>
-          <Button variant="destructive" size="icon" className="cursor-pointer!">
-            <LogOut className="h-5 w-5" />
-          </Button>
-        </div>
+
+          <ArrowRight className="h-4 w-4 shrink-0" />
+        </Button>
       </SidebarFooter>
     </Sidebar>
   );

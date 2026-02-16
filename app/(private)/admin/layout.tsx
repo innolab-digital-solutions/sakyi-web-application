@@ -29,7 +29,9 @@ export default async function AdminLayout({
           <SidebarInset>
             <DashboardHeader />
             {/* Page content*/}
-            <div className="flex-1 flex-col bg-gray-50">{children}</div>
+            <div className="bg-background flex-1 flex-col px-8 py-5">
+              {children}
+            </div>
           </SidebarInset>
         </SidebarProvider>
       </TanstackQueryProvider>
