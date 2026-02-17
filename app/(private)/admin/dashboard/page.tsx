@@ -1,5 +1,6 @@
-import { StatCard } from '@/components/admin/dashboard/StatCard';
-import { DashboardCharts } from '@/components/admin/dashboard/DashboardCharts';
+import { DASHBOARD_STATS } from '@/config/dashboard-stats';
+import StatsCard from '@/components/admin/modules/dashboard/StatsCard';
+import { DashboardCharts } from '@/components/admin/modules/dashboard/DashboardCharts';
 
 export default function DashboardPage() {
   return (
@@ -14,38 +15,19 @@ export default function DashboardPage() {
       </div>
 
       <section aria-label="Dashboard overview">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="Total Clients"
-            value="1,248"
-            trend={{ value: 12, direction: 'up', label: 'vs last month' }}
-            iconName="UserSquare2"
-            accentClass="bg-green-500"
-          />
-          <StatCard
-            title="Active Enrollments"
-            value="342"
-            trend={{ value: 5, direction: 'up' }}
-            subtitle="Currently in programs"
-            iconName="ClipboardCheck"
-            accentClass="bg-blue-500"
-          />
-          <StatCard
-            title="Programs"
-            value="18"
-            subtitle="Nutrition & movement"
-            iconName="FolderKanban"
-            accentClass="bg-yellow-500"
-          />
-          <StatCard
-            title="Pending Intakes"
-            value="23"
-            subtitle="Awaiting review"
-            iconName="ListChecks"
-            iconBgClass="bg-amber-500/10"
-            iconClass="text-amber-600"
-            accentClass="bg-red-500"
-          />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {DASHBOARD_STATS.map((stat) => (
+            <StatsCard
+              key={stat.id}
+              title={stat.title}
+              value={stat.value}
+              subtitle={stat.subtitle}
+              trend={stat.trend}
+              iconName={stat.iconName}
+              iconBgClass={stat.iconBgClass}
+              iconClass={stat.iconClass}
+            />
+          ))}
         </div>
       </section>
 

@@ -30,9 +30,9 @@ const DashboardSidebar = () => {
   const pathname = usePathname();
 
   return (
-    <Sidebar className="border-border/80 border-r">
+    <Sidebar>
       {/* Sidebar header with logo and title */}
-      <SidebarHeader className="bg-[#0c96c4] py-3.25">
+      <SidebarHeader className="py-3.5">
         <div className="flex items-center gap-3 px-2">
           <div>
             <Image
@@ -44,10 +44,8 @@ const DashboardSidebar = () => {
             />
           </div>
           <div className="flex flex-col space-y-0.5">
-            <h3 className="text-sm font-semibold text-white">
-              SaKyi Health & Wellness
-            </h3>
-            <p className="text-[11px] font-medium text-neutral-200">
+            <h3 className="text-sm font-semibold">SaKyi Health & Wellness</h3>
+            <p className="text-[11px] font-medium">
               Administrative Control Panel
             </p>
           </div>
@@ -55,7 +53,7 @@ const DashboardSidebar = () => {
       </SidebarHeader>
 
       {/* Sidebar navigation content */}
-      <SidebarContent className="scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent bg-[#0c96c4] py-3">
+      <SidebarContent className="scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent py-3.5">
         <SidebarGroup>
           <SidebarMenu>
             {DASHBOARD_NAVIGATION.map((item, index) => {
@@ -83,7 +81,7 @@ const DashboardSidebar = () => {
                         <SidebarMenuButton
                           isActive={isActive}
                           tooltip={item.name}
-                          className="px-3 py-5 text-white hover:bg-white/15 hover:text-white data-[active=true]:bg-white/25 data-[active=true]:text-white"
+                          className="data-[active=true]:text-sidebar-primary-foreground hover:text-sidebar-primary-foreground px-3 py-5 hover:bg-white/15 data-[active=true]:bg-white/25"
                         >
                           {Icon ? <Icon className="mr-1 h-4 w-4" /> : null}
                           <span className="text-[12.5px] font-semibold">
@@ -106,7 +104,7 @@ const DashboardSidebar = () => {
                                 <SidebarMenuSubButton
                                   asChild
                                   isActive={isSubActive}
-                                  className="px-3 py-5 text-white hover:bg-white/15 hover:text-white data-[active=true]:bg-white/25 data-[active=true]:text-white"
+                                  className="data-[active=true]:text-sidebar-primary-foreground hover:text-sidebar-primary-foreground px-3 py-5 hover:bg-white/15 data-[active=true]:bg-white/25"
                                 >
                                   <Link href={subitem.path}>
                                     <span className="text-[12.5px] font-semibold">
@@ -131,7 +129,7 @@ const DashboardSidebar = () => {
                     asChild
                     isActive={isActive}
                     tooltip={item.name}
-                    className="px-3 py-5 text-white hover:bg-white/15 hover:text-white data-[active=true]:bg-white/25 data-[active=true]:text-white"
+                    className="data-[active=true]:text-sidebar-primary-foreground hover:text-sidebar-primary-foreground px-3 py-5 hover:bg-white/15 data-[active=true]:bg-white/25"
                   >
                     <Link href={item.path}>
                       {Icon ? <Icon className="mr-1 h-4 w-4" /> : null}
@@ -148,11 +146,11 @@ const DashboardSidebar = () => {
       </SidebarContent>
 
       {/* Logout */}
-      <SidebarFooter className="bg-[#0c96c4] py-3.25">
+      <SidebarFooter className="py-3.25">
         <Button
           variant="ghost"
           size="sm"
-          className="w-full cursor-pointer! justify-between px-3 py-5 text-white hover:bg-white/15 hover:text-white"
+          className="hover:text-sidebar-primary-foreground w-full cursor-pointer! justify-between px-3 py-5 hover:bg-white/15"
         >
           <div className="flex items-center gap-2">
             <LogOut className="h-4 w-4 shrink-0" />
