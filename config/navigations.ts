@@ -43,7 +43,7 @@ export const DASHBOARD_NAVIGATION: NavItem[] = [
   {
     name: 'Clients',
     icon: UserSquare2,
-    path: '#',
+    path: PATHS.ADMIN.CLIENTS,
     subitems: [],
   },
   {
