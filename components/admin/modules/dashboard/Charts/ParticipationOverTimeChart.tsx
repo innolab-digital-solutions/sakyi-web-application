@@ -21,13 +21,13 @@ const chartConfig = {
  */
 const ParticipationOverTimeChart = () => {
   return (
-    <div className="rounded-lg border border-border/80 bg-card p-4 shadow-sm">
+    <div className="border-border/80 bg-card rounded-lg border p-4 shadow-sm">
       <h3 className="text-foreground text-sm font-semibold">
         Participation over time
       </h3>
       <p className="text-muted-foreground mt-0.5 text-xs">
-        Enrollments and intakes by month. See if growth is steady and if
-        intakes keep pace.
+        Enrollments and intakes by month. See if growth is steady and if intakes
+        keep pace.
       </p>
       <ChartContainer
         id="participation-over-time"

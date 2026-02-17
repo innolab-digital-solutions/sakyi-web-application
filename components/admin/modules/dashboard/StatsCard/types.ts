@@ -34,9 +34,7 @@ export interface StatsCardStyle {
 }
 
 /** Own props for StatsCard (content + style + icon). */
-export interface StatsCardOwnProps
-  extends StatsCardContent,
-    StatsCardStyle {
+export interface StatsCardOwnProps extends StatsCardContent, StatsCardStyle {
   iconName: StatCardIconName;
 }
 

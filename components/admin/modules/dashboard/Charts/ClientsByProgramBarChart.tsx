@@ -27,12 +27,13 @@ const chartConfig = {
  */
 const ClientsByProgramBarChart = () => {
   return (
-    <div className="rounded-lg border border-border/80 bg-card p-4 shadow-sm">
+    <div className="border-border/80 bg-card rounded-lg border p-4 shadow-sm">
       <h3 className="text-foreground text-sm font-semibold">
         Clients by program
       </h3>
       <p className="text-muted-foreground mt-0.5 text-xs">
-        Which programs have the most clients. Growth is driven by program mix—use this to focus support and content.
+        Which programs have the most clients. Growth is driven by program
+        mix—use this to focus support and content.
       </p>
       <ChartContainer
         id="clients-by-program"

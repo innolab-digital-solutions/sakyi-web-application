@@ -20,7 +20,7 @@ const chartConfig = {
  */
 const NewClientsOverTimeChart = () => {
   return (
-    <div className="rounded-lg border border-border/80 bg-card p-4 shadow-sm">
+    <div className="border-border/80 bg-card rounded-lg border p-4 shadow-sm">
       <h3 className="text-foreground text-sm font-semibold">
         New clients over time
       </h3>

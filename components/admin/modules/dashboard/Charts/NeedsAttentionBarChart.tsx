@@ -16,17 +16,15 @@ const chartConfig = {
 
 /**
  * Horizontal bar chart: items needing admin action (pending intakes, doctor instructions, new enrollments).
- * Answers: What needs my action? 
+ * Answers: What needs my action?
  */
 const NeedsAttentionBarChart = () => {
   return (
-    <div className="rounded-lg border border-border/80 bg-card p-4 shadow-sm">
-      <h3 className="text-foreground text-sm font-semibold">
-        Needs attention
-      </h3>
+    <div className="border-border/80 bg-card rounded-lg border p-4 shadow-sm">
+      <h3 className="text-foreground text-sm font-semibold">Needs attention</h3>
       <p className="text-muted-foreground mt-0.5 text-xs">
-        Items that need your action: pending intakes, doctor instructions,
-        new enrollments this week.
+        Items that need your action: pending intakes, doctor instructions, new
+        enrollments this week.
       </p>
       <ChartContainer
         id="needs-attention"

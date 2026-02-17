@@ -21,8 +21,7 @@ export const STAT_CARD_ICONS: StatCardIconMap = {
 /** Trend direction → badge class names (light: theme colors from globals.css, dark: fallback). */
 export const TREND_STYLE_BY_DIRECTION = {
   up: 'bg-chart-1/15 text-chart-1 dark:bg-emerald-500/15 dark:text-emerald-400',
-  down:
-    'bg-destructive/15 text-destructive dark:bg-red-500/15 dark:text-red-400',
+  down: 'bg-destructive/15 text-destructive dark:bg-red-500/15 dark:text-red-400',
 } as const;
 
 /** Default icon container and icon color when not provided. */
