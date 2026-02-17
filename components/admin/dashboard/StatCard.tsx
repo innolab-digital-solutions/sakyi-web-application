@@ -63,26 +63,26 @@ export function StatCard({
   return (
     <article
       className={cn(
-        'group relative overflow-hidden rounded-lg border border-border/60 shadow-sm transition-all duration-200 hover:shadow-md hover:border-border',
+        'group border-border/60 hover:border-border relative overflow-hidden rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md',
         cardBgClass ?? 'bg-card',
-        className
+        className,
       )}
     >
       <span
-        className={cn('absolute left-0 top-0 h-full w-0.5', accentClass)}
+        className={cn('absolute top-0 left-0 h-full w-0.5', accentClass)}
         aria-hidden
       />
 
       <div className="flex flex-col gap-2 p-3 pl-4">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-muted-foreground text-xs font-medium truncate">
+          <p className="text-muted-foreground truncate text-xs font-medium">
             {title}
           </p>
           <div
             className={cn(
               'flex size-8 shrink-0 items-center justify-center rounded-md',
               iconBgClass,
-              iconClass
+              iconClass,
             )}
           >
             <Icon className="size-4" strokeWidth={2} />
@@ -100,7 +100,7 @@ export function StatCard({
                 'inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-semibold',
                 trend.direction === 'up'
                   ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
-                  : 'bg-red-500/15 text-red-700 dark:text-red-400'
+                  : 'bg-red-500/15 text-red-700 dark:text-red-400',
               )}
             >
               {trend.direction === 'up' ? (
@@ -108,8 +108,8 @@ export function StatCard({
               ) : (
                 <TrendingDown className="size-3" />
               )}
-              {trend.direction === 'up' ? '+' : ''}{trend.value}%
-              {trend.label ? ` ${trend.label}` : ''}
+              {trend.direction === 'up' ? '+' : ''}
+              {trend.value}%{trend.label ? ` ${trend.label}` : ''}
             </span>
           )}
           {subtitle && (

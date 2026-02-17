@@ -79,7 +79,8 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     id: '9',
     type: 'system',
     title: 'System maintenance scheduled',
-    message: 'Planned maintenance on Sunday 2am–4am UTC. Brief downtime expected.',
+    message:
+      'Planned maintenance on Sunday 2am–4am UTC. Brief downtime expected.',
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 120),
     read: true,
   },
@@ -96,7 +97,8 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     id: '11',
     type: 'doctor-instruction',
     title: 'Doctor instruction updated',
-    message: 'Dr. James Wong revised dietary restrictions for client Anna Park.',
+    message:
+      'Dr. James Wong revised dietary restrictions for client Anna Park.',
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 168),
     read: true,
     href: '/admin/doctor-instructions',
@@ -105,7 +107,8 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     id: '12',
     type: 'program',
     title: 'New program published',
-    message: 'Movement Library – Stretching module is now available for clients.',
+    message:
+      'Movement Library – Stretching module is now available for clients.',
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 192),
     read: false,
   },
@@ -148,7 +151,8 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     id: '17',
     type: 'reminder',
     title: 'Monthly report ready',
-    message: 'February enrollment and retention report is available for download.',
+    message:
+      'February enrollment and retention report is available for download.',
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 336),
     read: true,
   },

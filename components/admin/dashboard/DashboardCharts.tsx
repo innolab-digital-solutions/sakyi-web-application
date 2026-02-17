@@ -65,7 +65,7 @@ export function DashboardCharts() {
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       {/* Enrollments & intakes over time (area chart) */}
-      <div className="rounded-lg border border-border/80 bg-card p-4 shadow-sm">
+      <div className="border-border/80 bg-card rounded-lg border p-4 shadow-sm">
         <h3 className="text-foreground mb-4 text-sm font-semibold">
           Enrollments & intakes
         </h3>
@@ -110,7 +110,7 @@ export function DashboardCharts() {
       </div>
 
       {/* Clients by program (bar chart) */}
-      <div className="rounded-lg border border-border/80 bg-card p-4 shadow-sm">
+      <div className="border-border/80 bg-card rounded-lg border p-4 shadow-sm">
         <h3 className="text-foreground mb-4 text-sm font-semibold">
           Clients by program
         </h3>
@@ -137,10 +137,7 @@ export function DashboardCharts() {
             <ChartTooltip content={<ChartTooltipContent />} />
             <Bar dataKey="clients" radius={[0, 4, 4, 0]} maxBarSize={32}>
               {CLIENTS_BY_PROGRAM.map((_, index) => (
-                <Cell
-                  key={index}
-                  fill={CLIENTS_BY_PROGRAM_COLORS[index]}
-                />
+                <Cell key={index} fill={CLIENTS_BY_PROGRAM_COLORS[index]} />
               ))}
             </Bar>
           </BarChart>
@@ -148,7 +145,7 @@ export function DashboardCharts() {
       </div>
 
       {/* Enrollment status (pie chart) - full width on large so it sits below or in grid */}
-      <div className="rounded-lg border border-border/80 bg-card p-4 shadow-sm lg:col-span-2">
+      <div className="border-border/80 bg-card rounded-lg border p-4 shadow-sm lg:col-span-2">
         <h3 className="text-foreground mb-4 text-sm font-semibold">
           Enrollment status
         </h3>

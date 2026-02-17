@@ -12,10 +12,7 @@ import { Bell, CheckCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NotificationCard } from './NotificationCard';
 import { MOCK_NOTIFICATIONS } from './mock-notifications';
-import {
-  NOTIFICATION_TAB_FILTERS,
-  type NotificationTabFilter,
-} from './types';
+import { NOTIFICATION_TAB_FILTERS, type NotificationTabFilter } from './types';
 
 interface NotificationsDrawerProps {
   open: boolean;
@@ -27,14 +24,18 @@ interface NotificationsDrawerProps {
  * Tabs filter by type: All, System, Activity.
  * Styled to align with the health and wellness admin dashboard.
  */
-export function NotificationsDrawer({ open, onOpenChange }: NotificationsDrawerProps) {
+export function NotificationsDrawer({
+  open,
+  onOpenChange,
+}: NotificationsDrawerProps) {
   const [activeTab, setActiveTab] = useState<NotificationTabFilter>('all');
 
   const unreadCount = MOCK_NOTIFICATIONS.filter((n) => !n.read).length;
 
   const filteredNotifications = useMemo(() => {
     if (activeTab === 'all') return MOCK_NOTIFICATIONS;
-    if (activeTab === 'system') return MOCK_NOTIFICATIONS.filter((n) => n.type === 'system');
+    if (activeTab === 'system')
+      return MOCK_NOTIFICATIONS.filter((n) => n.type === 'system');
     return MOCK_NOTIFICATIONS.filter((n) => n.type !== 'system');
   }, [activeTab]);
 
@@ -42,18 +43,18 @@ export function NotificationsDrawer({ open, onOpenChange }: NotificationsDrawerP
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="flex w-full flex-col border-l border-border/80 bg-background p-0 sm:max-w-md"
+        className="border-border/80 bg-background flex w-full flex-col border-l p-0 sm:max-w-md"
         showCloseButton={true}
       >
-        <SheetHeader className="border-border/80 border-b bg-muted/30 px-5 py-4">
+        <SheetHeader className="border-border/80 bg-muted/30 border-b px-5 py-4">
           <div className="flex items-center justify-between gap-3 pr-8">
             <SheetTitle className="text-foreground flex items-center gap-2 text-lg font-semibold">
-              <span className="bg-[#0c96c4]/10 text-[#0c96c4] flex size-9 items-center justify-center rounded-lg">
+              <span className="flex size-9 items-center justify-center rounded-lg bg-[#0c96c4]/10 text-[#0c96c4]">
                 <Bell className="size-5" />
               </span>
               Notifications
               {unreadCount > 0 && (
-                <span className="bg-[#0c96c4] text-primary-foreground rounded-full px-2 py-0.5 text-xs font-medium">
+                <span className="text-primary-foreground rounded-full bg-[#0c96c4] px-2 py-0.5 text-xs font-medium">
                   {unreadCount}
                 </span>
               )}
@@ -72,7 +73,7 @@ export function NotificationsDrawer({ open, onOpenChange }: NotificationsDrawerP
 
           {/* Tabs: All, System, Activity */}
           <div
-            className="border-border/80 -mx-5 -mb-px flex gap-0.5 overflow-x-auto border-b px-4 pb-0 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent"
+            className="border-border/80 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent -mx-5 -mb-px flex gap-0.5 overflow-x-auto border-b px-4 pb-0"
             role="tablist"
             aria-label="Notification type"
           >
@@ -84,9 +85,9 @@ export function NotificationsDrawer({ open, onOpenChange }: NotificationsDrawerP
                 aria-selected={activeTab === value}
                 onClick={() => setActiveTab(value)}
                 className={cn(
-                  'text-muted-foreground hover:text-foreground shrink-0 border-b-2 border-transparent px-3 py-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0c96c4]/30 focus-visible:ring-offset-1',
+                  'text-muted-foreground hover:text-foreground shrink-0 border-b-2 border-transparent px-3 py-2.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-[#0c96c4]/30 focus-visible:ring-offset-1 focus-visible:outline-none',
                   activeTab === value &&
-                    'border-[#0c96c4] text-[#0c96c4] hover:text-[#0c96c4]'
+                    'border-[#0c96c4] text-[#0c96c4] hover:text-[#0c96c4]',
                 )}
               >
                 {label}

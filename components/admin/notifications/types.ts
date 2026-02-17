@@ -15,7 +15,10 @@ export type NotificationType =
 export type NotificationTabFilter = 'all' | 'system' | 'activity';
 
 /** The three notification tabs: All, System, Activity. */
-export const NOTIFICATION_TAB_FILTERS: { value: NotificationTabFilter; label: string }[] = [
+export const NOTIFICATION_TAB_FILTERS: {
+  value: NotificationTabFilter;
+  label: string;
+}[] = [
   { value: 'all', label: 'All' },
   { value: 'system', label: 'System' },
   { value: 'activity', label: 'Activity' },
