@@ -1,4 +1,4 @@
-import type { StatCardIconName } from '@/components/admin/modules/dashboard/StatsCard';
+import type { StatCardIconName } from '@/components/admin/modules/dashboard/StatsCard/types';
 
 /**
  * Dashboard overview stats aligned with admin navigation and health & wellness program operations.

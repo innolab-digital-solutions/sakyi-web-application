@@ -1,6 +1,28 @@
 import { DASHBOARD_STATS } from '@/config/dashboard-stats';
 import StatsCard from '@/components/admin/modules/dashboard/StatsCard';
-import { DashboardCharts } from '@/components/admin/modules/dashboard/DashboardCharts';
+import {
+  ClientsByProgramBarChart,
+  EnrollmentStatusChart,
+  NeedsAttentionBarChart,
+  NewClientsOverTimeChart,
+  ParticipationOverTimeChart,
+} from '@/components/admin/modules/dashboard/Charts';
+
+const CHART_LAYOUT: { id: string; span?: 2 }[] = [
+  { id: 'participation' },
+  { id: 'new-clients' },
+  { id: 'enrollment-status' },
+  { id: 'needs-attention' },
+  { id: 'clients-by-program', span: 2 },
+];
+
+const CHART_COMPONENTS = {
+  participation: ParticipationOverTimeChart,
+  'new-clients': NewClientsOverTimeChart,
+  'clients-by-program': ClientsByProgramBarChart,
+  'enrollment-status': EnrollmentStatusChart,
+  'needs-attention': NeedsAttentionBarChart,
+} as const;
 
 export default function DashboardPage() {
   return (
@@ -15,7 +37,7 @@ export default function DashboardPage() {
       </div>
 
       <section aria-label="Dashboard overview">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {DASHBOARD_STATS.map((stat) => (
             <StatsCard
               key={stat.id}
@@ -32,7 +54,19 @@ export default function DashboardPage() {
       </section>
 
       <section aria-label="Charts">
-        <DashboardCharts />
+        <div className="grid gap-6 lg:grid-cols-2">
+          {CHART_LAYOUT.map(({ id, span }) => {
+            const Chart = CHART_COMPONENTS[id as keyof typeof CHART_COMPONENTS];
+            return (
+              <div
+                key={id}
+                className={span === 2 ? 'lg:col-span-2' : undefined}
+              >
+                <Chart />
+              </div>
+            );
+          })}
+        </div>
       </section>
     </div>
   );
