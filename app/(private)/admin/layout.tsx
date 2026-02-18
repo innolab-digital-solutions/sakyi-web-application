@@ -1,5 +1,5 @@
 import TanstackQueryProvider from '@/components/shared/TanstackQueryProvider';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { Inter } from 'next/font/google';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import DashboardSidebar from '@/components/admin/layouts/DashboardSidebar';

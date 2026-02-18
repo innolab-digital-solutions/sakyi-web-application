@@ -12,9 +12,9 @@ import type {
  * Traverses nested objects based on the given key, and returns the string value if found;
  * otherwise returns undefined.
  *
- * @param source - The base translation object or undefined.
- * @param key - The translation key, using dot notation for nested values, e.g. "home.title".
- * @returns The translated string if found, otherwise undefined.
+ * @param {TranslationObject | undefined} source - The base translation object or undefined.
+ * @param {string} key - The translation key, using dot notation for nested values, e.g. "home.title".
+ * @returns {string | undefined} The translated string if found, otherwise undefined.
  */
 const resolveKey = (
   source: TranslationObject | undefined,
@@ -42,7 +42,7 @@ const resolveKey = (
  * Returns the full dictionary of locale data (en, my). Use when you need
  * raw translation objects; for resolving a single key use `getTranslation(language, key)`.
  *
- * @returns All locale dictionaries keyed by language code.
+ * @returns {Translations} All locale dictionaries keyed by language code.
  */
 export const getDictionaries = (): Translations => {
   return { en, my };
@@ -53,7 +53,7 @@ export const getDictionaries = (): Translations => {
  * or returns the English language on the server.
  * Only returns supported languages; falls back to the English language otherwise.
  *
- * @returns The currently selected language code ('en' or 'my').
+ * @returns {SupportedLanguage} The currently selected language code ('en' or 'my').
  */
 export const getCurrentLanguage = (): SupportedLanguage => {
   if (typeof window === 'undefined') {
@@ -75,9 +75,9 @@ export const getCurrentLanguage = (): SupportedLanguage => {
  * is known (e.g. from React state); use `translate(key)` when language should be read
  * from persistence (e.g. server or non-context usage).
  *
- * @param language - The language code to translate into.
- * @param key - The translation key, using dot notation (e.g. "public.home.title").
- * @returns The translated string, or the key if not found.
+ * @param {SupportedLanguage} language - The language code to translate into.
+ * @param {string} key - The translation key, using dot notation (e.g. "public.home.title").
+ * @returns {string} The translated string, or the key if not found.
  */
 export const getTranslation = (
   language: SupportedLanguage,
@@ -99,8 +99,8 @@ export const getTranslation = (
  * or default on server). For components inside LanguageProvider, prefer the context's
  * translate function so it reacts to language state.
  *
- * @param key - The translation key to look up, using dot notation for hierarchy.
- * @returns The translated string matching the key, or the key itself if no translation is found.
+ * @param {string} key - The translation key to look up, using dot notation for hierarchy.
+ * @returns {string} The translated string matching the key, or the key itself if no translation is found.
  */
 export const translate = (key: string): string => {
   return getTranslation(getCurrentLanguage(), key);
