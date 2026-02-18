@@ -10,10 +10,7 @@ import {
   useState,
 } from 'react';
 
-import {
-  type SupportedLanguage,
-  getTranslation,
-} from '@/lib/localization';
+import { type SupportedLanguage, getTranslation } from '@/lib/localization';
 
 type LanguageContextValue = {
   language: SupportedLanguage;

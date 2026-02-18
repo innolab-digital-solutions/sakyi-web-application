@@ -105,4 +105,3 @@ export const getTranslation = (
 export const translate = (key: string): string => {
   return getTranslation(getCurrentLanguage(), key);
 };
-
