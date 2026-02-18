@@ -13,9 +13,28 @@ import {
   UserSquare2,
 } from 'lucide-react';
 import { PATHS } from '@/config/paths';
-import { NavItem } from '@/types/common';
+import type { NavItem } from './types';
 
-export const DASHBOARD_NAVIGATION: NavItem[] = [
+/**
+ * ADMIN_NAVIGATION defines the sidebar navigation structure
+ * for authenticated admin users (dashboard/control panel).
+ *
+ * Each item conforms to the NavItem interface:
+ *  - name: Display label for the navigation link
+ *  - icon: Lucide icon component used for visualization
+ *  - path: Navigation route (use '#' as a placeholder for unimplemented routes)
+ *  - subitems: Optional dropdown/secondary links (empty array if no children)
+ *
+ * Guidelines for contributors:
+ *  - Maintain consistent naming and ordering for clarity.
+ *  - Use specific PATHS.ADMIN entries for real routes; use '#' as a placeholder only until the route is implemented.
+ *  - If adding complex nested navigation, define proper subitems.
+ *  - Icons should be chosen for semantic alignment with the navigation item.
+ *  - Do not expose client-only or non-admin routes here.
+ *
+ * @see NavItem (config/navigation/types.ts)
+ */
+export const ADMIN_NAVIGATION: NavItem[] = [
   {
     name: 'Dashboard',
     icon: LayoutDashboard,
