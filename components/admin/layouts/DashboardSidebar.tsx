@@ -18,7 +18,7 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import Image from 'next/image';
-import { DASHBOARD_NAVIGATION } from '@/config/navigations';
+import { NAVIGATION } from '@/config/navigation';
 
 import {
   Collapsible,
@@ -56,7 +56,7 @@ const DashboardSidebar = () => {
       <SidebarContent className="scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent py-3.5">
         <SidebarGroup>
           <SidebarMenu>
-            {DASHBOARD_NAVIGATION.map((item, index) => {
+            {NAVIGATION.ADMIN.map((item, index) => {
               // Determine if this navigation item has subitems
               const hasSubitems = item.subitems && item.subitems.length > 0;
 
