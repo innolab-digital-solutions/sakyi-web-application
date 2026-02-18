@@ -10,19 +10,15 @@ import {
   useState,
 } from 'react';
 
-import en from '@/lib/locales/en';
-import my from '@/lib/locales/my';
+import {
+  type SupportedLanguage,
+  getTranslation,
+} from '@/lib/localization';
 
-import type {
-  LanguageContextValue,
-  SupportedLanguage,
-  TranslationObject,
-  Translations,
-} from './types';
-
-const translations: Translations = {
-  en,
-  my,
+type LanguageContextValue = {
+  language: SupportedLanguage;
+  setLanguage: (lang: SupportedLanguage) => void;
+  translate: (key: string) => string;
 };
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
@@ -68,37 +64,10 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
   }, []);
 
   /**
-   * Resolve a translation key (e.g. "home.title") for the
-   * current language, falling back to the English translation when
-   * the key is missing in the active locale.
+   * Resolve a translation key for the current language (delegates to localization lib).
    */
   const translate = useCallback(
-    (key: string) => {
-      const segments = key.split('.');
-
-      const resolve = (source: TranslationObject | undefined): unknown => {
-        if (!source) return undefined;
-
-        return segments.reduce<unknown>((current, segment) => {
-          if (
-            current &&
-            typeof current === 'object' &&
-            segment in (current as TranslationObject)
-          ) {
-            return (current as TranslationObject)[segment];
-          }
-          return undefined;
-        }, source);
-      };
-
-      const fromActive = resolve(translations[language]);
-      const fromFallback = resolve(translations.en);
-
-      if (typeof fromActive === 'string') return fromActive;
-      if (typeof fromFallback === 'string') return fromFallback;
-
-      return key;
-    },
+    (key: string) => getTranslation(language, key),
     [language],
   );
 
