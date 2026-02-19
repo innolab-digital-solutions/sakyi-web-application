@@ -1,4 +1,5 @@
 import type { NavItem } from './types';
+import { PATHS } from '@/config/paths';
 
 /**
  * HEADER_NAVIGATION defines the primary navigation structure
@@ -21,23 +22,23 @@ import type { NavItem } from './types';
 export const HEADER_NAVIGATION: NavItem[] = [
   {
     name: 'Home',
-    path: '#',
+    path: PATHS.PUBLIC.HOME,
   },
   {
     name: 'About',
-    path: '#',
+    path: PATHS.PUBLIC.ABOUT,
   },
   {
     name: 'Programs',
-    path: '#',
+    path: PATHS.PUBLIC.PROGRAMS,
   },
   {
     name: 'Blog',
-    path: '#',
+    path: PATHS.PUBLIC.BLOG,
   },
   {
     name: 'Contact',
-    path: '#',
+    path: PATHS.PUBLIC.CONTACT,
   },
 ];
 
