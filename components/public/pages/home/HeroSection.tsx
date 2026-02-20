@@ -19,20 +19,11 @@ const HeroSection = () => {
     <SectionContainer id="hero-section" className="bg-white">
       <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
         {/* Left Column: Headline, descriptive text, and call-to-action buttons */}
-        <div
-          className="space-y-8"
-          data-aos="zoom-in"
-          data-aos-duration="1200"
-          data-aos-easing="ease-out-cubic"
-        >
+        <div className="space-y-8">
           {/* Section Badge: Short eye-catching phrase with icon */}
           <SectionBadge
             icon={<Sparkles className="h-4 w-4" />}
             text="Transform Your Life"
-            data-aos="slide-down"
-            data-aos-delay="200"
-            data-aos-duration="800"
-            data-aos-easing="ease-out-back"
           />
 
           {/* Section Headline: Main marketing message with multi-line headline and subtitle */}
@@ -42,32 +33,17 @@ const HeroSection = () => {
               <span
                 className="block"
                 style={{ fontFamily: 'Poppins, sans-serif' }}
-                data-aos="fade-up"
-                data-aos-delay="300"
-                data-aos-duration="1000"
-                data-aos-easing="ease-out-cubic"
               >
                 Transform Your Life
               </span>
 
               {/* Hero headline - gradient highlight */}
-              <GradientText
-                data-aos="fade-up"
-                data-aos-delay="500"
-                data-aos-duration="1000"
-                data-aos-easing="ease-out-cubic"
-              >
-                for Good
-              </GradientText>
+              <GradientText>for Good</GradientText>
 
               {/* Hero headline - supporting subtitle */}
               <span
                 className="text-muted-foreground block text-2xl font-light sm:text-3xl"
                 style={{ fontFamily: 'Inter, sans-serif' }}
-                data-aos="fade-up"
-                data-aos-delay="700"
-                data-aos-duration="1000"
-                data-aos-easing="ease-out-cubic"
               >
                 with Doctor-Designed Programs
               </span>
@@ -77,10 +53,6 @@ const HeroSection = () => {
             <p
               className="text-foreground/80 max-w-2xl text-lg leading-relaxed"
               style={{ fontFamily: 'Inter, sans-serif' }}
-              data-aos="slide-up"
-              data-aos-delay="900"
-              data-aos-duration="1000"
-              data-aos-easing="ease-out-cubic"
             >
               Join thousands who&apos;ve achieved their health goals with our
               proven, science-backed programs. Get personalized guidance from
@@ -91,10 +63,6 @@ const HeroSection = () => {
           {/* Call To Action Buttons: Start and Learn More */}
           <div
             className="flex flex-col gap-4 sm:flex-row"
-            data-aos="fade-up"
-            data-aos-delay="1100"
-            data-aos-duration="1000"
-            data-aos-easing="ease-out-cubic"
           >
             {/* Primary CTA button */}
             <GradientButton>
@@ -114,11 +82,7 @@ const HeroSection = () => {
 
         {/* Right Column: Main image and floating highlight cards for visual appeal */}
         <div
-          className="relative origin-top"
-          data-aos="zoom-in"
-          data-aos-duration="1200"
-          data-aos-delay="400"
-          data-aos-easing="ease-out-cubic"
+          className="relative"
         >
           <div className="relative">
             <DecorativeImage
@@ -135,10 +99,6 @@ const HeroSection = () => {
               description="Tailored to your needs"
               className="-top-6 -left-2 sm:-left-4 lg:-top-4 lg:-left-6"
               iconClassName="bg-linear-to-r from-[#35bec5] to-[#4bc4db]"
-              data-aos="bounce-in"
-              data-aos-duration="1000"
-              data-aos-easing="ease-out-back"
-              data-aos-delay="600"
             />
 
             {/* Doctor Guided Floating Card */}
@@ -148,10 +108,6 @@ const HeroSection = () => {
               description="Expert supervision"
               className="-right-2 -bottom-6 sm:-right-4 lg:-right-6"
               iconClassName="bg-linear-to-r from-[#4bc4db] to-[#0c96c4]"
-              data-aos="bounce-in"
-              data-aos-duration="1000"
-              data-aos-easing="ease-out-back"
-              data-aos-delay="800"
             />
           </div>
         </div>
