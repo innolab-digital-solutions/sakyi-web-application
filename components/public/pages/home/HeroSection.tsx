@@ -61,9 +61,7 @@ const HeroSection = () => {
           </div>
 
           {/* Call To Action Buttons: Start and Learn More */}
-          <div
-            className="flex flex-col gap-4 sm:flex-row"
-          >
+          <div className="flex flex-col gap-4 sm:flex-row">
             {/* Primary CTA button */}
             <GradientButton>
               <Heart className="h-5 w-5" />
@@ -81,9 +79,7 @@ const HeroSection = () => {
         </div>
 
         {/* Right Column: Main image and floating highlight cards for visual appeal */}
-        <div
-          className="relative"
-        >
+        <div className="relative">
           <div className="relative">
             <DecorativeImage
               src="/images/home-hero.jpg"
