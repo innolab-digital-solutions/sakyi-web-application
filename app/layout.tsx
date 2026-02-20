@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { LanguageProvider } from '@/context/LanguageContext';
+import TanstackQueryProvider from '@/components/shared/TanstackQueryProvider';
 
 export const metadata: Metadata = {
   title: 'SaKyi Health & Wellness',
@@ -16,9 +17,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <TooltipProvider>
-          <LanguageProvider>{children}</LanguageProvider>
-        </TooltipProvider>
+        <TanstackQueryProvider>
+          <TooltipProvider>
+            <LanguageProvider>{children}</LanguageProvider>
+          </TooltipProvider>
+        </TanstackQueryProvider>
       </body>
     </html>
   );
