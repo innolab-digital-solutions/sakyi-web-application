@@ -3,7 +3,7 @@ import Image, { type ImageProps } from 'next/image';
 const DecorativeImage = ({ alt, ...imageProps }: ImageProps) => {
   return (
     <div className="group relative overflow-hidden rounded-3xl shadow-2xl">
-      <div className="aspect-4/5 w-full sm:aspect-3/4">
+      <div className="aspect-4/5 h-180 w-full sm:aspect-3/4">
         <Image
           alt={alt}
           {...imageProps}

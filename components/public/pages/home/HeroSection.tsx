@@ -16,7 +16,7 @@ import OutlineButton from '@/components/public/shared/OutlineButton';
 
 const HeroSection = () => {
   return (
-    <SectionContainer id="hero-section" className="bg-background">
+    <SectionContainer id="hero-section" className="bg-white">
       <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
         {/* Left Column: Headline, descriptive text, and call-to-action buttons */}
         <div
@@ -29,6 +29,10 @@ const HeroSection = () => {
           <SectionBadge
             icon={<Sparkles className="h-4 w-4" />}
             text="Transform Your Life"
+            data-aos="slide-down"
+            data-aos-delay="200"
+            data-aos-duration="800"
+            data-aos-easing="ease-out-back"
           />
 
           {/* Section Headline: Main marketing message with multi-line headline and subtitle */}
@@ -110,7 +114,7 @@ const HeroSection = () => {
 
         {/* Right Column: Main image and floating highlight cards for visual appeal */}
         <div
-          className="relative"
+          className="relative origin-top"
           data-aos="zoom-in"
           data-aos-duration="1200"
           data-aos-delay="400"
@@ -147,7 +151,7 @@ const HeroSection = () => {
               data-aos="bounce-in"
               data-aos-duration="1000"
               data-aos-easing="ease-out-back"
-              data-aos-delay="600"
+              data-aos-delay="800"
             />
           </div>
         </div>
