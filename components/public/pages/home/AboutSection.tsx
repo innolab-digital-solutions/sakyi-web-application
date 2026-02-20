@@ -35,9 +35,7 @@ const AboutSection = () => {
     <SectionContainer id="about-section" className="bg-background">
       <div className="grid items-center gap-16 lg:grid-cols-2">
         {/* Left Column: Visual storytelling with decorative image and floating highlight cards */}
-        <div
-          className="relative"
-        >
+        <div className="relative">
           <div className="relative">
             {/* Main illustrative image communicating wellness and mindfulness */}
             <DecorativeImage
@@ -68,9 +66,7 @@ const AboutSection = () => {
         </div>
 
         {/* Right Column: Headline, descriptive introduction, features, and strong call to action */}
-        <div
-          className="space-y-8"
-        >
+        <div className="space-y-8">
           {/* Section Header: Badge, headline, and program summary */}
           <div className="space-y-6">
             {/* Section badge introduces the about section with icon */}

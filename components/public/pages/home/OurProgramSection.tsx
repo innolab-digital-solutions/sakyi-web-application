@@ -1,8 +1,10 @@
+import SectionContainer from '@/components/public/shared/SectionContainer';
+
 const OurProgramSection = () => {
   return (
-    <div>
+    <SectionContainer id="our-programs-section" className="bg-white">
       <h1>Our Programs Section</h1>
-    </div>
+    </SectionContainer>
   );
 };
 

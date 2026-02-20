@@ -12,7 +12,7 @@ import Link from 'next/link';
 
 const MobileAppSection = () => {
   return (
-    <SectionContainer id="mobile-app-section" className="">
+    <SectionContainer id="mobile-app-section" className="bg-white">
       <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
         {/* Left Column - Text Content */}
         <div
