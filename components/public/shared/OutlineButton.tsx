@@ -1,8 +1,13 @@
-const OutlineButton = () => {
+import { PropsWithChildren } from 'react';
+
+const OutlineButton = ({ children }: PropsWithChildren) => {
   return (
-    <div>
-      <h1>Outline Button</h1>
-    </div>
+    <button
+      className="group text-foreground/80 border-gray-300 inline-flex items-center justify-center space-x-2 rounded-full border bg-white px-6 py-3 text-base font-semibold shadow-lg transition-all duration-300 hover:scale-105 hover:border-[#35bec5] hover:text-[#35bec5] hover:shadow-lg"
+      style={{ fontFamily: 'Inter, sans-serif' }}
+    >
+      {children}
+    </button>
   );
 };
 

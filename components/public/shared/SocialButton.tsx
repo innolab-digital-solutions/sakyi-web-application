@@ -1,7 +1,7 @@
-interface SocialButtonProps {
+type SocialButtonProps = {
   icon: React.ReactNode;
   href: string;
-}
+};
 
 const SocialButton = ({ icon, href }: SocialButtonProps) => {
   return (
