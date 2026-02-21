@@ -8,7 +8,7 @@ export default function AdminLoginPage() {
       {/* Two-column grid for large screens: branding left, form right */}
       <div className="grid min-h-120 grid-cols-1 md:min-h-150 lg:grid-cols-2">
         {/* ================= Left Side: Logo & Info ================= */}
-        <div className="from-primary/90 via-primary to-accent/90 relative hidden flex-col items-center justify-center overflow-hidden bg-linear-to-br p-8 text-white lg:flex lg:p-12">
+        <div className="from-primary via-primary/90 to-accent relative hidden flex-col items-center justify-center overflow-hidden bg-linear-to-br p-8 text-white lg:flex lg:p-12">
           <div className="relative z-10 text-center">
             {/* Brand white logo  */}
             <div className="mb-6 flex items-center justify-center">

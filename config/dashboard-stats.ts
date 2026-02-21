@@ -49,15 +49,6 @@ export const DASHBOARD_STATS: DashboardStatItem[] = [
     iconClass: 'text-chart-2',
   },
   {
-    id: 'programs',
-    title: 'Programs',
-    value: 18,
-    subtitle: 'Nutrition & movement',
-    iconName: 'FolderKanban',
-    iconBgClass: 'bg-chart-3/15',
-    iconClass: 'text-chart-3',
-  },
-  {
     id: 'pending-intakes',
     title: 'Pending Intakes',
     value: 23,
