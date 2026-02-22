@@ -10,12 +10,17 @@ import {
   useState,
 } from 'react';
 
-import { type SupportedLanguage, getTranslation } from '@/lib/localization';
+import {
+  type SupportedLanguage,
+  type TranslationReplacements,
+  getTranslation,
+} from '@/lib/localization';
 
 type LanguageContextValue = {
   language: SupportedLanguage;
   setLanguage: (lang: SupportedLanguage) => void;
-  translate: (key: string) => string;
+  /** Translate key; optional replacements interpolate :placeholder in the string. */
+  translate: (key: string, replacements?: TranslationReplacements) => string;
 };
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
@@ -62,9 +67,11 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
 
   /**
    * Resolve a translation key for the current language (delegates to localization lib).
+   * Pass replacements to interpolate :placeholder tokens, e.g. translate('validation.required', { attribute: 'email' }).
    */
   const translate = useCallback(
-    (key: string) => getTranslation(language, key),
+    (key: string, replacements?: TranslationReplacements) =>
+      getTranslation(language, key, replacements),
     [language],
   );
 
