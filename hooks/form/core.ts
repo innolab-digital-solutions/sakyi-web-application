@@ -3,19 +3,19 @@ import {
   type ApiError,
   type ApiResponse,
   type HttpMethod,
-} from "@/lib/api/client";
-import { useCallback, useRef, useState } from "react";
-import { ZodType } from "zod";
-import { buildSubmitShortcuts, buildTransformChain } from "./builders";
+} from '@/lib/api/client';
+import { useCallback, useRef, useState } from 'react';
+import { ZodType } from 'zod';
+import { buildSubmitShortcuts, buildTransformChain } from './builders';
 import {
   FormData,
   FormErrors,
   InternalSubmitOptions,
   UseFormOptions,
   UseFormReturn,
-} from "./types";
-import { deepClone, isEqual } from "./utils";
-import { validate } from "./validation";
+} from './types';
+import { deepClone, isEqual } from './utils';
+import { validate } from './validation';
 
 /**
  * Inertia.js-style form state management hook with Zod validation.
@@ -65,7 +65,7 @@ export const useForm = <TSchema extends ZodType>(
     ) => {
       setDataState((prev) => {
         const next: FormData<TSchema> =
-          typeof keyOrData === "string" && value !== undefined
+          typeof keyOrData === 'string' && value !== undefined
             ? ({ ...prev, [keyOrData]: value } as FormData<TSchema>)
             : ({
                 ...prev,
@@ -77,7 +77,7 @@ export const useForm = <TSchema extends ZodType>(
       });
     },
     [defaults],
-  ) as UseFormReturn<TSchema>["setData"];
+  ) as UseFormReturn<TSchema>['setData'];
 
   /**
    * Reset form fields to default values.
@@ -111,7 +111,7 @@ export const useForm = <TSchema extends ZodType>(
     ) => {
       if (!field) {
         setDefaultsState(deepClone(data));
-      } else if (typeof field === "string") {
+      } else if (typeof field === 'string') {
         setDefaultsState(
           (prev) =>
             ({
@@ -130,7 +130,7 @@ export const useForm = <TSchema extends ZodType>(
       }
     },
     [data],
-  ) as UseFormReturn<TSchema>["setDefaults"];
+  ) as UseFormReturn<TSchema>['setDefaults'];
 
   /**
    * Set both data and defaults atomically.
@@ -159,7 +159,7 @@ export const useForm = <TSchema extends ZodType>(
       field: keyof FormData<TSchema> | string | FormErrors<FormData<TSchema>>,
       message?: string,
     ) => {
-      if (typeof field === "string" && message) {
+      if (typeof field === 'string' && message) {
         setErrors((prev) => ({ ...prev, [field]: message }));
       } else {
         setErrors((prev) => ({
@@ -169,7 +169,7 @@ export const useForm = <TSchema extends ZodType>(
       }
     },
     [],
-  ) as UseFormReturn<TSchema>["setError"];
+  ) as UseFormReturn<TSchema>['setError'];
 
   /**
    * Clear validation errors.
@@ -264,33 +264,35 @@ export const useForm = <TSchema extends ZodType>(
             : ({ throwOnError: false } as const);
 
         switch (method) {
-          case "GET":
+          case 'GET':
             response = await http.get<TResponse>(url, requestOptions);
             break;
-          case "POST":
+          case 'POST':
             response = await http.post<TResponse>(url, payload, requestOptions);
             break;
-          case "PUT":
+          case 'PUT':
             response = await http.put<TResponse>(url, payload, requestOptions);
             break;
-          case "PATCH":
-            response = await http.patch<TResponse>(url, payload, requestOptions);
+          case 'PATCH':
+            response = await http.patch<TResponse>(
+              url,
+              payload,
+              requestOptions,
+            );
             break;
-          case "DELETE":
+          case 'DELETE':
             response = await http.delete<TResponse>(url, requestOptions);
             break;
         }
 
-        if (response.status === "error") {
+        if (response.status === 'error') {
           const errorResponse = response as ApiError;
 
           const fieldErrors =
-            (errorResponse.errors as
-              | Record<string, unknown>
-              | undefined) ?? {};
+            (errorResponse.errors as Record<string, unknown> | undefined) ?? {};
           const hasFieldErrors =
             fieldErrors &&
-            typeof fieldErrors === "object" &&
+            typeof fieldErrors === 'object' &&
             Object.keys(fieldErrors).length > 0;
 
           // Treat responses with an errors map as validation errors; others as system failures
@@ -324,7 +326,7 @@ export const useForm = <TSchema extends ZodType>(
    * Returns HTTP method shortcuts that apply the transform before submission.
    */
   const transform = useCallback(
-    (transformFn: Parameters<UseFormReturn<TSchema>["transform"]>[0]) =>
+    (transformFn: Parameters<UseFormReturn<TSchema>['transform']>[0]) =>
       buildTransformChain(submit, transformFn),
     [submit],
   );

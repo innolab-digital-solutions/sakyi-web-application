@@ -1,5 +1,5 @@
-import { ZodType } from "zod";
-import { FormData, FormErrors } from "./types";
+import { ZodType } from 'zod';
+import { FormData, FormErrors } from './types';
 
 /**
  * Run Zod schema validation on form data.
@@ -24,7 +24,7 @@ export const validate = <TSchema extends ZodType>(
 
   for (const issue of result.error.issues) {
     // Join path for nested fields (e.g., "address.city")
-    const path = issue.path.join(".") as keyof FormData<TSchema>;
+    const path = issue.path.join('.') as keyof FormData<TSchema>;
 
     // Only keep the first error per field
     if (!(path in errors)) {

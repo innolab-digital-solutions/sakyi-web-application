@@ -1,6 +1,11 @@
-import { HttpMethod } from "@/lib/api/client/types";
-import { ZodType } from "zod";
-import { InternalSubmitOptions, SubmitOptions, TransformFn, TransformMethods } from "./types";
+import { HttpMethod } from '@/lib/api/client/types';
+import { ZodType } from 'zod';
+import {
+  InternalSubmitOptions,
+  SubmitOptions,
+  TransformFn,
+  TransformMethods,
+} from './types';
 
 /**
  * Internal submit function type that accepts transform.
@@ -20,31 +25,33 @@ type InternalSubmitFn<TSchema extends ZodType> = <TResponse = unknown>(
  * @param submit - Core submit function
  * @returns Object with HTTP method shortcuts
  */
-export const buildSubmitShortcuts = <TSchema extends ZodType>(submit: InternalSubmitFn<TSchema>) => {
+export const buildSubmitShortcuts = <TSchema extends ZodType>(
+  submit: InternalSubmitFn<TSchema>,
+) => {
   const get = <TResponse = unknown>(
     url: string,
     options?: SubmitOptions<TResponse>,
-  ) => submit<TResponse>("GET", url, options);
+  ) => submit<TResponse>('GET', url, options);
 
   const post = <TResponse = unknown>(
     url: string,
     options?: SubmitOptions<TResponse>,
-  ) => submit<TResponse>("POST", url, options);
+  ) => submit<TResponse>('POST', url, options);
 
   const put = <TResponse = unknown>(
     url: string,
     options?: SubmitOptions<TResponse>,
-  ) => submit<TResponse>("PUT", url, options);
+  ) => submit<TResponse>('PUT', url, options);
 
   const patch = <TResponse = unknown>(
     url: string,
     options?: SubmitOptions<TResponse>,
-  ) => submit<TResponse>("PATCH", url, options);
+  ) => submit<TResponse>('PATCH', url, options);
 
   const destroy = <TResponse = unknown>(
     url: string,
     options?: SubmitOptions<TResponse>,
-  ) => submit<TResponse>("DELETE", url, options);
+  ) => submit<TResponse>('DELETE', url, options);
 
   return { get, post, put, patch, destroy };
 };
@@ -68,10 +75,10 @@ export const buildTransformChain = <TSchema extends ZodType>(
       submit<TResponse>(method, url, { ...options, transform: transformFn });
 
   return {
-    get: withMethod("GET"),
-    post: withMethod("POST"),
-    put: withMethod("PUT"),
-    patch: withMethod("PATCH"),
-    destroy: withMethod("DELETE"),
+    get: withMethod('GET'),
+    post: withMethod('POST'),
+    put: withMethod('PUT'),
+    patch: withMethod('PATCH'),
+    destroy: withMethod('DELETE'),
   };
 };

@@ -6,7 +6,7 @@
  * @returns Deep cloned value
  */
 export const deepClone = <T>(value: T): T => {
-  if (typeof structuredClone === "function") {
+  if (typeof structuredClone === 'function') {
     return structuredClone(value);
   }
 
@@ -15,7 +15,7 @@ export const deepClone = <T>(value: T): T => {
     return value.map((item) => deepClone(item)) as unknown as T;
   }
 
-  if (value && typeof value === "object") {
+  if (value && typeof value === 'object') {
     const result: Record<string, unknown> = {};
     for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
       result[key] = deepClone(val);

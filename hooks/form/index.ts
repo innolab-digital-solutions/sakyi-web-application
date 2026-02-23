@@ -1,4 +1,4 @@
-export { useForm } from "./core";
+export { useForm } from './core';
 
 export type {
   FormData,
@@ -8,8 +8,8 @@ export type {
   TransformMethods,
   UseFormOptions,
   UseFormReturn,
-} from "./types";
+} from './types';
 
-export { validate } from "./validation";
+export { validate } from './validation';
 
-export { deepClone, isEqual } from "./utils";
+export { deepClone, isEqual } from './utils';
