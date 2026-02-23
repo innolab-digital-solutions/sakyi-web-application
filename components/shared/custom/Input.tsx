@@ -63,7 +63,6 @@ const Input = React.forwardRef<HTMLInputElement, CustomInputProps>(
       id,
       name,
       type: inputType,
-      required,
       disabled,
       placeholder,
       ref,
