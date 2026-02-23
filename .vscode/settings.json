@@ -1,5 +1,9 @@
 {
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
+<<<<<<< HEAD
   "cSpell.words": ["glassmorphic"]
+=======
+  "cSpell.words": ["Laravel"]
+>>>>>>> 72831c1406a4d7bc20cc1bbc2063f9d2b5b6ebb1
 }
