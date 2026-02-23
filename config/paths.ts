@@ -4,4 +4,11 @@ export const PATHS = {
     CLIENTS: '/admin/clients',
     LOGIN: '/admin/login',
   },
+  PUBLIC: {
+    HOME: '/',
+    ABOUT: '/about',
+    PROGRAMS: '/programs',
+    BLOG: '/blog',
+    CONTACT: '/contact',
+  },
 } as const;

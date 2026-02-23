@@ -53,6 +53,9 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
   /**
    * Update the active language and persist the choice to localStorage.
    * Any unsupported language codes are coerced back to the English default.
+   *
+   * @param {SupportedLanguage} lang - The language code to set.
+   * @returns {void}
    */
   const setLanguage = useCallback((lang: SupportedLanguage) => {
     const nextLang: SupportedLanguage =

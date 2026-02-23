@@ -9,7 +9,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Bell, CheckCheck } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { NotificationCard } from './NotificationCard';
 import { MOCK_NOTIFICATIONS } from './mock-notifications';
 import { NOTIFICATION_TAB_FILTERS, type NotificationTabFilter } from './types';

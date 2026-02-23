@@ -10,7 +10,7 @@ import {
   Bell,
   type LucideIcon,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import type { Notification, NotificationType } from './types';
 
 function formatTimeAgo(date: Date): string {

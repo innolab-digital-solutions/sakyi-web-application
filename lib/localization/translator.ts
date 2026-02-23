@@ -29,9 +29,9 @@ const interpolate = (
  * Traverses nested objects based on the given key, and returns the string value if found;
  * otherwise returns undefined.
  *
- * @param source - The base translation object or undefined.
- * @param key - The translation key, using dot notation for nested values, e.g. "home.title".
- * @returns The translated string if found, otherwise undefined.
+ * @param {TranslationObject | undefined} source - The base translation object or undefined.
+ * @param {string} key - The translation key, using dot notation for nested values, e.g. "home.title".
+ * @returns {string | undefined} The translated string if found, otherwise undefined.
  */
 const resolveKey = (
   source: TranslationObject | undefined,
@@ -59,7 +59,7 @@ const resolveKey = (
  * Returns the full dictionary of locale data (en, my). Use when you need
  * raw translation objects; for resolving a single key use `getTranslation(language, key)`.
  *
- * @returns All locale dictionaries keyed by language code.
+ * @returns {Translations} All locale dictionaries keyed by language code.
  */
 export const getDictionaries = (): Translations => {
   return { en, my };
@@ -70,7 +70,7 @@ export const getDictionaries = (): Translations => {
  * or returns the English language on the server.
  * Only returns supported languages; falls back to the English language otherwise.
  *
- * @returns The currently selected language code ('en' or 'my').
+ * @returns {SupportedLanguage} The currently selected language code ('en' or 'my').
  */
 export const getCurrentLanguage = (): SupportedLanguage => {
   if (typeof window === 'undefined') {

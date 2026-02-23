@@ -4,7 +4,7 @@ import * as React from 'react';
 import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Label as ShadCNLabel } from '@/components/ui/label';
 import { Input as ShadCNInput } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 export type CustomInputProps = Omit<
   React.ComponentPropsWithoutRef<typeof ShadCNInput>,
