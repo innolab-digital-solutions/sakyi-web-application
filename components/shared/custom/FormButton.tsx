@@ -1,7 +1,7 @@
 import { Button as ShadCNButton } from '@/components/ui/button';
 import type { ComponentProps } from 'react';
 import { Spinner as ShadCNSpinner } from '@/components/ui/spinner';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 type FormButtonProps = ComponentProps<typeof ShadCNButton> & {
   processing?: boolean;
