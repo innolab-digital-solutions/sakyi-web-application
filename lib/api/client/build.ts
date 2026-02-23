@@ -65,7 +65,9 @@ export const resolveApiUrl = (endpoint: string): string => {
 /**
  * Converts Headers or record to a plain record for merging. Fetch accepts both; we need a single record so we can add Accept and X-XSRF-TOKEN.
  */
-function toHeadersRecord(headers: RequestInit['headers']): Record<string, string> {
+function toHeadersRecord(
+  headers: RequestInit['headers'],
+): Record<string, string> {
   if (headers == null) return {};
   if (headers instanceof Headers) return Object.fromEntries(headers.entries());
   return { ...(headers as Record<string, string>) };

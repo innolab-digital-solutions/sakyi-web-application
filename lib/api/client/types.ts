@@ -34,7 +34,11 @@ export type ApiResponse<T> = ApiSuccess<T> | ApiError;
  * Fetch cache strategies supported by Next.js.
  * @see https://nextjs.org/docs/app/api-reference/functions/fetch
  */
-export type NextFetchCache = 'default' | 'force-cache' | 'no-store' | 'no-cache';
+export type NextFetchCache =
+  | 'default'
+  | 'force-cache'
+  | 'no-store'
+  | 'no-cache';
 
 /**
  * Next.js fetch `next` option for controlling revalidation and cache tags.
