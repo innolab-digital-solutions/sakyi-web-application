@@ -5,3 +5,5 @@ export type TranslationObject = {
 };
 
 export type Translations = Record<SupportedLanguage, TranslationObject>;
+
+export type TranslationReplacements = Record<string, string>;

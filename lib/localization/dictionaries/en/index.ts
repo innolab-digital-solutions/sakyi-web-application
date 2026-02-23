@@ -1,7 +1,7 @@
-import publicMessages from './public.json';
+import validationMessages from './validation.json';
 
 const en = {
-  public: publicMessages,
+  validation: validationMessages,
 };
 
 export default en;

@@ -1,0 +1,72 @@
+'use client';
+
+import { ArrowRight } from 'lucide-react';
+import Input from '@/components/shared/custom/Input';
+import FormButton from '@/components/shared/custom/FormButton';
+import { LoginSchema } from '@/lib/schema/admin/auth/login';
+import { useForm } from '@/hooks/form';
+import { ENDPOINTS } from '@/config/endpoints';
+import { SyntheticEvent } from 'react';
+
+const LoginForm = () => {
+  const form = useForm(
+    {
+      email: '',
+      password: '',
+    },
+    {
+      schema: LoginSchema,
+    },
+  );
+
+  const handleSubmit = (event: SyntheticEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    form.post(ENDPOINTS.ADMIN.AUTH.LOGIN, {
+      onSuccess: () => {
+        console.log('Login successful');
+      },
+      onError: () => {
+        console.log('Login failed');
+      },
+    });
+  };
+  return (
+    <form className="space-y-3 md:space-y-4" onSubmit={handleSubmit}>
+      {/* Email Address Input */}
+      <Input
+        label="Email Address"
+        id="email"
+        name="email"
+        type="text"
+        placeholder="Enter your email address"
+        required
+        value={String(form.data.email ?? '')}
+        onChange={(event) => form.setData('email', event.target.value)}
+        error={form.errors.email as string}
+        disabled={form.processing}
+      />
+
+      {/* Password Input */}
+      <Input
+        label="Password"
+        id="password"
+        name="password"
+        type="password"
+        placeholder="Enter your password"
+        required
+        value={String(form.data.password ?? '')}
+        onChange={(event) => form.setData('password', event.target.value)}
+        error={form.errors.password as string}
+        disabled={form.processing}
+      />
+
+      {/* Submit Button */}
+      <FormButton disabled={form.processing}>
+        <span>Sign In</span>
+        <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
+      </FormButton>
+    </form>
+  );
+};
+
+export default LoginForm;

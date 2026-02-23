@@ -5,7 +5,24 @@ import type {
   SupportedLanguage,
   TranslationObject,
   Translations,
+  TranslationReplacements,
 } from './types';
+
+/**
+ * Replaces :placeholder tokens in a string with values from the replacements object.
+ * Example: interpolate("The :attribute field is required.", { attribute: "email" }) => "The email field is required."
+ * Placeholders not found in replacements are left unchanged.
+ */
+const interpolate = (
+  template: string,
+  replacements: TranslationReplacements,
+): string => {
+  if (Object.keys(replacements).length === 0) return template;
+
+  return template.replace(/:(\w+)/g, (_, name) =>
+    name in replacements ? replacements[name]! : `:${name}`,
+  );
+};
 
 /**
  * Resolves a dot-separated translation key within a translation object.
@@ -75,23 +92,32 @@ export const getCurrentLanguage = (): SupportedLanguage => {
  * is known (e.g. from React state); use `translate(key)` when language should be read
  * from persistence (e.g. server or non-context usage).
  *
- * @param {SupportedLanguage} language - The language code to translate into.
- * @param {string} key - The translation key, using dot notation (e.g. "public.home.title").
- * @returns {string} The translated string, or the key if not found.
+ * Optional replacements interpolate :placeholder tokens in the resolved string,
+ * e.g. getTranslation('en', 'validation.required', { attribute: 'email' }) for
+ * "The :attribute field is required." → "The email field is required."
+ *
+ * @param language - The language code to translate into.
+ * @param key - The translation key, using dot notation (e.g. "public.home.title").
+ * @param replacements - Optional map of placeholder names to values for dynamic interpolation.
+ * @returns The translated string (with placeholders replaced if given), or the key if not found.
  */
 export const getTranslation = (
   language: SupportedLanguage,
   key: string,
+  replacements?: TranslationReplacements,
 ): string => {
   const dictionaries = getDictionaries();
 
-  const fromActive = resolveKey(dictionaries[language], key);
-  if (fromActive) return fromActive;
+  let raw =
+    resolveKey(dictionaries[language], key) ??
+    resolveKey(dictionaries.en, key) ??
+    key;
 
-  const fromFallback = resolveKey(dictionaries.en, key);
-  if (fromFallback) return fromFallback;
+  if (replacements && Object.keys(replacements).length > 0) {
+    raw = interpolate(raw, replacements);
+  }
 
-  return key;
+  return raw;
 };
 
 /**
@@ -99,9 +125,13 @@ export const getTranslation = (
  * or default on server). For components inside LanguageProvider, prefer the context's
  * translate function so it reacts to language state.
  *
- * @param {string} key - The translation key to look up, using dot notation for hierarchy.
- * @returns {string} The translated string matching the key, or the key itself if no translation is found.
+ * @param key - The translation key to look up, using dot notation for hierarchy.
+ * @param replacements - Optional map for :placeholder interpolation in the translated string.
+ * @returns The translated string (with placeholders replaced if given), or the key if not found.
  */
-export const translate = (key: string): string => {
-  return getTranslation(getCurrentLanguage(), key);
+export const translate = (
+  key: string,
+  replacements?: TranslationReplacements,
+): string => {
+  return getTranslation(getCurrentLanguage(), key, replacements);
 };
