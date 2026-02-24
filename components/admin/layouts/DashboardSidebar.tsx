@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/sidebar';
 import Image from 'next/image';
 import { NAVIGATION } from '@/config/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 import {
   Collapsible,
@@ -28,6 +29,7 @@ import {
 
 const DashboardSidebar = () => {
   const pathname = usePathname();
+  const { logout, isLoading } = useAuth();
 
   return (
     <Sidebar>
@@ -151,6 +153,10 @@ const DashboardSidebar = () => {
           variant="ghost"
           size="sm"
           className="hover:text-sidebar-primary-foreground w-full cursor-pointer! justify-between px-3 py-5 hover:bg-white/15"
+          disabled={isLoading}
+          onClick={() => {
+            void logout();
+          }}
         >
           <div className="flex items-center gap-2">
             <LogOut className="h-4 w-4 shrink-0" />

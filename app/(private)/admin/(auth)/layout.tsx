@@ -1,6 +1,8 @@
 import { cn } from '@/lib/utils/common';
 import { Inter } from 'next/font/google';
 import { PropsWithChildren } from 'react';
+import AuthProvider from '@/context/AuthContext';
+import AdminGuestGuard from '@/components/admin/auth/AdminGuestGuard';
 
 const inter = Inter({
   variable: '--font-inter',
@@ -12,7 +14,9 @@ export default function AdminUnprotectedLayout({
 }: PropsWithChildren) {
   return (
     <div className={cn('min-h-screen', inter.variable)}>
-      {children}
+      <AuthProvider>
+        <AdminGuestGuard>{children}</AdminGuestGuard>
+      </AuthProvider>
     </div>
   );
 }

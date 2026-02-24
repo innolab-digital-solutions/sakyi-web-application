@@ -7,8 +7,12 @@ import { LoginSchema } from '@/lib/schema/admin/auth/login';
 import { useForm } from '@/hooks/form';
 import { ENDPOINTS } from '@/config/endpoints';
 import { SyntheticEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import { PATHS } from '@/config/paths';
 
 const LoginForm = () => {
+  const router = useRouter();
+
   const form = useForm(
     {
       email: '',
@@ -23,10 +27,10 @@ const LoginForm = () => {
     event.preventDefault();
     form.post(ENDPOINTS.ADMIN.AUTH.LOGIN, {
       onSuccess: () => {
-        console.log('Login successful');
+        router.replace(PATHS.ADMIN.DASHBOARD);
       },
-      onError: () => {
-        console.log('Login failed');
+      onFailure: (error) => {
+        form.setError('email', error.message);
       },
     });
   };
@@ -61,7 +65,7 @@ const LoginForm = () => {
       />
 
       {/* Submit Button */}
-      <FormButton disabled={form.processing}>
+      <FormButton processing={form.processing}>
         <span>Sign In</span>
         <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
       </FormButton>
