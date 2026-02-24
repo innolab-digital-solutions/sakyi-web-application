@@ -4,19 +4,19 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import DashboardSidebar from '@/components/admin/layouts/DashboardSidebar';
 import DashboardHeader from '@/components/admin/layouts/DashboardHeader';
 import { cookies } from 'next/headers';
+import { PropsWithChildren } from 'react';
 
 const inter = Inter({
   variable: '--font-inter',
   weight: ['400', '500', '600', '700', '800', '900'],
 });
 
-export default async function AdminLayout({
+export default async function AdminProtectedLayout({
   children,
-}: {
-  children: React.ReactNode;
-}) {
+}: PropsWithChildren) {
   const cookie = await cookies();
   const defaultOpen = cookie.get('sidebar_state')?.value === 'true';
+
   return (
     <div className={cn('min-h-screen', inter.variable)}>
       <SidebarProvider defaultOpen={defaultOpen}>

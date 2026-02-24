@@ -3,6 +3,8 @@ export const PATHS = {
     DASHBOARD: '/admin/dashboard',
     CLIENTS: '/admin/clients',
     LOGIN: '/admin/login',
+    LOGOUT: '/admin/logout',
+    ME: '/admin/me',
   },
   PUBLIC: {
     HOME: '/',
