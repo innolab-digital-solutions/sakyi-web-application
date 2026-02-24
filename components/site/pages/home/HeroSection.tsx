@@ -6,13 +6,13 @@ import {
   ChevronRight,
   Shield,
 } from 'lucide-react';
-import SectionContainer from '@/components/public/shared/SectionContainer';
-import SectionBadge from '@/components/public/shared/SectionBadge';
-import DecorativeImage from '@/components/public/shared/DecorativeImage';
-import FloatingCard from '@/components/public/shared/FloatingCard';
-import GradientText from '@/components/public/shared/GradientText';
-import GradientButton from '@/components/public/shared/GradientButton';
-import OutlineButton from '@/components/public/shared/OutlineButton';
+import SectionContainer from '@/components/site/shared/SectionContainer';
+import SectionBadge from '@/components/site/shared/SectionBadge';
+import DecorativeImage from '@/components/site/shared/DecorativeImage';
+import FloatingCard from '@/components/site/shared/FloatingCard';
+import GradientText from '@/components/site/shared/GradientText';
+import GradientButton from '@/components/site/shared/GradientButton';
+import OutlineButton from '@/components/site/shared/OutlineButton';
 
 const HeroSection = () => {
   return (

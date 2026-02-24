@@ -1,6 +1,6 @@
 import { PropsWithChildren } from 'react';
-import Navbar from '@/components/public/layouts/Navbar';
-import Footer from '@/components/public/layouts/Footer';
+import Navbar from '@/components/site/layouts/Navbar';
+import Footer from '@/components/site/layouts/Footer';
 import AOSProvider from '@/components/shared/AOSProvider';
 
 export default function PublicLayout({ children }: PropsWithChildren) {

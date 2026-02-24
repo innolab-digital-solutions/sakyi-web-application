@@ -1,12 +1,12 @@
-import SectionContainer from '@/components/public/shared/SectionContainer';
+import SectionContainer from '@/components/site/shared/SectionContainer';
 import { Settings, ArrowRight, Heart } from 'lucide-react';
 import Link from 'next/link';
-import SectionBadge from '@/components/public/shared/SectionBadge';
-import GradientText from '@/components/public/shared/GradientText';
-import GradientButton from '@/components/public/shared/GradientButton';
+import SectionBadge from '@/components/site/shared/SectionBadge';
+import GradientText from '@/components/site/shared/GradientText';
+import GradientButton from '@/components/site/shared/GradientButton';
 import { PATHS } from '@/config/paths';
 
-const HowItWorkSection = () => {
+const HowItWorksSection = () => {
   return (
     <SectionContainer id="how-it-works-section" className="bg-background">
       {/* Section Header: Badge, headline, supporting summary */}
@@ -153,4 +153,4 @@ const HowItWorkSection = () => {
   );
 };
 
-export default HowItWorkSection;
+export default HowItWorksSection;

@@ -1,4 +1,4 @@
-import SectionContainer from '@/components/public/shared/SectionContainer';
+import SectionContainer from '@/components/site/shared/SectionContainer';
 
 const OurProgramSection = () => {
   return (

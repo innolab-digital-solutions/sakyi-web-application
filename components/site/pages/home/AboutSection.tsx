@@ -1,13 +1,13 @@
-import SectionContainer from '@/components/public/shared/SectionContainer';
+import SectionContainer from '@/components/site/shared/SectionContainer';
 import { Users, Shield, Target, TrendingUp, ArrowRight } from 'lucide-react';
-import DecorativeImage from '@/components/public/shared/DecorativeImage';
-import FloatingCard from '@/components/public/shared/FloatingCard';
-import SectionBadge from '@/components/public/shared/SectionBadge';
-import GradientText from '@/components/public/shared/GradientText';
-import GradientButton from '@/components/public/shared/GradientButton';
+import DecorativeImage from '@/components/site/shared/DecorativeImage';
+import FloatingCard from '@/components/site/shared/FloatingCard';
+import SectionBadge from '@/components/site/shared/SectionBadge';
+import GradientText from '@/components/site/shared/GradientText';
+import GradientButton from '@/components/site/shared/GradientButton';
 import Link from 'next/link';
 import { PATHS } from '@/config/paths';
-import FeatureList from '@/components/public/shared/FeatureList';
+import FeatureList from '@/components/site/shared/FeatureList';
 
 const AboutSection = () => {
   const features = [

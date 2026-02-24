@@ -14,9 +14,25 @@ import { ENDPOINTS } from '@/config/endpoints';
 import { PATHS } from '@/config/paths';
 import { http } from '@/lib/api/client';
 import type { ApiError, ApiResponse } from '@/lib/api/client';
-import type { User } from '@/types/auth';
 
-type AuthUser = User | null;
+type User = {
+  id: number;
+  name: string;
+  email: string;
+  picture: string;
+  dob: string;
+  gender: 'male' | 'female' | 'other';
+  phone: string;
+  address: string;
+  status: 'active' | 'suspended' | 'archived';
+  role: string;
+  timestamps: {
+    email_verified_at: string;
+    last_login_at: string;
+    created_at: string;
+    updated_at: string;
+  };
+};
 
 type MeResponseData = User | { user: User };
 
@@ -24,7 +40,7 @@ type AuthContextValue = {
   /**
    * The currently authenticated admin user, or null if no session exists.
    */
-  user: AuthUser;
+  user: User | null;
   /**
    * Indicates whether an authenticated admin session is present.
    */
@@ -72,12 +88,12 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export const AuthProvider = ({ children }: PropsWithChildren) => {
   const router = useRouter();
 
-  const [user, setUser] = useState<AuthUser>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [hasInitialized, setHasInitialized] = useState<boolean>(false);
 
-  const extractUser = (response: ApiResponse<MeResponseData>): AuthUser => {
+  const extractUser = (response: ApiResponse<MeResponseData>): User | null => {
     if (response.status === 'error') {
       return null;
     }
@@ -85,10 +101,10 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     const payload = response.data;
 
     if (payload && typeof payload === 'object' && 'user' in payload) {
-      return (payload as { user: AuthUser }).user ?? null;
+      return (payload as { user: User }).user ?? null;
     }
 
-    return (payload as AuthUser) ?? null;
+    return (payload as User) ?? null;
   };
 
   const checkSession = useCallback(async () => {
