@@ -6,6 +6,7 @@ import DashboardHeader from '@/components/admin/layouts/DashboardHeader';
 import { cookies } from 'next/headers';
 import { PropsWithChildren } from 'react';
 import AuthProvider from '@/context/AuthContext';
+import AdminProtectedGuard from '@/components/admin/auth/AdminProtectedGuard';
 
 const inter = Inter({
   variable: '--font-inter',
@@ -21,19 +22,21 @@ export default async function AdminProtectedLayout({
   return (
     <div className={cn('min-h-screen', inter.variable)}>
       <AuthProvider>
-        <SidebarProvider defaultOpen={defaultOpen}>
-          {/* Sidebar navigation panel */}
-          <DashboardSidebar />
+        <AdminProtectedGuard>
+          <SidebarProvider defaultOpen={defaultOpen}>
+            {/* Sidebar navigation panel */}
+            <DashboardSidebar />
 
-          {/* Main content: dashboard header & page */}
-          <SidebarInset>
-            <DashboardHeader />
-            {/* Page content*/}
-            <div className="bg-background flex-1 flex-col px-8 py-5">
-              {children}
-            </div>
-          </SidebarInset>
-        </SidebarProvider>
+            {/* Main content: dashboard header & page */}
+            <SidebarInset>
+              <DashboardHeader />
+              {/* Page content*/}
+              <div className="bg-background flex-1 flex-col px-8 py-5">
+                {children}
+              </div>
+            </SidebarInset>
+          </SidebarProvider>
+        </AdminProtectedGuard>
       </AuthProvider>
     </div>
   );

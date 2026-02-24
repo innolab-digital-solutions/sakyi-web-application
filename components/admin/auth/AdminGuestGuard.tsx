@@ -29,7 +29,7 @@ const AdminGuestGuard = ({ children }: PropsWithChildren) => {
   if (!isReady) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <span className="animate-pulse text-sm text-muted-foreground">
+        <span className="text-muted-foreground animate-pulse text-sm">
           Checking authentication...
         </span>
       </div>
@@ -39,7 +39,7 @@ const AdminGuestGuard = ({ children }: PropsWithChildren) => {
   if (isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <span className="animate-pulse text-sm text-muted-foreground">
+        <span className="text-muted-foreground animate-pulse text-sm">
           Redirecting to dashboard...
         </span>
       </div>
@@ -50,4 +50,3 @@ const AdminGuestGuard = ({ children }: PropsWithChildren) => {
 };
 
 export default AdminGuestGuard;
-

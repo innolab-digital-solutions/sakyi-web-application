@@ -103,7 +103,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
       setUser(null);
       setError(errorResponse.message || 'Unable to verify admin session.');
-      router.replace(PATHS.ADMIN.LOGIN);
       setIsLoading(false);
       setHasInitialized(true);
       return;
@@ -115,7 +114,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     setError(null);
     setIsLoading(false);
     setHasInitialized(true);
-  }, [router]);
+  }, []);
 
   const logout = useCallback(async () => {
     setIsLoading(true);
@@ -154,18 +153,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     }),
     [user, isLoading, hasInitialized, error, checkSession, logout],
   );
-
-  // Gate rendering until the first session check completes to avoid
-  // flashing protected content before redirect.
-  if (!hasInitialized) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <span className="text-muted-foreground animate-pulse text-sm">
-          Checking authentication...
-        </span>
-      </div>
-    );
-  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
