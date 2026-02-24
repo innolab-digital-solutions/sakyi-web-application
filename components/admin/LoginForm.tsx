@@ -1,8 +1,8 @@
 'use client';
 
 import { ArrowRight } from 'lucide-react';
-import Input from '@/components/shared/custom/Input';
-import FormButton from '@/components/shared/custom/FormButton';
+import TextField from '@/components/shared/form/TextField';
+import SubmitButton from '@/components/shared/form/SubmitButton';
 import { LoginSchema } from '@/lib/schema/admin/auth/login';
 import { useForm } from '@/hooks/form';
 import { ENDPOINTS } from '@/config/endpoints';
@@ -37,7 +37,7 @@ const LoginForm = () => {
   return (
     <form className="space-y-3 md:space-y-4" onSubmit={handleSubmit}>
       {/* Email Address Input */}
-      <Input
+      <TextField
         label="Email Address"
         id="email"
         name="email"
@@ -51,7 +51,7 @@ const LoginForm = () => {
       />
 
       {/* Password Input */}
-      <Input
+      <TextField
         label="Password"
         id="password"
         name="password"
@@ -65,10 +65,10 @@ const LoginForm = () => {
       />
 
       {/* Submit Button */}
-      <FormButton processing={form.processing}>
+      <SubmitButton processing={form.processing}>
         <span>Sign In</span>
         <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
-      </FormButton>
+      </SubmitButton>
     </form>
   );
 };

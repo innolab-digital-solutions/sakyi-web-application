@@ -14,7 +14,7 @@ export type CustomInputProps = Omit<
   error?: string;
 };
 
-const Input = React.forwardRef<HTMLInputElement, CustomInputProps>(
+const TextField = React.forwardRef<HTMLInputElement, CustomInputProps>(
   (
     {
       id: idProp,
@@ -112,6 +112,6 @@ const Input = React.forwardRef<HTMLInputElement, CustomInputProps>(
   },
 );
 
-Input.displayName = 'Input';
+TextField.displayName = 'TextField';
 
-export default Input;
+export default TextField;

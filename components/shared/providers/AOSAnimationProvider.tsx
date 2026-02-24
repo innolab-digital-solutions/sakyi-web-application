@@ -3,7 +3,7 @@
 import { PropsWithChildren, useEffect } from 'react';
 import 'aos/dist/aos.css';
 
-export default function AOSProvider({ children }: PropsWithChildren) {
+const AOSAnimationProvider = ({ children }: PropsWithChildren) => {
   useEffect(() => {
     let mounted = true;
 
@@ -34,4 +34,6 @@ export default function AOSProvider({ children }: PropsWithChildren) {
   }, []);
 
   return <>{children}</>;
-}
+};
+
+export default AOSAnimationProvider;

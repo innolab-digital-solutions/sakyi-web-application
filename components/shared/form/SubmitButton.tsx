@@ -7,7 +7,7 @@ type FormButtonProps = ComponentProps<typeof ShadCNButton> & {
   processing?: boolean;
 };
 
-const FormButton = ({ processing, ...props }: FormButtonProps) => {
+const SubmitButton = ({ processing, ...props }: FormButtonProps) => {
   return (
     <ShadCNButton
       type="submit"
@@ -30,4 +30,4 @@ const FormButton = ({ processing, ...props }: FormButtonProps) => {
   );
 };
 
-export default FormButton;
+export default SubmitButton;
