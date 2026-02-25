@@ -1,5 +1,5 @@
 import { ADMIN_NAVIGATION } from './private';
-import { FOOTER_NAVIGATION,HEADER_NAVIGATION } from './public';
+import { FOOTER_NAVIGATION, HEADER_NAVIGATION } from './public';
 
 /**
  * NAVIGATION aggregates the principal navigation structures used throughout the application.
@@ -26,5 +26,5 @@ export const NAVIGATION = {
 
 export { NAVIGATION as default };
 export { ADMIN_NAVIGATION } from './private';
-export { FOOTER_NAVIGATION,HEADER_NAVIGATION } from './public';
+export { FOOTER_NAVIGATION, HEADER_NAVIGATION } from './public';
 export * from './types';

@@ -1,6 +1,6 @@
 import { PropsWithChildren } from 'react';
 
-import { cn } from '@/lib/utils/common';
+import { cn } from '@/lib/utils/styles';
 
 interface SectionContainerProps extends PropsWithChildren {
   id: string;

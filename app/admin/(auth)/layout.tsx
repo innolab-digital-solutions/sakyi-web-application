@@ -3,7 +3,7 @@ import { PropsWithChildren } from 'react';
 
 import AuthGuard from '@/components/admin/auth/AuthGuard';
 import AuthProvider from '@/context/AuthContext';
-import { cn } from '@/lib/utils/common';
+import { cn } from '@/lib/utils/styles';
 
 const inter = Inter({
   variable: '--font-inter',

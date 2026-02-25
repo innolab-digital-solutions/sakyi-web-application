@@ -9,7 +9,7 @@ import TextField from '@/components/shared/form/TextField';
 import { ENDPOINTS } from '@/config/endpoints';
 import { PATHS } from '@/config/paths';
 import { useForm } from '@/hooks/form';
-import { LoginSchema } from '@/lib/schema/admin/auth/login';
+import { LoginSchema } from '@/lib/schemas/admin/auth/login';
 
 const LoginForm = () => {
   const router = useRouter();

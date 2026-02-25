@@ -5,9 +5,9 @@ import { PropsWithChildren } from 'react';
 import AuthGuard from '@/components/admin/auth/AuthGuard';
 import DashboardHeader from '@/components/admin/layouts/DashboardHeader';
 import DashboardSidebar from '@/components/admin/layouts/DashboardSidebar';
-import { SidebarInset,SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import AuthProvider from '@/context/AuthContext';
-import { cn } from '@/lib/utils/common';
+import { cn } from '@/lib/utils/styles';
 
 const inter = Inter({
   variable: '--font-inter',

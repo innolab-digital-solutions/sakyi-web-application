@@ -1,4 +1,4 @@
-import { ArrowRight, Heart,Settings } from 'lucide-react';
+import { ArrowRight, Heart, Settings } from 'lucide-react';
 import Link from 'next/link';
 
 import GradientButton from '@/components/site/shared/GradientButton';

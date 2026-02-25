@@ -1,11 +1,11 @@
 import { Smartphone } from 'lucide-react';
 
-import { smoothScrollTo } from '@/lib/utils/common';
+import { scrollToElement } from '@/lib/utils/scroll';
 
 const GetTheAppButton = ({ onClick }: { onClick?: () => void }) => {
   const handleClick = () => {
     onClick?.();
-    smoothScrollTo('mobile-app-section');
+    scrollToElement('mobile-app-section');
   };
 
   return (

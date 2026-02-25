@@ -5,7 +5,7 @@ import * as React from 'react';
 
 import { Input as ShadCNInput } from '@/components/ui/input';
 import { Label as ShadCNLabel } from '@/components/ui/label';
-import { cn } from '@/lib/utils/common';
+import { cn } from '@/lib/utils/styles';
 
 export type CustomInputProps = Omit<
   React.ComponentPropsWithoutRef<typeof ShadCNInput>,

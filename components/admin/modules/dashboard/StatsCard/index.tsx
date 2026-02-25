@@ -2,7 +2,7 @@
 
 import { TrendingDown, TrendingUp } from 'lucide-react';
 
-import { cn } from '@/lib/utils/common';
+import { cn } from '@/lib/utils/styles';
 
 import {
   DEFAULT_ICON_CLASSES,

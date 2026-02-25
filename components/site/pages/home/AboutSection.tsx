@@ -1,4 +1,4 @@
-import { ArrowRight,Shield, Target, TrendingUp, Users } from 'lucide-react';
+import { ArrowRight, Shield, Target, TrendingUp, Users } from 'lucide-react';
 import Link from 'next/link';
 
 import DecorativeImage from '@/components/site/shared/DecorativeImage';
