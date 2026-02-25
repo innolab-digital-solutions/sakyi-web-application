@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import AuthLayout from '@/components/admin/layouts/AuthLayout';
-import LoginForm from '@/components/admin/LoginForm';
+import LoginForm from '@/components/admin/auth/LoginForm';
 
 export default function AdminLoginPage() {
   return (

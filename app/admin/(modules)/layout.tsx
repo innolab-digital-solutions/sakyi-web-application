@@ -6,7 +6,7 @@ import DashboardHeader from '@/components/admin/layouts/DashboardHeader';
 import { cookies } from 'next/headers';
 import { PropsWithChildren } from 'react';
 import AuthProvider from '@/context/AuthContext';
-import AuthGuard from '@/components/admin/AuthGuard';
+import AuthGuard from '@/components/admin/auth/AuthGuard';
 
 const inter = Inter({
   variable: '--font-inter',

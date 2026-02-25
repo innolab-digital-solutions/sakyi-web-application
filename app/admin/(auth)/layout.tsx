@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils/common';
 import { Inter } from 'next/font/google';
 import { PropsWithChildren } from 'react';
 import AuthProvider from '@/context/AuthContext';
-import AuthGuard from '@/components/admin/AuthGuard';
+import AuthGuard from '@/components/admin/auth/AuthGuard';
 
 const inter = Inter({
   variable: '--font-inter',
