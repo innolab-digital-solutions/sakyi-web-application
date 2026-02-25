@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Facebook, Instagram, Mail, Copyright } from 'lucide-react';
 import { PATHS } from '@/config/paths';
-import SocialButton from '@/components/public/shared/SocialButton';
+import SocialButton from '@/components/site/shared/SocialButton';
 
 const Footer = () => {
   return (

@@ -7,10 +7,10 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import DesktopNavigation from '@/components/public/layouts/DesktopNavigation';
-import MobileNavigation from '@/components/public/layouts/MobileNavigation';
+import DesktopNavigation from '@/components/site/layouts/DesktopNavigation';
+import MobileNavigation from '@/components/site/layouts/MobileNavigation';
+import GetTheAppButton from '@/components/site/shared/GetTheAppButton';
 import { PATHS } from '@/config/paths';
-import GetTheAppButton from '@/components/public/shared/GetTheAppButton';
 
 const Navbar = () => {
   const pathname = usePathname();
