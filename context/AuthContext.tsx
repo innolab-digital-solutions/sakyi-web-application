@@ -1,19 +1,20 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import {
-  PropsWithChildren,
   createContext,
+  PropsWithChildren,
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
 } from 'react';
-import { useRouter } from 'next/navigation';
+
 import { ENDPOINTS } from '@/config/endpoints';
 import { PATHS } from '@/config/paths';
-import { http } from '@/lib/api/client';
 import type { ApiError, ApiResponse } from '@/lib/api/client';
+import { http } from '@/lib/api/client';
 
 type User = {
   id: number;

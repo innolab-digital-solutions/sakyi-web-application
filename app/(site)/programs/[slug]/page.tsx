@@ -23,7 +23,9 @@ export async function generateMetadata(
   };
 }
 
-export default async function ProgramDetailPage({ params }: ProgramDetailPageProps) {
+export default async function ProgramDetailPage({
+  params,
+}: ProgramDetailPageProps) {
   const { slug } = await params;
   return <div>Here is the program detail page: {slug}</div>;
 }

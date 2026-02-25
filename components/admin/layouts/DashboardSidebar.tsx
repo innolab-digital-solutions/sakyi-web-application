@@ -1,31 +1,31 @@
 'use client';
 
+import { ArrowRight, ChevronDown, LogOut } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ArrowRight, ChevronDown, LogOut } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
-  SidebarFooter,
-} from '@/components/ui/sidebar';
-import Image from 'next/image';
-import { NAVIGATION } from '@/config/navigation';
-import { useAuth } from '@/context/AuthContext';
 
+import { Button } from '@/components/ui/button';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+} from '@/components/ui/sidebar';
+import { NAVIGATION } from '@/config/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 const DashboardSidebar = () => {
   const pathname = usePathname();
@@ -34,20 +34,20 @@ const DashboardSidebar = () => {
   return (
     <Sidebar>
       {/* Sidebar header with logo and title */}
-      <SidebarHeader className="py-3.5">
-        <div className="flex items-center gap-3 px-2">
+      <SidebarHeader className='py-3.5'>
+        <div className='flex items-center gap-3 px-2'>
           <div>
             <Image
-              src="/images/logo-white.png"
-              alt="sakyi-logo"
-              className="object-contain"
+              src='/images/logo-white.png'
+              alt='sakyi-logo'
+              className='object-contain'
               width={28}
               height={28}
             />
           </div>
-          <div className="flex flex-col space-y-0.5">
-            <h3 className="text-sm font-semibold">SaKyi Health & Wellness</h3>
-            <p className="text-[11px] font-medium">
+          <div className='flex flex-col space-y-0.5'>
+            <h3 className='text-sm font-semibold'>SaKyi Health & Wellness</h3>
+            <p className='text-[11px] font-medium'>
               Administrative Control Panel
             </p>
           </div>
@@ -55,7 +55,7 @@ const DashboardSidebar = () => {
       </SidebarHeader>
 
       {/* Sidebar navigation content */}
-      <SidebarContent className="scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent py-3.5">
+      <SidebarContent className='scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent py-3.5'>
         <SidebarGroup>
           <SidebarMenu>
             {NAVIGATION.ADMIN.map((item, index) => {
@@ -77,23 +77,23 @@ const DashboardSidebar = () => {
                   <SidebarMenuItem key={`${item.name}-${item.path}-${index}`}>
                     <Collapsible
                       defaultOpen={isActive}
-                      className="group/collapsible"
+                      className='group/collapsible'
                     >
-                      <CollapsibleTrigger asChild className="cursor-pointer!">
+                      <CollapsibleTrigger asChild className='cursor-pointer!'>
                         <SidebarMenuButton
                           isActive={isActive}
                           tooltip={item.name}
-                          className="data-[active=true]:text-sidebar-primary-foreground hover:text-sidebar-primary-foreground px-3 py-5 hover:bg-white/15 data-[active=true]:bg-white/25"
+                          className='data-[active=true]:text-sidebar-primary-foreground hover:text-sidebar-primary-foreground px-3 py-5 hover:bg-white/15 data-[active=true]:bg-white/25'
                         >
-                          {Icon ? <Icon className="mr-1 h-4 w-4" /> : null}
-                          <span className="text-[12.5px] font-semibold">
+                          {Icon ? <Icon className='mr-1 h-4 w-4' /> : null}
+                          <span className='text-[12.5px] font-semibold'>
                             {item.name}
                           </span>
-                          <ChevronDown className="ml-auto size-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                          <ChevronDown className='ml-auto size-4 transition-transform group-data-[state=open]/collapsible:rotate-180' />
                         </SidebarMenuButton>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
-                        <SidebarMenuSub className="ml-4.5">
+                        <SidebarMenuSub className='ml-4.5'>
                           {/* Render all submenu items */}
                           {item.subitems!.map((subitem, subIndex) => {
                             // Check if this subitem is active
@@ -106,10 +106,10 @@ const DashboardSidebar = () => {
                                 <SidebarMenuSubButton
                                   asChild
                                   isActive={isSubActive}
-                                  className="data-[active=true]:text-sidebar-primary-foreground hover:text-sidebar-primary-foreground px-3 py-5 hover:bg-white/15 data-[active=true]:bg-white/25"
+                                  className='data-[active=true]:text-sidebar-primary-foreground hover:text-sidebar-primary-foreground px-3 py-5 hover:bg-white/15 data-[active=true]:bg-white/25'
                                 >
                                   <Link href={subitem.path}>
-                                    <span className="text-[12.5px] font-semibold">
+                                    <span className='text-[12.5px] font-semibold'>
                                       {subitem.name}
                                     </span>
                                   </Link>
@@ -131,11 +131,11 @@ const DashboardSidebar = () => {
                     asChild
                     isActive={isActive}
                     tooltip={item.name}
-                    className="data-[active=true]:text-sidebar-primary-foreground hover:text-sidebar-primary-foreground px-3 py-5 hover:bg-white/15 data-[active=true]:bg-white/25"
+                    className='data-[active=true]:text-sidebar-primary-foreground hover:text-sidebar-primary-foreground px-3 py-5 hover:bg-white/15 data-[active=true]:bg-white/25'
                   >
                     <Link href={item.path}>
-                      {Icon ? <Icon className="mr-1 h-4 w-4" /> : null}
-                      <span className="text-[12.5px] font-semibold">
+                      {Icon ? <Icon className='mr-1 h-4 w-4' /> : null}
+                      <span className='text-[12.5px] font-semibold'>
                         {item.name}
                       </span>
                     </Link>
@@ -148,22 +148,22 @@ const DashboardSidebar = () => {
       </SidebarContent>
 
       {/* Logout */}
-      <SidebarFooter className="py-3.25">
+      <SidebarFooter className='py-3.25'>
         <Button
-          variant="ghost"
-          size="sm"
-          className="hover:text-sidebar-primary-foreground w-full cursor-pointer! justify-between px-3 py-5 hover:bg-white/15"
+          variant='ghost'
+          size='sm'
+          className='hover:text-sidebar-primary-foreground w-full cursor-pointer! justify-between px-3 py-5 hover:bg-white/15'
           disabled={isLoading}
           onClick={() => {
             void logout();
           }}
         >
-          <div className="flex items-center gap-2">
-            <LogOut className="h-4 w-4 shrink-0" />
-            <span className="text-[12.5px] font-semibold">Logout</span>
+          <div className='flex items-center gap-2'>
+            <LogOut className='h-4 w-4 shrink-0' />
+            <span className='text-[12.5px] font-semibold'>Logout</span>
           </div>
 
-          <ArrowRight className="h-4 w-4 shrink-0" />
+          <ArrowRight className='h-4 w-4 shrink-0' />
         </Button>
       </SidebarFooter>
     </Sidebar>

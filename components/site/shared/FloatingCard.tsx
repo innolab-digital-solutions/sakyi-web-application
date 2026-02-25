@@ -24,7 +24,7 @@ const FloatingCard = ({
       className={mergedClasses}
       style={{ animation: `float 4s ease-in-out infinite` }}
     >
-      <div className="flex items-center space-x-3">
+      <div className='flex items-center space-x-3'>
         <div
           className={`flex h-10 w-10 items-center justify-center rounded-full text-white ${iconClassName}`}
         >
@@ -32,13 +32,13 @@ const FloatingCard = ({
         </div>
         <div>
           <div
-            className="text-foreground text-sm font-semibold"
+            className='text-foreground text-sm font-semibold'
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
             {title}
           </div>
           <div
-            className="text-muted-foreground text-xs"
+            className='text-muted-foreground text-xs'
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
             {description}

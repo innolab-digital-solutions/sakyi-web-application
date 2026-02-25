@@ -1,5 +1,3 @@
-import { DASHBOARD_STATS } from '@/config/dashboard-stats';
-import StatsCard from '@/components/admin/modules/dashboard/StatsCard';
 import {
   ClientsByProgramBarChart,
   EnrollmentStatusChart,
@@ -7,6 +5,8 @@ import {
   NewClientsOverTimeChart,
   ParticipationOverTimeChart,
 } from '@/components/admin/modules/dashboard/Charts';
+import StatsCard from '@/components/admin/modules/dashboard/StatsCard';
+import { DASHBOARD_STATS } from '@/config/dashboard-stats';
 
 const CHART_LAYOUT: { id: string; span?: 2 }[] = [
   { id: 'participation' },
@@ -26,18 +26,18 @@ const CHART_COMPONENTS = {
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col space-y-1">
-        <p className="text-muted-foreground text-xs font-semibold">
+    <div className='space-y-8'>
+      <div className='flex flex-col space-y-1'>
+        <p className='text-muted-foreground text-xs font-semibold'>
           Thursday, 16th February 2026
         </p>
-        <h1 className="text-foreground text-md font-bold">
+        <h1 className='text-foreground text-md font-bold'>
           Good Evening! Aung Thu Zaw
         </h1>
       </div>
 
-      <section aria-label="Dashboard overview">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <section aria-label='Dashboard overview'>
+        <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
           {DASHBOARD_STATS.map((stat) => (
             <StatsCard
               key={stat.id}
@@ -53,8 +53,8 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <section aria-label="Charts">
-        <div className="grid gap-6 lg:grid-cols-2">
+      <section aria-label='Charts'>
+        <div className='grid gap-6 lg:grid-cols-2'>
           {CHART_LAYOUT.map(({ id, span }) => {
             const Chart = CHART_COMPONENTS[id as keyof typeof CHART_COMPONENTS];
             return (

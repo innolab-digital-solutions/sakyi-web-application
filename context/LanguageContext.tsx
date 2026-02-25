@@ -1,8 +1,8 @@
 'use client';
 
 import {
-  PropsWithChildren,
   createContext,
+  PropsWithChildren,
   useCallback,
   useContext,
   useEffect,
@@ -11,9 +11,9 @@ import {
 } from 'react';
 
 import {
+  getTranslation,
   type SupportedLanguage,
   type TranslationReplacements,
-  getTranslation,
 } from '@/lib/localization';
 
 type LanguageContextValue = {

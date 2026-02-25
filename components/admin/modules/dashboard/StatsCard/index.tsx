@@ -1,7 +1,9 @@
 'use client';
 
 import { TrendingDown, TrendingUp } from 'lucide-react';
+
 import { cn } from '@/lib/utils/common';
+
 import {
   DEFAULT_ICON_CLASSES,
   STAT_CARD_ICONS,
@@ -38,15 +40,15 @@ const StatsCard = ({
           iconClass,
         )}
       >
-        <Icon className="size-5" strokeWidth={1.75} />
+        <Icon className='size-5' strokeWidth={1.75} />
       </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-muted-foreground text-xs font-medium">{title}</p>
-        <p className="text-foreground mt-0.5 text-xl font-semibold tracking-tight tabular-nums">
+      <div className='min-w-0 flex-1'>
+        <p className='text-muted-foreground text-xs font-medium'>{title}</p>
+        <p className='text-foreground mt-0.5 text-xl font-semibold tracking-tight tabular-nums'>
           {value}
         </p>
         {(trend || subtitle) && (
-          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+          <div className='mt-1.5 flex flex-wrap items-center gap-2'>
             {trend && trendStyle && (
               <span
                 className={cn(
@@ -55,16 +57,16 @@ const StatsCard = ({
                 )}
               >
                 {trend.direction === 'up' ? (
-                  <TrendingUp className="size-3" />
+                  <TrendingUp className='size-3' />
                 ) : (
-                  <TrendingDown className="size-3" />
+                  <TrendingDown className='size-3' />
                 )}
                 {trend.direction === 'up' ? '+' : ''}
                 {trend.value}%{trend.label ? ` ${trend.label}` : ''}
               </span>
             )}
             {subtitle && (
-              <span className="text-muted-foreground text-[11px]">
+              <span className='text-muted-foreground text-[11px]'>
                 {subtitle}
               </span>
             )}

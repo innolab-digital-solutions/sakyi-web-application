@@ -1,9 +1,10 @@
 'use client';
 
-import * as React from 'react';
 import { AlertCircle, Eye, EyeOff } from 'lucide-react';
-import { Label as ShadCNLabel } from '@/components/ui/label';
+import * as React from 'react';
+
 import { Input as ShadCNInput } from '@/components/ui/input';
+import { Label as ShadCNLabel } from '@/components/ui/label';
 import { cn } from '@/lib/utils/common';
 
 export type CustomInputProps = Omit<
@@ -74,27 +75,27 @@ const TextField = React.forwardRef<HTMLInputElement, CustomInputProps>(
     const inputElement = <ShadCNInput {...inputProps} />;
 
     return (
-      <div className="space-y-2">
+      <div className='space-y-2'>
         {label && (
           <ShadCNLabel htmlFor={id} className={responsiveLabelClass}>
             {label}
           </ShadCNLabel>
         )}
         {isPassword ? (
-          <div className="relative">
+          <div className='relative'>
             {inputElement}
             <button
-              type="button"
-              className="text-muted-foreground hover:text-foreground absolute top-0 right-0 h-full cursor-pointer px-3"
+              type='button'
+              className='text-muted-foreground hover:text-foreground absolute top-0 right-0 h-full cursor-pointer px-3'
               onClick={() => setShowPassword((prev) => !prev)}
               tabIndex={-1}
               disabled={disabled}
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? (
-                <EyeOff className="h-4 w-4" />
+                <EyeOff className='h-4 w-4' />
               ) : (
-                <Eye className="h-4 w-4" />
+                <Eye className='h-4 w-4' />
               )}
             </button>
           </div>
@@ -102,8 +103,8 @@ const TextField = React.forwardRef<HTMLInputElement, CustomInputProps>(
           inputElement
         )}
         {error && (
-          <p id={errorId} className={responsiveErrorClass} role="alert">
-            <AlertCircle className="h-4 w-4" />
+          <p id={errorId} className={responsiveErrorClass} role='alert'>
+            <AlertCircle className='h-4 w-4' />
             <span>{error}</span>
           </p>
         )}

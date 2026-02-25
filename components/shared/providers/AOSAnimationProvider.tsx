@@ -1,7 +1,8 @@
 'use client';
 
-import { PropsWithChildren, useEffect } from 'react';
 import 'aos/dist/aos.css';
+
+import { PropsWithChildren, useEffect } from 'react';
 
 const AOSAnimationProvider = ({ children }: PropsWithChildren) => {
   useEffect(() => {

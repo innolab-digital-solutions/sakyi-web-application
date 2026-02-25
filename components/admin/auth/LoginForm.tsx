@@ -1,14 +1,15 @@
 'use client';
 
 import { ArrowRight } from 'lucide-react';
-import TextField from '@/components/shared/form/TextField';
-import SubmitButton from '@/components/shared/form/SubmitButton';
-import { LoginSchema } from '@/lib/schema/admin/auth/login';
-import { useForm } from '@/hooks/form';
-import { ENDPOINTS } from '@/config/endpoints';
-import { SyntheticEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { SyntheticEvent } from 'react';
+
+import SubmitButton from '@/components/shared/form/SubmitButton';
+import TextField from '@/components/shared/form/TextField';
+import { ENDPOINTS } from '@/config/endpoints';
 import { PATHS } from '@/config/paths';
+import { useForm } from '@/hooks/form';
+import { LoginSchema } from '@/lib/schema/admin/auth/login';
 
 const LoginForm = () => {
   const router = useRouter();
@@ -35,14 +36,14 @@ const LoginForm = () => {
     });
   };
   return (
-    <form className="space-y-3 md:space-y-4" onSubmit={handleSubmit}>
+    <form className='space-y-3 md:space-y-4' onSubmit={handleSubmit}>
       {/* Email Address Input */}
       <TextField
-        label="Email Address"
-        id="email"
-        name="email"
-        type="text"
-        placeholder="Enter your email address"
+        label='Email Address'
+        id='email'
+        name='email'
+        type='text'
+        placeholder='Enter your email address'
         required
         value={String(form.data.email ?? '')}
         onChange={(event) => form.setData('email', event.target.value)}
@@ -52,11 +53,11 @@ const LoginForm = () => {
 
       {/* Password Input */}
       <TextField
-        label="Password"
-        id="password"
-        name="password"
-        type="password"
-        placeholder="Enter your password"
+        label='Password'
+        id='password'
+        name='password'
+        type='password'
+        placeholder='Enter your password'
         required
         value={String(form.data.password ?? '')}
         onChange={(event) => form.setData('password', event.target.value)}
@@ -67,7 +68,7 @@ const LoginForm = () => {
       {/* Submit Button */}
       <SubmitButton processing={form.processing}>
         <span>Sign In</span>
-        <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
+        <ArrowRight className='size-4 transition-transform duration-200 group-hover:translate-x-1' />
       </SubmitButton>
     </form>
   );

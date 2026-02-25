@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
-import { HEADER_NAVIGATION } from '@/config/navigation/public';
 import GetTheAppButton from '@/components/site/shared/GetTheAppButton';
+import { HEADER_NAVIGATION } from '@/config/navigation/public';
 
 type MobileNavigationProps = {
   isOpen: boolean;
@@ -20,8 +20,8 @@ const MobileNavigation = ({
         isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
       }`}
     >
-      <div className="border-border border-t bg-white">
-        <div className="space-y-3 px-4 py-4">
+      <div className='border-border border-t bg-white'>
+        <div className='space-y-3 px-4 py-4'>
           {HEADER_NAVIGATION.map((item, index) => {
             // Determine if the current navigation item is active based on the pathname
             const isActive = pathname === item.path;
@@ -49,7 +49,7 @@ const MobileNavigation = ({
             );
           })}
 
-          <div className="border-border border-t pt-3">
+          <div className='border-border border-t pt-3'>
             {/* CTA Button: Get the App */}
             <GetTheAppButton onClick={onClose} />
           </div>

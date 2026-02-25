@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
+
 import AboutIntroSection from '@/components/site/pages/about/AboutIntroSection';
+import BeyondWeightLossSection from '@/components/site/pages/about/BeyondWeightLossSection';
 import MissionAndPhilosophySection from '@/components/site/pages/about/MissionAndPhilosophySection';
 import OurApproachSection from '@/components/site/pages/about/OurApproachSection';
 import OurExpertTeamSection from '@/components/site/pages/about/OurExpertTeamSection';
-import BeyondWeightLossSection from '@/components/site/pages/about/BeyondWeightLossSection';
 
 export const metadata: Metadata = {
   title: 'About SaKyi Health & Wellness',

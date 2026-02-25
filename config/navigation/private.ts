@@ -12,7 +12,9 @@ import {
   Users,
   UserSquare2,
 } from 'lucide-react';
+
 import { PATHS } from '@/config/paths';
+
 import type { NavItem } from './types';
 
 /**

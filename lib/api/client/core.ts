@@ -1,5 +1,3 @@
-import type { ApiError as ApiErrorPayload, ApiResponse } from './types';
-import type { ClientOptions } from './types';
 import {
   buildRequestHeaders,
   resolveApiUrl,
@@ -13,6 +11,8 @@ import {
   handleNoContent,
   handleNonJson,
 } from './handlers';
+import type { ApiError as ApiErrorPayload, ApiResponse } from './types';
+import type { ClientOptions } from './types';
 
 /**
  * Performs a flexible, production-grade HTTP API request against a resolved endpoint.

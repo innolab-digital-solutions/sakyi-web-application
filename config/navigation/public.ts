@@ -1,5 +1,6 @@
-import type { NavItem } from './types';
 import { PATHS } from '@/config/paths';
+
+import type { NavItem } from './types';
 
 /**
  * HEADER_NAVIGATION defines the primary navigation structure

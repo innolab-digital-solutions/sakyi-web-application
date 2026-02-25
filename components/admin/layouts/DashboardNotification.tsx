@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
 import { Bell } from 'lucide-react';
+import { useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { NotificationsDrawer } from '@/components/admin/notifications/NotificationsDrawer';
 import { MOCK_NOTIFICATIONS } from '@/components/admin/notifications/mock-notifications';
+import { NotificationsDrawer } from '@/components/admin/notifications/NotificationsDrawer';
+import { Button } from '@/components/ui/button';
 
 const unreadCount = () => MOCK_NOTIFICATIONS.filter((n) => !n.read).length;
 
@@ -14,15 +14,15 @@ const DashboardNotification = () => {
   return (
     <div>
       <Button
-        variant="ghost"
-        size="icon"
-        className="hover:text-foreground relative cursor-pointer rounded-full bg-gray-100 hover:bg-gray-50"
+        variant='ghost'
+        size='icon'
+        className='hover:text-foreground relative cursor-pointer rounded-full bg-gray-100 hover:bg-gray-50'
         onClick={() => setNotificationsOpen(true)}
-        aria-label="Open notifications"
+        aria-label='Open notifications'
       >
-        <Bell className="h-5 w-5" />
+        <Bell className='h-5 w-5' />
         {unreadCount() > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#0c96c4] text-[8px] font-bold text-white">
+          <span className='absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#0c96c4] text-[8px] font-bold text-white'>
             {unreadCount()}
           </span>
         )}

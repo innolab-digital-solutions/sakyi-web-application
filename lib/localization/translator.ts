@@ -1,11 +1,10 @@
 import en from './dictionaries/en';
 import my from './dictionaries/my';
-
 import type {
   SupportedLanguage,
   TranslationObject,
-  Translations,
   TranslationReplacements,
+  Translations,
 } from './types';
 
 /**

@@ -1,10 +1,11 @@
+import './globals.css';
+
 import type { Metadata } from 'next';
 import type { PropsWithChildren } from 'react';
+
+import TanstackQueryProvider from '@/components/shared/providers/TanstackQueryProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { LanguageProvider } from '@/context/LanguageContext';
-import TanstackQueryProvider from '@/components/shared/providers/TanstackQueryProvider';
-
-import './globals.css';
 
 export const metadata: Metadata = {
   title: 'SaKyi Health & Wellness',
@@ -13,8 +14,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<PropsWithChildren>) {
   return (
-    <html lang="en">
-      <body className="antialiased">
+    <html lang='en'>
+      <body className='antialiased'>
         <TanstackQueryProvider>
           <TooltipProvider>
             <LanguageProvider>{children}</LanguageProvider>

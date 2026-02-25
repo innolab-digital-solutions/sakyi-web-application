@@ -1,6 +1,6 @@
-import type { HttpMethod } from './types';
-import { getCsrfToken } from './csrf';
 import { api } from './config';
+import { getCsrfToken } from './csrf';
+import type { HttpMethod } from './types';
 import type { ClientRequestInit } from './types';
 
 /**

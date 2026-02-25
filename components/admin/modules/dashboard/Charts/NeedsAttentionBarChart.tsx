@@ -1,12 +1,14 @@
 'use client';
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+
 import { NEEDS_ATTENTION } from '../dashboard-chart-data';
 
 const chartConfig = {
@@ -20,27 +22,27 @@ const chartConfig = {
  */
 const NeedsAttentionBarChart = () => {
   return (
-    <div className="border-border/80 bg-card rounded-lg border p-4 shadow-sm">
-      <h3 className="text-foreground text-sm font-semibold">Needs attention</h3>
-      <p className="text-muted-foreground mt-0.5 text-xs">
+    <div className='border-border/80 bg-card rounded-lg border p-4 shadow-sm'>
+      <h3 className='text-foreground text-sm font-semibold'>Needs attention</h3>
+      <p className='text-muted-foreground mt-0.5 text-xs'>
         Items that need your action: pending intakes, doctor instructions, new
         enrollments this week.
       </p>
       <ChartContainer
-        id="needs-attention"
+        id='needs-attention'
         config={chartConfig}
-        className="mt-4 h-65 w-full"
+        className='mt-4 h-65 w-full'
       >
         <BarChart
           data={NEEDS_ATTENTION}
-          layout="vertical"
+          layout='vertical'
           margin={{ top: 8, right: 8, left: 8, bottom: 8 }}
         >
-          <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-          <XAxis type="number" tickLine={false} axisLine={false} />
+          <CartesianGrid horizontal={false} strokeDasharray='3 3' />
+          <XAxis type='number' tickLine={false} axisLine={false} />
           <YAxis
-            type="category"
-            dataKey="item"
+            type='category'
+            dataKey='item'
             tickLine={false}
             axisLine={false}
             width={140}
@@ -48,10 +50,10 @@ const NeedsAttentionBarChart = () => {
           />
           <ChartTooltip content={<ChartTooltipContent />} />
           <Bar
-            dataKey="count"
+            dataKey='count'
             radius={[0, 4, 4, 0]}
             maxBarSize={32}
-            fill="var(--color-count)"
+            fill='var(--color-count)'
           />
         </BarChart>
       </ChartContainer>

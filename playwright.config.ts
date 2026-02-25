@@ -10,8 +10,14 @@ export default defineConfig({
   retries: isCI ? 2 : 0,
   workers: isCI ? 1 : undefined,
   reporter: isCI
-    ? [['github'], ['html', { open: 'never', outputFolder: 'playwright-report' }]]
-    : [['list'], ['html', { open: 'on-failure', outputFolder: 'playwright-report' }]],
+    ? [
+        ['github'],
+        ['html', { open: 'never', outputFolder: 'playwright-report' }],
+      ]
+    : [
+        ['list'],
+        ['html', { open: 'on-failure', outputFolder: 'playwright-report' }],
+      ],
 
   use: {
     baseURL,
