@@ -13,9 +13,12 @@ import {
 
 import ENDPOINTS from '@/config/endpoints';
 import PATHS from '@/config/paths';
-import type { ApiError, ApiResponse } from '@/lib/api/client';
+import type { ApiError } from '@/lib/api/client';
 import { http } from '@/lib/api/client';
 
+/**
+ * Authenticated user shape as returned by the backend.
+ */
 type User = {
   id: number;
   name: string;
@@ -35,56 +38,40 @@ type User = {
   };
 };
 
-type MeResponseData = User | { user: User };
-
+/**
+ * Shape of the auth context exposed via `AuthProvider` / `useAuth`.
+ */
 type AuthContextValue = {
-  /**
-   * The currently authenticated admin user, or null if no session exists.
-   */
   user: User | null;
-  /**
-   * Indicates whether an authenticated admin session is present.
-   */
   isAuthenticated: boolean;
-  /**
-   * Indicates whether an auth-related network request is currently in progress
-   * (session check or logout).
-   */
   isLoading: boolean;
-  /**
-   * Indicates whether the initial auth check has completed and the auth state
-   * is ready to be consumed for routing decisions.
-   */
   isReady: boolean;
-  /**
-   * Last auth-related error message, primarily for debugging UI.
-   */
   error: string | null;
-  /**
-   * Re-validates the current admin session using the ME endpoint and updates
-   * the global auth state. This is safe to call from any client component
-   * wrapped by the provider.
-   */
   checkSession: () => Promise<void>;
-  /**
-   * Logs out the current admin using the LOGOUT endpoint, clears local auth
-   * state, and redirects to the admin login route.
-   */
   logout: () => Promise<void>;
 };
 
+/**
+ * Internal React context carrying authentication state.
+ *
+ * Prefer using `AuthProvider` and `useAuth` instead of consuming this context
+ * directly to keep usage consistent across the app.
+ */
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 /**
- * Top-level provider for admin authentication state.
+ * Top-level provider for authentication state.
  *
  * Responsibilities:
  * - Verify the current session on mount via the ADMIN.AUTH.ME endpoint.
  * - Expose derived auth state (user, isAuthenticated, isLoading, error).
  * - Provide `checkSession()` for manual revalidation.
- * - Provide `logout()` backed by the ADMIN.AUTH.LOGOUT endpoint.
+ * - Provide `logout()` backed by the LOGOUT endpoint.
  *
- * This provider should wrap the protected admin dashboard modules.
+ * This provider should wrap modules that require a verified authenticated user.
+ *
+ * @param {PropsWithChildren} props - React children that require access to auth state.
+ * @returns {JSX.Element} Provider wrapping the passed children.
  */
 export const AuthProvider = ({ children }: PropsWithChildren) => {
   const router = useRouter();
@@ -94,24 +81,24 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [error, setError] = useState<string | null>(null);
   const [hasInitialized, setHasInitialized] = useState<boolean>(false);
 
-  const extractUser = (response: ApiResponse<MeResponseData>): User | null => {
-    if (response.status === 'error') {
-      return null;
-    }
-
-    const payload = response.data;
-
-    if (payload && typeof payload === 'object' && 'user' in payload) {
-      return (payload as { user: User }).user ?? null;
-    }
-
-    return (payload as User) ?? null;
-  };
-
+  /**
+   * Re-validates the current authenticated session against the ME endpoint and
+   * normalizes the auth state based on the API response.
+   *
+   * Behavior:
+   * - Sets `isLoading` while the request is in-flight.
+   * - On success: updates `user`, clears `error`, and marks the provider as initialized.
+   * - On failure: clears `user`, records a human-readable error, and still marks
+   *   the provider as initialized so routing logic can proceed.
+   *
+   * This function is exposed via the context as `checkSession`.
+   *
+   * @returns {Promise<void>} A promise that resolves once the session check has completed.
+   */
   const checkSession = useCallback(async () => {
     setIsLoading(true);
 
-    const response = await http.get<MeResponseData>(ENDPOINTS.ADMIN.AUTH.ME, {
+    const response = await http.get<User>(ENDPOINTS.ADMIN.AUTH.ME, {
       throwOnError: false,
     });
 
@@ -119,20 +106,31 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       const errorResponse = response as ApiError;
 
       setUser(null);
-      setError(errorResponse.message || 'Unable to verify admin session.');
+      setError(errorResponse.message || 'Unable to verify authenticated session.');
       setIsLoading(false);
       setHasInitialized(true);
       return;
     }
 
-    const nextUser = extractUser(response);
-
-    setUser(nextUser);
+    setUser(response.data ?? null);
     setError(null);
     setIsLoading(false);
     setHasInitialized(true);
   }, []);
 
+  /**
+   * Logs out the current user via the LOGOUT endpoint and resets local auth state.
+   *
+   * Behavior:
+   * - Sets `isLoading` while the logout request is in-flight.
+   * - Regardless of API outcome (given `throwOnError: false`), clears `user`
+   *   and `error`, resets `isLoading`, and redirects to the login route.
+   *
+   * This function is exposed via the context as `logout`.
+   *
+   * @returns {Promise<void>} A promise that resolves once local state has been cleared
+   * and navigation to the login page has been triggered.
+   */
   const logout = useCallback(async () => {
     setIsLoading(true);
 
@@ -177,6 +175,11 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 /**
  * Convenience hook for consuming the admin auth context within client
  * components inside the protected admin dashboard.
+ *
+ * Throws a descriptive error when used outside of `AuthProvider` to surface
+ * configuration issues early in development.
+ *
+ * @returns {AuthContextValue} The current admin auth context value.
  */
 export const useAuth = (): AuthContextValue => {
   const ctx = useContext(AuthContext);

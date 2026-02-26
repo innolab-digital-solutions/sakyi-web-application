@@ -16,13 +16,21 @@ import {
   type TranslationReplacements,
 } from '@/lib/localization';
 
+/**
+ * Shape of the language context that is exposed by `LanguageProvider`
+ * and consumed via the `useLanguage` hook.
+ */
 type LanguageContextValue = {
   language: SupportedLanguage;
   setLanguage: (lang: SupportedLanguage) => void;
-  /** Translate key; optional replacements interpolate :placeholder in the string. */
   translate: (key: string, replacements?: TranslationReplacements) => string;
 };
-
+/**
+ * Internal React context carrying language state and translation helpers.
+ *
+ * Prefer using `LanguageProvider` and `useLanguage` instead of consuming this
+ * context directly to keep usage consistent across the app.
+ */
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 /**
@@ -35,6 +43,9 @@ const LanguageContext = createContext<LanguageContextValue | null>(null);
  *
  * It should typically be mounted once near the root layout so that
  * all pages share the same language state.
+ *
+ * @param {PropsWithChildren} props - React children that require access to language state.
+ * @returns {JSX.Element} Provider wrapping the passed children.
  */
 export const LanguageProvider = ({ children }: PropsWithChildren) => {
   const [language, setLanguageState] = useState<SupportedLanguage>('en');
@@ -55,7 +66,6 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
    * Any unsupported language codes are coerced back to the English default.
    *
    * @param {SupportedLanguage} lang - The language code to set.
-   * @returns {void}
    */
   const setLanguage = useCallback((lang: SupportedLanguage) => {
     const nextLang: SupportedLanguage =
@@ -71,6 +81,10 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
   /**
    * Resolve a translation key for the current language (delegates to localization lib).
    * Pass replacements to interpolate :placeholder tokens, e.g. translate('validation.required', { attribute: 'email' }).
+   *
+   * @param {string} key - Translation key path, e.g. `"validation.required"`.
+   * @param {TranslationReplacements} [replacements] - Optional placeholder replacements.
+   * @returns {string} Resolved and interpolated translation string.
    */
   const translate = useCallback(
     (key: string, replacements?: TranslationReplacements) =>
@@ -100,10 +114,12 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
  * This hook exposes:
  * - `language`: current language code
  * - `setLanguage`: mutator for updating the language
- * - `t`: translator function for resolving string keys
+ * - `translate`: translator function for resolving string keys
  *
  * Throws a descriptive error when used outside of `LanguageProvider`
  * to surface configuration issues early in development.
+ *
+ * @returns {LanguageContextValue} The current language context value.
  */
 export function useLanguage(): LanguageContextValue {
   const ctx = useContext(LanguageContext);
