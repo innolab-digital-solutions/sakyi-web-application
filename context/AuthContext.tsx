@@ -106,7 +106,9 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       const errorResponse = response as ApiError;
 
       setUser(null);
-      setError(errorResponse.message || 'Unable to verify authenticated session.');
+      setError(
+        errorResponse.message || 'Unable to verify authenticated session.',
+      );
       setIsLoading(false);
       setHasInitialized(true);
       return;

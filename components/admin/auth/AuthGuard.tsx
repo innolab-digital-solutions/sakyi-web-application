@@ -54,31 +54,17 @@ const AuthStatusScreen = ({ variant }: { variant: AuthStatusVariant }) => {
       <Spinner className='size-6' />
 
       <div className='space-y-1 text-center'>
-        <p className='text-sm font-semibold text-foreground'>{title}</p>
-        <p className='text-xs text-muted-foreground'>{description}</p>
+        <p className='text-foreground text-sm font-semibold'>{title}</p>
+        <p className='text-muted-foreground text-xs'>{description}</p>
       </div>
 
-      <p className='text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
+      <p className='text-muted-foreground text-[10px] font-medium tracking-[0.18em] uppercase'>
         {pill}
       </p>
     </div>
   );
 };
 
-/**
- * Generic auth route guard.
- *
- * - `mode="guest"`:
- *    - Only unauthenticated users can see the children (e.g. login page).
- *    - Authenticated users are redirected to the admin dashboard.
- *
- * - `mode="protected"`:
- *    - Only authenticated users can see the children (e.g. dashboard).
- *    - Unauthenticated users are redirected to the admin login page.
- *
- * In both modes:
- *  - While auth is being resolved, a branded full-screen loading state is shown.
- */
 const AuthGuard = ({ mode, children }: AuthGuardProps) => {
   const router = useRouter();
   const { isReady, isAuthenticated } = useAuth();
