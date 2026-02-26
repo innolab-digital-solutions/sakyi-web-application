@@ -48,12 +48,25 @@ export const resolveApiUrl = (endpoint: string): string => {
 };
 
 /**
+ * Converts Headers or a plain record to a normalized record for merging.
+ * Fetch accepts both shapes; this helper ensures we always have a simple object
+ * so we can safely add `Accept` and `X-XSRF-TOKEN` headers.
+ */
+const toHeadersRecord = (
+  headers: RequestInit['headers'],
+): Record<string, string> => {
+  if (headers == null) return {};
+  if (headers instanceof Headers) return Object.fromEntries(headers.entries());
+  return { ...(headers as Record<string, string>) };
+};
+
+/**
  * Builds and normalizes an HTTP headers object for API requests.
  *
- * - Always includes an 'Accept: application/json' header.
+ * - Always includes an `Accept: application/json` header.
  * - Spreads any custom headers provided via the `init` options.
  * - Automatically injects the CSRF token (`X-XSRF-TOKEN`) header for unsafe, non-GET methods,
- *   if a token is available via `getCsrfToken` (typically only on the client).
+ *   if a token is available via {@link getCsrfToken} (typically only on the client).
  *
  * @param {HttpMethod} method - HTTP verb (e.g., 'GET', 'POST', etc).
  * @param {ClientRequestInit} init - The set of options/config for the outgoing request (may include custom headers).
@@ -62,16 +75,6 @@ export const resolveApiUrl = (endpoint: string): string => {
  * @remarks
  * CSRF token logic assumes Laravel Sanctum for session-based authentication.
  */
-/**
- * Converts Headers or record to a plain record for merging. Fetch accepts both; we need a single record so we can add Accept and X-XSRF-TOKEN.
- */
-function toHeadersRecord(
-  headers: RequestInit['headers'],
-): Record<string, string> {
-  if (headers == null) return {};
-  if (headers instanceof Headers) return Object.fromEntries(headers.entries());
-  return { ...(headers as Record<string, string>) };
-}
 
 export const buildRequestHeaders = (
   method: HttpMethod,
