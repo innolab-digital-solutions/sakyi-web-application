@@ -1,5 +1,5 @@
-import { ADMIN_NAVIGATION } from './private';
-import { HEADER_NAVIGATION, FOOTER_NAVIGATION } from './public';
+import { ADMIN_NAVIGATION } from './admin';
+import { FOOTER_NAVIGATION, HEADER_NAVIGATION } from './site';
 
 /**
  * NAVIGATION aggregates the principal navigation structures used throughout the application.
@@ -16,7 +16,7 @@ import { HEADER_NAVIGATION, FOOTER_NAVIGATION } from './public';
  * @see HEADER_NAVIGATION, FOOTER_NAVIGATION (config/navigation/public.ts)
  * @see NavItem (config/navigation/types.ts)
  */
-export const NAVIGATION = {
+const NAVIGATION = {
   ADMIN: ADMIN_NAVIGATION,
   SITE: {
     HEADER: HEADER_NAVIGATION,
@@ -25,6 +25,6 @@ export const NAVIGATION = {
 } as const;
 
 export { NAVIGATION as default };
-export { ADMIN_NAVIGATION } from './private';
-export { HEADER_NAVIGATION, FOOTER_NAVIGATION } from './public';
+export { ADMIN_NAVIGATION } from './admin';
+export { FOOTER_NAVIGATION, HEADER_NAVIGATION } from './site';
 export * from './types';

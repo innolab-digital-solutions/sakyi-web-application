@@ -1,5 +1,4 @@
 export { useForm } from './core';
-
 export type {
   FormData,
   FormErrors,
@@ -9,7 +8,5 @@ export type {
   UseFormOptions,
   UseFormReturn,
 } from './types';
-
-export { validate } from './validation';
-
 export { deepClone, isEqual } from './utils';
+export { validate } from './validation';

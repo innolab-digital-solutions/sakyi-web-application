@@ -3,9 +3,10 @@ import {
   ClipboardCheck,
   FolderKanban,
   ListChecks,
-  UserSquare2,
   Users,
+  UserSquare2,
 } from 'lucide-react';
+
 import type { StatCardIconMap } from './types';
 
 /** Icon name → Lucide component. Resolve icon in client component from string (Server Component safe). */

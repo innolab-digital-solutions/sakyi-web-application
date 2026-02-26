@@ -1,6 +1,6 @@
-import type { ApiError as ApiErrorPayload, ApiResponse } from './types';
-import { ApiClientError } from './errors';
 import { MESSAGES } from './constants';
+import { ApiClientError } from './errors';
+import type { ApiError as ApiErrorPayload, ApiResponse } from './types';
 
 /**
  * Constructs a standardized API error response object.
@@ -95,7 +95,8 @@ export const handleJsonParseFailure = async <T>(
  * Handles error responses returned from the backend server,
  * constructing a formatted error result or throwing as configured.
  *
- * - Automatically triggers an authentication redirect if the error indicates auth is required.
+ * - When `throwOnError` is true, wraps the payload in an {@link ApiClientError}.
+ * - When `throwOnError` is false, returns a normalized {@link ApiResponse} with `status: 'error'`.
  *
  * @template T - The type of the expected response data.
  * @param {Response} response - The Fetch API response object.
