@@ -6,8 +6,8 @@ import { SyntheticEvent } from 'react';
 
 import SubmitButton from '@/components/shared/form/SubmitButton';
 import TextField from '@/components/shared/form/TextField';
-import { ENDPOINTS } from '@/config/endpoints';
-import { PATHS } from '@/config/paths';
+import ENDPOINTS from '@/config/endpoints';
+import PATHS from '@/config/paths';
 import { useForm } from '@/hooks/form';
 import { LoginSchema } from '@/lib/schemas/admin/auth/login';
 

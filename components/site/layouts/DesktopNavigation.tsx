@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { HEADER_NAVIGATION } from '@/config/navigation/public';
+import { HEADER_NAVIGATION } from '@/config/navigation/site';
 
 const DesktopNavigation = ({ pathname }: { pathname: string }) => {
   return (

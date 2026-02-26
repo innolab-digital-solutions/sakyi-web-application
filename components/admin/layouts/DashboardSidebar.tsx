@@ -24,7 +24,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
-import { NAVIGATION } from '@/config/navigation';
+import NAVIGATION from '@/config/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 const DashboardSidebar = () => {

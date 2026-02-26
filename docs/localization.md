@@ -201,9 +201,13 @@ Typical usage in `app/layout.tsx` or a site layout:
 ```tsx
 import { LanguageProvider } from '@/context/LanguageContext';
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en">
+    <html lang='en'>
       <body>
         <LanguageProvider>{children}</LanguageProvider>
       </body>
@@ -265,7 +269,6 @@ const Component = () => {
    ```
 
 4. **Update `LanguageProvider`** (if you want it to allow the new code):
-
    - Adjust the localStorage handling or UI that offers language choices.
 
 From this point, all calls to `getTranslation`/`translate` will support the new language automatically, with English as the fallback.
@@ -283,4 +286,3 @@ From this point, all calls to `getTranslation`/`translate` will support the new 
   - `getTranslation` already falls back to the English dictionary if a key is missing in the active language.
 
 By centralizing localization in `lib/localization` and using `LanguageContext` in the React tree, the project gets a small, predictable i18n layer that is easy to extend as new languages or sections are added. +
-

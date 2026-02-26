@@ -6,7 +6,7 @@ import type { PropsWithChildren } from 'react';
 import { useEffect } from 'react';
 
 import { Spinner } from '@/components/ui/spinner';
-import { PATHS } from '@/config/paths';
+import PATHS from '@/config/paths';
 import { useAuth } from '@/context/AuthContext';
 
 type AuthGuardMode = 'guest' | 'protected';

@@ -100,13 +100,13 @@ All HTTP calls must pass **relative** logical endpoints (e.g. `"admin/auth/login
 - Routes Sanctum endpoints (those starting with `sanctum/`) to:
 
   ```ts
-  `${apiConfig.domainEndpoint}/${normalizedPath}`
+  `${apiConfig.domainEndpoint}/${normalizedPath}`;
   ```
 
 - Routes all other endpoints to:
 
   ```ts
-  `${apiConfig.versionEndpoint}/${normalizedPath}`
+  `${apiConfig.versionEndpoint}/${normalizedPath}`;
   ```
 
 This guarantees:
@@ -316,4 +316,3 @@ By consistently going through `@/lib/api/client`, the team gets:
 - A single place to evolve API behavior.
 - Predictable error handling.
 - Less duplication and fewer subtle bugs around URLs, headers, or body formats.
-

@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import SocialButton from '@/components/site/shared/SocialButton';
-import { PATHS } from '@/config/paths';
+import PATHS from '@/config/paths';
 
 const Footer = () => {
   return (
@@ -13,7 +13,7 @@ const Footer = () => {
         <div className='mb-8' data-aos='fade-up' data-aos-duration='1000'>
           {/* Logo and Brand Title */}
           <Link
-            href={PATHS.PUBLIC.HOME}
+            href={PATHS.SITE.HOME}
             className='group mb-6 flex items-center justify-center space-x-3'
           >
             <Image

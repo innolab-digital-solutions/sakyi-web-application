@@ -1,4 +1,4 @@
-import { PATHS } from '@/config/paths';
+import PATHS from '@/config/paths';
 
 import type { NavItem } from './types';
 
@@ -23,23 +23,23 @@ import type { NavItem } from './types';
 export const HEADER_NAVIGATION: NavItem[] = [
   {
     name: 'Home',
-    path: PATHS.PUBLIC.HOME,
+    path: PATHS.SITE.HOME,
   },
   {
     name: 'About',
-    path: PATHS.PUBLIC.ABOUT,
+    path: PATHS.SITE.ABOUT,
   },
   {
     name: 'Programs',
-    path: PATHS.PUBLIC.PROGRAMS,
+    path: PATHS.SITE.PROGRAMS,
   },
   {
     name: 'Blog',
-    path: PATHS.PUBLIC.BLOG,
+    path: PATHS.SITE.BLOG,
   },
   {
     name: 'Contact',
-    path: PATHS.PUBLIC.CONTACT,
+    path: PATHS.SITE.CONTACT,
   },
 ];
 

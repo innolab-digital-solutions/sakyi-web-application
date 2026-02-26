@@ -8,7 +8,7 @@ import GradientButton from '@/components/site/shared/GradientButton';
 import GradientText from '@/components/site/shared/GradientText';
 import SectionBadge from '@/components/site/shared/SectionBadge';
 import SectionContainer from '@/components/site/shared/SectionContainer';
-import { PATHS } from '@/config/paths';
+import PATHS from '@/config/paths';
 
 const AboutSection = () => {
   const features = [
@@ -114,7 +114,7 @@ const AboutSection = () => {
 
           {/* Call To Action: Encourages users to explore available programs with strong visual button */}
           <div className='pt-4'>
-            <Link href={PATHS.PUBLIC.PROGRAMS} className='inline-block'>
+            <Link href={PATHS.SITE.PROGRAMS} className='inline-block'>
               <GradientButton>
                 <span>Explore Our Programs</span>
                 <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />

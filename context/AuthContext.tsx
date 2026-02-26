@@ -11,8 +11,8 @@ import {
   useState,
 } from 'react';
 
-import { ENDPOINTS } from '@/config/endpoints';
-import { PATHS } from '@/config/paths';
+import ENDPOINTS from '@/config/endpoints';
+import PATHS from '@/config/paths';
 import type { ApiError, ApiResponse } from '@/lib/api/client';
 import { http } from '@/lib/api/client';
 

@@ -5,7 +5,7 @@ import GradientButton from '@/components/site/shared/GradientButton';
 import GradientText from '@/components/site/shared/GradientText';
 import SectionBadge from '@/components/site/shared/SectionBadge';
 import SectionContainer from '@/components/site/shared/SectionContainer';
-import { PATHS } from '@/config/paths';
+import PATHS from '@/config/paths';
 
 const HowItWorksSection = () => {
   return (
@@ -143,7 +143,7 @@ const HowItWorksSection = () => {
 
       {/* Section CTA: Prompt to start process */}
       <div className='mt-12 flex items-center justify-center'>
-        <Link href={PATHS.PUBLIC.CONTACT} className='inline-block'>
+        <Link href={PATHS.SITE.CONTACT} className='inline-block'>
           <GradientButton>
             <span>Get Started Today</span>
             <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />

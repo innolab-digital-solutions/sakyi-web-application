@@ -10,7 +10,7 @@ import DesktopNavigation from '@/components/site/layouts/DesktopNavigation';
 import MobileNavigation from '@/components/site/layouts/MobileNavigation';
 import GetTheAppButton from '@/components/site/shared/GetTheAppButton';
 import { Button } from '@/components/ui/button';
-import { PATHS } from '@/config/paths';
+import PATHS from '@/config/paths';
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -50,10 +50,7 @@ const Navbar = () => {
       <div className='mx-auto max-w-7xl'>
         <div className='flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8'>
           {/* Logo linking to home page, displayed on all devices */}
-          <Link
-            href={PATHS.PUBLIC.HOME}
-            className='flex items-center space-x-3'
-          >
+          <Link href={PATHS.SITE.HOME} className='flex items-center space-x-3'>
             <Image
               src='/images/logo.png'
               alt='SaKyi Logo'

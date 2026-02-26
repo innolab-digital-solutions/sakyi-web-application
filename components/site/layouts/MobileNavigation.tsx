@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 import GetTheAppButton from '@/components/site/shared/GetTheAppButton';
-import { HEADER_NAVIGATION } from '@/config/navigation/public';
+import { HEADER_NAVIGATION } from '@/config/navigation/site';
 
 type MobileNavigationProps = {
   isOpen: boolean;
