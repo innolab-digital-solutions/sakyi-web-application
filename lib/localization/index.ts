@@ -1,2 +1,2 @@
-export * from './translator';
+export * from './core';
 export * from './types';
