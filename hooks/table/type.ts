@@ -80,4 +80,3 @@ export interface UseTableReturn<TItem> {
    */
   refetch: UseQueryResult<TableQueryResponse<TItem>, Error>['refetch'];
 }
-

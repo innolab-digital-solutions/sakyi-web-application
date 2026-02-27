@@ -143,7 +143,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     setUser(null);
     setError(null);
     setIsLoading(false);
-    router.replace(PATHS.ADMIN.LOGIN);
+    router.replace(PATHS.ADMIN.AUTH.LOGIN);
   }, [router]);
 
   useEffect(() => {
