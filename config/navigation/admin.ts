@@ -58,13 +58,13 @@ export const ADMIN_NAVIGATION: NavItem[] = [
   {
     name: 'Programs',
     icon: FolderKanban,
-    path: '#',
+    path: PATHS.ADMIN.PROGRAMS,
     subitems: [],
   },
   {
     name: 'Clients',
     icon: UserSquare2,
-    path: PATHS.ADMIN.CLIENTS,
+    path: '#',
     subitems: [],
   },
   {

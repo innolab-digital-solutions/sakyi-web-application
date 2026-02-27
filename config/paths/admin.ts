@@ -9,8 +9,5 @@
  */
 export const ADMIN_PATHS = {
   DASHBOARD: '/admin/dashboard',
-  CLIENTS: '/admin/clients',
-  LOGIN: '/admin/login',
-  LOGOUT: '/admin/logout',
-  ME: '/admin/me',
+  PROGRAMS: '/admin/programs',
 } as const;

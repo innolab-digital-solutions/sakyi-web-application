@@ -32,7 +32,7 @@ export default async function AdminProtectedLayout({
             <SidebarInset>
               <DashboardHeader />
               {/* Page content*/}
-              <div className='bg-background flex-1 flex-col px-8 py-5'>
+              <div className='bg-background flex-1 flex-col p-4 md:p-8'>
                 {children}
               </div>
             </SidebarInset>

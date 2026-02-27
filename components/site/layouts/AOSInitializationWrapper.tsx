@@ -4,7 +4,7 @@ import 'aos/dist/aos.css';
 
 import { PropsWithChildren, useEffect } from 'react';
 
-const AOSAnimationProvider = ({ children }: PropsWithChildren) => {
+const AOSInitializationWrapper = ({ children }: PropsWithChildren) => {
   useEffect(() => {
     let mounted = true;
 
@@ -37,4 +37,4 @@ const AOSAnimationProvider = ({ children }: PropsWithChildren) => {
   return <>{children}</>;
 };
 
-export default AOSAnimationProvider;
+export default AOSInitializationWrapper;
