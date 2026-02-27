@@ -3,7 +3,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import type { PropsWithChildren } from 'react';
 
-import QueryInitializationWrapper from '@/components/shared/QueryInitializationWrapper';
+import TanstackQueryWrapper from '@/components/shared/TanstackQueryWrapper';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { LanguageProvider } from '@/context/LanguageContext';
 
@@ -16,11 +16,11 @@ export default function RootLayout({ children }: Readonly<PropsWithChildren>) {
   return (
     <html lang='en'>
       <body className='antialiased'>
-        <QueryInitializationWrapper>
+        <TanstackQueryWrapper>
           <TooltipProvider>
             <LanguageProvider>{children}</LanguageProvider>
           </TooltipProvider>
-        </QueryInitializationWrapper>
+        </TanstackQueryWrapper>
       </body>
     </html>
   );

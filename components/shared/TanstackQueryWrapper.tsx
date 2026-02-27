@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { PropsWithChildren, useState } from 'react';
 
-const QueryInitializationWrapper = ({ children }: PropsWithChildren) => {
+const TanstackQueryWrapper = ({ children }: PropsWithChildren) => {
   const [client] = useState(
     () =>
       new QueryClient({
@@ -29,4 +29,4 @@ const QueryInitializationWrapper = ({ children }: PropsWithChildren) => {
   );
 };
 
-export default QueryInitializationWrapper;
+export default TanstackQueryWrapper;
