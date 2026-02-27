@@ -1,7 +1,31 @@
+'use client';
+
 import DataTable from '@/components/admin/control/table/DataTable';
 import TableContainer from '@/components/admin/control/table/TableContainer';
+import ENDPOINTS from '@/config/endpoints';
+import { useTable } from '@/hooks/table';
+
+type Program = {
+  id: number;
+  name: string;
+  email: string;
+  picture: string;
+  dob: string;
+  gender: string;
+  phone: string;
+  address: string;
+  status: string;
+  timestamps: {
+    email_verified_at: string;
+    last_login_at: string;
+    created_at: string;
+    updated_at: string;
+  };
+};
 
 export default function ProgramsListPage() {
+  const { rows } = useTable<Program>(ENDPOINTS.ADMIN.PROGRAMS.LIST);
+  console.log(rows);
   return (
     <div className='space-y-8'>
       {/* <div className='flex items-center justify-between'>

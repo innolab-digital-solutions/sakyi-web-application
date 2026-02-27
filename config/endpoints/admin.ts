@@ -10,4 +10,7 @@ export const ADMIN_ENDPOINTS = {
     LOGOUT: '/web/admin/auth/logout',
     ME: '/web/admin/auth/me',
   },
+  PROGRAMS: {
+    LIST: '/example',
+  },
 } as const;
