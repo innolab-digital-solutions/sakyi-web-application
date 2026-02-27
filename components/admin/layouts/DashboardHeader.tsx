@@ -15,7 +15,7 @@ import PATHS from '@/config/paths';
 
 const DashboardHeader = () => {
   return (
-    <header className='border-border bg-background sticky top-0 z-50 w-full border-b px-2.5'>
+    <header className='border-border bg-background sticky top-0 z-10 w-full border-b px-2.5'>
       <div className='flex h-16 items-center justify-between px-5'>
         {/* Sidebar section with trigger and potential breadcrumb */}
         <div className='flex h-5 items-center'>

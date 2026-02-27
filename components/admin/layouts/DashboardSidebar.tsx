@@ -32,7 +32,7 @@ const DashboardSidebar = () => {
   const { logout, isLoading } = useAuth();
 
   return (
-    <Sidebar>
+    <Sidebar className='z-50!'>
       {/* Sidebar header with logo and title */}
       <SidebarHeader className='py-3.5'>
         <div className='flex items-center gap-3 px-2'>

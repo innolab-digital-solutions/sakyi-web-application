@@ -29,10 +29,10 @@ export default async function AdminProtectedLayout({
             <DashboardSidebar />
 
             {/* Main content: dashboard header & page */}
-            <SidebarInset>
+            <SidebarInset className='min-w-0'>
               <DashboardHeader />
               {/* Page content*/}
-              <div className='bg-background flex-1 flex-col p-4 md:p-8'>
+              <div className='bg-background flex-1 flex-col p-4 md:p-6'>
                 {children}
               </div>
             </SidebarInset>

@@ -6,6 +6,7 @@ import TablePagination from '@/components/shared/table/TablePagination';
 import type { TablePagination as TablePaginationType } from '@/hooks/table/type';
 
 type TableLayoutProps = {
+  isLoading?: boolean;
   filters: ReactNode;
   pagination: TablePaginationType<unknown> | null;
 };
@@ -16,7 +17,7 @@ const TableLayout = ({
   pagination,
 }: PropsWithChildren<TableLayoutProps>) => {
   return (
-    <div className='border-border rounded-md border bg-white'>
+    <div className='border-border max-w-full rounded-md border bg-white'>
       {/* Responsive Header */}
       <div className='border-border flex flex-col border-b px-2 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-5'>
         <TableDataSearchBox />

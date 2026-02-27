@@ -14,33 +14,16 @@ import {
 } from '@/components/ui/table';
 import ENDPOINTS from '@/config/endpoints';
 import { useTable } from '@/hooks/table';
-
-type Program = {
-  id: number;
-  name: string;
-  email: string;
-  picture: string;
-  dob: string;
-  gender: string;
-  phone: string;
-  address: string;
-  status: string;
-  timestamps: {
-    email_verified_at: string;
-    last_login_at: string;
-    created_at: string;
-    updated_at: string;
-  };
-};
+import type { Program } from '@/types/programs';
 
 const ProgramTable = () => {
-  const { rows, pagination } = useTable<Program>(ENDPOINTS.ADMIN.PROGRAMS.LIST);
+  const { rows, pagination, isLoading } = useTable<Program>(ENDPOINTS.ADMIN.PROGRAMS.LIST);
 
   return (
-    <TableLayout filters={null} pagination={pagination}>
+    <TableLayout filters={null} pagination={pagination} isLoading={isLoading}>
       <Table>
         <TableHeader>
-          <TableRow className='hidden md:table-row'>
+          <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Price</TableHead>
