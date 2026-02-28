@@ -3,6 +3,7 @@
 import Image from 'next/image';
 
 import TableLayout from '@/components/admin/layouts/TableLayout';
+import TableSkeleton from '@/components/shared/table/TableSkeleton';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -17,10 +18,14 @@ import { useTable } from '@/hooks/table';
 import type { Program } from '@/types/programs';
 
 const ProgramTable = () => {
-  const { rows, controls } = useTable<Program>(
-    ENDPOINTS.ADMIN.PROGRAMS.LIST,
-    { syncWithUrl: true },
-  );
+  const { rows, controls } = useTable<Program>(ENDPOINTS.ADMIN.PROGRAMS.LIST, {
+    syncWithUrl: true,
+  });
+
+  const isTableLoading =
+    controls.isLoading ||
+    controls.query.isFetching ||
+    !controls.pagination.meta;
 
   return (
     <TableLayout filters={null} controls={controls}>
@@ -37,44 +42,48 @@ const ProgramTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {rows.map((program) => (
-            <TableRow key={program.id}>
-              <TableCell>
-                <Image
-                  src={program.picture}
-                  alt={program.name}
-                  width={32}
-                  height={32}
-                  className='bg-muted shrink-0 rounded-md'
-                  style={{ objectFit: 'cover' }}
-                />
-                <span>{program.name}</span>
-              </TableCell>
-              <TableCell>{program.address}</TableCell>
-              <TableCell>{program.phone}</TableCell>
-              <TableCell>{program.dob}</TableCell>
-              <TableCell>{program.gender}</TableCell>
-              <TableCell>
-                <span
-                  className={
-                    program.status === 'active'
-                      ? 'rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-800'
-                      : 'rounded bg-gray-100 px-2 py-1 text-xs font-bold text-gray-500'
-                  }
-                >
-                  {program.status === 'active' ? 'Active' : 'Inactive'}
-                </span>
-              </TableCell>
-              <TableCell>
-                <Button size='sm' variant='outline'>
-                  View
-                </Button>
-                <Button size='sm' variant='outline' className='ml-2'>
-                  Edit
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
+          {isTableLoading ? (
+            <TableSkeleton rows={controls.perPage.value} columns={7} />
+          ) : (
+            rows.map((program) => (
+              <TableRow key={program.id}>
+                <TableCell>
+                  <Image
+                    src={program.picture}
+                    alt={program.name}
+                    width={32}
+                    height={32}
+                    className='bg-muted shrink-0 rounded-md'
+                    style={{ objectFit: 'cover' }}
+                  />
+                  <span>{program.name}</span>
+                </TableCell>
+                <TableCell>{program.address}</TableCell>
+                <TableCell>{program.phone}</TableCell>
+                <TableCell>{program.dob}</TableCell>
+                <TableCell>{program.gender}</TableCell>
+                <TableCell>
+                  <span
+                    className={
+                      program.status === 'active'
+                        ? 'rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-800'
+                        : 'rounded bg-gray-100 px-2 py-1 text-xs font-bold text-gray-500'
+                    }
+                  >
+                    {program.status === 'active' ? 'Active' : 'Inactive'}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <Button size='sm' variant='outline'>
+                    View
+                  </Button>
+                  <Button size='sm' variant='outline' className='ml-2'>
+                    Edit
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </TableLayout>
