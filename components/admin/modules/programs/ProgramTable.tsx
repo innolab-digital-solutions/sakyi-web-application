@@ -3,6 +3,7 @@
 import Image from 'next/image';
 
 import TableLayout from '@/components/admin/layouts/TableLayout';
+import ProgramFilters from '@/components/admin/modules/programs/ProgramFilters';
 import TableSkeleton from '@/components/shared/table/TableSkeleton';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,6 +21,9 @@ import type { Program } from '@/types/programs';
 const ProgramTable = () => {
   const { rows, controls } = useTable<Program>(ENDPOINTS.ADMIN.PROGRAMS.LIST, {
     syncWithUrl: true,
+    params: {
+      lang: 'en',
+    },
   });
 
   const isTableLoading =
@@ -28,7 +32,7 @@ const ProgramTable = () => {
     !controls.pagination.meta;
 
   return (
-    <TableLayout filters={null} controls={controls}>
+    <TableLayout filters={<ProgramFilters />} controls={controls}>
       <Table>
         <TableHeader>
           <TableRow>

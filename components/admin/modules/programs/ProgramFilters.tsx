@@ -1,5 +1,11 @@
+import TranslationTabs from './TranslationTabs';
+
 const ProgramFilters = () => {
-  return <div>ProgramFilters</div>;
+  return (
+    <div>
+      <TranslationTabs />
+    </div>
+  );
 };
 
 export default ProgramFilters;

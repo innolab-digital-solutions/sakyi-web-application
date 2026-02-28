@@ -95,8 +95,8 @@ export const useTable = <TItem>(
     page,
     per_page: perPage,
     ...(search ? { search } : {}),
-    ...(options?.syncWithUrl && fromUrl ? fromUrl.extraParamsFromUrl : {}),
     ...options?.params,
+    ...(options?.syncWithUrl && fromUrl ? fromUrl.extraParamsFromUrl : {}),
   };
 
   const { placeholderData, ...restOptions } = options ?? {};
