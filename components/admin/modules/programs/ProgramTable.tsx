@@ -15,27 +15,19 @@ import {
 import ENDPOINTS from '@/config/endpoints';
 import { useTable } from '@/hooks/table';
 import type { Program } from '@/types/programs';
-import { useCallback, useState } from 'react';
 
 const ProgramTable = () => {
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
-  const [search, setSearch] = useState('');
-
-  const handleSearchChange = useCallback((value: string) => {
-    setSearch(value);
-    // Whenever search changes, always go back to the first page.
-    setPage(1);
-  }, []);
-
-  const { rows, pagination, isLoading } = useTable<Program>(
-    ENDPOINTS.ADMIN.PROGRAMS.LIST,
-    {
-      page,
-      per_page: perPage,
-      search: search || undefined,
-    },
-  );
+  const {
+    rows,
+    pagination,
+    isLoading,
+    page,
+    perPage,
+    search,
+    onPageChange,
+    onPerPageChange,
+    onSearchChange,
+  } = useTable<Program>(ENDPOINTS.ADMIN.PROGRAMS.LIST);
 
   return (
     <TableLayout
@@ -45,9 +37,9 @@ const ProgramTable = () => {
       page={page}
       perPage={perPage}
       search={search}
-      onPageChange={setPage}
-      onPerPageChange={setPerPage}
-      onSearchChange={handleSearchChange}
+      onPageChange={onPageChange}
+      onPerPageChange={onPerPageChange}
+      onSearchChange={onSearchChange}
     >
       <Table>
         <TableHeader>

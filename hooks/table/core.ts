@@ -1,3 +1,4 @@
+import { useCallback, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { http } from '@/lib/api/client';
@@ -6,35 +7,49 @@ import { buildQueryString } from './builders';
 import type {
   TablePageData,
   TablePagination,
-  TableQueryOptions,
   TableQueryParams,
   TableQueryResponse,
+  UseTableHookOptions,
   UseTableReturn,
 } from './type';
 
 /**
  * Data-fetching hook for paginated table endpoints.
  *
- * This hook integrates the shared HTTP client with TanStack Query
- * and normalizes the paginated response into a convenient shape
- * for table components.
+ * Owns pagination and search state (page, perPage, search) and resets to the
+ * first page when search changes. Integrates the shared HTTP client with
+ * TanStack Query and returns rows, pagination, and layout props for table UIs.
  *
  * @template TItem - Row/item type contained in the table data array.
- * @param endpoint - Relative API endpoint (e.g. `"admin/users"`).
- * @param params - Optional query string params (page, per_page, filters, etc.).
- * @param options - Additional TanStack Query options (excluding queryKey/queryFn).
+ * @param endpoint - Relative API endpoint (e.g. `"admin/programs"`).
+ * @param options - Initial state, extra params (e.g. filters), and TanStack Query options.
  */
 export const useTable = <TItem>(
   endpoint: string,
-  params?: TableQueryParams,
-  options?: TableQueryOptions<TItem>,
+  options?: UseTableHookOptions<TItem>,
 ): UseTableReturn<TItem> => {
+  const [page, setPage] = useState(options?.initialPage ?? 1);
+  const [perPage, setPerPage] = useState(options?.initialPerPage ?? 10);
+  const [search, setSearch] = useState(options?.initialSearch ?? '');
+
+  const onSearchChange = useCallback((value: string) => {
+    setSearch(value);
+    setPage(1);
+  }, []);
+
+  const params: TableQueryParams = {
+    page,
+    per_page: perPage,
+    ...(search ? { search } : {}),
+    ...options?.params,
+  };
+
   const { placeholderData, ...restOptions } = options ?? {};
 
   const query = useQuery<TableQueryResponse<TItem>, Error>({
     ...restOptions,
     placeholderData: placeholderData ?? ((prev) => prev),
-    queryKey: ['table', endpoint, params ?? {}],
+    queryKey: ['table', endpoint, params],
     queryFn: async () => {
       const queryString = buildQueryString(params);
 
@@ -51,10 +66,10 @@ export const useTable = <TItem>(
     },
   });
 
-  const page = query.data?.data ?? null;
-  const rows = page?.data ?? [];
-  const pagination: TablePagination<TItem> | null = page
-    ? (({ data: _rows, ...meta }) => meta)(page)
+  const pageData = query.data?.data ?? null;
+  const rows = pageData?.data ?? [];
+  const pagination: TablePagination<TItem> | null = pageData
+    ? (({ data: _rows, ...meta }) => meta)(pageData)
     : null;
 
   return {
@@ -66,6 +81,12 @@ export const useTable = <TItem>(
     isError: query.isError,
     error: query.error ?? null,
     refetch: query.refetch,
+    page,
+    perPage,
+    search,
+    onPageChange: setPage,
+    onPerPageChange: setPerPage,
+    onSearchChange,
   };
 };
 

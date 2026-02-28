@@ -2,6 +2,7 @@ import { PropsWithChildren, ReactNode } from 'react';
 
 import RowsPerPageSelect from '@/components/shared/table/RowsPerPageSelect';
 import TableDataSearchBox from '@/components/shared/table/TableDataSearchBox';
+import TableEmptyState from '@/components/shared/table/TableEmptyState';
 import TablePagination from '@/components/shared/table/TablePagination';
 import type { TablePagination as TablePaginationType } from '@/hooks/table/type';
 
@@ -42,6 +43,12 @@ const TableLayout = ({
 
       {/* Table  */}
       <div className='overflow-x-auto'>{children}</div>
+
+      {pagination && pagination.total === 0 && (
+        <div>
+          <TableEmptyState />
+        </div>
+      )}
 
       {/* Table Footer  */}
       {pagination ? (

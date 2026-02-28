@@ -46,6 +46,18 @@ export type TableQueryOptions<TItem> = Omit<
 >;
 
 /**
+ * Options for useTable when the hook owns pagination and search state.
+ * Extra params (e.g. filters) are merged with page, per_page, and search.
+ */
+export interface UseTableHookOptions<TItem> extends TableQueryOptions<TItem> {
+  initialPage?: number;
+  initialPerPage?: number;
+  initialSearch?: string;
+  /** Additional query params merged with page, per_page, search (e.g. filters). */
+  params?: Omit<TableQueryParams, 'page' | 'per_page' | 'search'>;
+}
+
+/**
  * Pagination metadata derived from the backend response,
  * excluding the row data array.
  */
@@ -79,4 +91,17 @@ export interface UseTableReturn<TItem> {
    * Refetch helper for manually reloading the table.
    */
   refetch: UseQueryResult<TableQueryResponse<TItem>, Error>['refetch'];
+
+  /** Current page (1-based). Managed by the hook. */
+  page: number;
+  /** Current page size. Managed by the hook. */
+  perPage: number;
+  /** Current search term. Managed by the hook. */
+  search: string;
+  /** Set current page. */
+  onPageChange: (page: number) => void;
+  /** Set page size. */
+  onPerPageChange: (perPage: number) => void;
+  /** Set search term and reset to first page. */
+  onSearchChange: (value: string) => void;
 }

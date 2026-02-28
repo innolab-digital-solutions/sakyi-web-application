@@ -5,5 +5,6 @@ export type {
   TableQueryOptions,
   TableQueryParams,
   TableQueryResponse,
+  UseTableHookOptions,
   UseTableReturn,
 } from './type';
