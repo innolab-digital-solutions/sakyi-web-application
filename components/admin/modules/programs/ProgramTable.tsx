@@ -19,6 +19,7 @@ import type { Program } from '@/types/programs';
 const ProgramTable = () => {
   const { rows, controls } = useTable<Program>(
     ENDPOINTS.ADMIN.PROGRAMS.LIST,
+    { syncWithUrl: true },
   );
 
   return (

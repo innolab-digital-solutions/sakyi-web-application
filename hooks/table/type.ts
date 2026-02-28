@@ -50,6 +50,12 @@ export type TableQueryOptions<TItem> = Omit<
  * Extra params (e.g. filters) are merged with page, per_page, and search.
  */
 export interface UseTableHookOptions<TItem> extends TableQueryOptions<TItem> {
+  /**
+   * When true, useTable will sync its core controls (page, per_page, search)
+   * with the URL query string (both read on mount and write on change).
+   */
+  syncWithUrl?: boolean;
+
   initialPage?: number;
   initialPerPage?: number;
   initialSearch?: string;
