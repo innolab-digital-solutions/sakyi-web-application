@@ -1,10 +1,11 @@
-import { useCallback, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useCallback, useState } from 'react';
 
 import { http } from '@/lib/api/client';
 
 import { buildQueryString } from './builders';
 import type {
+  TableControls,
   TablePageData,
   TablePagination,
   TableQueryParams,
@@ -72,21 +73,27 @@ export const useTable = <TItem>(
     ? (({ data: _rows, ...meta }) => meta)(pageData)
     : null;
 
+  const controls: TableControls<TItem> = {
+    search: {
+      value: search,
+      onChange: onSearchChange,
+    },
+    perPage: {
+      value: perPage,
+      onChange: setPerPage,
+    },
+    pagination: {
+      page,
+      onPageChange: setPage,
+      meta: pagination,
+    },
+    isLoading: query.isLoading,
+    query,
+  };
+
   return {
     rows,
-    pagination,
-    isLoading: query.isLoading,
-    isFetching: query.isFetching,
-    isSuccess: query.isSuccess,
-    isError: query.isError,
-    error: query.error ?? null,
-    refetch: query.refetch,
-    page,
-    perPage,
-    search,
-    onPageChange: setPage,
-    onPerPageChange: setPerPage,
-    onSearchChange,
+    controls,
   };
 };
 

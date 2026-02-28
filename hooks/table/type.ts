@@ -63,45 +63,61 @@ export interface UseTableHookOptions<TItem> extends TableQueryOptions<TItem> {
  */
 export type TablePagination<TItem> = Omit<TablePageData<TItem>, 'data'>;
 
-export interface UseTableReturn<TItem> {
-  /**
-   * Flattened list of row items for rendering the table.
-   */
-  rows: TItem[];
+/**
+ * Config for search controls in table layouts.
+ */
+export interface TableSearchConfig {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+/**
+ * Config for page size controls (rows per page).
+ */
+export interface TablePerPageConfig {
+  value: number;
+  onChange: (perPage: number) => void;
+}
+
+/**
+ * Config for pagination controls (current page, handler, and API metadata).
+ */
+export interface TablePaginationConfig<TItem = unknown> {
+  page: number;
+  onPageChange: (page: number) => void;
+  /** API response metadata (total, last_page, links, etc.). Null before first load. */
+  meta: TablePagination<TItem> | null;
+}
+
+/**
+ * Grouped table control props used by layout components.
+ *
+ * This keeps search, page size, pagination, and loading/query wiring nested
+ * and easier to pass around instead of many discrete props.
+ */
+export interface TableControls<TItem = unknown> {
+  search: TableSearchConfig;
+  perPage: TablePerPageConfig;
+  pagination: TablePaginationConfig<TItem>;
 
   /**
-   * Pagination information for the current result set.
-   */
-  pagination: TablePagination<TItem> | null;
-
-  /**
-   * Derived React Query status flags.
+   * Derived loading state for the table query.
+   * This mirrors `query.isLoading` but keeps the consuming components
+   * decoupled from React Query's full API surface.
    */
   isLoading: boolean;
-  isFetching: boolean;
-  isSuccess: boolean;
-  isError: boolean;
 
   /**
-   * Normalized error instance, if any.
+   * Underlying TanStack Query result for advanced consumers.
+   * Most components should prefer the higher-level fields above.
    */
-  error: Error | null;
+  query: UseQueryResult<TableQueryResponse<TItem>, Error>;
+}
 
-  /**
-   * Refetch helper for manually reloading the table.
-   */
-  refetch: UseQueryResult<TableQueryResponse<TItem>, Error>['refetch'];
+export interface UseTableReturn<TItem> {
+  /** Flattened list of row items for rendering the table. */
+  rows: TItem[];
 
-  /** Current page (1-based). Managed by the hook. */
-  page: number;
-  /** Current page size. Managed by the hook. */
-  perPage: number;
-  /** Current search term. Managed by the hook. */
-  search: string;
-  /** Set current page. */
-  onPageChange: (page: number) => void;
-  /** Set page size. */
-  onPerPageChange: (perPage: number) => void;
-  /** Set search term and reset to first page. */
-  onSearchChange: (value: string) => void;
+  /** Nested config for controls, loading state, and query meta. */
+  controls: TableControls<TItem>;
 }

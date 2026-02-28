@@ -17,30 +17,12 @@ import { useTable } from '@/hooks/table';
 import type { Program } from '@/types/programs';
 
 const ProgramTable = () => {
-  const {
-    rows,
-    pagination,
-    isLoading,
-    page,
-    perPage,
-    search,
-    onPageChange,
-    onPerPageChange,
-    onSearchChange,
-  } = useTable<Program>(ENDPOINTS.ADMIN.PROGRAMS.LIST);
+  const { rows, controls } = useTable<Program>(
+    ENDPOINTS.ADMIN.PROGRAMS.LIST,
+  );
 
   return (
-    <TableLayout
-      filters={null}
-      pagination={pagination}
-      isLoading={isLoading}
-      page={page}
-      perPage={perPage}
-      search={search}
-      onPageChange={onPageChange}
-      onPerPageChange={onPerPageChange}
-      onSearchChange={onSearchChange}
-    >
+    <TableLayout filters={null} controls={controls}>
       <Table>
         <TableHeader>
           <TableRow>
