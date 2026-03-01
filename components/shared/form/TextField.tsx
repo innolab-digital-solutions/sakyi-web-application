@@ -5,7 +5,7 @@ import * as React from 'react';
 
 import { Input as ShadCNInput } from '@/components/ui/input';
 import { Label as ShadCNLabel } from '@/components/ui/label';
-import { cn } from '@/lib/browser/styles';
+import { cn } from '@/lib/utils/styles';
 
 /**
  * Props for the TextField component. Extends the underlying input with optional label and error display.

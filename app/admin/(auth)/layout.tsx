@@ -3,7 +3,7 @@ import { PropsWithChildren } from 'react';
 import AuthGuard from '@/components/admin/auth/AuthGuard';
 import { inter } from '@/config/fonts';
 import AuthProvider from '@/context/AuthContext';
-import { cn } from '@/lib/browser/styles';
+import { cn } from '@/lib/utils/styles';
 
 export default function AdminGuestLayout({ children }: PropsWithChildren) {
   return (

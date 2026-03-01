@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import { formatSlugAsTitle } from '@/lib/formatting';
+import { formatSlugAsTitle } from '@/lib/utils/formatting';
 
 type ProgramDetailPageProps = {
   params: Promise<{ slug: string }>;

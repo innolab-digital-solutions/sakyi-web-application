@@ -7,7 +7,7 @@ import DashboardSidebar from '@/components/admin/layouts/DashboardSidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { inter } from '@/config/fonts';
 import AuthProvider from '@/context/AuthContext';
-import { cn } from '@/lib/browser/styles';
+import { cn } from '@/lib/utils/styles';
 
 export default async function AdminProtectedLayout({
   children,
