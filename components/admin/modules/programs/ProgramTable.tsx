@@ -18,12 +18,31 @@ import ENDPOINTS from '@/config/endpoints';
 import { useTable } from '@/hooks/table';
 import type { Program } from '@/types/admin/programs';
 
+const formatPrice = (cents: number): string =>
+  new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(cents / 100);
+
+const statusBadgeClass = (status: string): string => {
+  switch (status) {
+    case 'active':
+    case 'published':
+      return 'rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-800';
+    case 'draft':
+      return 'rounded bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800';
+    case 'archived':
+      return 'rounded bg-gray-100 px-2 py-1 text-xs font-bold text-gray-600';
+    default:
+      return 'rounded bg-gray-100 px-2 py-1 text-xs font-bold text-gray-500';
+  }
+};
+
 /**
  * Admin programs list table with URL-synced pagination and search.
  *
  * Fetches program rows via useTable and the admin programs endpoint, and renders
- * columns for name, description, price, enrollments, duration, status, and actions.
- * Use on the admin programs page.
+ * columns for title, overview, goal, price, duration, status, and actions.
  */
 const ProgramTable = () => {
   const { rows, controls } = useTable<Program>(ENDPOINTS.ADMIN.PROGRAMS.LIST, {
@@ -43,10 +62,10 @@ const ProgramTable = () => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Description</TableHead>
+            <TableHead>Program</TableHead>
+            <TableHead>Overview</TableHead>
+            <TableHead>Goal</TableHead>
             <TableHead>Price</TableHead>
-            <TableHead>Enrollments</TableHead>
             <TableHead>Duration</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Actions</TableHead>
@@ -61,29 +80,25 @@ const ProgramTable = () => {
                 <TableCell>
                   <div className='flex items-center gap-2'>
                     <Image
-                      src={program.picture}
-                      alt={program.name}
+                      src={program.thumbnail}
+                      alt={program.title}
                       width={32}
                       height={32}
                       className='bg-muted shrink-0 rounded-md'
                       style={{ objectFit: 'cover' }}
                     />
-                    <span>{program.name}</span>
+                    <span>{program.title}</span>
                   </div>
                 </TableCell>
-                <TableCell>{program.description}</TableCell>
-                <TableCell>{program.price}</TableCell>
-                <TableCell>{program.enrollments}</TableCell>
+                <TableCell className='max-w-48 truncate'>
+                  {program.overview}
+                </TableCell>
+                <TableCell>{program.goal.name}</TableCell>
+                <TableCell>{formatPrice(program.price)}</TableCell>
                 <TableCell>{program.duration}</TableCell>
                 <TableCell>
-                  <span
-                    className={
-                      program.status === 'active'
-                        ? 'rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-800'
-                        : 'rounded bg-gray-100 px-2 py-1 text-xs font-bold text-gray-500'
-                    }
-                  >
-                    {program.status === 'active' ? 'Active' : 'Inactive'}
+                  <span className={statusBadgeClass(program.status)}>
+                    {program.status}
                   </span>
                 </TableCell>
                 <TableCell>

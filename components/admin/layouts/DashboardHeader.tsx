@@ -15,12 +15,19 @@ import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import PATHS from '@/config/paths';
 import { useAuth } from '@/context/AuthContext';
+import type { UserRole } from '@/types/admin/user';
 
 const DashboardHeader = () => {
   const { user } = useAuth();
 
   const displayName = user?.name ?? 'User';
-  const displayRole = user?.role ?? 'Admin';
+  const role = user?.role;
+  const displayRole =
+    role == null
+      ? 'Admin'
+      : typeof role === 'string'
+        ? role
+        : (role as UserRole).name ?? 'Admin';
   const initials = displayName
     .split(' ')
     .map((word) => word[0])

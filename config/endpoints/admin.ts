@@ -11,6 +11,10 @@ export const ADMIN_ENDPOINTS = {
     ME: '/web/admin/auth/me',
   },
   PROGRAMS: {
-    LIST: '/example',
+    LIST: '/web/admin/programs',
+    CREATE: '/web/admin/programs',
+    UPDATE: '/web/admin/programs/{id}',
+    DELETE: '/web/admin/programs/{id}',
+    DETAIL: '/web/admin/programs/{id}',
   },
 } as const;

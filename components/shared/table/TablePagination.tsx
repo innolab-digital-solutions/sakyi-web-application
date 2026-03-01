@@ -96,7 +96,7 @@ const TablePagination = ({
               <PaginationEllipsis />
             </PaginationItem>
           ) : (
-            <PaginationItem key={item}>
+            <PaginationItem key={`page-${item}`}>
               <PaginationLink
                 href='#'
                 isActive={item === currentPage}
