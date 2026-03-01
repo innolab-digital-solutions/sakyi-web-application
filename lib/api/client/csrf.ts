@@ -1,3 +1,7 @@
+import { api } from './config';
+
+const COOKIE_NAME = 'XSRF-TOKEN=';
+
 /**
  * Returns the current CSRF token from the browser cookie, if available.
  *
@@ -10,8 +14,6 @@
  * @returns {string | undefined} The CSRF token value, or undefined if not found or malformed.
  */
 export const getCsrfToken = (): string | undefined => {
-  const COOKIE_NAME = 'XSRF-TOKEN=';
-
   if (typeof document === 'undefined') return undefined;
 
   let decoded: string;
@@ -29,4 +31,35 @@ export const getCsrfToken = (): string | undefined => {
     }
   }
   return undefined;
+};
+
+let csrfInitPromise: Promise<void> | null = null;
+
+/**
+ * Ensures the Laravel Sanctum CSRF cookie is present before state-changing requests.
+ *
+ * Laravel Sanctum requires a GET to `/sanctum/csrf-cookie` to set the `XSRF-TOKEN` cookie
+ * before any POST/PUT/PATCH/DELETE request can succeed. Without this, the backend rejects
+ * the request with a "CSRF token mismatch" 419 error.
+ *
+ * This function is idempotent within a page session: if the cookie already exists it returns
+ * immediately. If an initialization request is already in-flight, subsequent callers await
+ * the same promise to avoid duplicate network requests.
+ *
+ * @returns {Promise<void>} Resolves once the CSRF cookie is available.
+ */
+export const ensureCsrfCookie = async (): Promise<void> => {
+  if (typeof document === 'undefined') return;
+  if (getCsrfToken()) return;
+
+  if (csrfInitPromise) return csrfInitPromise;
+
+  csrfInitPromise = fetch(`${api.domainEndpoint}/sanctum/csrf-cookie`, {
+    method: 'GET',
+    credentials: 'include',
+  }).then(() => {
+    csrfInitPromise = null;
+  });
+
+  return csrfInitPromise;
 };

@@ -4,6 +4,7 @@ import {
   serializeRequestBody,
 } from './build';
 import { DEFAULT_METHOD } from './constants';
+import { ensureCsrfCookie } from './csrf';
 import {
   handleBackendError,
   handleJsonParseFailure,
@@ -49,6 +50,10 @@ export const client = async <T>(
     next,
     ...rest
   } = options;
+
+  if (method !== 'GET') {
+    await ensureCsrfCookie();
+  }
 
   const url = resolveApiUrl(endpoint);
   const requestHeaders = buildRequestHeaders(method, options);
