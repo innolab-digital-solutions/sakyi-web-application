@@ -24,7 +24,6 @@ export const validate = <TSchema extends ZodType>(
   const errors: FormErrors<FormData<TSchema>> = {};
 
   for (const issue of result.error.issues) {
-    // Join path for nested fields (e.g., "address.city")
     const path = issue.path.join('.') as keyof FormData<TSchema>;
 
     // Only keep the first error per field

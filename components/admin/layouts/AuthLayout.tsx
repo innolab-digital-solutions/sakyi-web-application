@@ -4,15 +4,12 @@ import { PropsWithChildren } from 'react';
 const AuthLayout = ({ children }: PropsWithChildren) => {
   return (
     <main className='bg-background relative flex min-h-screen items-center justify-center p-5'>
-      {/* Main centered container for the admin login UI */}
       <div className='relative z-10 mx-auto w-full max-w-6xl'>
-        {/* Card-like background container with border, shadow, rounded corners */}
         <div className='bg-background border-border overflow-hidden rounded-lg border p-0 shadow-lg backdrop-blur-xl'>
           {children}
         </div>
       </div>
 
-      {/* Footer with copyright info, fixed at page bottom */}
       <div className='absolute bottom-6 left-1/2 w-full -translate-x-1/2 transform'>
         <p className='text-muted-foreground flex w-full items-center justify-center space-x-1 text-xs font-semibold'>
           <Copyright className='h-4 w-4' />

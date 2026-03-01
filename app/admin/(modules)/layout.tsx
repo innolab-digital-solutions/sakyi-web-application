@@ -20,13 +20,10 @@ export default async function AdminProtectedLayout({
       <AuthProvider>
         <AuthGuard mode='protected'>
           <SidebarProvider defaultOpen={defaultOpen}>
-            {/* Sidebar navigation panel */}
             <DashboardSidebar />
 
-            {/* Main content: dashboard header & page */}
             <SidebarInset className='min-w-0'>
               <DashboardHeader />
-              {/* Page content*/}
               <div className='bg-background flex flex-1 flex-col p-4 md:p-6'>
                 {children}
               </div>

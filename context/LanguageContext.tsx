@@ -50,7 +50,6 @@ const LanguageContext = createContext<LanguageContextValue | null>(null);
 export const LanguageProvider = ({ children }: PropsWithChildren) => {
   const [language, setLanguageState] = useState<SupportedLanguage>('en');
 
-  // Hydrate initial language from persistent storage on the client.
   useEffect(() => {
     if (typeof window === 'undefined') return;
 

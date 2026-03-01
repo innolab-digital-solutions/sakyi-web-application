@@ -30,9 +30,7 @@ const DashboardHeader = () => {
   return (
     <header className='border-border bg-background sticky top-0 z-10 w-full border-b px-2.5'>
       <div className='flex h-16 items-center justify-between px-5'>
-        {/* Sidebar section with trigger and potential breadcrumb */}
         <div className='flex h-5 items-center'>
-          {/* Sidebar open/close trigger button */}
           <SidebarTrigger
             variant='outline'
             className='hover:border-border hover:text-foreground h-9 w-9 cursor-pointer hover:bg-gray-100'
@@ -40,7 +38,6 @@ const DashboardHeader = () => {
 
           <Separator orientation='vertical' className='mx-3 hidden sm:block' />
 
-          {/* Placeholder for dynamic breadcrumb navigation (shown on sm and up) */}
           <div className='hidden sm:block'>
             <Breadcrumb>
               <BreadcrumbList>
@@ -66,7 +63,6 @@ const DashboardHeader = () => {
         </div>
 
         <div className='flex items-center gap-8'>
-          {/* User Name and Profile Picture */}
           <div className='flex items-center gap-2'>
             <div className='flex flex-col items-end gap-x-1'>
               <h3 className='text-foreground text-sm font-semibold'>

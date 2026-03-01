@@ -48,10 +48,6 @@ export const useForm = <TSchema extends ZodType>(
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Data Manipulation
-  // ─────────────────────────────────────────────────────────────────────────────
-
   /**
    * Update form field values.
    * Automatically tracks dirty state by comparing with defaults.
@@ -144,10 +140,6 @@ export const useForm = <TSchema extends ZodType>(
     [],
   );
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Error Handling
-  // ─────────────────────────────────────────────────────────────────────────────
-
   /**
    * Set validation errors for form fields.
    * Supports single field or multiple errors at once.
@@ -188,10 +180,6 @@ export const useForm = <TSchema extends ZodType>(
     [],
   );
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Request Control
-  // ─────────────────────────────────────────────────────────────────────────────
-
   /**
    * Cancel the current form submission.
    * Aborts the request and resets processing state.
@@ -200,10 +188,6 @@ export const useForm = <TSchema extends ZodType>(
     abortControllerRef.current?.abort();
     setProcessing(false);
   }, []);
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Form Submission
-  // ─────────────────────────────────────────────────────────────────────────────
 
   /**
    * Core submit method that handles validation and request lifecycle.
@@ -229,7 +213,6 @@ export const useForm = <TSchema extends ZodType>(
 
       clearErrors();
 
-      // Run frontend validation if schema is provided
       if (options.schema) {
         const { success, errors: validationErrors } = validate(
           options.schema,
@@ -245,7 +228,6 @@ export const useForm = <TSchema extends ZodType>(
       abortControllerRef.current = new AbortController();
 
       try {
-        // Apply transform if provided, otherwise use raw data
         const payload = transformFn
           ? (transformFn(data) as
               | BodyInit
@@ -292,10 +274,6 @@ export const useForm = <TSchema extends ZodType>(
     },
     [data, options.schema, clearErrors],
   );
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // HTTP Methods & Transform
-  // ─────────────────────────────────────────────────────────────────────────────
 
   const { get, post, put, patch, destroy } = buildSubmitShortcuts(submit);
 

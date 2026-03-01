@@ -35,10 +35,8 @@ const AboutSection = () => {
   return (
     <SectionContainer id='about-section' className='bg-background'>
       <div className='grid items-center gap-16 lg:grid-cols-2'>
-        {/* Left Column: Visual storytelling with decorative image and floating highlight cards */}
         <div className='relative'>
           <div className='relative'>
-            {/* Main illustrative image communicating wellness and mindfulness */}
             <DecorativeImage
               src='/images/home-about.jpg'
               alt='Woman doing yoga meditation for wellness and mental health'
@@ -46,7 +44,6 @@ const AboutSection = () => {
               height={600}
             />
 
-            {/* FloatingCard: Showcases impact with user count */}
             <FloatingCard
               icon={<Users className='h-5 w-5' />}
               title='10K+ Lives'
@@ -55,7 +52,6 @@ const AboutSection = () => {
               iconClassName='bg-linear-to-r from-[#35bec5] to-[#4bc4db]'
             />
 
-            {/* FloatingCard: Highlights program success rate */}
             <FloatingCard
               icon={<TrendingUp className='h-5 w-5' />}
               title='98% Success'
@@ -66,17 +62,13 @@ const AboutSection = () => {
           </div>
         </div>
 
-        {/* Right Column: Headline, descriptive introduction, features, and strong call to action */}
         <div className='space-y-8'>
-          {/* Section Header: Badge, headline, and program summary */}
           <div className='space-y-6'>
-            {/* Section badge introduces the about section with icon */}
             <SectionBadge
               icon={<Users className='h-4 w-4' />}
               text='About SaKyi'
             />
 
-            {/* Headline with visual emphasis and gradient highlight */}
             <h2 className='text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'>
               <span
                 className='text-foreground block'
@@ -88,7 +80,6 @@ const AboutSection = () => {
               <GradientText>Journey Starts Here</GradientText>
             </h2>
 
-            {/* Introductory paragraph describing value and approach */}
             <p
               className='text-foreground/80 max-w-2xl text-lg leading-relaxed'
               style={{ fontFamily: 'Inter, sans-serif' }}
@@ -100,7 +91,6 @@ const AboutSection = () => {
             </p>
           </div>
 
-          {/* Features List: Key differentiators as visually grouped feature items */}
           <div className='space-y-4'>
             {features.map((feature, index) => (
               <FeatureList
@@ -112,7 +102,6 @@ const AboutSection = () => {
             ))}
           </div>
 
-          {/* Call To Action: Encourages users to explore available programs with strong visual button */}
           <div className='pt-4'>
             <Link href={PATHS.SITE.PROGRAMS} className='inline-block'>
               <GradientButton>

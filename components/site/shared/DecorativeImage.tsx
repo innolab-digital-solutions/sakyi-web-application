@@ -10,9 +10,7 @@ const DecorativeImage = ({ alt, ...imageProps }: ImageProps) => {
           className='h-full w-full object-cover transition-transform duration-300 group-hover:scale-105'
         />
       </div>
-      {/* Subtle dark overlay for readability, fades on hover */}
       <div className='absolute inset-0 bg-linear-to-br from-slate-800/10 to-slate-700/5 transition-opacity duration-300 group-hover:opacity-0' />
-      {/* Brand gradient overlay for a subtle brand color effect */}
       <div className='absolute inset-0 bg-linear-to-br from-[#35bec5]/5 to-[#0c96c4]/5' />
     </div>
   );

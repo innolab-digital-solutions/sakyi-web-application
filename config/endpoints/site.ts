@@ -7,6 +7,5 @@
  * All paths are relative to the API base URL.
  */
 export const SITE_ENDPOINTS = {
-  // Example placeholder; replace with real site endpoints as they are added.
   EXAMPLE: '/site/example',
 } as const;

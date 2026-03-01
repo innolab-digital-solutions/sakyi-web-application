@@ -21,17 +21,14 @@ const TableLayout = ({
 
   return (
     <div className='border-border max-w-full rounded-md border bg-white'>
-      {/* Responsive Header */}
       <div className='border-border flex flex-col border-b px-2 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-5'>
         <TableDataSearchBox value={search.value} onChange={search.onChange} />
 
-        {/* Filters and Tabs - responsive across mobile, tablet, desktop */}
         <div className='flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end sm:gap-4'>
           {filters ? filters : null}
         </div>
       </div>
 
-      {/* Table  */}
       <div className='overflow-x-auto'>{children}</div>
 
       {meta && meta.total === 0 && (
@@ -40,7 +37,6 @@ const TableLayout = ({
         </div>
       )}
 
-      {/* Table Footer  */}
       {meta ? (
         <div className='border-border flex flex-col border-t px-2 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-5'>
           <RowsPerPageSelect

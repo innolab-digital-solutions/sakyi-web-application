@@ -30,7 +30,6 @@ const Navbar = () => {
 
     window.addEventListener('scroll', handleScroll);
 
-    // Clean up listeners and timeouts on component unmount to prevent memory leaks and side effects.
     return () => {
       clearTimeout(mountedId);
       window.removeEventListener('scroll', handleScroll);
@@ -39,7 +38,6 @@ const Navbar = () => {
 
   return (
     <nav
-      // Navbar fixed at the top, responsive with dynamic background and border based on scroll state
       className={`animate-fade-in fixed top-0 z-50 w-full bg-white transition-all duration-300 ${
         isMounted && isScrolled
           ? 'border-border border-b shadow-sm backdrop-blur-md'
@@ -49,7 +47,6 @@ const Navbar = () => {
     >
       <div className='mx-auto max-w-7xl'>
         <div className='flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8'>
-          {/* Logo linking to home page, displayed on all devices */}
           <Link href={PATHS.SITE.HOME} className='flex items-center space-x-3'>
             <Image
               src='/images/logo.png'
@@ -67,15 +64,12 @@ const Navbar = () => {
             </span>
           </Link>
 
-          {/* Desktop navigation visible only on md+ screens */}
           <DesktopNavigation pathname={pathname} />
 
-          {/* CTA button: Get the App, visible only on md+ screens */}
           <div className='hidden items-center md:flex'>
             <GetTheAppButton />
           </div>
 
-          {/* Mobile Menu Toggle Button: hamburger or close icon depending on state, only on mobile */}
           <Button
             variant='ghost'
             size='sm'
@@ -90,7 +84,6 @@ const Navbar = () => {
           </Button>
         </div>
 
-        {/* Mobile navigation drawer: slides down when menu is open, only on mobile */}
         <MobileNavigation
           isOpen={isMenuOpen}
           pathname={pathname}

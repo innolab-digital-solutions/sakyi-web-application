@@ -23,7 +23,6 @@ const MobileNavigation = ({
       <div className='border-border border-t bg-white'>
         <div className='space-y-3 px-4 py-4'>
           {HEADER_NAVIGATION.map((item, index) => {
-            // Determine if the current navigation item is active based on the pathname
             const isActive = pathname === item.path;
             return (
               <Link
@@ -43,14 +42,12 @@ const MobileNavigation = ({
                     : 'none',
                 }}
               >
-                {/* Navigation item text */}
                 {item.name}
               </Link>
             );
           })}
 
           <div className='border-border border-t pt-3'>
-            {/* CTA Button: Get the App */}
             <GetTheAppButton onClick={onClose} />
           </div>
         </div>

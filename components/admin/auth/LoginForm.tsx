@@ -43,7 +43,6 @@ const LoginForm = () => {
   };
   return (
     <form className='space-y-3 md:space-y-4' onSubmit={handleSubmit}>
-      {/* Email Address Input */}
       <TextField
         label='Email Address'
         id='email'
@@ -57,7 +56,6 @@ const LoginForm = () => {
         disabled={form.processing}
       />
 
-      {/* Password Input */}
       <TextField
         label='Password'
         id='password'
@@ -71,7 +69,6 @@ const LoginForm = () => {
         disabled={form.processing}
       />
 
-      {/* Submit Button */}
       <SubmitButton processing={form.processing}>
         <span>Sign In</span>
         <ArrowRight className='size-4 transition-transform duration-200 group-hover:translate-x-1' />

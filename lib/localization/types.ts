@@ -52,6 +52,6 @@ export type Translations = Record<SupportedLanguage, TranslationObject>;
 /**
  * Replacement variables for dynamic translation strings.
  *
- * Used for string interpolation, e.g. { name: 'John' } in "Hello, {name}".
+ * Used for string interpolation, e.g. `{ name: 'John' }` in `"Hello, :name"`.
  */
 export type TranslationReplacements = Record<string, string>;
