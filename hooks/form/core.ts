@@ -1,12 +1,8 @@
 import { useCallback, useRef, useState } from 'react';
 import { ZodType } from 'zod';
 
-import {
-  type ApiError,
-  type ApiResponse,
-  http,
-  type HttpMethod,
-} from '@/lib/api/client';
+import { submitRequest, type HttpMethod } from '@/services/form';
+import type { ApiError, ApiResponse } from '@/types/api';
 
 import { buildSubmitShortcuts, buildTransformChain } from './builders';
 import {
@@ -257,35 +253,15 @@ export const useForm = <TSchema extends ZodType>(
               | unknown[])
           : (data as BodyInit | Record<string, unknown> | unknown[]);
 
-        let response: ApiResponse<TResponse>;
-
         const signal = abortControllerRef.current?.signal;
-        const requestOptions =
-          signal != null
-            ? { throwOnError: false, signal }
-            : ({ throwOnError: false } as const);
-
-        switch (method) {
-          case 'GET':
-            response = await http.get<TResponse>(url, requestOptions);
-            break;
-          case 'POST':
-            response = await http.post<TResponse>(url, payload, requestOptions);
-            break;
-          case 'PUT':
-            response = await http.put<TResponse>(url, payload, requestOptions);
-            break;
-          case 'PATCH':
-            response = await http.patch<TResponse>(
-              url,
-              payload,
-              requestOptions,
-            );
-            break;
-          case 'DELETE':
-            response = await http.delete<TResponse>(url, requestOptions);
-            break;
-        }
+        const body =
+          method !== 'GET'
+            ? (payload as BodyInit | Record<string, unknown> | unknown[])
+            : undefined;
+        const response = await submitRequest<TResponse>(method, url, body, {
+          throwOnError: false,
+          ...(signal != null && { signal }),
+        });
 
         if (response.status === 'error') {
           const errorResponse = response as ApiError;

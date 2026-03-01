@@ -16,8 +16,15 @@ import {
 } from '@/components/ui/table';
 import ENDPOINTS from '@/config/endpoints';
 import { useTable } from '@/hooks/table';
-import type { Program } from '@/types/programs';
+import type { Program } from '@/types/admin/programs';
 
+/**
+ * Admin programs list table with URL-synced pagination and search.
+ *
+ * Fetches program rows via useTable and the admin programs endpoint, and renders
+ * columns for name, description, price, enrollments, duration, status, and actions.
+ * Use on the admin programs page.
+ */
 const ProgramTable = () => {
   const { rows, controls } = useTable<Program>(ENDPOINTS.ADMIN.PROGRAMS.LIST, {
     syncWithUrl: true,
@@ -62,10 +69,10 @@ const ProgramTable = () => {
                   />
                   <span>{program.name}</span>
                 </TableCell>
-                <TableCell>{program.address}</TableCell>
-                <TableCell>{program.phone}</TableCell>
-                <TableCell>{program.dob}</TableCell>
-                <TableCell>{program.gender}</TableCell>
+                <TableCell>{program.description}</TableCell>
+                <TableCell>{program.price}</TableCell>
+                <TableCell>{program.enrollments}</TableCell>
+                <TableCell>{program.duration}</TableCell>
                 <TableCell>
                   <span
                     className={

@@ -1,6 +1,6 @@
 import { ZodType } from 'zod';
 
-import { HttpMethod } from '@/lib/api/client/types';
+import type { HttpMethod } from '@/types/api';
 
 import {
   InternalSubmitOptions,

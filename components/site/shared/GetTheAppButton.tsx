@@ -1,6 +1,6 @@
 import { Smartphone } from 'lucide-react';
 
-import { scrollToElement } from '@/lib/utils/scroll';
+import { scrollToElement } from '@/lib/browser/scroll';
 
 const GetTheAppButton = ({ onClick }: { onClick?: () => void }) => {
   const handleClick = () => {

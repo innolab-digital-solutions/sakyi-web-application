@@ -5,8 +5,11 @@ import * as React from 'react';
 
 import { Input as ShadCNInput } from '@/components/ui/input';
 import { Label as ShadCNLabel } from '@/components/ui/label';
-import { cn } from '@/lib/utils/styles';
+import { cn } from '@/lib/browser/styles';
 
+/**
+ * Props for the TextField component. Extends the underlying input with optional label and error display.
+ */
 export type CustomInputProps = Omit<
   React.ComponentPropsWithoutRef<typeof ShadCNInput>,
   'aria-invalid' | 'aria-describedby'
@@ -15,6 +18,12 @@ export type CustomInputProps = Omit<
   error?: string;
 };
 
+/**
+ * Accessible form text input with optional label, error message, and password visibility toggle.
+ *
+ * Use for email, password, and single-line text fields in forms. Supports ref forwarding
+ * and integrates with shared form state (e.g. useForm) via value, onChange, error, disabled.
+ */
 const TextField = React.forwardRef<HTMLInputElement, CustomInputProps>(
   (
     {

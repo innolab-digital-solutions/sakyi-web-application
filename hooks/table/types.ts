@@ -4,7 +4,7 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query';
 
-import type { ApiSuccess } from '@/lib/api/client';
+import type { ApiSuccess } from '@/types/api';
 
 export interface TablePageData<TItem> {
   data: TItem[];

@@ -7,7 +7,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import type { TablePagination as TablePaginationType } from '@/hooks/table/type';
+import type { TablePagination as TablePaginationType } from '@/hooks/table/types';
 
 type TablePaginationProps = {
   pagination: TablePaginationType<unknown>;

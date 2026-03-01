@@ -1,4 +1,4 @@
-import type { TableQueryParams } from './type';
+import type { TableQueryParams } from './types';
 
 /**
  * Build a stable query string from table query parameters.

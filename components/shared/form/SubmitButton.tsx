@@ -2,12 +2,18 @@ import type { ComponentProps } from 'react';
 
 import { Button as ShadCNButton } from '@/components/ui/button';
 import { Spinner as ShadCNSpinner } from '@/components/ui/spinner';
-import { cn } from '@/lib/utils/styles';
+import { cn } from '@/lib/browser/styles';
 
 type FormButtonProps = ComponentProps<typeof ShadCNButton> & {
   processing?: boolean;
 };
 
+/**
+ * Primary submit button for forms. Shows a spinner and "Submitting..." when `processing` is true.
+ *
+ * Use with form hooks (e.g. useForm) by passing `processing={form.processing}` so the button
+ * reflects submission state and avoids double submits.
+ */
 const SubmitButton = ({ processing, ...props }: FormButtonProps) => {
   return (
     <ShadCNButton

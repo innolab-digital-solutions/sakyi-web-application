@@ -1,34 +1,11 @@
-/**
- * Supported HTTP methods for API requests.
- */
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+import type {
+  ApiError,
+  ApiResponse,
+  ApiSuccess,
+  HttpMethod,
+} from '@/types/api';
 
-/**
- * Represents a successful API response returned by the API.
- * @template T - Type of the response data.
- */
-export type ApiSuccess<T> = {
-  status: 'success';
-  message: string;
-  data: T;
-  meta?: Record<string, unknown>;
-};
-
-/**
- * Represents an error response returned by the API.
- */
-export type ApiError = {
-  status: 'error';
-  message: string;
-  errors?: Record<string, unknown>;
-  data?: unknown;
-};
-
-/**
- * Represents a generic API response, either success or error.
- * @template T - Type of the success response data.
- */
-export type ApiResponse<T> = ApiSuccess<T> | ApiError;
+export type { ApiError, ApiResponse, ApiSuccess, HttpMethod };
 
 /**
  * Fetch cache strategies supported by Next.js.

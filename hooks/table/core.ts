@@ -1,13 +1,11 @@
- 
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { http } from '@/lib/api/client';
+import { fetchTablePage } from '@/services/table';
 
-import { buildQueryString } from './builders';
 import type {
   TableControls,
   TablePageData,
@@ -16,7 +14,7 @@ import type {
   TableQueryResponse,
   UseTableHookOptions,
   UseTableReturn,
-} from './type';
+} from './types';
 
 const TABLE_PARAM_KEYS = ['page', 'per_page', 'search'] as const;
 
@@ -106,11 +104,9 @@ export const useTable = <TItem>(
     placeholderData: placeholderData ?? ((prev) => prev),
     queryKey: ['table', endpoint, params],
     queryFn: async () => {
-      const queryString = buildQueryString(params);
-
-      const response = await http.get<TablePageData<TItem>>(
-        `${endpoint}${queryString}`,
-        { throwOnError: false },
+      const response = await fetchTablePage<TablePageData<TItem>>(
+        endpoint,
+        params,
       );
 
       if (response.status === 'error') {

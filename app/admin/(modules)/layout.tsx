@@ -7,7 +7,7 @@ import DashboardHeader from '@/components/admin/layouts/DashboardHeader';
 import DashboardSidebar from '@/components/admin/layouts/DashboardSidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import AuthProvider from '@/context/AuthContext';
-import { cn } from '@/lib/utils/styles';
+import { cn } from '@/lib/browser/styles';
 
 const inter = Inter({
   variable: '--font-inter',

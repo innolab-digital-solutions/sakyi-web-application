@@ -7,4 +7,4 @@ export type {
   TableQueryResponse,
   UseTableHookOptions,
   UseTableReturn,
-} from './type';
+} from './types';
