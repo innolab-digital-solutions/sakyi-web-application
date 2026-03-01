@@ -22,7 +22,7 @@ const RowsPerPageSelect = ({
   const stringValue = String(value);
 
   return (
-    <div className='flex items-center gap-2 text-xs text-muted-foreground sm:text-sm'>
+    <div className='text-muted-foreground flex items-center gap-2 text-xs sm:text-sm'>
       <span>Rows per page</span>
       <Select
         value={stringValue}

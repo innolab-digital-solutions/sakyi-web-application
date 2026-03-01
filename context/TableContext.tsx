@@ -22,7 +22,9 @@ type TableProviderProps = PropsWithChildren<{
  * @returns Provider wrapping children.
  */
 export const TableProvider = ({ value, children }: TableProviderProps) => {
-  return <TableContext.Provider value={value}>{children}</TableContext.Provider>;
+  return (
+    <TableContext.Provider value={value}>{children}</TableContext.Provider>
+  );
 };
 
 /**
@@ -45,4 +47,3 @@ export const useTableContext = (): TableContextValue => {
 };
 
 export default TableProvider;
-

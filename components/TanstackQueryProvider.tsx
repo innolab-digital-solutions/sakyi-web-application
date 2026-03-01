@@ -24,7 +24,7 @@ const TanstackQueryProvider = ({ children }: PropsWithChildren) => {
   return (
     <QueryClientProvider client={client}>
       {children}
-      <ReactQueryDevtools initialIsOpen={true} />
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 };

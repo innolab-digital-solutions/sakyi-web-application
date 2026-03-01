@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { fetchTablePage } from '@/services/table';
+import { fetchTablePage } from '@/lib/api/services/table';
 
 import type {
   TableControls,

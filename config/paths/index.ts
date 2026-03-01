@@ -7,7 +7,6 @@ import { SITE_PATHS } from './site';
  * Structure:
  * - ADMIN: Admin dashboard and modules.
  * - SITE:  Public/site-facing pages (marketing, blog, etc.).
- * - PUBLIC: Alias for SITE paths, kept for backwards compatibility.
  *
  * These are **URL paths**, not API endpoints. Use them when constructing
  * links, redirects, or route comparisons.

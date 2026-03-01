@@ -16,7 +16,7 @@ const TableSkeleton = ({ rows, columns }: TableSkeletonProps) => {
         <TableRow key={rowIndex}>
           {Array.from({ length: safeColumns }).map((_, colIndex) => (
             <TableCell key={colIndex}>
-              <Skeleton className='h-4 bg-muted w-full' />
+              <Skeleton className='bg-muted h-4 w-full' />
             </TableCell>
           ))}
         </TableRow>

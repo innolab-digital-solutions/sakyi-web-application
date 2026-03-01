@@ -59,15 +59,17 @@ const ProgramTable = () => {
             rows.map((program) => (
               <TableRow key={program.id}>
                 <TableCell>
-                  <Image
-                    src={program.picture}
-                    alt={program.name}
-                    width={32}
-                    height={32}
-                    className='bg-muted shrink-0 rounded-md'
-                    style={{ objectFit: 'cover' }}
-                  />
-                  <span>{program.name}</span>
+                  <div className='flex items-center gap-2'>
+                    <Image
+                      src={program.picture}
+                      alt={program.name}
+                      width={32}
+                      height={32}
+                      className='bg-muted shrink-0 rounded-md'
+                      style={{ objectFit: 'cover' }}
+                    />
+                    <span>{program.name}</span>
+                  </div>
                 </TableCell>
                 <TableCell>{program.description}</TableCell>
                 <TableCell>{program.price}</TableCell>

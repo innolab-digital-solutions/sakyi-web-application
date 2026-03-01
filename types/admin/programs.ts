@@ -1,5 +1,3 @@
-import type { ApiResponse } from '@/types/api';
-
 /**
  * Admin program entity as returned by the programs list/detail API.
  *
@@ -20,10 +18,3 @@ export type Program = {
     updated_at: string;
   };
 };
-
-/**
- * Standard API response wrapper for program list or single-program endpoints.
- *
- * Use with the shared HTTP client when fetching programs from the admin API.
- */
-export type ProgramResponse = ApiResponse<Program>;

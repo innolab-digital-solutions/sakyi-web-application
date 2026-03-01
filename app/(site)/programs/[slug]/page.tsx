@@ -1,21 +1,16 @@
 import type { Metadata } from 'next';
 
+import { formatSlugAsTitle } from '@/lib/formatting';
+
 type ProgramDetailPageProps = {
   params: Promise<{ slug: string }>;
-};
-
-const formatSlugForTitle = (slug: string): string => {
-  return slug
-    .split('-')
-    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-    .join(' ');
 };
 
 export async function generateMetadata(
   props: ProgramDetailPageProps,
 ): Promise<Metadata> {
   const { slug } = await props.params;
-  const programName = formatSlugForTitle(slug);
+  const programName = formatSlugAsTitle(slug);
 
   return {
     title: `${programName} Program | SaKyi Health & Wellness`,

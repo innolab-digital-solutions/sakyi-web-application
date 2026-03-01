@@ -8,7 +8,7 @@ export default function AdminLoginPage() {
     <AuthLayout>
       {/* Two-column grid for large screens: branding left, form right */}
       <div className='grid min-h-120 grid-cols-1 md:min-h-150 lg:grid-cols-2'>
-        {/* ================= Left Side: Logo & Info ================= */}
+        {/* Left Side: Logo & Info */}
         <div className='from-primary via-primary/90 to-accent relative hidden flex-col items-center justify-center overflow-hidden bg-linear-to-br p-8 text-white lg:flex lg:p-12'>
           <div className='relative z-10 text-center'>
             {/* Brand white logo  */}
@@ -45,7 +45,7 @@ export default function AdminLoginPage() {
           </div>
         </div>
 
-        {/* ================= Right Side: Login Form ================= */}
+        {/* Right Side: Login Form */}
         <div className='flex flex-col justify-center bg-white p-6 lg:p-12'>
           <div className='mb-5 space-y-3 text-center md:mb-10'>
             <div className='mb-3 flex items-center justify-center md:mb-6 lg:hidden'>

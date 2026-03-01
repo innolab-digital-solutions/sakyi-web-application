@@ -4,7 +4,10 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query';
 
+import type { TableQueryParams } from '@/lib/api/services/table';
 import type { ApiSuccess } from '@/types/api';
+
+export type { TableQueryParams };
 
 export interface TablePageData<TItem> {
   data: TItem[];
@@ -26,12 +29,6 @@ export interface TablePageData<TItem> {
   to: number | null;
   total: number;
 }
-
-export type TableQueryParams = {
-  page?: number;
-  per_page?: number;
-  [key: string]: unknown;
-};
 
 export type TableQueryResponse<TItem> = ApiSuccess<TablePageData<TItem>>;
 

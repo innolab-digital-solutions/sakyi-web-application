@@ -1,4 +1,4 @@
- 'use client';
+'use client';
 
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -32,8 +32,8 @@ const TranslationTabs = () => {
         onClick={() => setLang('en')}
         className={`flex h-8 items-center justify-center gap-2 rounded-sm px-4 text-sm ${
           isEnglish
-            ? 'bg-white font-semibold text-primary'
-            : 'font-medium text-muted-foreground'
+            ? 'text-primary bg-white font-semibold'
+            : 'text-muted-foreground font-medium'
         }`}
       >
         <Image
@@ -51,8 +51,8 @@ const TranslationTabs = () => {
         onClick={() => setLang('my')}
         className={`flex h-8 items-center justify-center gap-2 rounded-sm px-4 text-sm ${
           isMyanmar
-            ? 'bg-white font-semibold text-primary'
-            : 'font-medium text-muted-foreground'
+            ? 'text-primary bg-white font-semibold'
+            : 'text-muted-foreground font-medium'
         }`}
       >
         <Image

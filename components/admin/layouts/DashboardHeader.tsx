@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,8 +14,19 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import PATHS from '@/config/paths';
+import { useAuth } from '@/context/AuthContext';
 
 const DashboardHeader = () => {
+  const { user } = useAuth();
+
+  const displayName = user?.name ?? 'User';
+  const displayRole = user?.role ?? 'Admin';
+  const initials = displayName
+    .split(' ')
+    .map((word) => word[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
   return (
     <header className='border-border bg-background sticky top-0 z-10 w-full border-b px-2.5'>
       <div className='flex h-16 items-center justify-between px-5'>
@@ -57,15 +70,15 @@ const DashboardHeader = () => {
           <div className='flex items-center gap-2'>
             <div className='flex flex-col items-end gap-x-1'>
               <h3 className='text-foreground text-sm font-semibold'>
-                Aung Thu Zaw
+                {displayName}
               </h3>
               <p className='text-muted-foreground text-xs font-medium'>
-                Super Admin
+                {displayRole}
               </p>
             </div>
             <Avatar className='size-9 rounded-lg'>
-              <AvatarImage src='https://github.com/shadcn.png' />
-              <AvatarFallback>CN</AvatarFallback>
+              {user?.picture && <AvatarImage src={user.picture} />}
+              <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
           </div>
         </div>

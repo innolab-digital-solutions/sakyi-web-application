@@ -1,8 +1,8 @@
 import { useCallback, useRef, useState } from 'react';
 import { ZodType } from 'zod';
 
-import { submitRequest, type HttpMethod } from '@/services/form';
-import type { ApiError, ApiResponse } from '@/types/api';
+import { type HttpMethod, submitRequest } from '@/lib/api/services/form';
+import type { ApiError } from '@/types/api';
 
 import { buildSubmitShortcuts, buildTransformChain } from './builders';
 import {

@@ -12,9 +12,12 @@ import {
 } from 'react';
 
 import PATHS from '@/config/paths';
-import { checkSession as checkSessionService, logout as logoutService } from '@/services/auth';
-import type { ApiError } from '@/types/api';
+import {
+  checkSession as checkSessionService,
+  logout as logoutService,
+} from '@/lib/api/services/auth';
 import type { User } from '@/types/admin/user';
+import type { ApiError } from '@/types/api';
 
 /**
  * Shape of the auth context exposed via `AuthProvider` / `useAuth`.
