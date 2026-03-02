@@ -1,0 +1,43 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.*
+.yarn
+
+# Build and output
+.next
+out
+build
+dist
+*.tsbuildinfo
+next-env.d.ts
+
+# Testing and tooling
+coverage
+test-results
+playwright-report
+blob-report
+playwright/.cache
+playwright/.auth
+
+# Lock files (keep formatting stable)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lock
+
+# Environment and secrets
+.env
+.env.*
+
+# Vercel / deployment
+.vercel
+
+# IDE and misc
+.cursor
+.DS_Store
+
+# Generated or minified
+*.min.js
+*.min.css
+*.min.html
