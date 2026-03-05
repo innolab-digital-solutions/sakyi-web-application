@@ -117,11 +117,31 @@ export const useTable = <TItem>(
     },
   });
 
-  const pageData = query.data?.data ?? null;
-  const rows = pageData?.data ?? [];
-  const pagination: TablePagination<TItem> | null = pageData
-    ? (({ data: _rows, ...meta }) => meta)(pageData)
-    : null;
+  // Normalise API response shapes so the hook can work with:
+  // 1) data: { data: TItem[], current_page, ... }  (Laravel paginator-style)
+  // 2) data: TItem[], meta: { current_page, ... }  (flat array + meta)
+  let rows: TItem[] = [];
+  let pagination: TablePagination<TItem> | null = null;
+
+  const apiData = query.data;
+
+  if (apiData) {
+    const payload = apiData.data as unknown;
+
+    if (payload && Array.isArray((payload as TablePageData<TItem>).data)) {
+      const pageData = payload as TablePageData<TItem>;
+      rows = pageData.data;
+      // Strip the rows array to keep only pagination metadata.
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { data: _rows, ...meta } = pageData;
+      pagination = meta;
+    } else if (Array.isArray(payload)) {
+      rows = payload as TItem[];
+      if (apiData.meta && typeof apiData.meta === 'object') {
+        pagination = apiData.meta as TablePagination<TItem>;
+      }
+    }
+  }
 
   const controls: TableControls<TItem> = {
     search: {

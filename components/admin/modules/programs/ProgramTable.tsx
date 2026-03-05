@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/table';
 import ENDPOINTS from '@/config/endpoints';
 import { useTable } from '@/hooks/table';
-import type { Program } from '@/types/admin/programs';
+import type { Program } from '@/types/admin/program';
 
 const formatPrice = (cents: number): string =>
   new Intl.NumberFormat('en-US', {
@@ -36,6 +36,14 @@ const statusBadgeClass = (status: string): string => {
     default:
       return 'rounded bg-gray-100 px-2 py-1 text-xs font-bold text-gray-500';
   }
+};
+
+const getPrimaryGoalName = (program: Program): string => {
+  if (!program.goals || program.goals.length === 0) {
+    return '—';
+  }
+
+  return program.goals[0]?.name ?? '—';
 };
 
 /**
@@ -79,22 +87,30 @@ const ProgramTable = () => {
               <TableRow key={program.id}>
                 <TableCell>
                   <div className='flex items-center gap-2'>
-                    <Image
-                      src={program.thumbnail}
-                      alt={program.title}
-                      width={32}
-                      height={32}
-                      className='bg-muted shrink-0 rounded-md'
-                      style={{ objectFit: 'cover' }}
-                    />
-                    <span>{program.title}</span>
+                    {program.thumbnail_url ? (
+                      <Image
+                        src={program.thumbnail_url}
+                        alt={program.title ?? 'Program thumbnail'}
+                        width={32}
+                        height={32}
+                        className='bg-muted shrink-0 rounded-md'
+                        style={{ objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-xs font-medium uppercase'>
+                        {program.title?.charAt(0) ?? '?'}
+                      </div>
+                    )}
+                    <span>{program.title ?? 'Untitled program'}</span>
                   </div>
                 </TableCell>
                 <TableCell className='max-w-48 truncate'>
-                  {program.overview}
+                  {program.overview ?? '—'}
                 </TableCell>
-                <TableCell>{program.goal.name}</TableCell>
-                <TableCell>{formatPrice(program.price)}</TableCell>
+                <TableCell>{getPrimaryGoalName(program)}</TableCell>
+                <TableCell>
+                  {program.price != null ? formatPrice(program.price) : '—'}
+                </TableCell>
                 <TableCell>{program.duration}</TableCell>
                 <TableCell>
                   <span className={statusBadgeClass(program.status)}>

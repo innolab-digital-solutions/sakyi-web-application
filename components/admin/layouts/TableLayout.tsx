@@ -51,6 +51,7 @@ const TableLayout = ({
 
           <TablePagination
             pagination={meta}
+            currentPage={paginationControls.page}
             onPageChange={paginationControls.onPageChange}
           />
         </div>
