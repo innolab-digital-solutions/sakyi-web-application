@@ -1,6 +1,9 @@
+'use client';
+
 import { ArrowRight, Heart, Settings } from 'lucide-react';
 import Link from 'next/link';
 
+import { useLanguage } from '@/context/LanguageContext';
 import GradientButton from '@/components/site/shared/GradientButton';
 import GradientText from '@/components/site/shared/GradientText';
 import SectionBadge from '@/components/site/shared/SectionBadge';
@@ -8,14 +11,15 @@ import SectionContainer from '@/components/site/shared/SectionContainer';
 import PATHS from '@/config/paths';
 
 const HowItWorksSection = () => {
+  const { translate } = useLanguage();
+
   return (
     <SectionContainer id='how-it-works-section' className='bg-background'>
       {/* Section Header: Badge, headline, supporting summary */}
       <div className='flex flex-col items-center justify-center space-y-6'>
-        {/* Badge introducing the section */}
         <SectionBadge
           icon={<Settings className='h-4 w-4' />}
-          text='How It Works'
+          text={translate('site.home.how-it-works.badge')}
         />
 
         {/* Headline with gradient highlight for visual emphasis */}
@@ -23,8 +27,12 @@ const HowItWorksSection = () => {
           className='flex items-center justify-center text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'
           style={{ fontFamily: 'Poppins, sans-serif' }}
         >
-          <span className='text-foreground'>Transform Your Health in</span>
-          <GradientText>&nbsp;Just 3 Steps</GradientText>
+          <span className='text-foreground'>
+            {translate('site.home.how-it-works.title.black')}
+          </span>
+          <GradientText>
+            &nbsp;{translate('site.home.how-it-works.title.gradient')}
+          </GradientText>
         </h2>
 
         {/* Brief section description */}
@@ -32,21 +40,21 @@ const HowItWorksSection = () => {
           className='text-foreground/80 mx-auto max-w-2xl text-center text-lg leading-relaxed'
           style={{ fontFamily: 'Inter, sans-serif' }}
         >
-          Join thousands who&apos;ve transformed their lives with our proven
-          3-step process. Get personalized guidance from certified doctors and
-          see real results in just weeks.
+          {translate('site.home.how-it-works.description')}
         </p>
       </div>
 
       {/* Steps Grid: Visual guide for the 3-step process */}
       <div className='mt-16 grid gap-8 lg:grid-cols-3'>
         {[
-          // Step 1: Doctor consultation
           {
             step: '01',
-            title: 'Talk with Our Experts',
-            description:
-              'Get professional guidance through an initial health consultation.',
+            title: translate(
+              'site.home.how-it-works.steps.initial-consultation.title',
+            ),
+            description: translate(
+              'site.home.how-it-works.steps.initial-consultation.description',
+            ),
             color: 'from-[#35bec5] to-[#4bc4db]',
             illustration: (
               <div className='relative mb-6'>
@@ -61,12 +69,14 @@ const HowItWorksSection = () => {
               </div>
             ),
           },
-          // Step 2: Choose program
           {
             step: '02',
-            title: 'Find Your Best-Fit Program',
-            description:
-              'Choose a program tailored to your body and lifestyle needs.',
+            title: translate(
+              'site.home.how-it-works.steps.program-selection.title',
+            ),
+            description: translate(
+              'site.home.how-it-works.steps.program-selection.description',
+            ),
             color: 'from-[#4bc4db] to-[#0c96c4]',
             illustration: (
               <div className='relative mb-6'>
@@ -83,12 +93,14 @@ const HowItWorksSection = () => {
               </div>
             ),
           },
-          // Step 3: Begin wellness journey
           {
             step: '03',
-            title: 'See Your Results & Begin Your Journey',
-            description:
-              'Review your InBody analysis and start your personalized wellness plan.',
+            title: translate(
+              'site.home.how-it-works.steps.review-results-and-start.title',
+            ),
+            description: translate(
+              'site.home.how-it-works.steps.review-results-and-start.description',
+            ),
             color: 'from-[#0c96c4] to-[#35bec5]',
             illustration: (
               <div className='relative mb-6'>
@@ -145,7 +157,7 @@ const HowItWorksSection = () => {
       <div className='mt-12 flex items-center justify-center'>
         <Link href={PATHS.SITE.CONTACT} className='inline-block'>
           <GradientButton>
-            <span>Get Started Today</span>
+            <span>{translate('site.home.how-it-works.cta.primary')}</span>
             <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
           </GradientButton>
         </Link>

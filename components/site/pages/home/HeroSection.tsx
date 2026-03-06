@@ -1,3 +1,5 @@
+'use client';
+
 import {
   ArrowRight,
   Brain,
@@ -14,66 +16,62 @@ import GradientText from '@/components/site/shared/GradientText';
 import OutlineButton from '@/components/site/shared/OutlineButton';
 import SectionBadge from '@/components/site/shared/SectionBadge';
 import SectionContainer from '@/components/site/shared/SectionContainer';
+import { useLanguage } from '@/context/LanguageContext';
 
 const HeroSection = () => {
+  const { translate } = useLanguage();
+
   return (
     <SectionContainer id='hero-section' className='bg-white'>
       <div className='grid items-center gap-12 lg:grid-cols-2 lg:gap-16'>
         {/* Left Column: Headline, descriptive text, and call-to-action buttons */}
         <div className='space-y-8'>
-          {/* Section Badge: Short eye-catching phrase with icon */}
           <SectionBadge
             icon={<Sparkles className='h-4 w-4' />}
-            text='Transform Your Life'
+            text={translate('site.home.hero.badge')}
           />
 
           {/* Section Headline: Main marketing message with multi-line headline and subtitle */}
           <div className='space-y-6'>
             <h1 className='text-foreground space-y-2 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl'>
-              {/* Hero headline - upper line */}
               <span
                 className='block'
                 style={{ fontFamily: 'Poppins, sans-serif' }}
               >
-                Transform Your Life
+                {translate('site.home.hero.title.black')}
               </span>
 
-              {/* Hero headline - gradient highlight */}
-              <GradientText>for Good</GradientText>
+              <GradientText>
+                {translate('site.home.hero.title.gradient')}
+              </GradientText>
 
-              {/* Hero headline - supporting subtitle */}
               <span
                 className='text-muted-foreground block text-2xl font-light sm:text-3xl'
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                with Doctor-Designed Programs
+                {translate('site.home.hero.title.subtitle')}
               </span>
             </h1>
 
-            {/* Supporting paragraph describing value proposition */}
             <p
               className='text-foreground/80 max-w-2xl text-lg leading-relaxed'
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
-              Join thousands who&apos;ve achieved their health goals with our
-              proven, science-backed programs. Get personalized guidance from
-              certified doctors and build lasting healthy habits.
+              {translate('site.home.hero.description')}
             </p>
           </div>
 
           {/* Call To Action Buttons: Start and Learn More */}
           <div className='flex flex-col gap-4 sm:flex-row'>
-            {/* Primary CTA button */}
             <GradientButton>
               <Heart className='h-5 w-5' />
-              <span>Start Your Journey</span>
+              <span>{translate('site.home.hero.cta.primary')}</span>
               <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
             </GradientButton>
 
-            {/* Secondary CTA button */}
             <OutlineButton>
               <Brain className='h-5 w-5' />
-              <span>Learn More</span>
+              <span>{translate('site.home.hero.cta.secondary')}</span>
               <ChevronRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
             </OutlineButton>
           </div>

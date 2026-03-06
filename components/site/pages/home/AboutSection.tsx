@@ -1,6 +1,9 @@
+'use client';
+
 import { ArrowRight, Shield, Target, TrendingUp, Users } from 'lucide-react';
 import Link from 'next/link';
 
+import { useLanguage } from '@/context/LanguageContext';
 import DecorativeImage from '@/components/site/shared/DecorativeImage';
 import FeatureList from '@/components/site/shared/FeatureList';
 import FloatingCard from '@/components/site/shared/FloatingCard';
@@ -11,24 +14,31 @@ import SectionContainer from '@/components/site/shared/SectionContainer';
 import PATHS from '@/config/paths';
 
 const AboutSection = () => {
+  const { translate } = useLanguage();
+
   const features = [
     {
       icon: <Shield className='h-5 w-5' />,
-      title: 'Doctor-Designed Programs',
-      description:
-        'Evidence-based wellness plans created by certified medical professionals',
+      title: translate('site.home.about-overview.features.doctor-designed-programs.title'),
+      description: translate(
+        'site.home.about-overview.features.doctor-designed-programs.description',
+      ),
     },
     {
       icon: <Target className='h-5 w-5' />,
-      title: 'Personalized Approach',
-      description:
-        'Tailored strategies that adapt to your unique lifestyle and goals',
+      title: translate('site.home.about-overview.features.personalized-approach.title'),
+      description: translate(
+        'site.home.about-overview.features.personalized-approach.description',
+      ),
     },
     {
       icon: <TrendingUp className='h-5 w-5' />,
-      title: 'Proven Results',
-      description:
-        'Track your progress with measurable outcomes and celebrate milestones',
+      title: translate(
+        'site.home.about-overview.features.continuous-support-reporting.title',
+      ),
+      description: translate(
+        'site.home.about-overview.features.continuous-support-reporting.description',
+      ),
     },
   ];
 
@@ -66,7 +76,7 @@ const AboutSection = () => {
           <div className='space-y-6'>
             <SectionBadge
               icon={<Users className='h-4 w-4' />}
-              text='About SaKyi'
+              text={translate('site.home.about-overview.badge')}
             />
 
             <h2 className='text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'>
@@ -74,20 +84,19 @@ const AboutSection = () => {
                 className='text-foreground block'
                 style={{ fontFamily: 'Poppins, sans-serif' }}
               >
-                Your Wellness
+                {translate('site.home.about-overview.title.black')}
               </span>
 
-              <GradientText>Journey Starts Here</GradientText>
+              <GradientText>
+                {translate('site.home.about-overview.title.gradient')}
+              </GradientText>
             </h2>
 
             <p
               className='text-foreground/80 max-w-2xl text-lg leading-relaxed'
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
-              We combine medical expertise with personalized wellness strategies
-              to help you achieve lasting health transformation. Our
-              evidence-based programs are designed by certified doctors and
-              wellness experts.
+              {translate('site.home.about-overview.description')}
             </p>
           </div>
 
@@ -105,7 +114,7 @@ const AboutSection = () => {
           <div className='pt-4'>
             <Link href={PATHS.SITE.PROGRAMS} className='inline-block'>
               <GradientButton>
-                <span>Explore Our Programs</span>
+                <span>{translate('site.home.about-overview.cta.primary')}</span>
                 <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
               </GradientButton>
             </Link>
