@@ -14,7 +14,7 @@ const OurProgramsSection = () => {
 
   return (
     <SectionContainer id='our-programs-section' className='bg-white'>
-      <div className='mx-auto max-w-3xl text-center space-y-6'>
+      <div className='mx-auto max-w-3xl space-y-6 text-center'>
         <SectionBadge
           icon={null}
           text={translate('site.home.programs-overview.badge')}
@@ -54,4 +54,3 @@ const OurProgramsSection = () => {
 };
 
 export default OurProgramsSection;
-

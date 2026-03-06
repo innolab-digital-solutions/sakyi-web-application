@@ -10,7 +10,7 @@ const TestimonialsSection = () => {
 
   return (
     <SectionContainer id='testimonials-section' className='bg-white'>
-      <div className='mx-auto max-w-3xl text-center space-y-6'>
+      <div className='mx-auto max-w-3xl space-y-6 text-center'>
         <SectionBadge
           icon={null}
           text={translate('site.home.testimonials.badge')}
@@ -40,4 +40,3 @@ const TestimonialsSection = () => {
 };
 
 export default TestimonialsSection;
-

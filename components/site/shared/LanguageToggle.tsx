@@ -18,7 +18,7 @@ const LanguageToggle = ({ className }: LanguageToggleProps) => {
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-1 rounded-full border border-border bg-white/80 p-0.5 shadow-sm backdrop-blur-sm',
+        'border-border inline-flex items-center gap-1 rounded-full border bg-white/80 p-0.5 shadow-sm backdrop-blur-sm',
         className,
       )}
     >
@@ -67,4 +67,3 @@ const LanguageToggle = ({ className }: LanguageToggleProps) => {
 };
 
 export default LanguageToggle;
-

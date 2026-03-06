@@ -19,14 +19,18 @@ const AboutSection = () => {
   const features = [
     {
       icon: <Shield className='h-5 w-5' />,
-      title: translate('site.home.about-overview.features.doctor-designed-programs.title'),
+      title: translate(
+        'site.home.about-overview.features.doctor-designed-programs.title',
+      ),
       description: translate(
         'site.home.about-overview.features.doctor-designed-programs.description',
       ),
     },
     {
       icon: <Target className='h-5 w-5' />,
-      title: translate('site.home.about-overview.features.personalized-approach.title'),
+      title: translate(
+        'site.home.about-overview.features.personalized-approach.title',
+      ),
       description: translate(
         'site.home.about-overview.features.personalized-approach.description',
       ),
