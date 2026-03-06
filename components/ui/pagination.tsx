@@ -45,7 +45,7 @@ type PaginationLinkProps = {
 function PaginationLink({
   className,
   isActive,
-  size = 'icon',
+  size = 'default',
   ...props
 }: PaginationLinkProps) {
   return (
@@ -55,7 +55,9 @@ function PaginationLink({
       data-active={isActive}
       className={cn(
         buttonVariants({
-          variant: isActive ? 'outline' : 'ghost',
+          // Use primary button styling for the active page, and a subtle
+          // ghost style for inactive page links.
+          variant: isActive ? 'default' : 'ghost',
           size,
         }),
         className,
