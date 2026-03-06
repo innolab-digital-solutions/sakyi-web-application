@@ -1,0 +1,29 @@
+{
+    "hero": {
+        "badge": "Editorial",
+        "title": {
+            "black": "The",
+            "gradient": "SaKyi Journal"
+        },
+        "description": "Your trusted space for wellness inspiration, mindfulness practices, and healthy living tips. Discover evidence-based insights to support your journey toward holistic wellbeing.",
+        "cta": {
+            "primary": "Explore All Articles"
+        }
+    },
+    "articles": {
+        "badge": "Wellness Insights",
+        "title": {
+            "black": "Latest",
+            "gradient": "Articles"
+        },
+        "description": "Stay updated with our latest expert insights on wellness, nutrition, mindfulness, and healthy living. Get practical tips and inspiring stories to help you thrive on your wellness journey."
+    },
+    "call-to-action": {
+        "title": "Ready to Apply What You've Learned?",
+        "description": "You've read our expert insights and wellness tips. Now it's time to put this knowledge into action with our personalized programs. Let our doctors help you implement these strategies for lasting results.",
+        "cta": {
+            "primary": "Start Your Program",
+            "secondary": "Discuss Your Goals"
+        }
+    }
+}

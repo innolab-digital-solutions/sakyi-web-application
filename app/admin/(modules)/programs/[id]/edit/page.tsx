@@ -9,7 +9,9 @@ type ProgramEditPageProps = {
   };
 };
 
-export default async function ProgramEditPage({ params }: ProgramEditPageProps) {
+export default async function ProgramEditPage({
+  params,
+}: ProgramEditPageProps) {
   const id = Number.parseInt(params.id, 10);
 
   if (Number.isNaN(id)) {

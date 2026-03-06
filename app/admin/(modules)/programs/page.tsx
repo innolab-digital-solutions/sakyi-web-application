@@ -16,11 +16,7 @@ export default function ProgramListsPage() {
           </p>
         </div>
         <div>
-          <Button
-            asChild
-            variant='default'
-            className='cursor-pointer gap-2'
-          >
+          <Button asChild variant='default' className='cursor-pointer gap-2'>
             <Link href={`${PATHS.ADMIN.PROGRAMS}/create`}>
               <CirclePlus className='size-4' />
               Add Program

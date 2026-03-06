@@ -27,7 +27,7 @@ const DashboardHeader = () => {
       ? 'Admin'
       : typeof role === 'string'
         ? role
-        : (role as UserRole).name ?? 'Admin';
+        : ((role as UserRole).name ?? 'Admin');
   const initials = displayName
     .split(' ')
     .map((word) => word[0])

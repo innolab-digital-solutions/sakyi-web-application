@@ -99,7 +99,7 @@ const ProgramTable = () => {
                         style={{ objectFit: 'cover' }}
                       />
                     ) : (
-                      <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-xs font-medium uppercase'>
+                      <div className='bg-muted flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-xs font-medium uppercase'>
                         {program.title?.charAt(0) ?? '?'}
                       </div>
                     )}
@@ -120,21 +120,12 @@ const ProgramTable = () => {
                   </span>
                 </TableCell>
                 <TableCell>
-                  <Button
-                    asChild
-                    size='sm'
-                    variant='outline'
-                  >
+                  <Button asChild size='sm' variant='outline'>
                     <Link href={`${PATHS.ADMIN.PROGRAMS}/${program.id}`}>
                       View
                     </Link>
                   </Button>
-                  <Button
-                    asChild
-                    size='sm'
-                    variant='outline'
-                    className='ml-2'
-                  >
+                  <Button asChild size='sm' variant='outline' className='ml-2'>
                     <Link href={`${PATHS.ADMIN.PROGRAMS}/${program.id}/edit`}>
                       Edit
                     </Link>

@@ -403,9 +403,7 @@ const ProgramFormFields = <
             required={mode === 'create'}
             accept='image/png,image/jpg,image/jpeg'
             onChange={(event) =>
-              handleThumbnailChange(
-                event.target.files?.[0] as File | undefined,
-              )
+              handleThumbnailChange(event.target.files?.[0] as File | undefined)
             }
             error={form.errors.thumbnail as string}
             disabled={form.processing}

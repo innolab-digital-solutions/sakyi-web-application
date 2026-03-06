@@ -1,7 +1,11 @@
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+} from '@/components/ui/pagination';
 import type { TablePagination as TablePaginationType } from '@/hooks/table/types';
 
 type TablePaginationProps = {
@@ -72,10 +76,7 @@ const TablePagination = ({
 
   const lastPage = derivedLastPage;
 
-  const safeCurrentPage = Math.min(
-    Math.max(currentPage, 1),
-    lastPage || 1,
-  );
+  const safeCurrentPage = Math.min(Math.max(currentPage, 1), lastPage || 1);
 
   const pageItems = createPageItems(safeCurrentPage, lastPage);
 
@@ -110,7 +111,7 @@ const TablePagination = ({
         {pageItems.map((item, index) =>
           item === 'ellipsis' ? (
             <PaginationItem key={`ellipsis-${index}`}>
-              <span className='flex h-9 w-9 items-center justify-center text-muted-foreground'>
+              <span className='text-muted-foreground flex h-9 w-9 items-center justify-center'>
                 ...
               </span>
             </PaginationItem>

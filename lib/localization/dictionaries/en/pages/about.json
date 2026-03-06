@@ -1,0 +1,124 @@
+{
+    "hero": {
+        "badge": "About SaKyi",
+        "title": {
+            "black": "Your Trusted Partner in",
+            "gradient": "Holistic Wellness"
+        },
+        "description": "At Sa Kyi, we believe true wellness is achieved through a balanced approach to lifestyle, physical health, and long-term wellbeing. Our mission is to support you with personalized, science-backed programs designed by certified doctors helping you build healthy habits, manage your health safely, and improve your quality of life with confidence."
+    },
+    "our-mission": {
+        "badge": "Mission & Philosophy",
+        "title": {
+            "black": "Our",
+            "gradient": "Core Values"
+        },
+        "description": "Our goal is straightforward: to improve lives by offering individualized, research-based health programs. We create care that addresses all aspects of wellness—physical, mental, emotional, and spiritual—to improve your health and quality of life.",
+        "features": {
+            "mission": {
+                "title": "Mission",
+                "description": "To empower individuals with personalized, evidence-based wellness programs that transform their health and enhance their quality of life through holistic care."
+            },
+            "vision": {
+                "title": "Vision",
+                "description": "A world where everyone has access to comprehensive wellness care that addresses the whole person body, and spirit for lasting health and happiness."
+            },
+            "philosophy": {
+                "title": "Philosophy",
+                "description": "We believe that true wellness comes from understanding the interconnectedness of physical, mental and emotional health and treating each person as a unique individual."
+            }
+        }
+    },
+    "our-approach": {
+        "badge": "Our Approach",
+        "title": {
+            "black": "Our",
+            "gradient": "Evidence‑Based Approach"
+        },
+        "description": "At Sa Kyi, our approach integrates cutting-edge medical research with individualized care to achieve tangible outcomes. Here's how we collaborate with you to achieve optimal wellness.",
+        "features": {
+            "evaluation": {
+                "title": "Thorough Evaluation",
+                "description": "We initiate with an extensive assessment of your medical history, lifestyle, objectives, and obstacles. This provides a comprehensive overview of your wellness requirements."
+            },
+            "tailored-planning": {
+                "title": "Tailored Planning",
+                "description": "Our staff formulates a bespoke plan that corresponds with your individual objectives and preferences. Plans incorporate nutrition, physical activity, mindfulness, and medical care for comprehensive outcomes."
+            },
+            "professional-support": {
+                "title": "Professional Assistance",
+                "description": "You collaborate directly with certified healthcare practitioners who offer continuous assistance, track progress, and modify your plan as necessary."
+            },
+            "holistic-integration": {
+                "title": "Comprehensive Integration",
+                "description": "Genuine wellbeing entails considering the entire individual. We integrate physical exercise, dietary therapy, psychological assistance, and spiritual development to facilitate enduring health."
+            }
+        }
+    },
+    "our-team": {
+        "badge": "Meet Our Founder",
+        "title": {
+            "black": "Our",
+            "gradient": "Expert Team"
+        },
+        "description": "We are pleased to present the professionals who will lead your journey because we know that consumers want to see the faces behind a brand. Our group brings together decades of expertise in wellness, psychology, nutrition, and medicine.",
+        "members": {
+            "founder": {
+                "name": "Dr. Kyaw Htin",
+                "role": "Founder, SaKyi",
+                "bio": "Dr. Kyaw Htin is a Medical Doctor with advanced training in Health Sciences, specializing in health behaviour and behaviour change. His work focuses on understanding why unhealthy habits persist and how sustainable change can truly happen. Through Sa Kyi meaning “Let’s Start” he helps people build healthier lifestyles through small, realistic, and achievable behaviour changes designed for real life.",
+                "quote": "Healthy living is not about perfection. It starts with understanding ourselves and taking small, realistic steps that we can sustain."
+            },
+            "technical-director": {
+                "name": "Dr. Swam Htet",
+                "role": "Co-Founder & Technical Director",
+                "bio": "Dr. Swam Htet is a Medical Doctor and lifestyle health specialist with expertise in exercise physiology and evidence-based health optimisation. As Co-Founder and Technical Director of Sa Kyi Health and Wellness, he leads the scientific and technical development of Sa Kyi’s programs, translating research into practical, sustainable strategies that support long-term behaviour change and overall well-being.",
+                "quote": "Lasting health is built through consistent habits, guided by science and designed for real life."
+            },
+            "operations-director": {
+                "name": "Pho Thit Nwe",
+                "role": "Co-Founder & Operations Director",
+                "bio": "Pho Thit Nwe is the Co-Founder and Operations Director of Sa Kyi Health and Wellness, with a strong passion for behaviour change and sustainable lifestyle transformation. Drawing from both professional work and personal experience, she also works as a lifestyle vlogger and content creator, sharing real-life journeys that bridge science-based health concepts with everyday living.",
+                "quote": "Real change becomes possible when science meets everyday life and when we allow ourselves to start, learn, and grow step by step."
+            }
+        }
+    },
+    "beyond-weight-loss": {
+        "badge": "Beyond Weight Loss",
+        "title": {
+            "black": "Making a",
+            "gradient": "Real Difference"
+        },
+        "description": {
+            "paragraph-1": "At Sa Kyi, impact isn't defined by big numbers or quick wins. It's reflected in steady progress, healthier habits, and lives moving in a better direction.",
+            "paragraph-2": "Our approach goes beyond weight loss focusing on behavior change, metabolic health, and long-term wellbeing. Through evidence-informed methods and personalized guidance, we support individuals in building changes they can sustain in real life.",
+            "paragraph-3": "We grow carefully, work closely with our clients, and prioritize quality, integrity, and long-term outcomes over inflated metrics."
+        },
+        "features": {
+            "impact": {
+                "title": "What Our Impact Looks Like",
+                "description": "Lives Changed, Not Just Weights Lost Clients experience meaningful improvements in health, energy, and daily habits."
+            },
+            "trust": {
+                "title": "Trusted by Those We Serve",
+                "description": "Positive experiences and continued engagement reflect strong client confidence in our programs."
+            },
+            "sustainable-change": {
+                "title": "Focused on Sustainable Change",
+                "description": "Designed for long-term health, not short-term fixes."
+            },
+            "people-centered-evidence-informed": {
+                "title": "People-Centered, Evidence-Informed",
+                "description": "Combining science with practical, real-world application."
+            }
+        }
+    },
+    "call-to-action": {
+        "title": "Ready to Work With Our Expert Team?",
+        "description": "Now that you know our story, mission, and approach, let's discuss how we can help you achieve your wellness goals. Our certified doctors are ready to create your personalized plan.",
+        "cta": {
+            "primary": "Meet Our Team",
+            "secondary": "Schedule Consultation"
+        }
+    }
+}

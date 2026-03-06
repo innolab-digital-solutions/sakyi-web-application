@@ -105,4 +105,3 @@ export type ProgramLocale = z.infer<typeof ProgramLocaleSchema>;
 export type ProgramTranslation = z.infer<typeof ProgramTranslationSchema>;
 export type ProgramCreateSchemaType = z.infer<typeof ProgramCreateSchema>;
 export type ProgramUpdateSchemaType = z.infer<typeof ProgramUpdateSchema>;
-
