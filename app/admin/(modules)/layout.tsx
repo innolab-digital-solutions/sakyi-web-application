@@ -1,4 +1,3 @@
-import { Inter } from 'next/font/google';
 import { cookies } from 'next/headers';
 import { PropsWithChildren } from 'react';
 
@@ -6,13 +5,9 @@ import AuthGuard from '@/components/admin/auth/AuthGuard';
 import DashboardHeader from '@/components/admin/layouts/DashboardHeader';
 import DashboardSidebar from '@/components/admin/layouts/DashboardSidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { inter } from '@/config/fonts';
 import AuthProvider from '@/context/AuthContext';
 import { cn } from '@/lib/utils/styles';
-
-const inter = Inter({
-  variable: '--font-inter',
-  weight: ['400', '500', '600', '700', '800', '900'],
-});
 
 export default async function AdminProtectedLayout({
   children,
@@ -25,14 +20,11 @@ export default async function AdminProtectedLayout({
       <AuthProvider>
         <AuthGuard mode='protected'>
           <SidebarProvider defaultOpen={defaultOpen}>
-            {/* Sidebar navigation panel */}
             <DashboardSidebar />
 
-            {/* Main content: dashboard header & page */}
-            <SidebarInset>
+            <SidebarInset className='min-w-0'>
               <DashboardHeader />
-              {/* Page content*/}
-              <div className='bg-background flex-1 flex-col px-8 py-5'>
+              <div className='bg-background flex flex-1 flex-col p-4 md:p-6'>
                 {children}
               </div>
             </SidebarInset>

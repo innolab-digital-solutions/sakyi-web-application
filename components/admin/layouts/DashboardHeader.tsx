@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,14 +14,30 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import PATHS from '@/config/paths';
+import { useAuth } from '@/context/AuthContext';
+import type { UserRole } from '@/types/admin/user';
 
 const DashboardHeader = () => {
+  const { user } = useAuth();
+
+  const displayName = user?.name ?? 'User';
+  const role = user?.role;
+  const displayRole =
+    role == null
+      ? 'Admin'
+      : typeof role === 'string'
+        ? role
+        : ((role as UserRole).name ?? 'Admin');
+  const initials = displayName
+    .split(' ')
+    .map((word) => word[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
   return (
-    <header className='border-border bg-background sticky top-0 z-50 w-full border-b px-2.5'>
+    <header className='border-border bg-background sticky top-0 z-10 w-full border-b px-2.5'>
       <div className='flex h-16 items-center justify-between px-5'>
-        {/* Sidebar section with trigger and potential breadcrumb */}
         <div className='flex h-5 items-center'>
-          {/* Sidebar open/close trigger button */}
           <SidebarTrigger
             variant='outline'
             className='hover:border-border hover:text-foreground h-9 w-9 cursor-pointer hover:bg-gray-100'
@@ -27,7 +45,6 @@ const DashboardHeader = () => {
 
           <Separator orientation='vertical' className='mx-3 hidden sm:block' />
 
-          {/* Placeholder for dynamic breadcrumb navigation (shown on sm and up) */}
           <div className='hidden sm:block'>
             <Breadcrumb>
               <BreadcrumbList>
@@ -53,19 +70,18 @@ const DashboardHeader = () => {
         </div>
 
         <div className='flex items-center gap-8'>
-          {/* User Name and Profile Picture */}
           <div className='flex items-center gap-2'>
             <div className='flex flex-col items-end gap-x-1'>
               <h3 className='text-foreground text-sm font-semibold'>
-                Aung Thu Zaw
+                {displayName}
               </h3>
               <p className='text-muted-foreground text-xs font-medium'>
-                Super Admin
+                {displayRole}
               </p>
             </div>
             <Avatar className='size-9 rounded-lg'>
-              <AvatarImage src='https://github.com/shadcn.png' />
-              <AvatarFallback>CN</AvatarFallback>
+              {user?.picture && <AvatarImage src={user.picture} />}
+              <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
           </div>
         </div>

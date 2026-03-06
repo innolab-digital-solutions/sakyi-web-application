@@ -8,9 +8,9 @@
  * accessing `PATHS.ADMIN.*` rather than importing this file directly.
  */
 export const ADMIN_PATHS = {
+  AUTH: {
+    LOGIN: '/admin/login',
+  },
   DASHBOARD: '/admin/dashboard',
-  CLIENTS: '/admin/clients',
-  LOGIN: '/admin/login',
-  LOGOUT: '/admin/logout',
-  ME: '/admin/me',
+  PROGRAMS: '/admin/programs',
 } as const;

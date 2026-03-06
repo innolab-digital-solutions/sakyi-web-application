@@ -1,0 +1,27 @@
+{
+  "header": {
+    "navigation": {
+      "home": {
+        "label": "Home"
+      },
+      "about": {
+        "label": "About"
+      },
+      "programs": {
+        "label": "Programs"
+      },
+      "blog": {
+        "label": "Blog"
+      },
+      "contact": {
+        "label": "Contact"
+      },
+      "get-app": {
+        "label": "Get the App"
+      }
+    }
+  },
+  "footer": {
+    "description": "Transforming lives through personalized wellness programs designed by certified doctors and wellness experts. Your journey to optimal health starts here."
+  }
+}

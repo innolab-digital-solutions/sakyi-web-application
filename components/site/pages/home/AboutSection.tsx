@@ -1,3 +1,5 @@
+'use client';
+
 import { ArrowRight, Shield, Target, TrendingUp, Users } from 'lucide-react';
 import Link from 'next/link';
 
@@ -9,36 +11,46 @@ import GradientText from '@/components/site/shared/GradientText';
 import SectionBadge from '@/components/site/shared/SectionBadge';
 import SectionContainer from '@/components/site/shared/SectionContainer';
 import PATHS from '@/config/paths';
+import { useLanguage } from '@/context/LanguageContext';
 
 const AboutSection = () => {
+  const { translate } = useLanguage();
+
   const features = [
     {
       icon: <Shield className='h-5 w-5' />,
-      title: 'Doctor-Designed Programs',
-      description:
-        'Evidence-based wellness plans created by certified medical professionals',
+      title: translate(
+        'site.home.about-overview.features.doctor-designed-programs.title',
+      ),
+      description: translate(
+        'site.home.about-overview.features.doctor-designed-programs.description',
+      ),
     },
     {
       icon: <Target className='h-5 w-5' />,
-      title: 'Personalized Approach',
-      description:
-        'Tailored strategies that adapt to your unique lifestyle and goals',
+      title: translate(
+        'site.home.about-overview.features.personalized-approach.title',
+      ),
+      description: translate(
+        'site.home.about-overview.features.personalized-approach.description',
+      ),
     },
     {
       icon: <TrendingUp className='h-5 w-5' />,
-      title: 'Proven Results',
-      description:
-        'Track your progress with measurable outcomes and celebrate milestones',
+      title: translate(
+        'site.home.about-overview.features.continuous-support-reporting.title',
+      ),
+      description: translate(
+        'site.home.about-overview.features.continuous-support-reporting.description',
+      ),
     },
   ];
 
   return (
     <SectionContainer id='about-section' className='bg-background'>
       <div className='grid items-center gap-16 lg:grid-cols-2'>
-        {/* Left Column: Visual storytelling with decorative image and floating highlight cards */}
         <div className='relative'>
           <div className='relative'>
-            {/* Main illustrative image communicating wellness and mindfulness */}
             <DecorativeImage
               src='/images/home-about.jpg'
               alt='Woman doing yoga meditation for wellness and mental health'
@@ -46,7 +58,6 @@ const AboutSection = () => {
               height={600}
             />
 
-            {/* FloatingCard: Showcases impact with user count */}
             <FloatingCard
               icon={<Users className='h-5 w-5' />}
               title='10K+ Lives'
@@ -55,7 +66,6 @@ const AboutSection = () => {
               iconClassName='bg-linear-to-r from-[#35bec5] to-[#4bc4db]'
             />
 
-            {/* FloatingCard: Highlights program success rate */}
             <FloatingCard
               icon={<TrendingUp className='h-5 w-5' />}
               title='98% Success'
@@ -66,41 +76,34 @@ const AboutSection = () => {
           </div>
         </div>
 
-        {/* Right Column: Headline, descriptive introduction, features, and strong call to action */}
         <div className='space-y-8'>
-          {/* Section Header: Badge, headline, and program summary */}
           <div className='space-y-6'>
-            {/* Section badge introduces the about section with icon */}
             <SectionBadge
               icon={<Users className='h-4 w-4' />}
-              text='About SaKyi'
+              text={translate('site.home.about-overview.badge')}
             />
 
-            {/* Headline with visual emphasis and gradient highlight */}
             <h2 className='text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'>
               <span
                 className='text-foreground block'
                 style={{ fontFamily: 'Poppins, sans-serif' }}
               >
-                Your Wellness
+                {translate('site.home.about-overview.title.black')}
               </span>
 
-              <GradientText>Journey Starts Here</GradientText>
+              <GradientText>
+                {translate('site.home.about-overview.title.gradient')}
+              </GradientText>
             </h2>
 
-            {/* Introductory paragraph describing value and approach */}
             <p
               className='text-foreground/80 max-w-2xl text-lg leading-relaxed'
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
-              We combine medical expertise with personalized wellness strategies
-              to help you achieve lasting health transformation. Our
-              evidence-based programs are designed by certified doctors and
-              wellness experts.
+              {translate('site.home.about-overview.description')}
             </p>
           </div>
 
-          {/* Features List: Key differentiators as visually grouped feature items */}
           <div className='space-y-4'>
             {features.map((feature, index) => (
               <FeatureList
@@ -112,11 +115,10 @@ const AboutSection = () => {
             ))}
           </div>
 
-          {/* Call To Action: Encourages users to explore available programs with strong visual button */}
           <div className='pt-4'>
             <Link href={PATHS.SITE.PROGRAMS} className='inline-block'>
               <GradientButton>
-                <span>Explore Our Programs</span>
+                <span>{translate('site.home.about-overview.cta.primary')}</span>
                 <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
               </GradientButton>
             </Link>

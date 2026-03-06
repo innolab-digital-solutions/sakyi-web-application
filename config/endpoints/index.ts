@@ -20,3 +20,7 @@ const ENDPOINTS = {
 } as const;
 
 export { ENDPOINTS as default };
+
+export { ADMIN_ENDPOINTS } from './admin';
+export { LOOKUP_ENDPOINTS } from './lookup';
+export { SITE_ENDPOINTS } from './site';

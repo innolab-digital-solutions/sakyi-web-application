@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Award,
   CheckCircle,
@@ -10,8 +12,11 @@ import {
 import Link from 'next/link';
 
 import SectionContainer from '@/components/site/shared/SectionContainer';
+import { useLanguage } from '@/context/LanguageContext';
 
 const MobileAppSection = () => {
+  const { translate } = useLanguage();
+
   return (
     <SectionContainer id='mobile-app-section' className='bg-white'>
       <div className='grid items-center gap-8 lg:grid-cols-2 lg:gap-12'>
@@ -35,7 +40,7 @@ const MobileAppSection = () => {
                 className='text-sm font-medium text-[#35bec5]'
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                Mobile App
+                {translate('site.home.mobile-app.badge')}
               </span>
             </div>
 
@@ -49,7 +54,7 @@ const MobileAppSection = () => {
                 data-aos-duration='1000'
                 data-aos-easing='ease-out-cubic'
               >
-                Your Wellness Journey,{' '}
+                {translate('site.home.mobile-app.title.black')}{' '}
               </span>
               <span
                 className='text-brand-gradient bg-clip-text text-transparent'
@@ -59,7 +64,7 @@ const MobileAppSection = () => {
                 data-aos-duration='1000'
                 data-aos-easing='ease-out-cubic'
               >
-                Always With You
+                {translate('site.home.mobile-app.title.gradient')}
               </span>
             </h2>
 
@@ -71,9 +76,7 @@ const MobileAppSection = () => {
               data-aos-duration='1000'
               data-aos-easing='ease-out-cubic'
             >
-              Stay on track with SaKyi&apos;s mobile app — receive your weekly
-              doctor updates, complete daily tasks, and monitor your health
-              progress anytime, anywhere.
+              {translate('site.home.mobile-app.description')}
             </p>
           </div>
 
@@ -84,7 +87,9 @@ const MobileAppSection = () => {
               className='group bg-brand-gradient inline-flex items-center justify-center rounded-full px-6 py-3 text-base font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl'
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
-              <span className='relative z-10'>Coming Soon</span>
+              <span className='relative z-10'>
+                {translate('site.home.mobile-app.cta.primary')}
+              </span>
               <Clock className='ml-2 h-5 w-5 transition-transform duration-300' />
             </Link>
           </div>
@@ -93,7 +98,7 @@ const MobileAppSection = () => {
             className='text-sm text-slate-500'
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
-            Available on iOS and Android.
+            {translate('site.home.mobile-app.availability')}
           </p>
         </div>
 

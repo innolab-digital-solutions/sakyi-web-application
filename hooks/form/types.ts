@@ -1,6 +1,6 @@
 import { z, ZodType } from 'zod';
 
-import { ApiError, ApiResponse, HttpMethod } from '@/lib/api/client/types';
+import type { ApiError, ApiResponse, HttpMethod } from '@/types/api';
 
 /**
  * Inferred form data type from Zod schema with index signature.

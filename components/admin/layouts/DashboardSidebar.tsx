@@ -32,8 +32,7 @@ const DashboardSidebar = () => {
   const { logout, isLoading } = useAuth();
 
   return (
-    <Sidebar>
-      {/* Sidebar header with logo and title */}
+    <Sidebar className='z-50!'>
       <SidebarHeader className='py-3.5'>
         <div className='flex items-center gap-3 px-2'>
           <div>
@@ -54,15 +53,12 @@ const DashboardSidebar = () => {
         </div>
       </SidebarHeader>
 
-      {/* Sidebar navigation content */}
       <SidebarContent className='scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent py-3.5'>
         <SidebarGroup>
           <SidebarMenu>
             {NAVIGATION.ADMIN.map((item, index) => {
-              // Determine if this navigation item has subitems
               const hasSubitems = item.subitems && item.subitems.length > 0;
 
-              // Check if the main item or any of its subitems is currently active
               const isItemActive = pathname === item.path;
               const isAnySubActive = hasSubitems
                 ? item.subitems!.some((subitem) => pathname === subitem.path)
@@ -71,7 +67,6 @@ const DashboardSidebar = () => {
 
               const Icon = item.icon;
 
-              // Render navigation item with collapsible subitems (submenu)
               if (hasSubitems) {
                 return (
                   <SidebarMenuItem key={`${item.name}-${item.path}-${index}`}>
@@ -94,9 +89,7 @@ const DashboardSidebar = () => {
                       </CollapsibleTrigger>
                       <CollapsibleContent>
                         <SidebarMenuSub className='ml-4.5'>
-                          {/* Render all submenu items */}
                           {item.subitems!.map((subitem, subIndex) => {
-                            // Check if this subitem is active
                             const isSubActive = pathname === subitem.path;
 
                             return (
@@ -124,7 +117,6 @@ const DashboardSidebar = () => {
                 );
               }
 
-              // Render a single navigation item (no subitems)
               return (
                 <SidebarMenuItem key={`${item.name}-${item.path}-${index}`}>
                   <SidebarMenuButton
@@ -147,7 +139,6 @@ const DashboardSidebar = () => {
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Logout */}
       <SidebarFooter className='py-3.25'>
         <Button
           variant='ghost'

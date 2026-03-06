@@ -1,73 +1,36 @@
-import {
-  ClientsByProgramBarChart,
-  EnrollmentStatusChart,
-  NeedsAttentionBarChart,
-  NewClientsOverTimeChart,
-  ParticipationOverTimeChart,
-} from '@/components/admin/modules/dashboard/Charts';
-import StatsCard from '@/components/admin/modules/dashboard/StatsCard';
-import { DASHBOARD_STATS } from '@/config/dashboard-stats';
+'use client';
 
-const CHART_LAYOUT: { id: string; span?: 2 }[] = [
-  { id: 'participation' },
-  { id: 'new-clients' },
-  { id: 'enrollment-status' },
-  { id: 'needs-attention' },
-  { id: 'clients-by-program', span: 2 },
-];
+import { useAuth } from '@/context/AuthContext';
 
-const CHART_COMPONENTS = {
-  participation: ParticipationOverTimeChart,
-  'new-clients': NewClientsOverTimeChart,
-  'clients-by-program': ClientsByProgramBarChart,
-  'enrollment-status': EnrollmentStatusChart,
-  'needs-attention': NeedsAttentionBarChart,
-} as const;
+const getGreeting = (): string => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good Morning';
+  if (hour < 17) return 'Good Afternoon';
+  return 'Good Evening';
+};
+
+const formatDate = (): string => {
+  return new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+};
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+
   return (
     <div className='space-y-8'>
       <div className='flex flex-col space-y-1'>
         <p className='text-muted-foreground text-xs font-semibold'>
-          Thursday, 16th February 2026
+          {formatDate()}
         </p>
         <h1 className='text-foreground text-md font-bold'>
-          Good Evening! Aung Thu Zaw
+          {getGreeting()}! {user?.name ?? 'User'}
         </h1>
       </div>
-
-      <section aria-label='Dashboard overview'>
-        <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-          {DASHBOARD_STATS.map((stat) => (
-            <StatsCard
-              key={stat.id}
-              title={stat.title}
-              value={stat.value}
-              subtitle={stat.subtitle}
-              trend={stat.trend}
-              iconName={stat.iconName}
-              iconBgClass={stat.iconBgClass}
-              iconClass={stat.iconClass}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section aria-label='Charts'>
-        <div className='grid gap-6 lg:grid-cols-2'>
-          {CHART_LAYOUT.map(({ id, span }) => {
-            const Chart = CHART_COMPONENTS[id as keyof typeof CHART_COMPONENTS];
-            return (
-              <div
-                key={id}
-                className={span === 2 ? 'lg:col-span-2' : undefined}
-              >
-                <Chart />
-              </div>
-            );
-          })}
-        </div>
-      </section>
     </div>
   );
 }

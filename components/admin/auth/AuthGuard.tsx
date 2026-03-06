@@ -78,7 +78,7 @@ const AuthGuard = ({ mode, children }: AuthGuardProps) => {
     }
 
     if (mode === 'protected' && !isAuthenticated) {
-      router.replace(PATHS.ADMIN.LOGIN);
+      router.replace(PATHS.ADMIN.AUTH.LOGIN);
     }
   }, [isReady, isAuthenticated, mode, router]);
 

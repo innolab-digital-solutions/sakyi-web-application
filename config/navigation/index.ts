@@ -12,8 +12,8 @@ import { FOOTER_NAVIGATION, HEADER_NAVIGATION } from './site';
  *
  * This constant centralizes all available navigation schemas for consistent consumption across the app.
  *
- * @see ADMIN_NAVIGATION (config/navigation/private.ts)
- * @see HEADER_NAVIGATION, FOOTER_NAVIGATION (config/navigation/public.ts)
+ * @see ADMIN_NAVIGATION (config/navigation/admin.ts)
+ * @see HEADER_NAVIGATION, FOOTER_NAVIGATION (config/navigation/site.ts)
  * @see NavItem (config/navigation/types.ts)
  */
 const NAVIGATION = {

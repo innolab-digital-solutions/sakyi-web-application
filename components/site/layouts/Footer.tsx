@@ -9,9 +9,7 @@ const Footer = () => {
   return (
     <footer className='mx-auto max-w-7xl overflow-hidden py-24 sm:px-6 lg:px-8'>
       <div className='flex flex-col items-center text-center'>
-        {/* Top section: logo, description, social links */}
         <div className='mb-8' data-aos='fade-up' data-aos-duration='1000'>
-          {/* Logo and Brand Title */}
           <Link
             href={PATHS.SITE.HOME}
             className='group mb-6 flex items-center justify-center space-x-3'
@@ -31,7 +29,6 @@ const Footer = () => {
             </p>
           </Link>
 
-          {/* Brand Description */}
           <p
             className='text-muted-foreground mb-6 max-w-2xl text-base leading-relaxed font-medium'
             style={{ fontFamily: 'Inter, sans-serif' }}
@@ -41,7 +38,6 @@ const Footer = () => {
             specialists. Your path to good health commences here.
           </p>
 
-          {/* Social Media and Contact Links */}
           <div className='flex justify-center space-x-3'>
             <SocialButton
               icon={<Facebook className='h-4 w-4' />}
@@ -60,7 +56,6 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Bottom section: copyright */}
         <div
           className='border-border border-t pt-8'
           data-aos='fade-up'

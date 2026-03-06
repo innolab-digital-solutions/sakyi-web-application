@@ -6,7 +6,7 @@
  */
 export { api as apiConfig } from './config';
 export { client } from './core';
-export { getCsrfToken } from './csrf';
+export { ensureCsrfCookie, getCsrfToken } from './csrf';
 export { ApiClientError } from './errors';
 export { http } from './http';
 export type {

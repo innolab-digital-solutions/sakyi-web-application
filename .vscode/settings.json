@@ -10,5 +10,12 @@
     "typescript",
     "typescriptreact"
   ],
-  "cSpell.words": ["glassmorphic", "Laravel", "sakyi"]
+  "cSpell.words": [
+    "datetimes",
+    "glassmorphic",
+    "Laravel",
+    "placehold",
+    "sakyi",
+    "sakyihealthandwellness"
+  ]
 }

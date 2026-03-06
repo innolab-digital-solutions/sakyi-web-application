@@ -5,8 +5,7 @@
  * constructing links or redirects for the main website surface.
  *
  * Prefer importing the aggregated `PATHS` object from `config/paths` and
- * accessing `PATHS.SITE.*` (or `PATHS.PUBLIC.*` for legacy code) rather than
- * importing this file directly.
+ * accessing `PATHS.SITE.*` rather than importing this file directly.
  */
 export const SITE_PATHS = {
   HOME: '/',

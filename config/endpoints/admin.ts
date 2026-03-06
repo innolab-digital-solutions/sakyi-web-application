@@ -6,8 +6,15 @@
  */
 export const ADMIN_ENDPOINTS = {
   AUTH: {
-    LOGIN: '/admin/auth/login',
-    LOGOUT: '/admin/auth/logout',
-    ME: '/admin/auth/me',
+    LOGIN: '/web/admin/auth/login',
+    LOGOUT: '/web/admin/auth/logout',
+    ME: '/web/admin/auth/me',
+  },
+  PROGRAMS: {
+    LIST: '/web/admin/programs',
+    CREATE: '/web/admin/programs',
+    UPDATE: '/web/admin/programs/{id}',
+    DELETE: '/web/admin/programs/{id}',
+    DETAIL: '/web/admin/programs/{id}',
   },
 } as const;

@@ -11,6 +11,12 @@ import PATHS from '@/config/paths';
 import { useForm } from '@/hooks/form';
 import { LoginSchema } from '@/lib/schemas/admin/auth/login';
 
+/**
+ * Admin login form: email and password with validation and session redirect.
+ *
+ * Renders controlled inputs wired to useForm and LoginSchema, submits to the admin auth
+ * login endpoint, and redirects to the dashboard on success or surfaces errors on failure.
+ */
 const LoginForm = () => {
   const router = useRouter();
 
@@ -37,7 +43,6 @@ const LoginForm = () => {
   };
   return (
     <form className='space-y-3 md:space-y-4' onSubmit={handleSubmit}>
-      {/* Email Address Input */}
       <TextField
         label='Email Address'
         id='email'
@@ -51,7 +56,6 @@ const LoginForm = () => {
         disabled={form.processing}
       />
 
-      {/* Password Input */}
       <TextField
         label='Password'
         id='password'
@@ -65,7 +69,6 @@ const LoginForm = () => {
         disabled={form.processing}
       />
 
-      {/* Submit Button */}
       <SubmitButton processing={form.processing}>
         <span>Sign In</span>
         <ArrowRight className='size-4 transition-transform duration-200 group-hover:translate-x-1' />

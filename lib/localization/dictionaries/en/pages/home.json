@@ -1,0 +1,120 @@
+{
+  "hero": {
+    "badge": "Happy & Healthy, the SaKyi Way",
+    "title": {
+      "black": "A Smarter Way",
+      "gradient": "to Live Happy and Healthy,",
+      "subtitle": "Guided by SaKyi Team"
+    },
+    "description": "Begin your transformation for a happier, healthier you with Sa Kyi. Discover our tailored programs and let the Sa Kyi team help you systematically reshape your lifestyle today.",
+    "cta": {
+      "primary": "Start Your Journey",
+      "secondary": "Learn More"
+    }
+  },
+  "about-overview": {
+    "badge": "About SaKyi",
+    "title": {
+      "black": "Your Wellness",
+      "gradient": "Journey Starts Here"
+    },
+    "description": "At Sa Kyi, we combine medical expertise with personalized care to support safe, sustainable health transformation. Each program is designed by certified doctors and guided by our dedicated team ensuring clarity, support, and confidence at every step.",
+    "features": {
+      "doctor-designed-programs": {
+        "title": "Doctor-Designed Programs",
+        "description": "Science-backed programs designed and supervised by certified doctors for safe, long-term health."
+      },
+      "personalized-approach": {
+        "title": "Personalized Approach",
+        "description": "Individually tailored plans that adapt to your unique lifestyle, health needs, and goals."
+      },
+      "continuous-support-reporting": {
+        "title": "Continuous Support & Reporting",
+        "description": "Daily guidance, structured monitoring, and clear progress updates from the Sa Kyi team."
+      },
+      "beyond-weight-loss": {
+        "title": "Beyond Weight Loss",
+        "description": "Supporting healthy weight management, medical concerns, and healthy aging in a positive, nurturing environment."
+      }
+    },
+    "cta": {
+      "primary": "Explore Our Programs"
+    }
+  },
+  "programs-overview": {
+    "badge": "Our Programs",
+    "title": {
+      "black": "Transform Your Life with",
+      "gradient": "Doctor-Designed Programs"
+    },
+    "description": "Discover our comprehensive range of wellness programs, each carefully crafted by certified medical professionals to help you achieve lasting health transformation with proven results.",
+    "cta": {
+      "primary": "Explore All Programs"
+    }
+  },
+  "how-it-works": {
+    "badge": "How It Works",
+    "title": {
+      "black": "Transform Your Health in",
+      "gradient": "Just 3 Steps"
+    },
+    "description": "Transform your lifestyle with Sa Kyi’s proven 3-step program. Receive personalized guidance from certified doctors and build lasting, healthy habits for long-term wellbeing.",
+    "steps": {
+      "initial-consultation": {
+        "title": "Talk with Our Experts",
+        "description": "Get professional guidance through an initial health consultation."
+      },
+      "program-selection": {
+        "title": "Find Your Best-Fit Program",
+        "description": "Choose a program tailored to your body and lifestyle needs."
+      },
+      "review-results-and-start": {
+        "title": "See Your Results & Begin Your Journey",
+        "description": "Review your InBody analysis and start your personalized wellness plan."
+      }
+    },
+    "cta": {
+      "primary": "Get Started Today"
+    }
+  },
+  "mobile-app": {
+    "badge": "Mobile App",
+    "title": {
+      "black": "Your Wellness Journey,",
+      "gradient": "Always With You"
+    },
+    "description": "Stay on track with Sa Kyi's mobile app receive your weekly doctor updates, complete daily tasks, and monitor your health progress anytime, anywhere.",
+    "availability": "Available on iOS and Android.",
+    "cta": {
+      "primary": "Coming Soon",
+      "secondary": "Download the App"
+    }
+  },
+  "testimonials": {
+    "badge": "Testimonials",
+    "title": {
+      "black": "What Our Clients Say",
+      "gradient": "About SaKyi"
+    },
+    "description": "Real stories from people who have transformed their lives through our wellness programs."
+  },
+  "latest-articles": {
+    "badge": "Wellness Insights",
+    "title": {
+      "black": "Expert Insights for",
+      "gradient": "Your Wellness Journey"
+    },
+    "description": "Discover evidence-based wellness tips, expert advice, and inspiring stories to support your health and wellness goals.",
+    "cta": {
+      "primary": "View All Articles"
+    }
+  },
+  "call-to-action": {
+    "title": "Ready to Transform Your Life?",
+    "description": "Join thousands of individuals who have already started their wellness journey with Sa Kyi. Get personalized guidance from certified doctors and achieve your health goals.",
+    "cta": {
+      "primary": "Start Your Journey",
+      "secondary": "Get Free Consultation"
+    }
+  }
+}

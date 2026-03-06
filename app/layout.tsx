@@ -3,7 +3,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import type { PropsWithChildren } from 'react';
 
-import TanstackQueryProvider from '@/components/shared/providers/TanstackQueryProvider';
+import TanstackQueryProvider from '@/components/TanstackQueryProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { LanguageProvider } from '@/context/LanguageContext';
 

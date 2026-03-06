@@ -1,12 +1,8 @@
 import { useCallback, useRef, useState } from 'react';
 import { ZodType } from 'zod';
 
-import {
-  type ApiError,
-  type ApiResponse,
-  http,
-  type HttpMethod,
-} from '@/lib/api/client';
+import { type HttpMethod, submitRequest } from '@/lib/api/services/form';
+import type { ApiError } from '@/types/api';
 
 import { buildSubmitShortcuts, buildTransformChain } from './builders';
 import {
@@ -51,10 +47,6 @@ export const useForm = <TSchema extends ZodType>(
   const [isDirty, setIsDirty] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Data Manipulation
-  // ─────────────────────────────────────────────────────────────────────────────
 
   /**
    * Update form field values.
@@ -148,10 +140,6 @@ export const useForm = <TSchema extends ZodType>(
     [],
   );
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Error Handling
-  // ─────────────────────────────────────────────────────────────────────────────
-
   /**
    * Set validation errors for form fields.
    * Supports single field or multiple errors at once.
@@ -192,10 +180,6 @@ export const useForm = <TSchema extends ZodType>(
     [],
   );
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Request Control
-  // ─────────────────────────────────────────────────────────────────────────────
-
   /**
    * Cancel the current form submission.
    * Aborts the request and resets processing state.
@@ -204,10 +188,6 @@ export const useForm = <TSchema extends ZodType>(
     abortControllerRef.current?.abort();
     setProcessing(false);
   }, []);
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Form Submission
-  // ─────────────────────────────────────────────────────────────────────────────
 
   /**
    * Core submit method that handles validation and request lifecycle.
@@ -233,7 +213,6 @@ export const useForm = <TSchema extends ZodType>(
 
       clearErrors();
 
-      // Run frontend validation if schema is provided
       if (options.schema) {
         const { success, errors: validationErrors } = validate(
           options.schema,
@@ -249,7 +228,6 @@ export const useForm = <TSchema extends ZodType>(
       abortControllerRef.current = new AbortController();
 
       try {
-        // Apply transform if provided, otherwise use raw data
         const payload = transformFn
           ? (transformFn(data) as
               | BodyInit
@@ -257,35 +235,15 @@ export const useForm = <TSchema extends ZodType>(
               | unknown[])
           : (data as BodyInit | Record<string, unknown> | unknown[]);
 
-        let response: ApiResponse<TResponse>;
-
         const signal = abortControllerRef.current?.signal;
-        const requestOptions =
-          signal != null
-            ? { throwOnError: false, signal }
-            : ({ throwOnError: false } as const);
-
-        switch (method) {
-          case 'GET':
-            response = await http.get<TResponse>(url, requestOptions);
-            break;
-          case 'POST':
-            response = await http.post<TResponse>(url, payload, requestOptions);
-            break;
-          case 'PUT':
-            response = await http.put<TResponse>(url, payload, requestOptions);
-            break;
-          case 'PATCH':
-            response = await http.patch<TResponse>(
-              url,
-              payload,
-              requestOptions,
-            );
-            break;
-          case 'DELETE':
-            response = await http.delete<TResponse>(url, requestOptions);
-            break;
-        }
+        const body =
+          method !== 'GET'
+            ? (payload as BodyInit | Record<string, unknown> | unknown[])
+            : undefined;
+        const response = await submitRequest<TResponse>(method, url, body, {
+          throwOnError: false,
+          ...(signal != null && { signal }),
+        });
 
         if (response.status === 'error') {
           const errorResponse = response as ApiError;
@@ -316,10 +274,6 @@ export const useForm = <TSchema extends ZodType>(
     },
     [data, options.schema, clearErrors],
   );
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // HTTP Methods & Transform
-  // ─────────────────────────────────────────────────────────────────────────────
 
   const { get, post, put, patch, destroy } = buildSubmitShortcuts(submit);
 

@@ -11,32 +11,13 @@ import {
   useState,
 } from 'react';
 
-import ENDPOINTS from '@/config/endpoints';
 import PATHS from '@/config/paths';
-import type { ApiError } from '@/lib/api/client';
-import { http } from '@/lib/api/client';
-
-/**
- * Authenticated user shape as returned by the backend.
- */
-type User = {
-  id: number;
-  name: string;
-  email: string;
-  picture: string;
-  dob: string;
-  gender: 'male' | 'female' | 'other';
-  phone: string;
-  address: string;
-  status: 'active' | 'suspended' | 'archived';
-  role: string;
-  timestamps: {
-    email_verified_at: string;
-    last_login_at: string;
-    created_at: string;
-    updated_at: string;
-  };
-};
+import {
+  checkSession as checkSessionService,
+  logout as logoutService,
+} from '@/lib/api/services/auth';
+import type { User } from '@/types/admin/user';
+import type { ApiError } from '@/types/api';
 
 /**
  * Shape of the auth context exposed via `AuthProvider` / `useAuth`.
@@ -98,9 +79,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const checkSession = useCallback(async () => {
     setIsLoading(true);
 
-    const response = await http.get<User>(ENDPOINTS.ADMIN.AUTH.ME, {
-      throwOnError: false,
-    });
+    const response = await checkSessionService();
 
     if (response.status === 'error') {
       const errorResponse = response as ApiError;
@@ -136,14 +115,12 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const logout = useCallback(async () => {
     setIsLoading(true);
 
-    await http.post<unknown>(ENDPOINTS.ADMIN.AUTH.LOGOUT, undefined, {
-      throwOnError: false,
-    });
+    await logoutService();
 
     setUser(null);
     setError(null);
     setIsLoading(false);
-    router.replace(PATHS.ADMIN.LOGIN);
+    router.replace(PATHS.ADMIN.AUTH.LOGIN);
   }, [router]);
 
   useEffect(() => {
