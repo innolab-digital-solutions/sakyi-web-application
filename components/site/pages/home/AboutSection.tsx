@@ -3,7 +3,6 @@
 import { ArrowRight, Shield, Target, TrendingUp, Users } from 'lucide-react';
 import Link from 'next/link';
 
-import { useLanguage } from '@/context/LanguageContext';
 import DecorativeImage from '@/components/site/shared/DecorativeImage';
 import FeatureList from '@/components/site/shared/FeatureList';
 import FloatingCard from '@/components/site/shared/FloatingCard';
@@ -12,6 +11,7 @@ import GradientText from '@/components/site/shared/GradientText';
 import SectionBadge from '@/components/site/shared/SectionBadge';
 import SectionContainer from '@/components/site/shared/SectionContainer';
 import PATHS from '@/config/paths';
+import { useLanguage } from '@/context/LanguageContext';
 
 const AboutSection = () => {
   const { translate } = useLanguage();

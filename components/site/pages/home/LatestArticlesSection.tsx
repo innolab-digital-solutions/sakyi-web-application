@@ -2,12 +2,12 @@
 
 import Link from 'next/link';
 
-import { useLanguage } from '@/context/LanguageContext';
 import GradientButton from '@/components/site/shared/GradientButton';
 import GradientText from '@/components/site/shared/GradientText';
 import SectionBadge from '@/components/site/shared/SectionBadge';
 import SectionContainer from '@/components/site/shared/SectionContainer';
 import PATHS from '@/config/paths';
+import { useLanguage } from '@/context/LanguageContext';
 
 const LatestArticlesSection = () => {
   const { translate } = useLanguage();

@@ -132,7 +132,7 @@ export const useTable = <TItem>(
       const pageData = payload as TablePageData<TItem>;
       rows = pageData.data;
       // Strip the rows array to keep only pagination metadata.
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
       const { data: _rows, ...meta } = pageData;
       pagination = meta;
     } else if (Array.isArray(payload)) {

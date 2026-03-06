@@ -1,9 +1,9 @@
 'use client';
 
-import { useLanguage } from '@/context/LanguageContext';
 import GradientText from '@/components/site/shared/GradientText';
 import SectionBadge from '@/components/site/shared/SectionBadge';
 import SectionContainer from '@/components/site/shared/SectionContainer';
+import { useLanguage } from '@/context/LanguageContext';
 
 const TestimonialsSection = () => {
   const { translate } = useLanguage();

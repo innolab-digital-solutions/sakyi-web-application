@@ -11,8 +11,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-import { useLanguage } from '@/context/LanguageContext';
 import SectionContainer from '@/components/site/shared/SectionContainer';
+import { useLanguage } from '@/context/LanguageContext';
 
 const MobileAppSection = () => {
   const { translate } = useLanguage();
