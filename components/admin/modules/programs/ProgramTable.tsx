@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 
 import TableLayout from '@/components/admin/layouts/TableLayout';
 import ProgramFilters from '@/components/admin/modules/programs/ProgramFilters';
@@ -15,6 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import ENDPOINTS from '@/config/endpoints';
+import PATHS from '@/config/paths';
 import { useTable } from '@/hooks/table';
 import type { Program } from '@/types/admin/program';
 
@@ -118,11 +120,24 @@ const ProgramTable = () => {
                   </span>
                 </TableCell>
                 <TableCell>
-                  <Button size='sm' variant='outline'>
-                    View
+                  <Button
+                    asChild
+                    size='sm'
+                    variant='outline'
+                  >
+                    <Link href={`${PATHS.ADMIN.PROGRAMS}/${program.id}`}>
+                      View
+                    </Link>
                   </Button>
-                  <Button size='sm' variant='outline' className='ml-2'>
-                    Edit
+                  <Button
+                    asChild
+                    size='sm'
+                    variant='outline'
+                    className='ml-2'
+                  >
+                    <Link href={`${PATHS.ADMIN.PROGRAMS}/${program.id}/edit`}>
+                      Edit
+                    </Link>
                   </Button>
                 </TableCell>
               </TableRow>

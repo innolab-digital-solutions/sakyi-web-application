@@ -6,18 +6,18 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'i.pravatar.cc',
+        hostname: 'staging-api.sakyihealthandwellness.com',
       },
       {
         protocol: 'https',
-        hostname: 'picsum.photos',
+        hostname: 'api.sakyihealthandwellness.com',
       },
       {
         protocol: 'https',
-        hostname: 'via.placeholder.com',
+        hostname: 'placehold.co',
       },
       {
-        protocol: 'http',
+        protocol: 'https',
         hostname: 'api.sakyi.test',
       },
     ],

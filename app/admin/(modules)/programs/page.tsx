@@ -1,7 +1,9 @@
 import { CirclePlus } from 'lucide-react';
+import Link from 'next/link';
 
 import ProgramTable from '@/components/admin/modules/programs/ProgramTable';
 import { Button } from '@/components/ui/button';
+import PATHS from '@/config/paths';
 
 export default function ProgramListsPage() {
   return (
@@ -14,9 +16,15 @@ export default function ProgramListsPage() {
           </p>
         </div>
         <div>
-          <Button variant='default' className='cursor-pointer gap-2'>
-            <CirclePlus className='size-4' />
-            Add Program
+          <Button
+            asChild
+            variant='default'
+            className='cursor-pointer gap-2'
+          >
+            <Link href={`${PATHS.ADMIN.PROGRAMS}/create`}>
+              <CirclePlus className='size-4' />
+              Add Program
+            </Link>
           </Button>
         </div>
       </div>

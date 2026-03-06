@@ -5,5 +5,5 @@
  * surfaces to populate selects, filters, and other reference UI.
  */
 export const LOOKUP_ENDPOINTS = {
-  EXAMPLE: '/lookup/example',
+  GOALS: '/lookup/goals',
 } as const;
