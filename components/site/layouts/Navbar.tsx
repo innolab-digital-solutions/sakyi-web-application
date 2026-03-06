@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import DesktopNavigation from '@/components/site/layouts/DesktopNavigation';
 import MobileNavigation from '@/components/site/layouts/MobileNavigation';
 import GetTheAppButton from '@/components/site/shared/GetTheAppButton';
+import LanguageToggle from '@/components/site/shared/LanguageToggle';
 import { Button } from '@/components/ui/button';
 import PATHS from '@/config/paths';
 
@@ -66,7 +67,8 @@ const Navbar = () => {
 
           <DesktopNavigation pathname={pathname} />
 
-          <div className='hidden items-center md:flex'>
+          <div className='hidden items-center gap-4 md:flex'>
+            <LanguageToggle />
             <GetTheAppButton />
           </div>
 

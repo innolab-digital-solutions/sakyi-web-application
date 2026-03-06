@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import GetTheAppButton from '@/components/site/shared/GetTheAppButton';
+import LanguageToggle from '@/components/site/shared/LanguageToggle';
 import { HEADER_NAVIGATION } from '@/config/navigation/site';
 
 type MobileNavigationProps = {
@@ -47,7 +48,8 @@ const MobileNavigation = ({
             );
           })}
 
-          <div className='border-border border-t pt-3'>
+          <div className='border-border flex items-center justify-between gap-3 border-t pt-3'>
+            <LanguageToggle />
             <GetTheAppButton onClick={onClose} />
           </div>
         </div>
