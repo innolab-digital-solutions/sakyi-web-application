@@ -48,6 +48,11 @@ const getPrimaryGoalName = (program: Program): string => {
   return program.goals[0]?.name ?? '—';
 };
 
+const parsePriceCents = (price: string): number | null => {
+  const numeric = Number.parseInt(price.replace(/[^\d]/g, ''), 10);
+  return Number.isNaN(numeric) ? null : numeric;
+};
+
 /**
  * Admin programs list table with URL-synced pagination and search.
  *
@@ -89,10 +94,10 @@ const ProgramTable = () => {
               <TableRow key={program.id}>
                 <TableCell>
                   <div className='flex items-center gap-2'>
-                    {program.thumbnail_url ? (
+                    {program.thumbnail ? (
                       <Image
-                        src={program.thumbnail_url}
-                        alt={program.title ?? 'Program thumbnail'}
+                        src={program.thumbnail}
+                        alt={program.title}
                         width={32}
                         height={32}
                         className='bg-muted shrink-0 rounded-md'
@@ -100,18 +105,23 @@ const ProgramTable = () => {
                       />
                     ) : (
                       <div className='bg-muted flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-xs font-medium uppercase'>
-                        {program.title?.charAt(0) ?? '?'}
+                        {program.title.charAt(0) ?? '?'}
                       </div>
                     )}
                     <span>{program.title ?? 'Untitled program'}</span>
                   </div>
                 </TableCell>
                 <TableCell className='max-w-48 truncate'>
-                  {program.overview ?? '—'}
+                  {program.excerpt ?? '—'}
                 </TableCell>
                 <TableCell>{getPrimaryGoalName(program)}</TableCell>
                 <TableCell>
-                  {program.price != null ? formatPrice(program.price) : '—'}
+                  {program.price
+                    ? (() => {
+                        const cents = parsePriceCents(program.price);
+                        return cents != null ? formatPrice(cents) : '—';
+                      })()
+                    : '—'}
                 </TableCell>
                 <TableCell>{program.duration}</TableCell>
                 <TableCell>

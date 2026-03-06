@@ -65,6 +65,11 @@ const buildCreateInitialValues = (): ProgramCreateSchemaType => ({
   translations: SUPPORTED_LOCALES.map(createEmptyTranslation),
 });
 
+const normalizeProgramPrice = (price: string | undefined): number => {
+  const numeric = Number.parseInt((price ?? '').replace(/[^\d]/g, ''), 10);
+  return Number.isNaN(numeric) ? 0 : numeric;
+};
+
 const buildUpdateInitialValues = (
   program: Program,
 ): ProgramUpdateSchemaType => {
@@ -72,8 +77,8 @@ const buildUpdateInitialValues = (
     locale: 'en',
     tagline: program.tagline ?? '',
     title: program.title ?? '',
-    excerpt: program.overview ?? '',
-    about: program.description ?? '',
+    excerpt: program.excerpt ?? '',
+    about: program.about ?? '',
     features:
       program.features && program.features.length > 0 ? program.features : [''],
     ideals: program.ideals && program.ideals.length > 0 ? program.ideals : [''],
@@ -90,7 +95,7 @@ const buildUpdateInitialValues = (
   return {
     goal_ids: (program.goals ?? []).map((goal) => goal.id),
     duration: program.duration ?? '',
-    price: program.price ?? 0,
+    price: normalizeProgramPrice(program.price),
     status: program.status ?? 'draft',
     published_at: program.timestamps.published_at,
     archived_at: program.timestamps.archived_at,
