@@ -3,12 +3,19 @@ import { ApiClientError } from './errors';
 import type { ApiError as ApiErrorPayload, ApiResponse } from './types';
 
 /**
- * Constructs a standardized API error response object.
+ * Response normalizers used by the core client only.
+ * Each function converts a failure case (network error, non-JSON, parse failure, backend error)
+ * into either a thrown {@link ApiClientError} or a returned {@link ApiResponse} with `status: 'error'`,
+ * depending on `throwOnError`. The error type itself is defined in `errors.ts`.
+ */
+
+/**
+ * Builds a normalized API error response object (no throw).
  *
  * @template T - The type of the expected response data.
- * @param {string} message - User-facing error message describing what went wrong.
- * @param {Record<string, unknown>} [errors] - Optional detailed errors, keyed by context or field.
- * @returns {ApiResponse<T>} An error response adhering to the `ApiResponse<T>` contract.
+ * @param message - User-facing error message.
+ * @param errors - Optional detailed errors, keyed by field or context.
+ * @returns ApiResponse with status 'error'.
  */
 export const toErrorResponse = <T>(
   message: string,
@@ -84,11 +91,11 @@ export const handleJsonParseFailure = async <T>(
   response: Response,
   throwOnError: boolean,
 ): Promise<ApiResponse<T>> => {
-  const fallback = toErrorResponse<T>(MESSAGES.INVALID_JSON);
+  const errorResponse = toErrorResponse<T>(MESSAGES.INVALID_JSON);
   if (throwOnError) {
     throw new ApiClientError(MESSAGES.INVALID_JSON, response.status);
   }
-  return fallback;
+  return errorResponse;
 };
 
 /**
@@ -118,8 +125,11 @@ export const handleBackendError = <T>(
   };
 
   if (throwOnError) {
+    const message =
+      (errorResponse.message?.trim() && errorResponse.message) ||
+      MESSAGES.DEFAULT_ERROR;
     throw new ApiClientError(
-      errorResponse.message ?? 'An error occurred',
+      message,
       response.status,
       errorResponse.errors as Record<string, unknown> | undefined,
       response.headers.get('x-request-id') ?? undefined,
