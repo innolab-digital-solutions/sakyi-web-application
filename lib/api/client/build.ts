@@ -40,17 +40,19 @@ export const resolveApiUrl = (endpoint: string): string => {
       `API client does not accept absolute URLs. Use a relative path (e.g. "users/1"), not "${trimmed.slice(0, 50)}${trimmed.length > 50 ? '...' : ''}".`,
     );
   }
-  const normalized = trimmed.replace(/^\/+/, '');
-  if (isSanctumEndpoint(trimmed)) {
+  const normalized = trimmed.replace(/^\/+/, '').trim();
+  if (isSanctumEndpoint(normalized)) {
     return `${api.domainEndpoint}/${normalized}`;
   }
   return `${api.versionEndpoint}/${normalized}`;
 };
 
 /**
- * Converts Headers or a plain record to a normalized record for merging.
- * Fetch accepts both shapes; this helper ensures we always have a simple object
- * so we can safely add `Accept` and `X-XSRF-TOKEN` headers.
+ * Normalizes Fetch-style headers (Headers instance or plain object) to a single record.
+ * Used so we can reliably merge Accept and X-XSRF-TOKEN without mutating the caller's input.
+ *
+ * @param headers - Request headers from ClientRequestInit (may be null, Headers, or record).
+ * @returns A plain record of header names to values; empty object if headers is null/undefined.
  */
 const toHeadersRecord = (
   headers: RequestInit['headers'],
@@ -128,7 +130,9 @@ export const serializeRequestBody = (
     return { body: body as BodyInit, contentTypeSet: false };
   }
 
-  const hasFile = Object.values(body).some((v) => v instanceof File);
+  const hasFile = Object.values(body).some(
+    (value): value is File => value instanceof File,
+  );
 
   if (hasFile) {
     const form = new FormData();

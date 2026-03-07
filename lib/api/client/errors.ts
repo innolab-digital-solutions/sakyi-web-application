@@ -1,18 +1,15 @@
 import type { ApiError as ApiErrorPayload } from './types';
 
 /**
- * Represents a structured error thrown by API client requests.
+ * Structured error thrown by the API client when a request fails and `throwOnError` is true.
  *
- * Encapsulates HTTP status, detailed error payload from the backend or network layer,
- * and auxiliary metadata such as request ID and server payload (if present).
+ * Encapsulates HTTP status, backend or network error details, and optional metadata
+ * (request ID, raw payload) so callers can branch on error type without parsing responses.
  *
- * Provides type-safe introspection for common HTTP error categories via convenience getters.
+ * Use the getters (`isUnauthorized`, `isValidationError`, etc.) for type-safe handling
+ * (e.g. redirect to login on 401/419, show field errors on 422).
  *
- * Typical use cases:
- *  - Thrown by the API client on network failures or when backend returns an error response.
- *  - Enables higher-level error handling logic (UI redirects, messaging, logging).
- *
- * @extends {Error}
+ * @extends Error
  */
 export class ApiClientError extends Error {
   readonly status: number;
@@ -20,6 +17,13 @@ export class ApiClientError extends Error {
   readonly requestId: string | undefined;
   readonly payload: ApiErrorPayload | undefined;
 
+  /**
+   * @param message - User-facing error message.
+   * @param status - HTTP status code (0 for network failures).
+   * @param errors - Optional field or context errors from the backend.
+   * @param requestId - Optional request ID from response header `x-request-id`.
+   * @param payload - Optional raw API error payload for logging or inspection.
+   */
   constructor(
     message: string,
     status: number,

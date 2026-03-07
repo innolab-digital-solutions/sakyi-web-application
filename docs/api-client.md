@@ -23,9 +23,10 @@ import type { ApiResponse } from '@/lib/api/client';
   - Error normalization
   - Request body serialization
 - **Safe by default**:
-  - Rejects absolute URLs (prevents SSRF / arbitrary host usage).
-  - Includes `credentials: 'include'` for cookie‑based auth.
-  - Adds CSRF headers for unsafe methods when possible.
+- Rejects absolute URLs (prevents SSRF / arbitrary host usage).
+- Includes `credentials: 'include'` for cookie‑based auth.
+- Adds CSRF headers for unsafe methods when possible.
+- `ensureCsrfCookie` resets on failure so a subsequent request can retry fetching the CSRF cookie.
 - **Flexible error strategy**:
   - `throwOnError: true` → throws `ApiClientError`.
   - `throwOnError: false` → returns `ApiResponse<'error'>`.
@@ -39,14 +40,14 @@ import type { ApiResponse } from '@/lib/api/client';
 Files in `lib/api/client`:
 
 - `index.ts` – barrel exports (public surface).
-- `constants.ts` – default API endpoints and shared messages.
+- `constants.ts` – default API endpoints and shared messages (including `MESSAGES` for errors).
 - `config.ts` – runtime API configuration (`apiConfig`).
-- `csrf.ts` – reads CSRF cookie (`getCsrfToken`).
-- `build.ts` – URL resolution, header building, and body serialization.
-- `handlers.ts` – response and error handling helpers.
-- `errors.ts` – `ApiClientError` class.
+- `csrf.ts` – CSRF cookie read (`getCsrfToken`) and ensure-before-write (`ensureCsrfCookie`).
+- `build.ts` – URL resolution, header building, and body serialization (request building only).
+- `errors.ts` – **Error type**: `ApiClientError` class (thrown when `throwOnError` is true).
+- `handlers.ts` – **Response normalizers**: pure functions that turn failures into either a thrown `ApiClientError` or a returned `ApiResponse` with `status: 'error'`. Used only by `core.ts`. Do not import handlers directly; use `client`/`http` and handle `ApiClientError` or `ApiResponse.status === 'error'`.
 - `types.ts` – shared API/client types.
-- `core.ts` – low‑level `client` function that wraps `fetch`.
+- `core.ts` – low‑level `client` function that orchestrates request build, fetch, and response handling.
 - `http.ts` – convenience `http.get/post/put/patch/delete` helpers.
 
 ### Public API (`index.ts`)
@@ -54,7 +55,7 @@ Files in `lib/api/client`:
 ```ts
 export { api as apiConfig } from './config';
 export { client } from './core';
-export { getCsrfToken } from './csrf';
+export { ensureCsrfCookie, getCsrfToken } from './csrf';
 export { ApiClientError } from './errors';
 export { http } from './http';
 export type {
@@ -221,6 +222,13 @@ The helpers automatically:
 
 ## Error Handling and Types
 
+### Why `errors.ts` (class) and `handlers.ts` (functions)?
+
+- **`errors.ts`** defines the **exception type**: `ApiClientError`. It is the single class used when the client throws (e.g. network failure, backend error with `throwOnError: true`). Callers use `instanceof ApiClientError` and the getters (`isUnauthorized`, `isValidationError`, etc.) to branch safely.
+- **`handlers.ts`** defines **response normalizers**: stateless functions that take a raw failure (network error, non-JSON response, parse failure, or backend error payload) and either throw an `ApiClientError` or return an `ApiResponse<T>` with `status: 'error'`, depending on `throwOnError`. They are used only by `core.ts`. Consumers should not import from `handlers.ts`; they should use the public API (`client`/`http`) and handle either a thrown `ApiClientError` or a returned error response.
+
+This keeps the error **type** in one place and the **normalization logic** in another, with no circular dependency and clear single responsibility.
+
 ### `ApiResponse<T>`
 
 All responses from `client` / `http` have the shape:
@@ -257,15 +265,12 @@ All responses from `client` / `http` have the shape:
 
 ### `ApiClientError`
 
-Thrown when `throwOnError: true`:
+Thrown when `throwOnError: true` (defined in `errors.ts`):
 
-- Contains:
-  - `status: number`
-  - `errors?: Record<string, unknown>`
-  - `requestId?: string`
-  - `payload?: ApiErrorPayload`
-- Provides helpers:
-  - `isForbidden`, `isNotFound`, `isServerError`, `isValidationError`, `isUnauthorized`.
+- **Properties:** `message`, `status` (HTTP status; `0` for network failure), optional `errors`, `requestId`, `payload`.
+- **Getters:** `isForbidden` (403), `isNotFound` (404), `isServerError` (≥500), `isValidationError` (422), `isUnauthorized` (401 or 419).
+
+When the backend returns an error with no message, the client throws with a fallback message from `MESSAGES.DEFAULT_ERROR`.
 
 Example:
 

@@ -18,6 +18,7 @@ export const DEFAULT_METHOD = 'GET' as const;
  * Standardized, user-facing messages used when constructing API error responses.
  */
 export const MESSAGES = {
+  DEFAULT_ERROR: 'An error occurred.',
   NETWORK_ERROR:
     'A network error occurred while attempting to reach the API. Please verify your internet connection or try again later.',
   INVALID_JSON: 'The server returned an invalid JSON response.',

@@ -57,9 +57,14 @@ export const ensureCsrfCookie = async (): Promise<void> => {
   csrfInitPromise = fetch(`${api.domainEndpoint}/sanctum/csrf-cookie`, {
     method: 'GET',
     credentials: 'include',
-  }).then(() => {
-    csrfInitPromise = null;
-  });
+  })
+    .then(() => {
+      csrfInitPromise = null;
+    })
+    .catch((reason) => {
+      csrfInitPromise = null;
+      throw reason;
+    });
 
   return csrfInitPromise;
 };
