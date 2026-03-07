@@ -69,6 +69,20 @@
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
+
+  /* Site typography scale: consistent titles, body, badges, cards (EN + Myanmar) */
+  --text-badge: 0.75rem;       /* 12px – badge/pill labels */
+  --text-badge-sm: 0.875rem;   /* 14px at sm+ */
+  --text-body: 1rem;          /* 16px – body default */
+  --text-body-lg: 1.125rem;   /* 18px at sm+ */
+  --text-lead: 1.125rem;      /* 18px – intro/lead */
+  --text-feature-title: 1rem; /* 16px, 18px at sm+ */
+  --text-feature-desc: 0.875rem;  /* 14px, 16px at sm+ – was too small */
+  --text-card-title: 0.875rem;
+  --text-card-desc: 0.875rem;
+  --text-section-title: clamp(1.5rem, 4vw, 2.25rem);   /* ~24–36px */
+  --text-section-title-lg: clamp(1.875rem, 5vw, 3rem); /* ~30–48px */
+  --text-hero-title: clamp(1.875rem, 5vw, 3.75rem);    /* ~30–60px */
 }
 
 .dark {
@@ -188,6 +202,14 @@
 }
 
 @layer utilities {
+}
+
+/* Myanmar: prevent text cut-off and reduce excess spacing (lang set by LanguageContext) */
+[lang='my'] .font-sans {
+  letter-spacing: 0.01em;
+}
+[lang='my'] p {
+  line-height: 1.6;
 }
 
 /* Brand Gradient Classes */

@@ -14,7 +14,8 @@ import PATHS from '@/config/paths';
 import { useLanguage } from '@/context/LanguageContext';
 
 const AboutSection = () => {
-  const { translate } = useLanguage();
+  const { language, translate } = useLanguage();
+  const isMyanmar = language === 'my';
 
   const features = [
     {
@@ -48,7 +49,7 @@ const AboutSection = () => {
 
   return (
     <SectionContainer id='about-section' className='bg-background'>
-      <div className='grid items-center gap-16 lg:grid-cols-2'>
+      <div className='grid items-center gap-12 lg:grid-cols-2 lg:gap-16'>
         <div className='relative'>
           <div className='relative'>
             <DecorativeImage
@@ -83,8 +84,14 @@ const AboutSection = () => {
               text={translate('site.home.about-overview.badge')}
             />
 
-            <h2 className='text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'>
-              <span className='text-foreground block font-sans'>
+            <h2
+              className={
+                isMyanmar
+                  ? 'font-sans text-2xl leading-relaxed font-bold sm:text-3xl lg:text-4xl'
+                  : 'font-sans text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'
+              }
+            >
+              <span className='text-foreground block'>
                 {translate('site.home.about-overview.title.black')}
               </span>
 
@@ -93,7 +100,13 @@ const AboutSection = () => {
               </GradientText>
             </h2>
 
-            <p className='text-foreground/80 max-w-2xl font-sans text-lg leading-relaxed'>
+            <p
+              className={
+                isMyanmar
+                  ? 'text-foreground/80 max-w-2xl font-sans text-base leading-loose sm:text-lg'
+                  : 'text-foreground/80 max-w-2xl font-sans text-lg leading-relaxed'
+              }
+            >
               {translate('site.home.about-overview.description')}
             </p>
           </div>

@@ -37,7 +37,7 @@ const HeroSection = () => {
             <h1
               className={
                 isMyanmar
-                  ? 'text-foreground space-y-2 text-3xl leading-relaxed font-bold tracking-tight sm:text-4xl sm:leading-relaxed lg:text-5xl lg:leading-loose'
+                  ? 'text-foreground space-y-2 text-3xl leading-relaxed font-bold tracking-tight sm:text-4xl lg:text-5xl'
                   : 'text-foreground space-y-2 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl'
               }
             >
@@ -52,7 +52,7 @@ const HeroSection = () => {
               <span
                 className={
                   isMyanmar
-                    ? 'text-muted-foreground block font-sans text-xl leading-relaxed font-light sm:text-2xl sm:leading-loose'
+                    ? 'text-muted-foreground block font-sans text-xl leading-relaxed font-light sm:text-2xl'
                     : 'text-muted-foreground block font-sans text-2xl font-light sm:text-3xl'
                 }
               >

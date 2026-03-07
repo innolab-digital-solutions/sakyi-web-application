@@ -34,7 +34,7 @@ const FloatingCard = ({
           <div className='text-foreground font-sans text-sm font-semibold'>
             {title}
           </div>
-          <div className='text-muted-foreground font-sans text-xs'>
+          <div className='text-muted-foreground font-sans text-sm leading-relaxed'>
             {description}
           </div>
         </div>

@@ -20,7 +20,7 @@ const TestimonialsSection = () => {
         <h2
           className={
             isMyanmar
-              ? 'font-sans text-2xl leading-relaxed font-bold sm:text-3xl lg:text-4xl lg:leading-loose'
+              ? 'font-sans text-2xl leading-relaxed font-bold sm:text-3xl lg:text-4xl'
               : 'font-sans text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'
           }
         >

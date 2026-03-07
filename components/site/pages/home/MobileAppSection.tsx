@@ -11,15 +11,17 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+import SectionBadge from '@/components/site/shared/SectionBadge';
 import SectionContainer from '@/components/site/shared/SectionContainer';
 import { useLanguage } from '@/context/LanguageContext';
 
 const MobileAppSection = () => {
-  const { translate } = useLanguage();
+  const { language, translate } = useLanguage();
+  const isMyanmar = language === 'my';
 
   return (
     <SectionContainer id='mobile-app-section' className='bg-white'>
-      <div className='grid items-center gap-8 lg:grid-cols-2 lg:gap-12'>
+      <div className='grid items-center gap-12 lg:grid-cols-2 lg:gap-16'>
         {/* Left Column - Text Content */}
         <div
           className='space-y-8'
@@ -28,20 +30,18 @@ const MobileAppSection = () => {
           data-aos-easing='ease-out-cubic'
         >
           <div className='space-y-6'>
-            <div
-              className='inline-flex items-center space-x-2 rounded-full bg-linear-to-r from-[#35bec5]/10 to-[#0c96c4]/10 px-4 py-2'
-              data-aos='slide-down'
-              data-aos-delay='200'
-              data-aos-duration='800'
-              data-aos-easing='ease-out-back'
-            >
-              <Smartphone className='h-4 w-4 text-[#35bec5]' />
-              <span className='font-sans text-sm font-medium text-[#35bec5]'>
-                {translate('site.home.mobile-app.badge')}
-              </span>
-            </div>
+            <SectionBadge
+              icon={<Smartphone className='h-4 w-4' />}
+              text={translate('site.home.mobile-app.badge')}
+            />
 
-            <h2 className='font-sans text-2xl leading-tight font-bold sm:text-3xl sm:leading-tight lg:text-4xl xl:text-5xl'>
+            <h2
+              className={
+                isMyanmar
+                  ? 'font-sans text-2xl leading-relaxed font-bold sm:text-3xl lg:text-4xl'
+                  : 'font-sans text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'
+              }
+            >
               <span
                 data-aos='fade-up'
                 data-aos-delay='300'
@@ -62,7 +62,11 @@ const MobileAppSection = () => {
             </h2>
 
             <p
-              className='font-sans text-lg leading-relaxed text-slate-600'
+              className={
+                isMyanmar
+                  ? 'text-foreground/80 font-sans text-base leading-loose sm:text-lg'
+                  : 'text-foreground/80 font-sans text-lg leading-relaxed'
+              }
               data-aos='slide-up'
               data-aos-delay='700'
               data-aos-duration='1000'
@@ -85,7 +89,7 @@ const MobileAppSection = () => {
             </Link>
           </div>
 
-          <p className='font-sans text-sm text-slate-500'>
+          <p className='text-muted-foreground font-sans text-sm'>
             {translate('site.home.mobile-app.availability')}
           </p>
         </div>

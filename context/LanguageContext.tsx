@@ -37,6 +37,11 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
     }
   }, []);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.lang = language === 'my' ? 'my' : 'en';
+  }, [language]);
+
   const setLanguage = useCallback((lang: SupportedLanguage) => {
     const nextLang: SupportedLanguage =
       lang === 'en' || lang === 'my' ? lang : 'en';

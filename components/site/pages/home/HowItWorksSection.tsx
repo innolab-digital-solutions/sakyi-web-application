@@ -11,7 +11,8 @@ import PATHS from '@/config/paths';
 import { useLanguage } from '@/context/LanguageContext';
 
 const HowItWorksSection = () => {
-  const { translate } = useLanguage();
+  const { language, translate } = useLanguage();
+  const isMyanmar = language === 'my';
 
   return (
     <SectionContainer id='how-it-works-section' className='bg-background'>
@@ -23,7 +24,13 @@ const HowItWorksSection = () => {
         />
 
         {/* Headline with gradient highlight for visual emphasis */}
-        <h2 className='flex items-center justify-center font-sans text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'>
+        <h2
+          className={
+            isMyanmar
+              ? 'flex items-center justify-center font-sans text-2xl leading-relaxed font-bold sm:text-3xl lg:text-4xl'
+              : 'flex items-center justify-center font-sans text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'
+          }
+        >
           <span className='text-foreground'>
             {translate('site.home.how-it-works.title.black')}
           </span>
@@ -33,13 +40,19 @@ const HowItWorksSection = () => {
         </h2>
 
         {/* Brief section description */}
-        <p className='text-foreground/80 mx-auto max-w-2xl text-center font-sans text-lg leading-relaxed'>
+        <p
+          className={
+            isMyanmar
+              ? 'text-foreground/80 mx-auto max-w-2xl text-center font-sans text-base leading-loose sm:text-lg'
+              : 'text-foreground/80 mx-auto max-w-2xl text-center font-sans text-lg leading-relaxed'
+          }
+        >
           {translate('site.home.how-it-works.description')}
         </p>
       </div>
 
       {/* Steps Grid: Visual guide for the 3-step process */}
-      <div className='mt-16 grid gap-8 lg:grid-cols-3'>
+      <div className='mt-12 grid gap-6 lg:mt-16 lg:grid-cols-3 lg:gap-8'>
         {[
           {
             step: '01',
@@ -118,7 +131,7 @@ const HowItWorksSection = () => {
         ].map((step, index) => (
           <div
             key={index}
-            className='group border-border relative overflow-hidden rounded-2xl border bg-white p-8 text-center shadow-sm transition-all duration-300 hover:border-[#35bec5]/50 hover:shadow-lg'
+            className='group border-border relative overflow-hidden rounded-2xl border bg-white p-6 text-center shadow-sm transition-all duration-300 hover:border-[#35bec5]/50 hover:shadow-lg sm:p-8'
             data-aos='flip-up'
             data-aos-delay={`${index * 200 + 400}`}
             data-aos-duration='1000'
@@ -127,13 +140,21 @@ const HowItWorksSection = () => {
             {/* Step Illustration */}
             {step.illustration}
 
-            {/* Step Content: Title and description */}
+            {/* Step Content: Title and description – roomy line-height to avoid Myanmar glyph clip */}
             <div className='space-y-4'>
-              <h3 className='text-foreground font-sans text-xl font-bold'>
+              <h3 className='text-foreground font-sans text-lg font-bold leading-relaxed sm:text-xl'>
                 {step.title}
               </h3>
 
-              <p className='text-foreground/80 font-sans'>{step.description}</p>
+              <p
+                className={
+                  isMyanmar
+                    ? 'text-foreground/80 font-sans text-sm leading-loose sm:text-base'
+                    : 'text-foreground/80 font-sans text-sm leading-relaxed sm:text-base'
+                }
+              >
+                {step.description}
+              </p>
             </div>
           </div>
         ))}
