@@ -13,7 +13,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import type { SupportedLanguage } from '@/lib/localization';
 import { cn } from '@/lib/utils/styles';
 
-type LanguageToggleProps = {
+type LanguageDropdownProps = {
   className?: string;
 };
 
@@ -22,7 +22,7 @@ const LANGUAGES: { value: SupportedLanguage; label: string; flag: string }[] = [
   { value: 'my', label: 'Myanmar', flag: '/svg/myanmar.svg' },
 ];
 
-const LanguageToggle = ({ className }: LanguageToggleProps) => {
+const LanguageDropdown = ({ className }: LanguageDropdownProps) => {
   const { language, setLanguage } = useLanguage();
 
   const current = LANGUAGES.find((l) => l.value === language) ?? LANGUAGES[0];
@@ -34,7 +34,7 @@ const LanguageToggle = ({ className }: LanguageToggleProps) => {
           'group border-border inline-flex items-center gap-2 rounded-full border bg-transparent py-2 pr-4 pl-3 font-sans text-sm font-medium transition-all duration-200 outline-none',
           'text-muted-foreground hover:border-muted-foreground/30 hover:bg-muted/40 hover:text-foreground',
           'data-[state=open]:text-foreground data-[state=open]:border-[#35bec5]/50 data-[state=open]:bg-[#35bec5]/5',
-          'focus-visible:ring-2 focus-visible:ring-[#35bec5]/40 focus-visible:ring-offset-2',
+          'w-full focus-visible:ring-2 focus-visible:ring-[#35bec5]/40 focus-visible:ring-offset-2',
           className,
         )}
         aria-label='Select language'
@@ -91,4 +91,4 @@ const LanguageToggle = ({ className }: LanguageToggleProps) => {
   );
 };
 
-export default LanguageToggle;
+export default LanguageDropdown;

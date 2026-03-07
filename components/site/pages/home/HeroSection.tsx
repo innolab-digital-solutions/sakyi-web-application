@@ -40,7 +40,7 @@ const HeroSection = () => {
               language={language}
               blackPart={translate('site.home.hero.title.black')}
               gradientPart={translate('site.home.hero.title.gradient')}
-              subtitle={translate('site.home.hero.title.subtitle')}
+              // subtitle={translate('site.home.hero.title.subtitle')}
             />
 
             <SectionDescription language={language} maxWidth>
