@@ -21,7 +21,6 @@ const Navbar = () => {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    // Use a timeout to defer state update, making sure 'isMounted' is set only after client-side mount.
     const mountedId = setTimeout(() => setIsMounted(true), 0);
 
     const handleScroll = () => {
@@ -39,6 +38,7 @@ const Navbar = () => {
 
   return (
     <nav
+      // Main navigation container, fixed at the top with fade-in animation and backdrop blur
       className={`animate-fade-in fixed top-0 z-50 w-full bg-white transition-all duration-300 ${
         isMounted && isScrolled
           ? 'border-border border-b shadow-sm backdrop-blur-md'
@@ -48,6 +48,7 @@ const Navbar = () => {
     >
       <div className='mx-auto max-w-7xl'>
         <div className='flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8'>
+          {/* Logo and site title */}
           <Link href={PATHS.SITE.HOME} className='flex items-center space-x-3'>
             <Image
               src='/images/logo.png'
@@ -57,21 +58,21 @@ const Navbar = () => {
               priority
               className='h-7 w-7 object-contain'
             />
-            <span
-              className='text-foreground text-xl font-semibold'
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
+            <span className='text-foreground font-sans text-xl font-semibold'>
               SaKyi
             </span>
           </Link>
 
+          {/* Desktop navigation links (visible on md and up) */}
           <DesktopNavigation pathname={pathname} />
 
+          {/* Language toggle & app button (desktop only) */}
           <div className='hidden items-center gap-4 md:flex'>
             <LanguageToggle />
             <GetTheAppButton />
           </div>
 
+          {/* Mobile menu toggle button (hamburger or close icon) */}
           <Button
             variant='ghost'
             size='sm'
@@ -86,6 +87,7 @@ const Navbar = () => {
           </Button>
         </div>
 
+        {/* Collapsible mobile navigation menu */}
         <MobileNavigation
           isOpen={isMenuOpen}
           pathname={pathname}

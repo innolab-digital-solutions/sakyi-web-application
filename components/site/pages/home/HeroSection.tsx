@@ -19,7 +19,8 @@ import SectionContainer from '@/components/site/shared/SectionContainer';
 import { useLanguage } from '@/context/LanguageContext';
 
 const HeroSection = () => {
-  const { translate } = useLanguage();
+  const { language, translate } = useLanguage();
+  const isMyanmar = language === 'my';
 
   return (
     <SectionContainer id='hero-section' className='bg-white'>
@@ -33,11 +34,14 @@ const HeroSection = () => {
 
           {/* Section Headline: Main marketing message with multi-line headline and subtitle */}
           <div className='space-y-6'>
-            <h1 className='text-foreground space-y-2 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl'>
-              <span
-                className='block'
-                style={{ fontFamily: 'Poppins, sans-serif' }}
-              >
+            <h1
+              className={
+                isMyanmar
+                  ? 'text-foreground space-y-2 text-3xl font-bold leading-relaxed tracking-tight sm:text-4xl sm:leading-relaxed lg:text-5xl lg:leading-loose'
+                  : 'text-foreground space-y-2 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl'
+              }
+            >
+              <span className='block font-sans'>
                 {translate('site.home.hero.title.black')}
               </span>
 
@@ -46,16 +50,22 @@ const HeroSection = () => {
               </GradientText>
 
               <span
-                className='text-muted-foreground block text-2xl font-light sm:text-3xl'
-                style={{ fontFamily: 'Inter, sans-serif' }}
+                className={
+                  isMyanmar
+                    ? 'text-muted-foreground block text-xl font-light leading-relaxed sm:text-2xl sm:leading-loose font-sans'
+                    : 'text-muted-foreground block text-2xl font-light sm:text-3xl font-sans'
+                }
               >
                 {translate('site.home.hero.title.subtitle')}
               </span>
             </h1>
 
             <p
-              className='text-foreground/80 max-w-2xl text-lg leading-relaxed'
-              style={{ fontFamily: 'Inter, sans-serif' }}
+              className={
+                isMyanmar
+                  ? 'text-foreground/80 max-w-2xl text-base leading-loose sm:text-lg font-sans'
+                  : 'text-foreground/80 max-w-2xl text-lg leading-relaxed font-sans'
+              }
             >
               {translate('site.home.hero.description')}
             </p>

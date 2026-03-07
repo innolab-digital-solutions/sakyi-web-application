@@ -84,10 +84,7 @@ const AboutSection = () => {
             />
 
             <h2 className='text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'>
-              <span
-                className='text-foreground block'
-                style={{ fontFamily: 'Poppins, sans-serif' }}
-              >
+              <span className='text-foreground block font-sans'>
                 {translate('site.home.about-overview.title.black')}
               </span>
 
@@ -96,10 +93,7 @@ const AboutSection = () => {
               </GradientText>
             </h2>
 
-            <p
-              className='text-foreground/80 max-w-2xl text-lg leading-relaxed'
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
+            <p className='text-foreground/80 max-w-2xl font-sans text-lg leading-relaxed'>
               {translate('site.home.about-overview.description')}
             </p>
           </div>

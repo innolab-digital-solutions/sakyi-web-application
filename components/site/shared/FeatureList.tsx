@@ -11,16 +11,10 @@ const FeatureList = ({ icon, title, description }: FeatureListProps) => {
         {icon}
       </div>
       <div className='flex-1'>
-        <h3
-          className='text-foreground mb-1 text-base font-semibold'
-          style={{ fontFamily: 'Poppins, sans-serif' }}
-        >
+        <h3 className='text-foreground mb-1 font-sans text-base font-semibold'>
           {title}
         </h3>
-        <p
-          className='text-foreground/80 text-sm'
-          style={{ fontFamily: 'Inter, sans-serif' }}
-        >
+        <p className='text-foreground/80 font-sans text-sm'>
           {description}
         </p>
       </div>

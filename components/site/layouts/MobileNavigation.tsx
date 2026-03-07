@@ -24,19 +24,19 @@ const MobileNavigation = ({
       <div className='border-border border-t bg-white'>
         <div className='space-y-3 px-4 py-4'>
           {HEADER_NAVIGATION.map((item, index) => {
+            // Determine if the current navigation item is active
             const isActive = pathname === item.path;
             return (
               <Link
                 key={item.name}
                 href={item.path}
                 onClick={onClose}
-                className={`block py-2 text-sm font-medium transition-all duration-300 ease-in-out ${
+                className={`block py-2 font-sans text-sm font-medium transition-all duration-300 ease-in-out ${
                   isActive
                     ? 'bg-brand-gradient rounded-lg px-3 text-white'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg px-3'
                 }`}
                 style={{
-                  fontFamily: 'Inter, sans-serif',
                   animationDelay: `${index * 50}ms`,
                   animation: isOpen
                     ? 'slideInDown 0.3s ease-out forwards'
@@ -48,8 +48,10 @@ const MobileNavigation = ({
             );
           })}
 
+          {/* Language Toggle and Get the App Button */}
           <div className='border-border flex items-center justify-between gap-3 border-t pt-3'>
             <LanguageToggle />
+
             <GetTheAppButton onClick={onClose} />
           </div>
         </div>

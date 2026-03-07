@@ -9,6 +9,7 @@ const Footer = () => {
   return (
     <footer className='mx-auto max-w-7xl overflow-hidden py-24 sm:px-6 lg:px-8'>
       <div className='flex flex-col items-center text-center'>
+        {/* Logo and Brand */}
         <div className='mb-8' data-aos='fade-up' data-aos-duration='1000'>
           <Link
             href={PATHS.SITE.HOME}
@@ -21,34 +22,28 @@ const Footer = () => {
               height={35}
               className='object-contain'
             />
-            <p
-              className='text-brand-gradient bg-clip-text text-2xl font-bold'
-              style={{ fontFamily: 'Poppins, sans-serif' }}
-            >
+            <p className='text-brand-gradient bg-clip-text font-sans text-2xl font-bold'>
               SaKyi Health & Wellness
             </p>
           </Link>
 
-          <p
-            className='text-muted-foreground mb-6 max-w-2xl text-base leading-relaxed font-medium'
-            style={{ fontFamily: 'Inter, sans-serif' }}
-          >
+          {/* Tagline / Description */}
+          <p className='text-muted-foreground mb-6 max-w-2xl font-sans text-base leading-relaxed font-medium'>
             SaKyi Health & Wellness - Enhancing lives via individualized
             wellness programs crafted by licensed physicians and wellness
             specialists. Your path to good health commences here.
           </p>
 
+          {/* Social Icons */}
           <div className='flex justify-center space-x-3'>
             <SocialButton
               icon={<Facebook className='h-4 w-4' />}
               href='https://www.facebook.com/share/1AZkhgRBMS/?mibextid=wwXIfr'
             />
-
             <SocialButton
               icon={<Instagram className='h-4 w-4' />}
               href='https://www.instagram.com/sakyihealthandwellness/'
             />
-
             <SocialButton
               icon={<Mail className='h-4 w-4' />}
               href={`mailto:customerservice@sakyihealthandwellness.com`}
@@ -56,16 +51,14 @@ const Footer = () => {
           </div>
         </div>
 
+        {/* Divider and Copyright */}
         <div
           className='border-border border-t pt-8'
           data-aos='fade-up'
           data-aos-duration='1000'
           data-aos-delay='200'
         >
-          <div
-            className='text-muted-foreground flex items-center space-x-2 text-sm font-medium'
-            style={{ fontFamily: 'Inter, sans-serif' }}
-          >
+          <div className='text-muted-foreground flex items-center space-x-2 font-sans text-sm font-medium'>
             <Copyright className='h-4 w-4' />
             <span>2026 SaKyi Health & Wellness. All rights reserved.</span>
           </div>

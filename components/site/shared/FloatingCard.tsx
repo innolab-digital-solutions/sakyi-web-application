@@ -31,16 +31,10 @@ const FloatingCard = ({
           {icon}
         </div>
         <div>
-          <div
-            className='text-foreground text-sm font-semibold'
-            style={{ fontFamily: 'Inter, sans-serif' }}
-          >
+          <div className='text-foreground font-sans text-sm font-semibold'>
             {title}
           </div>
-          <div
-            className='text-muted-foreground text-xs'
-            style={{ fontFamily: 'Inter, sans-serif' }}
-          >
+          <div className='text-muted-foreground font-sans text-xs'>
             {description}
           </div>
         </div>

@@ -36,18 +36,12 @@ const MobileAppSection = () => {
               data-aos-easing='ease-out-back'
             >
               <Smartphone className='h-4 w-4 text-[#35bec5]' />
-              <span
-                className='text-sm font-medium text-[#35bec5]'
-                style={{ fontFamily: 'Inter, sans-serif' }}
-              >
+              <span className='font-sans text-sm font-medium text-[#35bec5]'>
                 {translate('site.home.mobile-app.badge')}
               </span>
             </div>
 
-            <h2
-              className='text-2xl leading-tight font-bold sm:text-3xl sm:leading-tight lg:text-4xl xl:text-5xl'
-              style={{ fontFamily: 'Poppins, sans-serif' }}
-            >
+            <h2 className='font-sans text-2xl leading-tight font-bold sm:text-3xl sm:leading-tight lg:text-4xl xl:text-5xl'>
               <span
                 data-aos='fade-up'
                 data-aos-delay='300'
@@ -57,8 +51,7 @@ const MobileAppSection = () => {
                 {translate('site.home.mobile-app.title.black')}{' '}
               </span>
               <span
-                className='text-brand-gradient bg-clip-text text-transparent'
-                style={{ fontFamily: 'Poppins, sans-serif' }}
+                className='text-brand-gradient bg-clip-text font-sans text-transparent'
                 data-aos='fade-up'
                 data-aos-delay='500'
                 data-aos-duration='1000'
@@ -69,8 +62,7 @@ const MobileAppSection = () => {
             </h2>
 
             <p
-              className='text-lg leading-relaxed text-slate-600'
-              style={{ fontFamily: 'Inter, sans-serif' }}
+              className='font-sans text-lg leading-relaxed text-slate-600'
               data-aos='slide-up'
               data-aos-delay='700'
               data-aos-duration='1000'
@@ -84,8 +76,7 @@ const MobileAppSection = () => {
           <div className='flex flex-col gap-4 sm:flex-row sm:gap-6'>
             <Link
               href='#'
-              className='group bg-brand-gradient inline-flex items-center justify-center rounded-full px-6 py-3 text-base font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl'
-              style={{ fontFamily: 'Inter, sans-serif' }}
+              className='group bg-brand-gradient inline-flex items-center justify-center rounded-full px-6 py-3 font-sans text-base font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl'
             >
               <span className='relative z-10'>
                 {translate('site.home.mobile-app.cta.primary')}
@@ -94,10 +85,7 @@ const MobileAppSection = () => {
             </Link>
           </div>
 
-          <p
-            className='text-sm text-slate-500'
-            style={{ fontFamily: 'Inter, sans-serif' }}
-          >
+          <p className='font-sans text-sm text-slate-500'>
             {translate('site.home.mobile-app.availability')}
           </p>
         </div>

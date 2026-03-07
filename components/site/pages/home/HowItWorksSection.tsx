@@ -23,10 +23,7 @@ const HowItWorksSection = () => {
         />
 
         {/* Headline with gradient highlight for visual emphasis */}
-        <h2
-          className='flex items-center justify-center text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'
-          style={{ fontFamily: 'Poppins, sans-serif' }}
-        >
+        <h2 className='flex items-center justify-center font-sans text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'>
           <span className='text-foreground'>
             {translate('site.home.how-it-works.title.black')}
           </span>
@@ -36,10 +33,7 @@ const HowItWorksSection = () => {
         </h2>
 
         {/* Brief section description */}
-        <p
-          className='text-foreground/80 mx-auto max-w-2xl text-center text-lg leading-relaxed'
-          style={{ fontFamily: 'Inter, sans-serif' }}
-        >
+        <p className='text-foreground/80 mx-auto max-w-2xl text-center font-sans text-lg leading-relaxed'>
           {translate('site.home.how-it-works.description')}
         </p>
       </div>
@@ -135,17 +129,11 @@ const HowItWorksSection = () => {
 
             {/* Step Content: Title and description */}
             <div className='space-y-4'>
-              <h3
-                className='text-foreground text-xl font-bold'
-                style={{ fontFamily: 'Poppins, sans-serif' }}
-              >
+              <h3 className='text-foreground font-sans text-xl font-bold'>
                 {step.title}
               </h3>
 
-              <p
-                className='text-foreground/80'
-                style={{ fontFamily: 'Inter, sans-serif' }}
-              >
+              <p className='text-foreground/80 font-sans'>
                 {step.description}
               </p>
             </div>

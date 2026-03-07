@@ -6,7 +6,8 @@ import SectionContainer from '@/components/site/shared/SectionContainer';
 import { useLanguage } from '@/context/LanguageContext';
 
 const TestimonialsSection = () => {
-  const { translate } = useLanguage();
+  const { language, translate } = useLanguage();
+  const isMyanmar = language === 'my';
 
   return (
     <SectionContainer id='testimonials-section' className='bg-white'>
@@ -17,8 +18,11 @@ const TestimonialsSection = () => {
         />
 
         <h2
-          className='text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'
-          style={{ fontFamily: 'Poppins, sans-serif' }}
+          className={
+            isMyanmar
+              ? 'text-2xl font-bold leading-relaxed sm:text-3xl lg:text-4xl lg:leading-loose font-sans'
+              : 'text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl font-sans'
+          }
         >
           <span className='text-foreground block'>
             {translate('site.home.testimonials.title.black')}
@@ -29,8 +33,11 @@ const TestimonialsSection = () => {
         </h2>
 
         <p
-          className='text-foreground/80 text-lg leading-relaxed'
-          style={{ fontFamily: 'Inter, sans-serif' }}
+          className={
+            isMyanmar
+              ? 'text-foreground/80 text-base leading-loose sm:text-lg font-sans'
+              : 'text-foreground/80 text-lg leading-relaxed font-sans'
+          }
         >
           {translate('site.home.testimonials.description')}
         </p>

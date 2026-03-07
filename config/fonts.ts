@@ -1,12 +1,23 @@
-import { Inter } from 'next/font/google';
+import { Inter, Noto_Sans_Myanmar } from 'next/font/google';
 
 /**
- * Shared Inter font instance used across admin layouts.
- *
- * Declared once to avoid duplicate font loading and ensure consistent
- * weight availability across the admin auth and dashboard surfaces.
+ * Inter: primary font for Latin/English text.
+ * Used across site and admin. Loaded with CSS variable for use in font stack.
  */
 export const inter = Inter({
   variable: '--font-inter',
+  subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800', '900'],
+  display: 'swap',
+});
+
+/**
+ * Noto Sans Myanmar: font for Myanmar (Burmese) script.
+ * Used in font stack so Myanmar script renders with proper glyphs; Inter used for Latin.
+ */
+export const notoSansMyanmar = Noto_Sans_Myanmar({
+  variable: '--font-noto-sans-myanmar',
+  subsets: ['myanmar'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
 });

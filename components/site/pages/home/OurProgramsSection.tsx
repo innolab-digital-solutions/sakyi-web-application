@@ -10,7 +10,8 @@ import PATHS from '@/config/paths';
 import { useLanguage } from '@/context/LanguageContext';
 
 const OurProgramsSection = () => {
-  const { translate } = useLanguage();
+  const { language, translate } = useLanguage();
+  const isMyanmar = language === 'my';
 
   return (
     <SectionContainer id='our-programs-section' className='bg-white'>
@@ -21,8 +22,11 @@ const OurProgramsSection = () => {
         />
 
         <h2
-          className='text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'
-          style={{ fontFamily: 'Poppins, sans-serif' }}
+          className={
+            isMyanmar
+              ? 'text-2xl font-bold leading-relaxed sm:text-3xl lg:text-4xl lg:leading-loose font-sans'
+              : 'text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl font-sans'
+          }
         >
           <span className='text-foreground block'>
             {translate('site.home.programs-overview.title.black')}
@@ -33,8 +37,11 @@ const OurProgramsSection = () => {
         </h2>
 
         <p
-          className='text-foreground/80 text-lg leading-relaxed'
-          style={{ fontFamily: 'Inter, sans-serif' }}
+          className={
+            isMyanmar
+              ? 'text-foreground/80 text-base leading-loose sm:text-lg font-sans'
+              : 'text-foreground/80 text-lg leading-relaxed font-sans'
+          }
         >
           {translate('site.home.programs-overview.description')}
         </p>
