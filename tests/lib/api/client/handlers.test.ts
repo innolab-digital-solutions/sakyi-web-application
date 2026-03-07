@@ -16,14 +16,14 @@ describe('toErrorResponse', () => {
     const res = toErrorResponse<unknown>('Something went wrong');
     expect(res.status).toBe('error');
     expect(res.message).toBe('Something went wrong');
-    expect(res.errors).toBeUndefined();
+    if (res.status === 'error') expect(res.errors).toBeUndefined();
   });
 
   it('includes errors when provided', () => {
     const errors = { field: ['Invalid'] };
     const res = toErrorResponse<unknown>('Validation failed', errors);
     expect(res.status).toBe('error');
-    expect(res.errors).toEqual(errors);
+    if (res.status === 'error') expect(res.errors).toEqual(errors);
   });
 });
 
@@ -34,8 +34,10 @@ describe('handleNetworkFailure', () => {
       false,
     );
     expect(res.status).toBe('error');
-    expect(res.message).toBe(MESSAGES.NETWORK_ERROR);
-    expect(res.errors).toEqual({ network: ['Error: Network error'] });
+    if (res.status === 'error') {
+      expect(res.message).toBe(MESSAGES.NETWORK_ERROR);
+      expect(res.errors).toEqual({ network: ['Error: Network error'] });
+    }
   });
 
   it('throws ApiClientError when throwOnError is true', async () => {
@@ -113,8 +115,10 @@ describe('handleBackendError', () => {
     };
     const res = handleBackendError<unknown>(response, payload, false);
     expect(res.status).toBe('error');
-    expect(res.message).toBe('Validation failed');
-    expect(res.errors).toEqual({ email: ['Invalid'] });
+    if (res.status === 'error') {
+      expect(res.message).toBe('Validation failed');
+      expect(res.errors).toEqual({ email: ['Invalid'] });
+    }
   });
 
   it('throws ApiClientError when throwOnError is true', () => {

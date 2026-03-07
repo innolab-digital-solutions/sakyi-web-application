@@ -21,7 +21,7 @@ describe('ApiClientError', () => {
   });
 
   it('stores optional requestId and payload', () => {
-    const payload = { status: 'error', message: 'Backend error' };
+    const payload = { status: 'error' as const, message: 'Backend error' };
     const err = new ApiClientError('Error', 500, undefined, 'req-123', payload);
     expect(err.requestId).toBe('req-123');
     expect(err.payload).toEqual(payload);
