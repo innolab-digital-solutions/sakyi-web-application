@@ -24,8 +24,8 @@ const LatestArticlesSection = () => {
         <h2
           className={
             isMyanmar
-              ? 'text-2xl font-bold leading-relaxed sm:text-3xl lg:text-4xl lg:leading-loose font-sans'
-              : 'text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl font-sans'
+              ? 'font-sans text-2xl leading-relaxed font-bold sm:text-3xl lg:text-4xl lg:leading-loose'
+              : 'font-sans text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'
           }
         >
           <span className='text-foreground block'>
@@ -39,8 +39,8 @@ const LatestArticlesSection = () => {
         <p
           className={
             isMyanmar
-              ? 'text-foreground/80 text-base leading-loose sm:text-lg font-sans'
-              : 'text-foreground/80 text-lg leading-relaxed font-sans'
+              ? 'text-foreground/80 font-sans text-base leading-loose sm:text-lg'
+              : 'text-foreground/80 font-sans text-lg leading-relaxed'
           }
         >
           {translate('site.home.latest-articles.description')}

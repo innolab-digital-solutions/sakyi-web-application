@@ -1,8 +1,10 @@
 import Link from 'next/link';
 
 import { HEADER_NAVIGATION } from '@/config/navigation/site';
+import { useLanguage } from '@/context/LanguageContext';
 
 const DesktopNavigation = ({ pathname }: { pathname: string }) => {
+  const { translate } = useLanguage();
   return (
     <div className='hidden items-center space-x-8 md:flex'>
       {HEADER_NAVIGATION.map((item) => {
@@ -18,7 +20,7 @@ const DesktopNavigation = ({ pathname }: { pathname: string }) => {
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            <span className='relative z-10'>{item.name}</span>
+            <span className='relative z-10'>{translate(item.name)}</span>
             {/* Underline animation: expands to full width if active or on hover  */}
             <span
               className={`bg-brand-gradient absolute inset-x-0 -bottom-1 h-0.5 transition-all duration-300 ${

@@ -133,9 +133,7 @@ const HowItWorksSection = () => {
                 {step.title}
               </h3>
 
-              <p className='text-foreground/80 font-sans'>
-                {step.description}
-              </p>
+              <p className='text-foreground/80 font-sans'>{step.description}</p>
             </div>
           </div>
         ))}

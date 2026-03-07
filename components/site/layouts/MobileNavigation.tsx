@@ -3,6 +3,7 @@ import Link from 'next/link';
 import GetTheAppButton from '@/components/site/shared/GetTheAppButton';
 import LanguageToggle from '@/components/site/shared/LanguageToggle';
 import { HEADER_NAVIGATION } from '@/config/navigation/site';
+import { useLanguage } from '@/context/LanguageContext';
 
 type MobileNavigationProps = {
   isOpen: boolean;
@@ -15,6 +16,7 @@ const MobileNavigation = ({
   pathname,
   onClose,
 }: MobileNavigationProps) => {
+  const { translate } = useLanguage();
   return (
     <div
       className={`overflow-hidden transition-all duration-300 ease-in-out md:hidden ${
@@ -43,7 +45,7 @@ const MobileNavigation = ({
                     : 'none',
                 }}
               >
-                {item.name}
+                {translate(item.name)}
               </Link>
             );
           })}

@@ -37,7 +37,7 @@ const HeroSection = () => {
             <h1
               className={
                 isMyanmar
-                  ? 'text-foreground space-y-2 text-3xl font-bold leading-relaxed tracking-tight sm:text-4xl sm:leading-relaxed lg:text-5xl lg:leading-loose'
+                  ? 'text-foreground space-y-2 text-3xl leading-relaxed font-bold tracking-tight sm:text-4xl sm:leading-relaxed lg:text-5xl lg:leading-loose'
                   : 'text-foreground space-y-2 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl'
               }
             >
@@ -52,8 +52,8 @@ const HeroSection = () => {
               <span
                 className={
                   isMyanmar
-                    ? 'text-muted-foreground block text-xl font-light leading-relaxed sm:text-2xl sm:leading-loose font-sans'
-                    : 'text-muted-foreground block text-2xl font-light sm:text-3xl font-sans'
+                    ? 'text-muted-foreground block font-sans text-xl leading-relaxed font-light sm:text-2xl sm:leading-loose'
+                    : 'text-muted-foreground block font-sans text-2xl font-light sm:text-3xl'
                 }
               >
                 {translate('site.home.hero.title.subtitle')}
@@ -63,8 +63,8 @@ const HeroSection = () => {
             <p
               className={
                 isMyanmar
-                  ? 'text-foreground/80 max-w-2xl text-base leading-loose sm:text-lg font-sans'
-                  : 'text-foreground/80 max-w-2xl text-lg leading-relaxed font-sans'
+                  ? 'text-foreground/80 max-w-2xl font-sans text-base leading-loose sm:text-lg'
+                  : 'text-foreground/80 max-w-2xl font-sans text-lg leading-relaxed'
               }
             >
               {translate('site.home.hero.description')}
