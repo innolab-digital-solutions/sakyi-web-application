@@ -1,11 +1,16 @@
+'use client';
+
 import { Copyright, Facebook, Instagram, Mail } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
 import SocialButton from '@/components/site/shared/SocialButton';
 import PATHS from '@/config/paths';
+import { useLanguage } from '@/context/LanguageContext';
 
 const Footer = () => {
+  const { translate } = useLanguage();
+
   return (
     <footer className='mx-auto max-w-7xl overflow-hidden py-24 sm:px-6 lg:px-8'>
       <div className='flex flex-col items-center text-center'>
@@ -29,9 +34,7 @@ const Footer = () => {
 
           {/* Tagline / Description */}
           <p className='text-muted-foreground mb-6 max-w-2xl font-sans text-base leading-relaxed font-medium'>
-            SaKyi Health & Wellness - Enhancing lives via individualized
-            wellness programs crafted by licensed physicians and wellness
-            specialists. Your path to good health commences here.
+            {translate('layout.footer.description')}
           </p>
 
           {/* Social Icons */}

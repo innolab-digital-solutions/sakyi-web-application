@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 
 import { HEADER_NAVIGATION } from '@/config/navigation/site';
@@ -5,6 +7,7 @@ import { useLanguage } from '@/context/LanguageContext';
 
 const DesktopNavigation = ({ pathname }: { pathname: string }) => {
   const { translate } = useLanguage();
+
   return (
     <div className='hidden items-center space-x-8 md:flex'>
       {HEADER_NAVIGATION.map((item) => {
