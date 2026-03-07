@@ -204,6 +204,13 @@
 @layer utilities {
 }
 
+/* Prevent horizontal overflow on mobile; site sections rely on this */
+html,
+body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
 /* Myanmar: prevent text cut-off and reduce excess spacing (lang set by LanguageContext) */
 [lang='my'] .font-sans {
   letter-spacing: 0.01em;

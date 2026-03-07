@@ -7,15 +7,15 @@ import DecorativeImage from '@/components/site/shared/DecorativeImage';
 import FeatureList from '@/components/site/shared/FeatureList';
 import FloatingCard from '@/components/site/shared/FloatingCard';
 import GradientButton from '@/components/site/shared/GradientButton';
-import GradientText from '@/components/site/shared/GradientText';
 import SectionBadge from '@/components/site/shared/SectionBadge';
 import SectionContainer from '@/components/site/shared/SectionContainer';
+import SectionDescription from '@/components/site/shared/SectionDescription';
+import SectionTitle from '@/components/site/shared/SectionTitle';
 import PATHS from '@/config/paths';
 import { useLanguage } from '@/context/LanguageContext';
 
 const AboutSection = () => {
   const { language, translate } = useLanguage();
-  const isMyanmar = language === 'my';
 
   const features = [
     {
@@ -49,8 +49,8 @@ const AboutSection = () => {
 
   return (
     <SectionContainer id='about-section' className='bg-background'>
-      <div className='grid items-center gap-12 lg:grid-cols-2 lg:gap-16'>
-        <div className='relative'>
+      <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
+        <div className='relative min-w-0'>
           <div className='relative'>
             <DecorativeImage
               src='/images/home-about.jpg'
@@ -77,38 +77,24 @@ const AboutSection = () => {
           </div>
         </div>
 
-        <div className='space-y-8'>
+        <div className='min-w-0 space-y-8'>
           <div className='space-y-6'>
             <SectionBadge
               icon={<Users className='h-4 w-4' />}
               text={translate('site.home.about-overview.badge')}
             />
 
-            <h2
-              className={
-                isMyanmar
-                  ? 'font-sans text-2xl leading-relaxed font-bold sm:text-3xl lg:text-4xl'
-                  : 'font-sans text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'
-              }
-            >
-              <span className='text-foreground block'>
-                {translate('site.home.about-overview.title.black')}
-              </span>
+            <SectionTitle
+              as='h2'
+              variant='section'
+              language={language}
+              blackPart={translate('site.home.about-overview.title.black')}
+              gradientPart={translate('site.home.about-overview.title.gradient')}
+            />
 
-              <GradientText>
-                {translate('site.home.about-overview.title.gradient')}
-              </GradientText>
-            </h2>
-
-            <p
-              className={
-                isMyanmar
-                  ? 'text-foreground/80 max-w-2xl font-sans text-base leading-loose sm:text-lg'
-                  : 'text-foreground/80 max-w-2xl font-sans text-lg leading-relaxed'
-              }
-            >
+            <SectionDescription language={language} maxWidth>
               {translate('site.home.about-overview.description')}
-            </p>
+            </SectionDescription>
           </div>
 
           <div className='space-y-4'>
@@ -123,8 +109,8 @@ const AboutSection = () => {
           </div>
 
           <div className='pt-4'>
-            <Link href={PATHS.SITE.PROGRAMS} className='inline-block'>
-              <GradientButton>
+            <Link href={PATHS.SITE.PROGRAMS} className='inline-block w-full min-w-0 sm:w-auto'>
+              <GradientButton className='w-full min-w-0 sm:w-auto'>
                 <span>{translate('site.home.about-overview.cta.primary')}</span>
                 <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
               </GradientButton>

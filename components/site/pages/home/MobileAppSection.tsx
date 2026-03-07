@@ -13,18 +13,19 @@ import Link from 'next/link';
 
 import SectionBadge from '@/components/site/shared/SectionBadge';
 import SectionContainer from '@/components/site/shared/SectionContainer';
+import SectionDescription from '@/components/site/shared/SectionDescription';
+import SectionTitle from '@/components/site/shared/SectionTitle';
 import { useLanguage } from '@/context/LanguageContext';
 
 const MobileAppSection = () => {
   const { language, translate } = useLanguage();
-  const isMyanmar = language === 'my';
 
   return (
     <SectionContainer id='mobile-app-section' className='bg-white'>
-      <div className='grid items-center gap-12 lg:grid-cols-2 lg:gap-16'>
+      <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
         {/* Left Column - Text Content */}
         <div
-          className='space-y-8'
+          className='min-w-0 space-y-8'
           data-aos='slide-up'
           data-aos-duration='1200'
           data-aos-easing='ease-out-cubic'
@@ -35,45 +36,31 @@ const MobileAppSection = () => {
               text={translate('site.home.mobile-app.badge')}
             />
 
-            <h2
-              className={
-                isMyanmar
-                  ? 'font-sans text-2xl leading-relaxed font-bold sm:text-3xl lg:text-4xl'
-                  : 'font-sans text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'
-              }
+            <div
+              data-aos='fade-up'
+              data-aos-delay='300'
+              data-aos-duration='1000'
+              data-aos-easing='ease-out-cubic'
             >
-              <span
-                data-aos='fade-up'
-                data-aos-delay='300'
-                data-aos-duration='1000'
-                data-aos-easing='ease-out-cubic'
-              >
-                {translate('site.home.mobile-app.title.black')}{' '}
-              </span>
-              <span
-                className='text-brand-gradient bg-clip-text font-sans text-transparent'
-                data-aos='fade-up'
-                data-aos-delay='500'
-                data-aos-duration='1000'
-                data-aos-easing='ease-out-cubic'
-              >
-                {translate('site.home.mobile-app.title.gradient')}
-              </span>
-            </h2>
+              <SectionTitle
+                as='h2'
+                variant='section'
+                language={language}
+                blackPart={translate('site.home.mobile-app.title.black')}
+                gradientPart={translate('site.home.mobile-app.title.gradient')}
+              />
+            </div>
 
-            <p
-              className={
-                isMyanmar
-                  ? 'text-foreground/80 font-sans text-base leading-loose sm:text-lg'
-                  : 'text-foreground/80 font-sans text-lg leading-relaxed'
-              }
+            <div
               data-aos='slide-up'
               data-aos-delay='700'
               data-aos-duration='1000'
               data-aos-easing='ease-out-cubic'
             >
-              {translate('site.home.mobile-app.description')}
-            </p>
+              <SectionDescription language={language} maxWidth>
+                {translate('site.home.mobile-app.description')}
+              </SectionDescription>
+            </div>
           </div>
 
           {/* App Store Buttons */}
@@ -96,7 +83,7 @@ const MobileAppSection = () => {
 
         {/* Right Column - App Mockups */}
         <div
-          className='relative'
+          className='relative min-w-0 overflow-x-hidden'
           data-aos='zoom-in'
           data-aos-duration='1200'
           data-aos-delay='400'

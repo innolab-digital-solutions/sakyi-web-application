@@ -24,17 +24,17 @@ const FloatingCard = ({
       className={mergedClasses}
       style={{ animation: `float 4s ease-in-out infinite` }}
     >
-      <div className='flex items-center space-x-3'>
+      <div className='flex min-w-0 items-center space-x-3'>
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-full text-white ${iconClassName}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white ${iconClassName}`}
         >
           {icon}
         </div>
-        <div>
-          <div className='text-foreground font-sans text-sm font-semibold'>
+        <div className='min-w-0 max-w-full'>
+          <div className='text-foreground wrap-break-word font-sans text-sm font-semibold'>
             {title}
           </div>
-          <div className='text-muted-foreground font-sans text-sm leading-relaxed'>
+          <div className='text-muted-foreground wrap-break-word font-sans text-sm leading-relaxed'>
             {description}
           </div>
         </div>

@@ -12,21 +12,21 @@ import {
 import DecorativeImage from '@/components/site/shared/DecorativeImage';
 import FloatingCard from '@/components/site/shared/FloatingCard';
 import GradientButton from '@/components/site/shared/GradientButton';
-import GradientText from '@/components/site/shared/GradientText';
 import OutlineButton from '@/components/site/shared/OutlineButton';
 import SectionBadge from '@/components/site/shared/SectionBadge';
 import SectionContainer from '@/components/site/shared/SectionContainer';
+import SectionDescription from '@/components/site/shared/SectionDescription';
+import SectionTitle from '@/components/site/shared/SectionTitle';
 import { useLanguage } from '@/context/LanguageContext';
 
 const HeroSection = () => {
   const { language, translate } = useLanguage();
-  const isMyanmar = language === 'my';
 
   return (
     <SectionContainer id='hero-section' className='bg-white'>
-      <div className='grid items-center gap-12 lg:grid-cols-2 lg:gap-16'>
+      <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
         {/* Left Column: Headline, descriptive text, and call-to-action buttons */}
-        <div className='space-y-8'>
+        <div className='min-w-0 space-y-8'>
           <SectionBadge
             icon={<Sparkles className='h-4 w-4' />}
             text={translate('site.home.hero.badge')}
@@ -34,52 +34,29 @@ const HeroSection = () => {
 
           {/* Section Headline: Main marketing message with multi-line headline and subtitle */}
           <div className='space-y-6'>
-            <h1
-              className={
-                isMyanmar
-                  ? 'text-foreground space-y-2 text-3xl leading-relaxed font-bold tracking-tight sm:text-4xl lg:text-5xl'
-                  : 'text-foreground space-y-2 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl'
-              }
-            >
-              <span className='block font-sans'>
-                {translate('site.home.hero.title.black')}
-              </span>
+            <SectionTitle
+              as='h1'
+              variant='hero'
+              language={language}
+              blackPart={translate('site.home.hero.title.black')}
+              gradientPart={translate('site.home.hero.title.gradient')}
+              subtitle={translate('site.home.hero.title.subtitle')}
+            />
 
-              <GradientText>
-                {translate('site.home.hero.title.gradient')}
-              </GradientText>
-
-              <span
-                className={
-                  isMyanmar
-                    ? 'text-muted-foreground block font-sans text-xl leading-relaxed font-light sm:text-2xl'
-                    : 'text-muted-foreground block font-sans text-2xl font-light sm:text-3xl'
-                }
-              >
-                {translate('site.home.hero.title.subtitle')}
-              </span>
-            </h1>
-
-            <p
-              className={
-                isMyanmar
-                  ? 'text-foreground/80 max-w-2xl font-sans text-base leading-loose sm:text-lg'
-                  : 'text-foreground/80 max-w-2xl font-sans text-lg leading-relaxed'
-              }
-            >
+            <SectionDescription language={language} maxWidth>
               {translate('site.home.hero.description')}
-            </p>
+            </SectionDescription>
           </div>
 
           {/* Call To Action Buttons: Start and Learn More */}
-          <div className='flex flex-col gap-4 sm:flex-row'>
-            <GradientButton>
+          <div className='flex min-w-0 flex-col gap-4 sm:flex-row'>
+            <GradientButton className='w-full min-w-0 sm:w-auto'>
               <Heart className='h-5 w-5' />
               <span>{translate('site.home.hero.cta.primary')}</span>
               <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
             </GradientButton>
 
-            <OutlineButton>
+            <OutlineButton className='w-full min-w-0 sm:w-auto'>
               <Brain className='h-5 w-5' />
               <span>{translate('site.home.hero.cta.secondary')}</span>
               <ChevronRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
@@ -88,7 +65,7 @@ const HeroSection = () => {
         </div>
 
         {/* Right Column: Main image and floating highlight cards for visual appeal */}
-        <div className='relative'>
+        <div className='relative min-w-0'>
           <div className='relative'>
             <DecorativeImage
               src='/images/home-hero.jpg'

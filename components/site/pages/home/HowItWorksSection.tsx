@@ -4,55 +4,43 @@ import { ArrowRight, Heart, Settings } from 'lucide-react';
 import Link from 'next/link';
 
 import GradientButton from '@/components/site/shared/GradientButton';
-import GradientText from '@/components/site/shared/GradientText';
 import SectionBadge from '@/components/site/shared/SectionBadge';
+import SectionCardDescription from '@/components/site/shared/SectionCardDescription';
+import SectionCardTitle from '@/components/site/shared/SectionCardTitle';
 import SectionContainer from '@/components/site/shared/SectionContainer';
+import SectionDescription from '@/components/site/shared/SectionDescription';
+import SectionTitle from '@/components/site/shared/SectionTitle';
 import PATHS from '@/config/paths';
 import { useLanguage } from '@/context/LanguageContext';
 
 const HowItWorksSection = () => {
   const { language, translate } = useLanguage();
-  const isMyanmar = language === 'my';
 
   return (
     <SectionContainer id='how-it-works-section' className='bg-background'>
       {/* Section Header: Badge, headline, supporting summary */}
-      <div className='flex flex-col items-center justify-center space-y-6'>
+      <div className='flex min-w-0 flex-col items-center justify-center space-y-6'>
         <SectionBadge
           icon={<Settings className='h-4 w-4' />}
           text={translate('site.home.how-it-works.badge')}
         />
 
-        {/* Headline with gradient highlight for visual emphasis */}
-        <h2
-          className={
-            isMyanmar
-              ? 'flex items-center justify-center font-sans text-2xl leading-relaxed font-bold sm:text-3xl lg:text-4xl'
-              : 'flex items-center justify-center font-sans text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'
-          }
-        >
-          <span className='text-foreground'>
-            {translate('site.home.how-it-works.title.black')}
-          </span>
-          <GradientText>
-            &nbsp;{translate('site.home.how-it-works.title.gradient')}
-          </GradientText>
-        </h2>
+        <SectionTitle
+          as='h2'
+          variant='section'
+          language={language}
+          blackPart={translate('site.home.how-it-works.title.black')}
+          gradientPart={translate('site.home.how-it-works.title.gradient')}
+          center
+        />
 
-        {/* Brief section description */}
-        <p
-          className={
-            isMyanmar
-              ? 'text-foreground/80 mx-auto max-w-2xl text-center font-sans text-base leading-loose sm:text-lg'
-              : 'text-foreground/80 mx-auto max-w-2xl text-center font-sans text-lg leading-relaxed'
-          }
-        >
+        <SectionDescription language={language} center maxWidth>
           {translate('site.home.how-it-works.description')}
-        </p>
+        </SectionDescription>
       </div>
 
       {/* Steps Grid: Visual guide for the 3-step process */}
-      <div className='mt-12 grid gap-6 lg:mt-16 lg:grid-cols-3 lg:gap-8'>
+      <div className='mt-12 grid min-w-0 gap-6 lg:mt-16 lg:grid-cols-3 lg:gap-8'>
         {[
           {
             step: '01',
@@ -131,7 +119,7 @@ const HowItWorksSection = () => {
         ].map((step, index) => (
           <div
             key={index}
-            className='group border-border relative overflow-hidden rounded-2xl border bg-white p-6 text-center shadow-sm transition-all duration-300 hover:border-[#35bec5]/50 hover:shadow-lg sm:p-8'
+            className='group border-border relative min-w-0 overflow-hidden rounded-2xl border bg-white p-6 text-center shadow-sm transition-all duration-300 hover:border-[#35bec5]/50 hover:shadow-lg sm:p-8'
             data-aos='flip-up'
             data-aos-delay={`${index * 200 + 400}`}
             data-aos-duration='1000'
@@ -142,19 +130,13 @@ const HowItWorksSection = () => {
 
             {/* Step Content: Title and description – roomy line-height to avoid Myanmar glyph clip */}
             <div className='space-y-4'>
-              <h3 className='text-foreground font-sans text-lg font-bold leading-relaxed sm:text-xl'>
+              <SectionCardTitle className='text-lg font-bold sm:text-xl'>
                 {step.title}
-              </h3>
+              </SectionCardTitle>
 
-              <p
-                className={
-                  isMyanmar
-                    ? 'text-foreground/80 font-sans text-sm leading-loose sm:text-base'
-                    : 'text-foreground/80 font-sans text-sm leading-relaxed sm:text-base'
-                }
-              >
+              <SectionCardDescription language={language}>
                 {step.description}
-              </p>
+              </SectionCardDescription>
             </div>
           </div>
         ))}
@@ -162,8 +144,8 @@ const HowItWorksSection = () => {
 
       {/* Section CTA: Prompt to start process */}
       <div className='mt-12 flex items-center justify-center'>
-        <Link href={PATHS.SITE.CONTACT} className='inline-block'>
-          <GradientButton>
+        <Link href={PATHS.SITE.CONTACT} className='inline-block w-full min-w-0 sm:w-auto'>
+          <GradientButton className='w-full min-w-0 sm:w-auto'>
             <span>{translate('site.home.how-it-works.cta.primary')}</span>
             <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
           </GradientButton>

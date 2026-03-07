@@ -46,8 +46,8 @@ const Navbar = () => {
       }`}
       id='navbar'
     >
-      <div className='mx-auto max-w-7xl'>
-        <div className='flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8'>
+      <div className='mx-auto min-w-0 max-w-7xl'>
+        <div className='flex h-16 min-w-0 items-center justify-between px-4 sm:px-6 lg:px-8'>
           {/* Logo and site title */}
           <Link href={PATHS.SITE.HOME} className='flex items-center space-x-3'>
             <Image

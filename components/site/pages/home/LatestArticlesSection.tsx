@@ -3,52 +3,40 @@
 import Link from 'next/link';
 
 import GradientButton from '@/components/site/shared/GradientButton';
-import GradientText from '@/components/site/shared/GradientText';
 import SectionBadge from '@/components/site/shared/SectionBadge';
 import SectionContainer from '@/components/site/shared/SectionContainer';
+import SectionDescription from '@/components/site/shared/SectionDescription';
+import SectionTitle from '@/components/site/shared/SectionTitle';
 import PATHS from '@/config/paths';
 import { useLanguage } from '@/context/LanguageContext';
 
 const LatestArticlesSection = () => {
   const { language, translate } = useLanguage();
-  const isMyanmar = language === 'my';
 
   return (
     <SectionContainer id='latest-articles-section' className='bg-background'>
-      <div className='mx-auto max-w-3xl space-y-6 text-center'>
+      <div className='mx-auto min-w-0 max-w-3xl space-y-6 text-center'>
         <SectionBadge
           icon={null}
           text={translate('site.home.latest-articles.badge')}
         />
 
-        <h2
-          className={
-            isMyanmar
-              ? 'font-sans text-2xl leading-relaxed font-bold sm:text-3xl lg:text-4xl'
-              : 'font-sans text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'
-          }
-        >
-          <span className='text-foreground block'>
-            {translate('site.home.latest-articles.title.black')}
-          </span>
-          <GradientText>
-            {translate('site.home.latest-articles.title.gradient')}
-          </GradientText>
-        </h2>
+        <SectionTitle
+          as='h2'
+          variant='section'
+          language={language}
+          blackPart={translate('site.home.latest-articles.title.black')}
+          gradientPart={translate('site.home.latest-articles.title.gradient')}
+          center
+        />
 
-        <p
-          className={
-            isMyanmar
-              ? 'text-foreground/80 font-sans text-base leading-loose sm:text-lg'
-              : 'text-foreground/80 font-sans text-lg leading-relaxed'
-          }
-        >
+        <SectionDescription language={language} center>
           {translate('site.home.latest-articles.description')}
-        </p>
+        </SectionDescription>
 
         <div className='pt-4'>
-          <Link href={PATHS.SITE.BLOG} className='inline-block'>
-            <GradientButton>
+          <Link href={PATHS.SITE.BLOG} className='inline-block w-full min-w-0 sm:w-auto'>
+            <GradientButton className='w-full min-w-0 sm:w-auto'>
               <span>{translate('site.home.latest-articles.cta.primary')}</span>
             </GradientButton>
           </Link>
