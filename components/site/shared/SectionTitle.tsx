@@ -26,8 +26,11 @@ type SectionTitleProps = {
   className?: string;
 };
 
-const gradientClasses =
+const gradientBlockClasses =
   'text-brand-gradient block bg-clip-text font-sans leading-relaxed text-transparent';
+
+const gradientInlineClasses =
+  'text-brand-gradient inline-block bg-clip-text font-sans leading-relaxed text-transparent';
 
 /**
  * Reusable section title with optional gradient part. Use for all section headings
@@ -76,7 +79,7 @@ const SectionTitle = ({
       >
         <span className='block font-sans'>{blackPart}</span>
         {gradientPart != null && (
-          <span className={gradientClasses}>{gradientPart}</span>
+          <span className={gradientBlockClasses}>{gradientPart}</span>
         )}
         {subtitle != null && (
           <span className={heroSubtitleClasses}>{subtitle}</span>
@@ -99,9 +102,7 @@ const SectionTitle = ({
         {gradientPart != null && (
           <>
             &nbsp;
-            <span className={cn(gradientClasses, 'inline-block')}>
-              {gradientPart}
-            </span>
+            <span className={gradientInlineClasses}>{gradientPart}</span>
           </>
         )}
       </Tag>
@@ -119,7 +120,7 @@ const SectionTitle = ({
     >
       <span className='text-foreground block'>{blackPart}</span>
       {gradientPart != null && (
-        <span className={gradientClasses}>{gradientPart}</span>
+        <span className={gradientBlockClasses}>{gradientPart}</span>
       )}
     </Tag>
   );

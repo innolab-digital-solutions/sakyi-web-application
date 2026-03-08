@@ -5,7 +5,12 @@
       "black": "Your Trusted Partner in",
       "gradient": "Holistic Wellness"
     },
-    "description": "At Sa Kyi, we believe true wellness is achieved through a balanced approach to lifestyle, physical health, and long-term wellbeing. Our mission is to support you with personalized, science-backed programs designed by certified doctors helping you build healthy habits, manage your health safely, and improve your quality of life with confidence."
+    "description": "At Sa Kyi, we believe true wellness is achieved through a balanced approach to lifestyle, physical health, and long-term wellbeing. Our mission is to support you with personalized, science-backed programs designed by certified doctors helping you build healthy habits, manage your health safely, and improve your quality of life with confidence.",
+    "images": {
+      "expert-team": { "title": "Our Expert Team", "subtitle": "Certified Medical Professionals" },
+      "personalized-care": { "title": "Personalized Care", "subtitle": "One-on-One Consultation" },
+      "holistic-approach": { "title": "Holistic Approach", "subtitle": "Mind, Body & Spirit" }
+    }
   },
   "our-mission": {
     "badge": "Mission & Philosophy",
@@ -14,6 +19,10 @@
       "gradient": "Core Values"
     },
     "description": "Our goal is straightforward: to improve lives by offering individualized, research-based health programs. We create care that addresses all aspects of wellness—physical, mental, emotional, and spiritual—to improve your health and quality of life.",
+    "floating-cards": {
+      "mission": { "title": "Our Mission", "description": "Empowering Lives" },
+      "holistic": { "title": "Holistic Care", "description": "Mind, Body, Spirit" }
+    },
     "features": {
       "mission": {
         "title": "Mission",
@@ -36,6 +45,10 @@
       "gradient": "Evidence‑Based Approach"
     },
     "description": "At Sa Kyi, our approach integrates cutting-edge medical research with individualized care to achieve tangible outcomes. Here's how we collaborate with you to achieve optimal wellness.",
+    "floating-cards": {
+      "proven-results": { "title": "Proven Results", "description": "Evidence-Based" },
+      "holistic-care": { "title": "Holistic Care", "description": "Whole Person" }
+    },
     "features": {
       "evaluation": {
         "title": "Thorough Evaluation",

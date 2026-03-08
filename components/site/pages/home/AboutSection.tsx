@@ -50,6 +50,7 @@ const AboutSection = () => {
   return (
     <SectionContainer id='about-section' className='bg-background'>
       <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
+        {/* Left: Decorative image & floating cards */}
         <div className='relative min-w-0'>
           <div className='relative'>
             <DecorativeImage
@@ -59,6 +60,7 @@ const AboutSection = () => {
               height={600}
             />
 
+            {/* Floating card: lives transformed */}
             <FloatingCard
               icon={<Users className='h-5 w-5' />}
               title='10K+ Lives'
@@ -67,6 +69,7 @@ const AboutSection = () => {
               iconClassName='bg-linear-to-r from-[#35bec5] to-[#4bc4db]'
             />
 
+            {/* Floating card: success rate */}
             <FloatingCard
               icon={<TrendingUp className='h-5 w-5' />}
               title='98% Success'
@@ -77,13 +80,16 @@ const AboutSection = () => {
           </div>
         </div>
 
+        {/* Right: Textual content and features */}
         <div className='min-w-0 space-y-8'>
           <div className='space-y-6'>
+            {/* Section badge */}
             <SectionBadge
               icon={<Users className='h-4 w-4' />}
               text={translate('site.home.about-overview.badge')}
             />
 
+            {/* Section title with gradient highlight */}
             <SectionTitle
               as='h2'
               variant='section'
@@ -92,11 +98,13 @@ const AboutSection = () => {
               gradientPart={translate('site.home.about-overview.title.gradient')}
             />
 
+            {/* Section description */}
             <SectionDescription language={language} maxWidth>
               {translate('site.home.about-overview.description')}
             </SectionDescription>
           </div>
 
+          {/* Features list */}
           <div className='space-y-4'>
             {features.map((feature, index) => (
               <FeatureList
@@ -108,6 +116,7 @@ const AboutSection = () => {
             ))}
           </div>
 
+          {/* Call to action: Programs page button */}
           <div className='pt-4'>
             <Link href={PATHS.SITE.PROGRAMS} className='inline-block w-full min-w-0 sm:w-auto'>
               <GradientButton className='w-full min-w-0 sm:w-auto'>

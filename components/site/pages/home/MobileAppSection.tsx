@@ -81,20 +81,20 @@ const MobileAppSection = () => {
           </p>
         </div>
 
-        {/* Right Column - App Mockups */}
+        {/* Right Column - App Mockups: scale so both phones fit without clipping */}
         <div
-          className='relative min-w-0 overflow-x-hidden'
+          className='relative flex min-w-0 justify-center overflow-visible'
           data-aos='zoom-in'
           data-aos-duration='1200'
           data-aos-delay='400'
           data-aos-easing='ease-out-cubic'
         >
-          <div className='flex items-center justify-center space-x-2 sm:space-x-4 lg:space-x-6'>
+          <div className='flex origin-center scale-75 items-center justify-center space-x-2 sm:scale-90 sm:space-x-4 lg:scale-100 lg:space-x-6'>
             {/* First Phone Mockup - Dashboard Screen */}
-            <div className='group relative z-10'>
+            <div className='group relative z-10 shrink-0'>
               {/* Glow effect */}
-              <div className='absolute inset-0 -z-10 h-100 w-45 rotate-12 transform rounded-3xl bg-linear-to-br from-[#35bec5]/20 to-[#0c96c4]/20 blur-xl sm:h-112.5 sm:w-50 lg:h-125 lg:w-60'></div>
-              <div className='h-100 w-45 rotate-12 transform overflow-hidden rounded-3xl bg-white shadow-2xl sm:h-112.5 sm:w-50 sm:rotate-12 lg:h-125 lg:w-60 lg:rotate-12'>
+              <div className='absolute inset-0 -z-10 h-64 w-44 rotate-12 transform rounded-3xl bg-linear-to-br from-[#35bec5]/20 to-[#0c96c4]/20 blur-xl sm:h-72 sm:w-52 lg:h-80 lg:w-56'></div>
+              <div className='h-64 w-44 rotate-12 transform overflow-hidden rounded-3xl bg-white shadow-2xl sm:h-72 sm:w-52 sm:rotate-12 lg:h-80 lg:w-56 lg:rotate-12'>
                 {/* Phone Status Bar */}
                 <div className='flex items-center justify-between bg-white px-4 py-2'>
                   <div className='flex items-center space-x-1'>
@@ -210,10 +210,10 @@ const MobileAppSection = () => {
             </div>
 
             {/* Second Phone Mockup - Progress Screen */}
-            <div className='group relative z-0 -translate-y-8 sm:-translate-y-10 lg:-translate-y-12'>
+            <div className='group relative z-0 shrink-0 -translate-y-8 sm:-translate-y-10 lg:-translate-y-12'>
               {/* Glow effect */}
-              <div className='absolute inset-0 -z-10 h-100 w-45 -rotate-12 transform rounded-3xl bg-linear-to-br from-[#4bc4db]/20 to-[#35bec5]/20 blur-xl sm:h-112.5 sm:w-50 lg:h-125 lg:w-60'></div>
-              <div className='h-100 w-45 -rotate-12 transform overflow-hidden rounded-3xl bg-white shadow-2xl sm:h-112.5 sm:w-50 sm:-rotate-12 lg:h-125 lg:w-60 lg:-rotate-12'>
+              <div className='absolute inset-0 -z-10 h-64 w-44 -rotate-12 transform rounded-3xl bg-linear-to-br from-[#4bc4db]/20 to-[#35bec5]/20 blur-xl sm:h-72 sm:w-52 lg:h-80 lg:w-56'></div>
+              <div className='h-64 w-44 -rotate-12 transform overflow-hidden rounded-3xl bg-white shadow-2xl sm:h-72 sm:w-52 sm:-rotate-12 lg:h-80 lg:w-56 lg:-rotate-12'>
                 {/* Phone Status Bar */}
                 <div className='flex items-center justify-between bg-white px-4 py-2'>
                   <div className='flex items-center space-x-1'>
