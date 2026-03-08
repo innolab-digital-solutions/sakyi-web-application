@@ -8,20 +8,25 @@ import {
   handleNetworkFailure,
   handleNoContent,
   handleNonJson,
-  toErrorResponse,
+  throwOrReturnError,
 } from '@/lib/api/client/handlers';
 
-describe('toErrorResponse', () => {
-  it('returns error response with message and optional errors', () => {
-    const res = toErrorResponse<unknown>('Something went wrong');
+describe('throwOrReturnError', () => {
+  it('returns error response with message when throwOnError is false and no fallback', () => {
+    const res = throwOrReturnError<unknown>('Something went wrong', 500, {
+      throwOnError: false,
+    });
     expect(res.status).toBe('error');
     expect(res.message).toBe('Something went wrong');
     if (res.status === 'error') expect(res.errors).toBeUndefined();
   });
 
-  it('includes errors when provided', () => {
+  it('returns error response with errors when throwOnError is false and errors provided', () => {
     const errors = { field: ['Invalid'] };
-    const res = toErrorResponse<unknown>('Validation failed', errors);
+    const res = throwOrReturnError<unknown>('Validation failed', 422, {
+      throwOnError: false,
+      errors,
+    });
     expect(res.status).toBe('error');
     if (res.status === 'error') expect(res.errors).toEqual(errors);
   });

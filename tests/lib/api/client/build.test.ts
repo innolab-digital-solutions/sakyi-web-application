@@ -1,19 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  buildRequestHeaders,
+  createApiRequestHeaders,
   resolveApiUrl,
   serializeRequestBody,
-} from '@/lib/api/client/build';
+} from '@/lib/api/client/builders';
 
-vi.mock('@/lib/api/client/config', () => ({
-  api: {
-    get versionEndpoint(): string {
-      return 'https://api.test.com/v1';
-    },
-    get domainEndpoint(): string {
-      return 'https://api.test.com';
-    },
+vi.mock('@/config/api/base', () => ({
+  base: {
+    domain: 'https://api.test.com',
+    version: 'https://api.test.com/v1',
   },
 }));
 
@@ -37,21 +33,6 @@ describe('resolveApiUrl', () => {
     expect(resolveApiUrl('  users  ')).toBe('https://api.test.com/v1/users');
   });
 
-  it('resolves Sanctum endpoints to domain endpoint without version', () => {
-    expect(resolveApiUrl('sanctum/csrf-cookie')).toBe(
-      'https://api.test.com/sanctum/csrf-cookie',
-    );
-    expect(resolveApiUrl('/sanctum/csrf-cookie')).toBe(
-      'https://api.test.com/sanctum/csrf-cookie',
-    );
-  });
-
-  it('strips surrounding whitespace from path so Sanctum detection works', () => {
-    expect(resolveApiUrl('  sanctum/csrf-cookie  ')).toBe(
-      'https://api.test.com/sanctum/csrf-cookie',
-    );
-  });
-
   it('throws when endpoint is an absolute http URL', () => {
     expect(() => resolveApiUrl('http://evil.com/path')).toThrow(
       /API client does not accept absolute URLs/,
@@ -71,7 +52,7 @@ describe('resolveApiUrl', () => {
   });
 });
 
-describe('buildRequestHeaders', () => {
+describe('createApiRequestHeaders', () => {
   beforeEach(() => {
     vi.mocked(getCsrfToken).mockReturnValue(undefined);
   });
@@ -81,24 +62,24 @@ describe('buildRequestHeaders', () => {
   });
 
   it('always includes Accept application/json', () => {
-    const headers = buildRequestHeaders('GET', {});
+    const headers = createApiRequestHeaders('GET', {});
     expect(headers['Accept']).toBe('application/json');
   });
 
   it('does not add X-XSRF-TOKEN for GET when no token is present', () => {
     vi.mocked(getCsrfToken).mockReturnValue(undefined);
-    const headers = buildRequestHeaders('GET', {});
+    const headers = createApiRequestHeaders('GET', {});
     expect(headers['X-XSRF-TOKEN']).toBeUndefined();
   });
 
   it('adds X-XSRF-TOKEN for non-GET when token is present', () => {
     vi.mocked(getCsrfToken).mockReturnValue('csrf-token-123');
-    const headers = buildRequestHeaders('POST', {});
+    const headers = createApiRequestHeaders('POST', {});
     expect(headers['X-XSRF-TOKEN']).toBe('csrf-token-123');
   });
 
-  it('merges custom headers from init', () => {
-    const headers = buildRequestHeaders('GET', {
+  it('includes custom headers from init', () => {
+    const headers = createApiRequestHeaders('GET', {
       headers: { 'X-Custom': 'value' },
     });
     expect(headers['Accept']).toBe('application/json');
@@ -108,7 +89,7 @@ describe('buildRequestHeaders', () => {
   it('accepts Headers instance and converts to record', () => {
     const inputHeaders = new Headers();
     inputHeaders.set('X-Requested-With', 'XMLHttpRequest');
-    const headers = buildRequestHeaders('GET', { headers: inputHeaders });
+    const headers = createApiRequestHeaders('GET', { headers: inputHeaders });
     expect(headers['Accept']).toBe('application/json');
     expect(headers['x-requested-with']).toBe('XMLHttpRequest');
   });

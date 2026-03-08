@@ -1,43 +1,46 @@
 import { client } from './core';
-import type { ApiResponse } from './types';
-import type { ClientRequestInit } from './types';
-
-type ReadOptions = Omit<ClientRequestInit, 'body'>;
-
-type WriteOptions = ClientRequestInit;
+import type { ApiResponse, ReadOptions, WriteOptions } from './types';
 
 /**
- * Convenience HTTP method helpers using the core API client.
- * All methods provide strongly-typed HTTP access and support full Next.js fetch options (cache, next, etc).
- * Designed for ease of use with modern API endpoints that follow RESTful conventions.
+ * HTTP shorthand methods for performing API requests using the shared client.
+ *
+ * Provides strongly-typed helpers for common HTTP verbs (GET, POST, PUT, PATCH, DELETE),
+ * enforcing appropriate request options and type safety on payloads and responses.
+ *
+ * All methods delegate to the shared `client` function, applying the correct HTTP verb and
+ * handling body inclusion/exclusion as per method requirements.
+ *
+ * @property get    - Perform a GET request (no request body).
+ * @property post   - Perform a POST request (with optional request body).
+ * @property put    - Perform a PUT request (with optional request body).
+ * @property patch  - Perform a PATCH request (with optional request body).
+ * @property delete - Perform a DELETE request (no request body).
  */
 export const http = {
   /**
-   * Performs a GET request to the specified API endpoint.
+   * Perform a GET request to the provided endpoint.
    *
-   * @template T - Expected response data type.
-   * @param {string} endpoint - Path segment or URL of the resource to retrieve.
-   * @param {ReadOptions} [options] - Optional request options (headers, cache, next, etc).
-   * @returns {Promise<ApiResponse<T>>} Promise resolving to the typed API response.
+   * @param endpoint - API route to query (relative to API base).
+   * @param options - Optional read-only request options (no body allowed).
+   * @returns Promise resolving to an API response of the expected type.
    *
    * @example
-   *   const { data } = await http.get<User[]>('users');
+   *   const response = await http.get<User[]>('/users');
    */
   get<T>(endpoint: string, options?: ReadOptions): Promise<ApiResponse<T>> {
     return client<T>(endpoint, { ...options, method: 'GET' });
   },
 
   /**
-   * Performs a POST request to the specified API endpoint.
+   * Perform a POST request to the provided endpoint with an optional request body.
    *
-   * @template T - Expected response data type.
-   * @param {string} endpoint - Path segment or URL for the resource.
-   * @param {WriteOptions['body']} [body] - Data to send as the request body (JSON, FormData, etc).
-   * @param {WriteOptions} [options] - Optional request options (headers, cache, next, etc).
-   * @returns {Promise<ApiResponse<T>>} Promise resolving to the typed API response.
+   * @param endpoint - API route to query (relative to API base).
+   * @param body - Optional request payload (object, array, or native body).
+   * @param options - Optional request options.
+   * @returns Promise resolving to an API response of the expected type.
    *
    * @example
-   *   const result = await http.post<User>('users', { name: 'Alice' });
+   *   const response = await http.post<User>('/users', { name: 'Alice' });
    */
   post<T>(
     endpoint: string,
@@ -48,16 +51,15 @@ export const http = {
   },
 
   /**
-   * Performs a PUT request to update the specified API resource.
+   * Perform a PUT request to the provided endpoint with an optional request body.
    *
-   * @template T - Expected response data type.
-   * @param {string} endpoint - Path segment or URL of the resource.
-   * @param {WriteOptions['body']} [body] - Data to update the resource with.
-   * @param {WriteOptions} [options] - Optional request options (headers, cache, next, etc).
-   * @returns {Promise<ApiResponse<T>>} Promise resolving to the typed API response.
+   * @param endpoint - API route to query (relative to API base).
+   * @param body - Optional request payload (object, array, or native body).
+   * @param options - Optional request options.
+   * @returns Promise resolving to an API response of the expected type.
    *
    * @example
-   *   const result = await http.put<User>('users/123', { name: 'Updated' });
+   *   const response = await http.put<User>('/users', { name: 'Alice' });
    */
   put<T>(
     endpoint: string,
@@ -68,16 +70,15 @@ export const http = {
   },
 
   /**
-   * Performs a PATCH request to partially update the specified API resource.
+   * Perform a PATCH request to the provided endpoint with an optional request body.
    *
-   * @template T - Expected response data type.
-   * @param {string} endpoint - Path segment or URL of the resource.
-   * @param {WriteOptions['body']} [body] - Partial data to patch the resource.
-   * @param {WriteOptions} [options] - Optional request options (headers, cache, next, etc).
-   * @returns {Promise<ApiResponse<T>>} Promise resolving to the typed API response.
+   * @param endpoint - API route to query (relative to API base).
+   * @param body - Optional request payload (object, array, or native body).
+   * @param options - Optional request options.
+   * @returns Promise resolving to an API response of the expected type.
    *
    * @example
-   *   const result = await http.patch<User>('users/123', { email: 'update@example.com' });
+   *   const response = await http.patch<User>('/users', { name: 'Alice' });
    */
   patch<T>(
     endpoint: string,
@@ -88,15 +89,14 @@ export const http = {
   },
 
   /**
-   * Performs a DELETE request to remove the specified API resource.
+   * Perform a DELETE request to the provided endpoint.
    *
-   * @template T - Expected response data type.
-   * @param {string} endpoint - Path segment or URL of the resource.
-   * @param {ReadOptions} [options] - Optional request options (headers, cache, next, etc).
-   * @returns {Promise<ApiResponse<T>>} Promise resolving to the typed API response.
+   * @param endpoint - API route to query (relative to API base).
+   * @param options - Optional read-only request options (no body allowed).
+   * @returns Promise resolving to an API response of the expected type.
    *
    * @example
-   *   await http.delete<null>('users/123');
+   *   const response = await http.delete<User>('/users');
    */
   delete<T>(endpoint: string, options?: ReadOptions): Promise<ApiResponse<T>> {
     return client<T>(endpoint, { ...options, method: 'DELETE' });

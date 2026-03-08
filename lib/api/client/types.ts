@@ -8,7 +8,13 @@ import type {
 export type { ApiError, ApiResponse, ApiSuccess, HttpMethod };
 
 /**
- * Fetch cache strategies supported by Next.js.
+ * Controls the caching behavior for Next.js `fetch` requests.
+ *
+ * - 'default': Use the default cache policy determined by Next.js.
+ * - 'force-cache': Cache the response indefinitely until manually revalidated (suitable for static data).
+ * - 'no-store': Do not cache the response at all (recommended for dynamic or user-specific data).
+ * - 'no-cache': Bypass the cache for the fetch, but track the resource in the cache for future invalidation.
+ *
  * @see https://nextjs.org/docs/app/api-reference/functions/fetch
  */
 export type NextFetchCache =
@@ -18,8 +24,12 @@ export type NextFetchCache =
   | 'no-cache';
 
 /**
- * Next.js fetch `next` option for controlling revalidation and cache tags.
+ * Provides advanced cache control options for Next.js `fetch` requests.
+ *
  * @see https://nextjs.org/docs/app/api-reference/functions/fetch
+ *
+ * @property {number | false} [revalidate] - Specifies revalidation window in seconds; set to `false` for indefinite cache.
+ * @property {string[]} [tags] - Tags associated with the cache entry, enabling granular cache invalidation.
  */
 export type NextFetchNext = {
   revalidate?: number | false;
@@ -27,22 +37,20 @@ export type NextFetchNext = {
 };
 
 /**
- * Represents options for configuring API client requests.
+ * Options for performing an HTTP client request, extending the base `RequestInit`
+ * with additional conveniences for application/API needs.
  *
- * Extends the standard {@link RequestInit} (excluding `body` and `method`) to provide additional
- * features tailored for Next.js and typical API workflows, including body serialization, error handling,
- * and advanced caching behaviors.
+ * - Omits 'body' and 'method' from the base `RequestInit` to allow application-specific typing.
+ * - `body` may be native, object, or array (JSON-serializable).
+ * - `parseJson` sets whether the response should be parsed as JSON (default: true).
+ * - `throwOnError` controls whether HTTP or API errors throw exceptions.
+ * - `cache` and `next` provide fine-grained Next.js caching control.
  *
- * @property {BodyInit | Record<string, unknown> | unknown[]} [body] -
- *   Request body. Accepts JSON-serializable objects, FormData, URLSearchParams, or string.
- * @property {boolean} [parseJson] -
- *   If true (default), parses the response as JSON. If false, returns the response as a string or raw value for 204 responses.
- * @property {boolean} [throwOnError] -
- *   If true (default), throws {@link ApiClientError} for failed responses. If false, returns an {@link ApiResponse} with `status: 'error'`.
- * @property {NextFetchCache} [cache] -
- *   Controls fetch cache behavior for Next.js. Use `"no-store"` for dynamic or auth-dependent endpoints, or `"force-cache"` for static content.
- * @property {NextFetchNext} [next] -
- *   Controls revalidation timing and cache tags for Next.js fetches. Use `revalidate` to set the revalidation window (seconds) or `false` for indefinite cache. Use `tags` for cache tagging.
+ *  @param {BodyInit | Record<string, unknown> | unknown[]} body - The request body, as a raw value or JSON-serializable object/array.
+ *  @param {boolean} parseJson - Whether to automatically parse the response as JSON. Defaults to true.
+ *  @param {boolean} throwOnError - If true, throws on HTTP or API error responses; otherwise returns the response/error object. Defaults to false.
+ *  @param {NextFetchCache} cache - Controls caching for Next.js fetch. Accepts Next.js cache strategy values.
+ *  @param {NextFetchNext} next - Advanced Next.js fetch cache control (revalidation/tags).
  */
 export type ClientRequestInit = Omit<RequestInit, 'body' | 'method'> & {
   body?: BodyInit | Record<string, unknown> | unknown[];
@@ -53,15 +61,45 @@ export type ClientRequestInit = Omit<RequestInit, 'body' | 'method'> & {
 };
 
 /**
- * Comprehensive set of client options for API requests.
+ * Options for read-only HTTP requests (e.g., GET and DELETE), excluding the request body.
  *
- * Extends {@link ClientRequestInit} by including the HTTP method.
- * Use this type with the core API client to achieve full control over all aspects of the request, such as
- * method, body serialization, caching, and error handling.
+ * Use this type when performing read operations to enforce that no request body is included.
+ * @see ClientRequestInit
+ */
+export type ReadOptions = Omit<ClientRequestInit, 'body'>;
+
+/**
+ * Options for write operations (e.g., POST, PUT, and PATCH), allowing a request body.
  *
- * Omit the `method` property when utilizing convenience HTTP helper functions,
- * as they automatically set the appropriate method.
+ * Use this type for requests that modify server state and require a payload.
+ * @see ClientRequestInit
+ */
+export type WriteOptions = ClientRequestInit;
+
+/**
+ * Complete client options, including HTTP method, request body, caching, and parsing flags.
+ *
+ * @param {HttpMethod} method - Optional HTTP verb. If omitted, defaults are determined by the calling client.
+ * @param {ClientRequestInit} init - Extended request options with custom application fields.
  */
 export type ClientOptions = ClientRequestInit & {
   method?: HttpMethod;
+};
+
+/**
+ * Options for the internal throw-or-return helper used by response handlers.
+ * When throwOnError is false, either fallbackResponse or a generic error response is returned.
+ *
+ * @param {boolean} throwOnError - If true, throws an ApiClientError.
+ * @param {Record<string, unknown>} errors - Optional detailed errors, keyed by field or context.
+ * @param {string} requestId - Optional request ID from the response headers.
+ * @param {ApiError} payload - Optional parsed error payload from the backend.
+ * @param {ApiResponse<T>} fallbackResponse - Optional fallback response to return when throwOnError is false.
+ */
+export type ThrowOrReturnOptions<T> = {
+  throwOnError: boolean;
+  errors?: Record<string, unknown>;
+  requestId?: string;
+  payload?: ApiError;
+  fallbackResponse?: ApiResponse<T>;
 };

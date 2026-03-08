@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { MESSAGES } from '@/lib/api/client/constants';
 import { getCsrfToken } from '@/lib/api/client/csrf';
+import { ApiClientError } from '@/lib/api/client/errors';
 
 describe('getCsrfToken', () => {
   const originalDocument = globalThis.document;
@@ -85,7 +87,9 @@ describe('ensureCsrfCookie', () => {
       .mockResolvedValueOnce(new Response() as Response);
 
     const firstCall = ensureCsrfCookie();
-    await expect(firstCall).rejects.toThrow('Network error');
+    const err = await firstCall.catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ApiClientError);
+    expect((err as ApiClientError).message).toBe(MESSAGES.CSRF_COOKIE_FAILED);
 
     const secondCall = ensureCsrfCookie();
     await expect(secondCall).resolves.toBeUndefined();
