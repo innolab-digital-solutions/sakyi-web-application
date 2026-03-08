@@ -14,7 +14,7 @@ import SectionTitle from '@/components/site/shared/SectionTitle';
 import PATHS from '@/config/paths';
 import { useLanguage } from '@/context/LanguageContext';
 
-const AboutSection = () => {
+const AboutOverviewSection = () => {
   const { language, translate } = useLanguage();
 
   const features = [
@@ -95,7 +95,9 @@ const AboutSection = () => {
               variant='section'
               language={language}
               blackPart={translate('site.home.about-overview.title.black')}
-              gradientPart={translate('site.home.about-overview.title.gradient')}
+              gradientPart={translate(
+                'site.home.about-overview.title.gradient',
+              )}
             />
 
             {/* Section description */}
@@ -118,7 +120,10 @@ const AboutSection = () => {
 
           {/* Call to action: Programs page button */}
           <div className='pt-4'>
-            <Link href={PATHS.SITE.PROGRAMS} className='inline-block w-full min-w-0 sm:w-auto'>
+            <Link
+              href={PATHS.SITE.PROGRAMS}
+              className='inline-block w-full min-w-0 sm:w-auto'
+            >
               <GradientButton className='w-full min-w-0 sm:w-auto'>
                 <span>{translate('site.home.about-overview.cta.primary')}</span>
                 <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
@@ -131,4 +136,4 @@ const AboutSection = () => {
   );
 };
 
-export default AboutSection;
+export default AboutOverviewSection;

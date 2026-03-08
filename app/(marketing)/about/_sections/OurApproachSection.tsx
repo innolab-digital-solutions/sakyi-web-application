@@ -1,6 +1,14 @@
 'use client';
 
-import { CheckCircle, HandHeart, ListChecks, Puzzle, Stethoscope, Target, Zap } from 'lucide-react';
+import {
+  CheckCircle,
+  HandHeart,
+  ListChecks,
+  Puzzle,
+  Stethoscope,
+  Target,
+  Zap,
+} from 'lucide-react';
 
 import DecorativeImage from '@/components/site/shared/DecorativeImage';
 import FeatureList from '@/components/site/shared/FeatureList';
@@ -24,7 +32,9 @@ const OurApproachSection = () => {
     },
     {
       icon: <ListChecks className='h-5 w-5' />,
-      title: translate('site.about.our-approach.features.tailored-planning.title'),
+      title: translate(
+        'site.about.our-approach.features.tailored-planning.title',
+      ),
       description: translate(
         'site.about.our-approach.features.tailored-planning.description',
       ),

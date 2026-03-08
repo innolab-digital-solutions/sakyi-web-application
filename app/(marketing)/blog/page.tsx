@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
-import BlogIntroSection from '@/components/site/pages/blog/BlogIntroSection';
-import ExploreArticlesSection from '@/components/site/pages/blog/ExploreArticlesSection';
+import BlogIntroSection from './_sections/BlogIntroSection';
+import ExploreArticlesSection from './_sections/ExploreArticlesSection';
 
 export const metadata: Metadata = {
   title: 'Blog | SaKyi Health & Wellness',

@@ -19,7 +19,7 @@ import SectionDescription from '@/components/site/shared/SectionDescription';
 import SectionTitle from '@/components/site/shared/SectionTitle';
 import { useLanguage } from '@/context/LanguageContext';
 
-const HeroSection = () => {
+const HomeIntroSection = () => {
   const { language, translate } = useLanguage();
 
   return (
@@ -99,4 +99,4 @@ const HeroSection = () => {
   );
 };
 
-export default HeroSection;
+export default HomeIntroSection;

@@ -1,9 +1,8 @@
 'use client';
 
-import { useLanguage } from '@/context/LanguageContext';
-
 import SectionCardDescription from '@/components/site/shared/SectionCardDescription';
 import SectionCardTitle from '@/components/site/shared/SectionCardTitle';
+import { useLanguage } from '@/context/LanguageContext';
 
 type FeatureListProps = {
   icon: React.ReactNode;

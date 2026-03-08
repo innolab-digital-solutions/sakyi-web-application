@@ -11,7 +11,7 @@ const TestimonialsSection = () => {
 
   return (
     <SectionContainer id='testimonials-section' className='bg-white'>
-      <div className='mx-auto min-w-0 max-w-3xl space-y-6 text-center'>
+      <div className='mx-auto max-w-3xl min-w-0 space-y-6 text-center'>
         <SectionBadge
           icon={null}
           text={translate('site.home.testimonials.badge')}

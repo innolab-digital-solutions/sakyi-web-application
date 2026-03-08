@@ -30,11 +30,11 @@ const FloatingCard = ({
         >
           {icon}
         </div>
-        <div className='min-w-0 max-w-full'>
-          <div className='text-foreground wrap-break-word font-sans text-sm font-semibold'>
+        <div className='max-w-full min-w-0'>
+          <div className='text-foreground font-sans text-sm font-semibold wrap-break-word'>
             {title}
           </div>
-          <div className='text-muted-foreground wrap-break-word font-sans text-sm leading-relaxed'>
+          <div className='text-muted-foreground font-sans text-sm leading-relaxed wrap-break-word'>
             {description}
           </div>
         </div>

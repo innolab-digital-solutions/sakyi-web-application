@@ -29,7 +29,7 @@ const SectionCardDescription = ({
   return (
     <p
       className={cn(
-        'text-foreground/80 min-w-0 max-w-full wrap-break-word font-sans text-sm sm:text-base',
+        'text-foreground/80 max-w-full min-w-0 font-sans text-sm wrap-break-word sm:text-base',
         lineHeightClass,
         className,
       )}

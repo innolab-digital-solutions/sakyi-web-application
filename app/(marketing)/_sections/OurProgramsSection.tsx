@@ -15,7 +15,7 @@ const OurProgramsSection = () => {
 
   return (
     <SectionContainer id='our-programs-section' className='bg-white'>
-      <div className='mx-auto min-w-0 max-w-3xl space-y-6 text-center'>
+      <div className='mx-auto max-w-3xl min-w-0 space-y-6 text-center'>
         <SectionBadge
           icon={null}
           text={translate('site.home.programs-overview.badge')}
@@ -35,7 +35,10 @@ const OurProgramsSection = () => {
         </SectionDescription>
 
         <div className='pt-4'>
-          <Link href={PATHS.SITE.PROGRAMS} className='inline-block w-full min-w-0 sm:w-auto'>
+          <Link
+            href={PATHS.SITE.PROGRAMS}
+            className='inline-block w-full min-w-0 sm:w-auto'
+          >
             <GradientButton className='w-full min-w-0 sm:w-auto'>
               <span>
                 {translate('site.home.programs-overview.cta.primary')}

@@ -82,7 +82,11 @@ const SectionImageCard = ({
         <div className={isLarge ? 'text-lg font-bold' : 'text-sm font-bold'}>
           {title}
         </div>
-        <div className={isLarge ? 'text-sm text-white/90' : 'text-xs text-white/90'}>
+        <div
+          className={
+            isLarge ? 'text-sm text-white/90' : 'text-xs text-white/90'
+          }
+        >
           {subtitle}
         </div>
       </div>

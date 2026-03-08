@@ -144,7 +144,10 @@ const HowItWorksSection = () => {
 
       {/* Section CTA: Prompt to start process */}
       <div className='mt-12 flex items-center justify-center'>
-        <Link href={PATHS.SITE.CONTACT} className='inline-block w-full min-w-0 sm:w-auto'>
+        <Link
+          href={PATHS.SITE.CONTACT}
+          className='inline-block w-full min-w-0 sm:w-auto'
+        >
           <GradientButton className='w-full min-w-0 sm:w-auto'>
             <span>{translate('site.home.how-it-works.cta.primary')}</span>
             <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />

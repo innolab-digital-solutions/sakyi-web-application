@@ -22,7 +22,7 @@ const SectionCardTitle = ({
   return (
     <Tag
       className={cn(
-        'text-foreground min-w-0 wrap-break-word font-sans text-base font-semibold leading-relaxed sm:text-lg',
+        'text-foreground min-w-0 font-sans text-base leading-relaxed font-semibold wrap-break-word sm:text-lg',
         className,
       )}
     >

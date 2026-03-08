@@ -38,7 +38,7 @@ const SectionDescription = ({
     <p
       className={cn(
         classes,
-        'min-w-0 max-w-full wrap-break-word',
+        'max-w-full min-w-0 wrap-break-word',
         center && 'mx-auto text-center',
         maxWidth && 'max-w-2xl',
         className,

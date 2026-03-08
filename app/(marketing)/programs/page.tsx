@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 
-import ExploreProgramsSection from '@/components/site/pages/programs/ExploreProgramsSection';
-import FAQSection from '@/components/site/pages/programs/FAQSection';
-import PersonalizedCareSection from '@/components/site/pages/programs/PersonalizedCareSection';
-import ProgramIntroSection from '@/components/site/pages/programs/ProgramIntroSection';
-import ProgramProcessSection from '@/components/site/pages/programs/ProgramProcessSection';
-import WhyChooseSaKyiSection from '@/components/site/pages/programs/WhyChooseSaKyiSection';
+import ExploreProgramsSection from './_sections/ExploreProgramsSection';
+import FAQSection from './_sections/FAQSection';
+import PersonalizedCareSection from './_sections/PersonalizedCareSection';
+import ProgramIntroSection from './_sections/ProgramIntroSection';
+import ProgramProcessSection from './_sections/ProgramProcessSection';
+import WhyChooseSaKyiSection from './_sections/WhyChooseSaKyiSection';
 
 export const metadata: Metadata = {
   title: 'Wellness Programs | SaKyi Health & Wellness',

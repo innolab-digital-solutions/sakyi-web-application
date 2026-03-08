@@ -54,7 +54,9 @@ const MissionAndPhilosophySection = () => {
             {/* FloatingCard: Mission */}
             <FloatingCard
               icon={<Target className='h-5 w-5' />}
-              title={translate('site.about.our-mission.floating-cards.mission.title')}
+              title={translate(
+                'site.about.our-mission.floating-cards.mission.title',
+              )}
               description={translate(
                 'site.about.our-mission.floating-cards.mission.description',
               )}
@@ -65,7 +67,9 @@ const MissionAndPhilosophySection = () => {
             {/* FloatingCard: Holistic Care */}
             <FloatingCard
               icon={<Heart className='h-5 w-5' />}
-              title={translate('site.about.our-mission.floating-cards.holistic.title')}
+              title={translate(
+                'site.about.our-mission.floating-cards.holistic.title',
+              )}
               description={translate(
                 'site.about.our-mission.floating-cards.holistic.description',
               )}
