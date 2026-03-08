@@ -6,10 +6,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import DesktopNavigation from '@/components/site/layouts/DesktopNavigation';
-import MobileNavigation from '@/components/site/layouts/MobileNavigation';
-import GetTheAppButton from '@/components/site/shared/GetTheAppButton';
-import LanguageDropdown from '@/components/site/shared/LanguageDropdown';
+import DesktopNavigation from '@/components/marketing/layout/DesktopNavigation';
+import MobileNavigation from '@/components/marketing/layout/MobileNavigation';
+import { GetTheAppButton, LanguageDropdown } from '@/components/marketing/ui';
 import { Button } from '@/components/ui/button';
 import PATHS from '@/config/paths';
 

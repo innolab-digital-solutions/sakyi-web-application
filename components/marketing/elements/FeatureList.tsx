@@ -1,7 +1,7 @@
 'use client';
 
-import SectionCardDescription from '@/components/site/shared/SectionCardDescription';
-import SectionCardTitle from '@/components/site/shared/SectionCardTitle';
+import SectionCardDescription from '@/components/marketing/typography/SectionCardDescription';
+import SectionCardTitle from '@/components/marketing/typography/SectionCardTitle';
 import { useLanguage } from '@/context/LanguageContext';
 
 type FeatureListProps = {

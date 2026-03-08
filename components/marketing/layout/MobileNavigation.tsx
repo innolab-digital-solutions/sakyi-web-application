@@ -2,8 +2,7 @@
 
 import Link from 'next/link';
 
-import GetTheAppButton from '@/components/site/shared/GetTheAppButton';
-import LanguageDropdown from '@/components/site/shared/LanguageDropdown';
+import { GetTheAppButton, LanguageDropdown } from '@/components/marketing/ui';
 import { HEADER_NAVIGATION } from '@/config/navigation/site';
 import { useLanguage } from '@/context/LanguageContext';
 

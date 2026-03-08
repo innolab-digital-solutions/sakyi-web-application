@@ -3,7 +3,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import type { PropsWithChildren } from 'react';
 
-import TanstackQueryProvider from '@/components/TanstackQueryProvider';
+import TanstackQueryProvider from '@/lib/providers/TanstackQueryProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { inter, notoSansMyanmar } from '@/config/fonts';
 import { LanguageProvider } from '@/context/LanguageContext';
