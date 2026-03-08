@@ -1,13 +1,7 @@
 /**
- * Default API endpoints for the Sakyi backend.
- *
- * These values provide sane production defaults and are overridden at runtime
- * by environment variables in {@link api} when needed.
+ * Base API URLs are configured in {@link apiBase} (config/api/base.ts) via
+ * NEXT_PUBLIC_API_DOMAIN_ENDPOINT and NEXT_PUBLIC_API_VERSION_ENDPOINT.
  */
-export const ENDPOINTS = {
-  VERSION: 'https://api.sakyihealthandwellness.com/v1',
-  DOMAIN: 'https://api.sakyihealthandwellness.com',
-} as const;
 
 /**
  * Default HTTP method used by the API client when no method is explicitly provided.

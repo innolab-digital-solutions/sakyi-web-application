@@ -3,7 +3,7 @@
 import Link from 'next/link';
 
 import { GetTheAppButton, LanguageDropdown } from '@/components/marketing/ui';
-import { HEADER_NAVIGATION } from '@/config/navigation/site';
+import { HEADER_NAVIGATION } from '@/config/navigation/marketing';
 import { useLanguage } from '@/context/LanguageContext';
 
 type MobileNavigationProps = {

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 
-import { HEADER_NAVIGATION } from '@/config/navigation/site';
+import { HEADER_NAVIGATION } from '@/config/navigation/marketing';
 import { useLanguage } from '@/context/LanguageContext';
 
 const DesktopNavigation = ({ pathname }: { pathname: string }) => {
