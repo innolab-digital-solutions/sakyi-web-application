@@ -12,7 +12,7 @@ import type { ApiError as ApiErrorPayload } from './types';
  * @property {Record<string, unknown>} errors - Additional error messages keyed by field or error type, if provided by the API.
  * @property {string} requestId - Optional unique request identifier attached by the API for tracing/debugging.
  * @property {ApiErrorPayload} payload - The raw API payload for error details, if available.
- * 
+ *
  * @remarks
  * This error is thrown when the API client encounters an error while making a request.
  * It is used to handle errors and provide a consistent interface for error handling.

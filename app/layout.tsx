@@ -15,7 +15,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<PropsWithChildren>) {
   return (
-    <html lang='en' className={`${interFont.variable} ${notoSansMyanmarFont.variable}`}>
+    <html
+      lang='en'
+      className={`${interFont.variable} ${notoSansMyanmarFont.variable}`}
+    >
       <body className='font-sans antialiased'>
         <TanstackQueryProvider>
           <TooltipProvider>

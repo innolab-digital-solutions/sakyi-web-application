@@ -15,7 +15,7 @@ import type {
  * @param {number} status - HTTP status code associated with the error.
  * @param {ThrowOrReturnOptions<T>} options - Additional options controlling error handling and fallback response.
  * @returns {ApiResponse<T>} An error response object, unless throwOnError is true (then throws an exception).
- * 
+ *
  * @throws {ApiClientError} If throwOnError is true.
  */
 const throwOrReturnApiClientError = <T>(
@@ -23,7 +23,8 @@ const throwOrReturnApiClientError = <T>(
   status: number,
   options: ThrowOrReturnOptions<T>,
 ): ApiResponse<T> => {
-  const { throwOnError, errors, requestId, payload, fallbackResponse } = options;
+  const { throwOnError, errors, requestId, payload, fallbackResponse } =
+    options;
 
   if (throwOnError) {
     throw new ApiClientError(message, status, errors, requestId, payload);
@@ -84,7 +85,7 @@ export const handleNonJsonResponse = <T>(
 /**
  * Handles HTTP 204 No Content responses.
  * Returns a standardized "success" ApiResponse with data as undefined.
- * 
+ *
  * @template T The expected response data type.
  * @returns {ApiResponse<T>} The API response object with data set to undefined.
  */
@@ -99,12 +100,12 @@ export const handleNoContentResponse = <T>(): ApiResponse<T> => {
 /**
  * Handles failures to parse a response as JSON.
  * Returns an error ApiResponse or throws, depending on throwOnError.
- * 
+ *
  * @template T The expected response data type.
  * @param {Response} response - The fetch response object that failed parsing.
  * @param {boolean} throwOnError - Whether to throw on error or return an error response.
  * @returns {Promise<ApiResponse<T>>} Promise resolving to the error response.
- * 
+ *
  * @throws {ApiClientError} If throwOnError is true.
  */
 export const handleInvalidJson = async <T>(
@@ -118,13 +119,13 @@ export const handleInvalidJson = async <T>(
 /**
  * Handles error responses returned by the backend (i.e., parsed JSON object with status "error").
  * Wraps the error payload and HTTP response metadata for downstream consumption or error throwing.
- * 
+ *
  * @template T The expected response data type.
  * @param {Response} response - The fetch response object with error status.
  * @param {ApiErrorPayload} payload - The API error payload returned by the backend.
  * @param {boolean} throwOnError - Whether to throw on error or return an error response.
  * @returns {ApiResponse<T>} The structured error response, or throws ApiClientError if throwOnError is true.
- * 
+ *
  * @throws {ApiClientError} If throwOnError is true.
  */
 export const handleBackendApiError = <T>(
