@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import { formatSlugAsTitle } from '@/lib/utils/formatting';
+import { slugify } from '@/lib/utils/slug';
 
 type BlogDetailPageProps = {
   params: Promise<{ slug: string }>;
@@ -10,11 +10,12 @@ export async function generateMetadata(
   props: BlogDetailPageProps,
 ): Promise<Metadata> {
   const { slug } = await props.params;
-  const articleTitle = formatSlugAsTitle(slug);
+
+  const title = slugify(slug);
 
   return {
-    title: `${articleTitle} | SaKyi Health & Wellness Blog`,
-    description: `Read “${articleTitle}” from the SaKyi Health & Wellness blog, sharing insights on wellbeing, movement, nutrition, and sustainable lifestyle change.`,
+    title: `${title} | SaKyi Health & Wellness Blog`,
+    description: `Read “${title}” from the SaKyi Health & Wellness blog, sharing insights on wellbeing, movement, nutrition, and sustainable lifestyle change.`,
   };
 }
 
