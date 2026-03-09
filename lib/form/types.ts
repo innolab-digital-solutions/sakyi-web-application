@@ -71,3 +71,32 @@ export type FormSubmitFunction = (
   url: string,
   options?: FormSubmitOptions,
 ) => Promise<void>;
+
+export type UseFormReturn = {
+  fields: FormFields;
+  errors: FormErrors;
+  isDirty: boolean;
+  isSubmitting: boolean;
+  reset: (...fieldsToReset: (keyof FormFields)[]) => void;
+  setDefaults: (
+    field?: keyof FormFields | Partial<FormFields>,
+    value?: FormFields[keyof FormFields],
+  ) => void;
+  setFields: <K extends keyof FormFields>(
+    keyOrData: K | Partial<FormFields>,
+    value?: FormFields[K],
+  ) => void;
+  setError: (
+    field: keyof FormFields | string | FormErrors,
+    message?: string,
+  ) => void;
+  setDataAndDefaults: (newData: Partial<FormFields>) => void;
+  clearErrors: (...fields: (keyof FormFields | string)[]) => void;
+  cancel: () => void;
+  submit: FormSubmitFunction;
+  get: (url: string, options?: FormSubmitOptions) => Promise<void>;
+  post: (url: string, options?: FormSubmitOptions) => Promise<void>;
+  put: (url: string, options?: FormSubmitOptions) => Promise<void>;
+  patch: (url: string, options?: FormSubmitOptions) => Promise<void>;
+  destroy: (url: string, options?: FormSubmitOptions) => Promise<void>;
+};

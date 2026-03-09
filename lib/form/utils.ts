@@ -39,3 +39,14 @@ export const deepClone = <T>(value: T): T => {
 
   return value;
 };
+
+/**
+ * Compare two values for equality using JSON stringification.
+ *
+ * @param a - First value
+ * @param b - Second value
+ * @returns True if values are equal
+ */
+export const isEqual = (a: unknown, b: unknown): boolean => {
+  return JSON.stringify(a) === JSON.stringify(b);
+};
