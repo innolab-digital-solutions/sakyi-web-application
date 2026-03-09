@@ -30,7 +30,7 @@ const HomeIntroSection = () => {
           {/* Hero badge at the top */}
           <SectionBadge
             icon={<Sparkles className='h-4 w-4' />}
-            text={translate('site.home.hero.badge')}
+            text={translate('marketing.pages.home.hero.badge')}
           />
 
           <div className='space-y-6'>
@@ -39,14 +39,16 @@ const HomeIntroSection = () => {
               as='h1'
               variant='hero'
               language={language}
-              blackPart={translate('site.home.hero.title.black')}
-              gradientPart={translate('site.home.hero.title.gradient')}
-              subtitle={translate('site.home.hero.title.subtitle')}
+              blackPart={translate('marketing.pages.home.hero.title.black')}
+              gradientPart={translate(
+                'marketing.pages.home.hero.title.gradient',
+              )}
+              subtitle={translate('marketing.pages.home.hero.title.subtitle')}
             />
 
             {/* Hero section description */}
             <SectionDescription language={language} maxWidth>
-              {translate('site.home.hero.description')}
+              {translate('marketing.pages.home.hero.description')}
             </SectionDescription>
           </div>
 
@@ -54,13 +56,15 @@ const HomeIntroSection = () => {
           <div className='flex min-w-0 flex-col gap-4 sm:flex-row'>
             <GradientButton className='w-full min-w-0 sm:w-auto'>
               <Heart className='h-5 w-5' />
-              <span>{translate('site.home.hero.cta.primary')}</span>
+              <span>{translate('marketing.pages.home.hero.cta.primary')}</span>
               <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
             </GradientButton>
 
             <OutlineButton className='w-full min-w-0 sm:w-auto'>
               <Brain className='h-5 w-5' />
-              <span>{translate('site.home.hero.cta.secondary')}</span>
+              <span>
+                {translate('marketing.pages.home.hero.cta.secondary')}
+              </span>
               <ChevronRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
             </OutlineButton>
           </div>

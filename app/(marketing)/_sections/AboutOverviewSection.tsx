@@ -21,28 +21,28 @@ const AboutOverviewSection = () => {
     {
       icon: <Shield className='h-5 w-5' />,
       title: translate(
-        'site.home.about-overview.features.doctor-designed-programs.title',
+        'marketing.pages.home.about-overview.features.doctor-designed-programs.title',
       ),
       description: translate(
-        'site.home.about-overview.features.doctor-designed-programs.description',
+        'marketing.pages.home.about-overview.features.doctor-designed-programs.description',
       ),
     },
     {
       icon: <Target className='h-5 w-5' />,
       title: translate(
-        'site.home.about-overview.features.personalized-approach.title',
+        'marketing.pages.home.about-overview.features.personalized-approach.title',
       ),
       description: translate(
-        'site.home.about-overview.features.personalized-approach.description',
+        'marketing.pages.home.about-overview.features.personalized-approach.description',
       ),
     },
     {
       icon: <TrendingUp className='h-5 w-5' />,
       title: translate(
-        'site.home.about-overview.features.continuous-support-reporting.title',
+        'marketing.pages.home.about-overview.features.continuous-support-reporting.title',
       ),
       description: translate(
-        'site.home.about-overview.features.continuous-support-reporting.description',
+        'marketing.pages.home.about-overview.features.continuous-support-reporting.description',
       ),
     },
   ];
@@ -86,7 +86,7 @@ const AboutOverviewSection = () => {
             {/* Section badge */}
             <SectionBadge
               icon={<Users className='h-4 w-4' />}
-              text={translate('site.home.about-overview.badge')}
+              text={translate('marketing.pages.home.about-overview.badge')}
             />
 
             {/* Section title with gradient highlight */}
@@ -94,15 +94,17 @@ const AboutOverviewSection = () => {
               as='h2'
               variant='section'
               language={language}
-              blackPart={translate('site.home.about-overview.title.black')}
+              blackPart={translate(
+                'marketing.pages.home.about-overview.title.black',
+              )}
               gradientPart={translate(
-                'site.home.about-overview.title.gradient',
+                'marketing.pages.home.about-overview.title.gradient',
               )}
             />
 
             {/* Section description */}
             <SectionDescription language={language} maxWidth>
-              {translate('site.home.about-overview.description')}
+              {translate('marketing.pages.home.about-overview.description')}
             </SectionDescription>
           </div>
 
@@ -125,7 +127,9 @@ const AboutOverviewSection = () => {
               className='inline-block w-full min-w-0 sm:w-auto'
             >
               <GradientButton className='w-full min-w-0 sm:w-auto'>
-                <span>{translate('site.home.about-overview.cta.primary')}</span>
+                <span>
+                  {translate('marketing.pages.home.about-overview.cta.primary')}
+                </span>
                 <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
               </GradientButton>
             </Link>

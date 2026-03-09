@@ -17,23 +17,29 @@ const MissionAndPhilosophySection = () => {
   const features = [
     {
       icon: <Target className='h-5 w-5' />,
-      title: translate('site.about.our-mission.features.mission.title'),
+      title: translate(
+        'marketing.pages.about.our-mission.features.mission.title',
+      ),
       description: translate(
-        'site.about.our-mission.features.mission.description',
+        'marketing.pages.about.our-mission.features.mission.description',
       ),
     },
     {
       icon: <Heart className='h-5 w-5' />,
-      title: translate('site.about.our-mission.features.vision.title'),
+      title: translate(
+        'marketing.pages.about.our-mission.features.vision.title',
+      ),
       description: translate(
-        'site.about.our-mission.features.vision.description',
+        'marketing.pages.about.our-mission.features.vision.description',
       ),
     },
     {
       icon: <Lightbulb className='h-5 w-5' />,
-      title: translate('site.about.our-mission.features.philosophy.title'),
+      title: translate(
+        'marketing.pages.about.our-mission.features.philosophy.title',
+      ),
       description: translate(
-        'site.about.our-mission.features.philosophy.description',
+        'marketing.pages.about.our-mission.features.philosophy.description',
       ),
     },
   ];
@@ -55,10 +61,10 @@ const MissionAndPhilosophySection = () => {
             <FloatingCard
               icon={<Target className='h-5 w-5' />}
               title={translate(
-                'site.about.our-mission.floating-cards.mission.title',
+                'marketing.pages.about.our-mission.floating-cards.mission.title',
               )}
               description={translate(
-                'site.about.our-mission.floating-cards.mission.description',
+                'marketing.pages.about.our-mission.floating-cards.mission.description',
               )}
               className='-top-6 -left-2 sm:-left-4 lg:-top-4 lg:-left-6'
               iconClassName='bg-linear-to-r from-[#35bec5] to-[#4bc4db]'
@@ -68,10 +74,10 @@ const MissionAndPhilosophySection = () => {
             <FloatingCard
               icon={<Heart className='h-5 w-5' />}
               title={translate(
-                'site.about.our-mission.floating-cards.holistic.title',
+                'marketing.pages.about.our-mission.floating-cards.holistic.title',
               )}
               description={translate(
-                'site.about.our-mission.floating-cards.holistic.description',
+                'marketing.pages.about.our-mission.floating-cards.holistic.description',
               )}
               className='-right-2 -bottom-6 sm:-right-4 lg:-right-6'
               iconClassName='bg-linear-to-r from-[#4bc4db] to-[#0c96c4]'
@@ -84,20 +90,24 @@ const MissionAndPhilosophySection = () => {
           <div className='space-y-6'>
             <SectionBadge
               icon={<Compass className='h-4 w-4' />}
-              text={translate('site.about.our-mission.badge')}
+              text={translate('marketing.pages.about.our-mission.badge')}
             />
 
             <SectionTitle
               as='h2'
               variant='section'
               language={language}
-              blackPart={translate('site.about.our-mission.title.black')}
-              gradientPart={translate('site.about.our-mission.title.gradient')}
+              blackPart={translate(
+                'marketing.pages.about.our-mission.title.black',
+              )}
+              gradientPart={translate(
+                'marketing.pages.about.our-mission.title.gradient',
+              )}
               layout='inline'
             />
 
             <SectionDescription language={language} maxWidth>
-              {translate('site.about.our-mission.description')}
+              {translate('marketing.pages.about.our-mission.description')}
             </SectionDescription>
           </div>
 

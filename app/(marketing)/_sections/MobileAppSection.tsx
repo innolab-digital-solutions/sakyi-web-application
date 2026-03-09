@@ -33,7 +33,7 @@ const MobileAppSection = () => {
           <div className='space-y-6'>
             <SectionBadge
               icon={<Smartphone className='h-4 w-4' />}
-              text={translate('site.home.mobile-app.badge')}
+              text={translate('marketing.pages.home.mobile-app.badge')}
             />
 
             <div
@@ -46,8 +46,10 @@ const MobileAppSection = () => {
                 as='h2'
                 variant='section'
                 language={language}
-                blackPart={translate('site.home.mobile-app.title.black')}
-                gradientPart={translate('site.home.mobile-app.title.gradient')}
+                blackPart={translate('marketing.pages.home.mobile-app.title.black')}
+                gradientPart={translate(
+                  'marketing.pages.home.mobile-app.title.gradient',
+                )}
               />
             </div>
 
@@ -58,7 +60,7 @@ const MobileAppSection = () => {
               data-aos-easing='ease-out-cubic'
             >
               <SectionDescription language={language} maxWidth>
-                {translate('site.home.mobile-app.description')}
+                {translate('marketing.pages.home.mobile-app.description')}
               </SectionDescription>
             </div>
           </div>
@@ -70,14 +72,14 @@ const MobileAppSection = () => {
               className='group bg-brand-gradient inline-flex items-center justify-center rounded-full px-6 py-3 font-sans text-base font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl'
             >
               <span className='relative z-10'>
-                {translate('site.home.mobile-app.cta.primary')}
+                {translate('marketing.pages.home.mobile-app.cta.primary')}
               </span>
               <Clock className='ml-2 h-5 w-5 transition-transform duration-300' />
             </Link>
           </div>
 
           <p className='text-muted-foreground font-sans text-sm'>
-            {translate('site.home.mobile-app.availability')}
+            {translate('marketing.pages.home.mobile-app.availability')}
           </p>
         </div>
 

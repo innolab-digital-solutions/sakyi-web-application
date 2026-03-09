@@ -1,8 +1,4 @@
-import {
-  DEFAULT_LANGUAGE,
-  FALLBACK_LANGUAGE,
-  SUPPORTED_LANGUAGE_CODES,
-} from '@/config/languages';
+import { FALLBACK_LANGUAGE } from '@/config/languages';
 
 import en from './dictionaries/en';
 import my from './dictionaries/my';
@@ -15,32 +11,6 @@ import { interpolate, resolveKey } from './utils';
 
 export const getDictionaries = (): Translations => {
   return { en, my };
-};
-
-/**
- * Determines the current language preference for the user.
- *
- * On the client side, attempts to retrieve the user's selected language from localStorage.
- * If no language is stored or the value is not among the supported language codes,
- * returns the default language. On the server side (when `window` is undefined),
- * always returns the default language.
- *
- * @returns {SupportedLanguage} The language code for the current session or the default language.
- *
- * @remarks
- * - Ensures clients cannot select unsupported languages via storage tampering.
- * - Does not perform any side effects outside reading from storage.
- */
-export const getCurrentLanguage = (): SupportedLanguage => {
-  if (typeof window === 'undefined') return DEFAULT_LANGUAGE;
-
-  const stored = window.localStorage.getItem(
-    'language',
-  ) as SupportedLanguage | null;
-
-  return stored && SUPPORTED_LANGUAGE_CODES.includes(stored)
-    ? stored
-    : DEFAULT_LANGUAGE;
 };
 
 /**
@@ -72,11 +42,4 @@ export const getTranslation = (
   }
 
   return raw;
-};
-
-export const translate = (
-  key: string,
-  replacements?: TranslationReplacements,
-): string => {
-  return getTranslation(getCurrentLanguage(), key, replacements);
 };

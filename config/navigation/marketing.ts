@@ -25,23 +25,23 @@ import type { NavItem } from './types';
  */
 export const HEADER_NAVIGATION: NavItem[] = [
   {
-    name: 'layout.header.navigation.home.label',
+    name: 'marketing.layout.header.navigation.home.label',
     path: MARKETING_ROUTES.HOME,
   },
   {
-    name: 'layout.header.navigation.about.label',
+    name: 'marketing.layout.header.navigation.about.label',
     path: MARKETING_ROUTES.ABOUT,
   },
   {
-    name: 'layout.header.navigation.programs.label',
+    name: 'marketing.layout.header.navigation.programs.label',
     path: MARKETING_ROUTES.PROGRAMS,
   },
   {
-    name: 'layout.header.navigation.blog.label',
+    name: 'marketing.layout.header.navigation.blog.label',
     path: MARKETING_ROUTES.BLOG,
   },
   {
-    name: 'layout.header.navigation.contact.label',
+    name: 'marketing.layout.header.navigation.contact.label',
     path: MARKETING_ROUTES.CONTACT,
   },
 ];

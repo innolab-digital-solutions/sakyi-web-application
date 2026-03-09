@@ -1,20 +1,24 @@
-import layout from './layout.json';
-import about from './pages/about.json';
-import blog from './pages/blog.json';
-import contact from './pages/contact.json';
-import home from './pages/home.json';
-import programs from './pages/programs.json';
-import validation from './validation.json';
+import layout from './marketing/layout.json';
+import about from './marketing/pages/about.json';
+import blog from './marketing/pages/blog.json';
+import contact from './marketing/pages/contact.json';
+import home from './marketing/pages/home.json';
+import programs from './marketing/pages/programs.json';
+import validation from './shared/validation.json';
 
 const en = {
-  validation,
-  layout,
-  site: {
-    home,
-    about,
-    programs,
-    blog,
-    contact,
+  marketing: {
+    layout,
+    pages: {
+      home,
+      about,
+      programs,
+      blog,
+      contact,
+    },
+  },
+  shared: {
+    validation,
   },
 };
 

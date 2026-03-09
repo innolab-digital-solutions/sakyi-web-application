@@ -19,7 +19,7 @@ const AboutIntroSection = () => {
         <div className='min-w-0 space-y-8'>
           <SectionBadge
             icon={<Users className='h-4 w-4' />}
-            text={translate('site.about.hero.badge')}
+            text={translate('marketing.pages.about.hero.badge')}
           />
 
           <div className='space-y-6'>
@@ -28,12 +28,14 @@ const AboutIntroSection = () => {
               as='h1'
               variant='hero'
               language={language}
-              blackPart={translate('site.about.hero.title.black')}
-              gradientPart={translate('site.about.hero.title.gradient')}
+              blackPart={translate('marketing.pages.about.hero.title.black')}
+              gradientPart={translate(
+                'marketing.pages.about.hero.title.gradient',
+              )}
             />
 
             <SectionDescription language={language} maxWidth>
-              {translate('site.about.hero.description')}
+              {translate('marketing.pages.about.hero.description')}
             </SectionDescription>
           </div>
         </div>
@@ -45,9 +47,11 @@ const AboutIntroSection = () => {
             <SectionImageCard
               src='/images/about-hero-2.jpg'
               alt='SaKyi Wellness Team - Holistic Health Approach'
-              title={translate('site.about.hero.images.expert-team.title')}
+              title={translate(
+                'marketing.pages.about.hero.images.expert-team.title',
+              )}
               subtitle={translate(
-                'site.about.hero.images.expert-team.subtitle',
+                'marketing.pages.about.hero.images.expert-team.subtitle',
               )}
               variant='large'
               className='col-span-2 row-span-2'
@@ -58,10 +62,10 @@ const AboutIntroSection = () => {
               src='/images/about-hero-1.jpg'
               alt='Wellness Consultation - Personalized Care'
               title={translate(
-                'site.about.hero.images.personalized-care.title',
+                'marketing.pages.about.hero.images.personalized-care.title',
               )}
               subtitle={translate(
-                'site.about.hero.images.personalized-care.subtitle',
+                'marketing.pages.about.hero.images.personalized-care.subtitle',
               )}
               variant='small'
             />
@@ -69,10 +73,10 @@ const AboutIntroSection = () => {
               src='/images/about-hero-3.jpg'
               alt='Holistic Wellness Approach - Mind, Body, Spirit'
               title={translate(
-                'site.about.hero.images.holistic-approach.title',
+                'marketing.pages.about.hero.images.holistic-approach.title',
               )}
               subtitle={translate(
-                'site.about.hero.images.holistic-approach.subtitle',
+                'marketing.pages.about.hero.images.holistic-approach.subtitle',
               )}
               variant='small'
             />

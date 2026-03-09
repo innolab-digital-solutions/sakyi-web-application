@@ -18,20 +18,24 @@ const OurProgramsSection = () => {
       <div className='mx-auto max-w-3xl min-w-0 space-y-6 text-center'>
         <SectionBadge
           icon={null}
-          text={translate('site.home.programs-overview.badge')}
+          text={translate('marketing.pages.home.programs-overview.badge')}
         />
 
         <SectionTitle
           as='h2'
           variant='section'
           language={language}
-          blackPart={translate('site.home.programs-overview.title.black')}
-          gradientPart={translate('site.home.programs-overview.title.gradient')}
+          blackPart={translate(
+            'marketing.pages.home.programs-overview.title.black',
+          )}
+          gradientPart={translate(
+            'marketing.pages.home.programs-overview.title.gradient',
+          )}
           center
         />
 
         <SectionDescription language={language} center>
-          {translate('site.home.programs-overview.description')}
+          {translate('marketing.pages.home.programs-overview.description')}
         </SectionDescription>
 
         <div className='pt-4'>
@@ -41,7 +45,7 @@ const OurProgramsSection = () => {
           >
             <GradientButton className='w-full min-w-0 sm:w-auto'>
               <span>
-                {translate('site.home.programs-overview.cta.primary')}
+                {translate('marketing.pages.home.programs-overview.cta.primary')}
               </span>
             </GradientButton>
           </Link>

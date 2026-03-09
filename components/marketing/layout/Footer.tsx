@@ -34,7 +34,7 @@ const Footer = () => {
 
           {/* Tagline / Description */}
           <p className='text-muted-foreground mb-6 max-w-2xl font-sans text-base leading-relaxed font-medium'>
-            {translate('layout.footer.description')}
+            {translate('marketing.layout.footer.description')}
           </p>
 
           {/* Social Icons */}

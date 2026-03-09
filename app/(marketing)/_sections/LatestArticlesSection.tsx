@@ -18,20 +18,24 @@ const LatestArticlesSection = () => {
       <div className='mx-auto max-w-3xl min-w-0 space-y-6 text-center'>
         <SectionBadge
           icon={null}
-          text={translate('site.home.latest-articles.badge')}
+          text={translate('marketing.pages.home.latest-articles.badge')}
         />
 
         <SectionTitle
           as='h2'
           variant='section'
           language={language}
-          blackPart={translate('site.home.latest-articles.title.black')}
-          gradientPart={translate('site.home.latest-articles.title.gradient')}
+          blackPart={translate(
+            'marketing.pages.home.latest-articles.title.black',
+          )}
+          gradientPart={translate(
+            'marketing.pages.home.latest-articles.title.gradient',
+          )}
           center
         />
 
         <SectionDescription language={language} center>
-          {translate('site.home.latest-articles.description')}
+          {translate('marketing.pages.home.latest-articles.description')}
         </SectionDescription>
 
         <div className='pt-4'>
@@ -40,7 +44,9 @@ const LatestArticlesSection = () => {
             className='inline-block w-full min-w-0 sm:w-auto'
           >
             <GradientButton className='w-full min-w-0 sm:w-auto'>
-              <span>{translate('site.home.latest-articles.cta.primary')}</span>
+              <span>
+                {translate('marketing.pages.home.latest-articles.cta.primary')}
+              </span>
             </GradientButton>
           </Link>
         </div>

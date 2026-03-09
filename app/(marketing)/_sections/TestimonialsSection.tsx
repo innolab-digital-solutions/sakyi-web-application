@@ -14,20 +14,22 @@ const TestimonialsSection = () => {
       <div className='mx-auto max-w-3xl min-w-0 space-y-6 text-center'>
         <SectionBadge
           icon={null}
-          text={translate('site.home.testimonials.badge')}
+          text={translate('marketing.pages.home.testimonials.badge')}
         />
 
         <SectionTitle
           as='h2'
           variant='section'
           language={language}
-          blackPart={translate('site.home.testimonials.title.black')}
-          gradientPart={translate('site.home.testimonials.title.gradient')}
+          blackPart={translate('marketing.pages.home.testimonials.title.black')}
+          gradientPart={translate(
+            'marketing.pages.home.testimonials.title.gradient',
+          )}
           center
         />
 
         <SectionDescription language={language} center>
-          {translate('site.home.testimonials.description')}
+          {translate('marketing.pages.home.testimonials.description')}
         </SectionDescription>
       </div>
     </SectionContainer>

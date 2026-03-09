@@ -25,36 +25,38 @@ const OurApproachSection = () => {
   const features = [
     {
       icon: <Stethoscope className='h-5 w-5' />,
-      title: translate('site.about.our-approach.features.evaluation.title'),
+      title: translate(
+        'marketing.pages.about.our-approach.features.evaluation.title',
+      ),
       description: translate(
-        'site.about.our-approach.features.evaluation.description',
+        'marketing.pages.about.our-approach.features.evaluation.description',
       ),
     },
     {
       icon: <ListChecks className='h-5 w-5' />,
       title: translate(
-        'site.about.our-approach.features.tailored-planning.title',
+        'marketing.pages.about.our-approach.features.tailored-planning.title',
       ),
       description: translate(
-        'site.about.our-approach.features.tailored-planning.description',
+        'marketing.pages.about.our-approach.features.tailored-planning.description',
       ),
     },
     {
       icon: <HandHeart className='h-5 w-5' />,
       title: translate(
-        'site.about.our-approach.features.professional-support.title',
+        'marketing.pages.about.our-approach.features.professional-support.title',
       ),
       description: translate(
-        'site.about.our-approach.features.professional-support.description',
+        'marketing.pages.about.our-approach.features.professional-support.description',
       ),
     },
     {
       icon: <Puzzle className='h-5 w-5' />,
       title: translate(
-        'site.about.our-approach.features.holistic-integration.title',
+        'marketing.pages.about.our-approach.features.holistic-integration.title',
       ),
       description: translate(
-        'site.about.our-approach.features.holistic-integration.description',
+        'marketing.pages.about.our-approach.features.holistic-integration.description',
       ),
     },
   ];
@@ -66,19 +68,23 @@ const OurApproachSection = () => {
           <div className='space-y-6'>
             <SectionBadge
               icon={<Zap className='h-4 w-4' />}
-              text={translate('site.about.our-approach.badge')}
+              text={translate('marketing.pages.about.our-approach.badge')}
             />
 
             <SectionTitle
               as='h2'
               variant='section'
               language={language}
-              blackPart={translate('site.about.our-approach.title.black')}
-              gradientPart={translate('site.about.our-approach.title.gradient')}
+              blackPart={translate(
+                'marketing.pages.about.our-approach.title.black',
+              )}
+              gradientPart={translate(
+                'marketing.pages.about.our-approach.title.gradient',
+              )}
             />
 
             <SectionDescription language={language} maxWidth>
-              {translate('site.about.our-approach.description')}
+              {translate('marketing.pages.about.our-approach.description')}
             </SectionDescription>
           </div>
 
@@ -106,10 +112,10 @@ const OurApproachSection = () => {
             <FloatingCard
               icon={<Target className='h-5 w-5' />}
               title={translate(
-                'site.about.our-approach.floating-cards.proven-results.title',
+                'marketing.pages.about.our-approach.floating-cards.proven-results.title',
               )}
               description={translate(
-                'site.about.our-approach.floating-cards.proven-results.description',
+                'marketing.pages.about.our-approach.floating-cards.proven-results.description',
               )}
               className='-top-6 -left-2 sm:-left-4 lg:-top-4 lg:-left-6'
               iconClassName='bg-linear-to-r from-[#35bec5] to-[#4bc4db]'
@@ -118,10 +124,10 @@ const OurApproachSection = () => {
             <FloatingCard
               icon={<CheckCircle className='h-5 w-5' />}
               title={translate(
-                'site.about.our-approach.floating-cards.holistic-care.title',
+                'marketing.pages.about.our-approach.floating-cards.holistic-care.title',
               )}
               description={translate(
-                'site.about.our-approach.floating-cards.holistic-care.description',
+                'marketing.pages.about.our-approach.floating-cards.holistic-care.description',
               )}
               className='-right-2 -bottom-6 sm:-right-4 lg:-right-6'
               iconClassName='bg-linear-to-r from-[#4bc4db] to-[#0c96c4]'

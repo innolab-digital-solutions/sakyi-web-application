@@ -22,20 +22,22 @@ const HowItWorksSection = () => {
       <div className='flex min-w-0 flex-col items-center justify-center space-y-6'>
         <SectionBadge
           icon={<Settings className='h-4 w-4' />}
-          text={translate('site.home.how-it-works.badge')}
+          text={translate('marketing.pages.home.how-it-works.badge')}
         />
 
         <SectionTitle
           as='h2'
           variant='section'
           language={language}
-          blackPart={translate('site.home.how-it-works.title.black')}
-          gradientPart={translate('site.home.how-it-works.title.gradient')}
+          blackPart={translate('marketing.pages.home.how-it-works.title.black')}
+          gradientPart={translate(
+            'marketing.pages.home.how-it-works.title.gradient',
+          )}
           center
         />
 
         <SectionDescription language={language} center maxWidth>
-          {translate('site.home.how-it-works.description')}
+          {translate('marketing.pages.home.how-it-works.description')}
         </SectionDescription>
       </div>
 
@@ -45,10 +47,10 @@ const HowItWorksSection = () => {
           {
             step: '01',
             title: translate(
-              'site.home.how-it-works.steps.initial-consultation.title',
+              'marketing.pages.home.how-it-works.steps.initial-consultation.title',
             ),
             description: translate(
-              'site.home.how-it-works.steps.initial-consultation.description',
+              'marketing.pages.home.how-it-works.steps.initial-consultation.description',
             ),
             color: 'from-[#35bec5] to-[#4bc4db]',
             illustration: (
@@ -67,10 +69,10 @@ const HowItWorksSection = () => {
           {
             step: '02',
             title: translate(
-              'site.home.how-it-works.steps.program-selection.title',
+              'marketing.pages.home.how-it-works.steps.program-selection.title',
             ),
             description: translate(
-              'site.home.how-it-works.steps.program-selection.description',
+              'marketing.pages.home.how-it-works.steps.program-selection.description',
             ),
             color: 'from-[#4bc4db] to-[#0c96c4]',
             illustration: (
@@ -91,10 +93,10 @@ const HowItWorksSection = () => {
           {
             step: '03',
             title: translate(
-              'site.home.how-it-works.steps.review-results-and-start.title',
+              'marketing.pages.home.how-it-works.steps.review-results-and-start.title',
             ),
             description: translate(
-              'site.home.how-it-works.steps.review-results-and-start.description',
+              'marketing.pages.home.how-it-works.steps.review-results-and-start.description',
             ),
             color: 'from-[#0c96c4] to-[#35bec5]',
             illustration: (
@@ -149,7 +151,9 @@ const HowItWorksSection = () => {
           className='inline-block w-full min-w-0 sm:w-auto'
         >
           <GradientButton className='w-full min-w-0 sm:w-auto'>
-            <span>{translate('site.home.how-it-works.cta.primary')}</span>
+            <span>
+              {translate('marketing.pages.home.how-it-works.cta.primary')}
+            </span>
             <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
           </GradientButton>
         </Link>
