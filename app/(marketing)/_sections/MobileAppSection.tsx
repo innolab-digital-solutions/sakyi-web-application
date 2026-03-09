@@ -46,7 +46,9 @@ const MobileAppSection = () => {
                 as='h2'
                 variant='section'
                 language={language}
-                blackPart={translate('marketing.pages.home.mobile-app.title.black')}
+                blackPart={translate(
+                  'marketing.pages.home.mobile-app.title.black',
+                )}
                 gradientPart={translate(
                   'marketing.pages.home.mobile-app.title.gradient',
                 )}

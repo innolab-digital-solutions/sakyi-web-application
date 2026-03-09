@@ -45,7 +45,9 @@ const OurProgramsSection = () => {
           >
             <GradientButton className='w-full min-w-0 sm:w-auto'>
               <span>
-                {translate('marketing.pages.home.programs-overview.cta.primary')}
+                {translate(
+                  'marketing.pages.home.programs-overview.cta.primary',
+                )}
               </span>
             </GradientButton>
           </Link>
