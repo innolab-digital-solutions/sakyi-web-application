@@ -6,17 +6,11 @@ import { SyntheticEvent } from 'react';
 
 import SubmitButton from '@/components/shared/form/SubmitButton';
 import TextField from '@/components/shared/form/TextField';
-import ENDPOINTS from '@/config/endpoints';
-import PATHS from '@/config/paths';
-import { useForm } from '@/hooks/form';
-import { LoginSchema } from '@/lib/schemas/admin/auth/login';
+import { ENDPOINTS } from '@/config/api/endpoints';
+import { ROUTES } from '@/config/routes';
+import { LoginSchema } from '@/domains/auth/login.schema';
+import { useForm } from '@/lib/form';
 
-/**
- * Admin login form: email and password with validation and session redirect.
- *
- * Renders controlled inputs wired to useForm and LoginSchema, submits to the admin auth
- * login endpoint, and redirects to the dashboard on success or surfaces errors on failure.
- */
 const LoginForm = () => {
   const router = useRouter();
 
@@ -34,7 +28,7 @@ const LoginForm = () => {
     event.preventDefault();
     form.post(ENDPOINTS.ADMIN.AUTH.LOGIN, {
       onSuccess: () => {
-        router.replace(PATHS.ADMIN.DASHBOARD);
+        router.replace(ROUTES.ADMIN.MODULES.OVERVIEW);
       },
       onFailure: (error) => {
         form.setError('email', error.message);
@@ -43,6 +37,7 @@ const LoginForm = () => {
   };
   return (
     <form className='space-y-3 md:space-y-4' onSubmit={handleSubmit}>
+      {/* Email Address Input */}
       <TextField
         label='Email Address'
         id='email'
@@ -50,12 +45,13 @@ const LoginForm = () => {
         type='text'
         placeholder='Enter your email address'
         required
-        value={String(form.data.email ?? '')}
+        value={String(form.fields.email ?? '')}
         onChange={(event) => form.setData('email', event.target.value)}
         error={form.errors.email as string}
-        disabled={form.processing}
+        disabled={form.isSubmitting}
       />
 
+      {/* Password Input */}
       <TextField
         label='Password'
         id='password'
@@ -63,13 +59,14 @@ const LoginForm = () => {
         type='password'
         placeholder='Enter your password'
         required
-        value={String(form.data.password ?? '')}
+        value={String(form.fields.password ?? '')}
         onChange={(event) => form.setData('password', event.target.value)}
         error={form.errors.password as string}
-        disabled={form.processing}
+        disabled={form.isSubmitting}
       />
 
-      <SubmitButton processing={form.processing}>
+      {/* Submit Button */}
+      <SubmitButton isSubmitting={form.isSubmitting}>
         <span>Sign In</span>
         <ArrowRight className='size-4 transition-transform duration-200 group-hover:translate-x-1' />
       </SubmitButton>

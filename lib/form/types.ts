@@ -82,7 +82,7 @@ export type UseFormReturn = {
     field?: keyof FormFields | Partial<FormFields>,
     value?: FormFields[keyof FormFields],
   ) => void;
-  setFields: <K extends keyof FormFields>(
+  setData: <K extends keyof FormFields>(
     keyOrData: K | Partial<FormFields>,
     value?: FormFields[K],
   ) => void;

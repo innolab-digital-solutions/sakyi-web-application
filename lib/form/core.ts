@@ -36,14 +36,14 @@ import { validateFormFields } from './validator';
  *
  * @example
  * const form = useForm({ email: '', password: '' }, { schema: loginSchema });
- * <input value={form.fields.email} onChange={e => form.setFields('email', e.target.value)} />
+ * <input value={form.fields.email} onChange={e => form.setData('email', e.target.value)} />
  * <button onClick={() => form.post('/api/login', { onSuccess: ... })}>Login</button>
  */
 export const useForm = (
   initialFields: FormFields,
   options: FormOptions = {},
 ): UseFormReturn => {
-  const [fields, setFieldsState] = React.useState<FormFields>(
+  const [fields, setFields] = React.useState<FormFields>(
     deepClone(initialFields),
   );
   const [defaults, setDefaultsState] = React.useState<FormFields>(
@@ -56,22 +56,22 @@ export const useForm = (
   const abortControllerRef = React.useRef<AbortController | null>(null);
 
   /**
-   * Updates form fields with new values or for a single field, optionally triggers dirty state detection.
+   * Updates form data with new values or for a single field, optionally triggers dirty state detection.
    *
    * @template K - Field key type
    * @param {K | Partial<FormFields>} keyOrData - Field name to update, or a partial object of fields to update all at once
    * @param {FormFields[K]} [value] - Value to set (if updating a single field)
    *
    * @example
-   * setFields('email', 'test@example.com');
-   * setFields({ name: 'Alice', age: 30 });
+   * setData('email', 'test@example.com');
+   * setData({ name: 'Alice', age: 30 });
    */
-  const setFields = React.useCallback(
+  const setData = React.useCallback(
     <K extends keyof FormFields>(
       keyOrData: K | Partial<FormFields>,
       value?: FormFields[K],
     ) => {
-      setFieldsState((prev) => {
+      setFields((prev) => {
         const next: FormFields =
           typeof keyOrData === 'string' && value !== undefined
             ? ({ ...prev, [keyOrData]: value } as FormFields)
@@ -101,11 +101,11 @@ export const useForm = (
   const reset = React.useCallback(
     (...fieldsToReset: (keyof FormFields)[]) => {
       if (fieldsToReset.length === 0) {
-        setFieldsState(defaults);
+        setFields(defaults);
         setIsDirty(false);
         return;
       }
-      setFieldsState((prev) => {
+      setFields((prev) => {
         const next = { ...prev } as FormFields;
         for (const field of fieldsToReset) next[field] = defaults[field];
         return next;
@@ -169,7 +169,7 @@ export const useForm = (
   const setDataAndDefaults = React.useCallback(
     (newData: Partial<FormFields>) => {
       const cloned = deepClone(newData) as FormFields;
-      setFieldsState(cloned);
+      setFields(cloned);
       setDefaultsState(deepClone(cloned));
       setIsDirty(false);
     },
@@ -332,7 +332,7 @@ export const useForm = (
     isSubmitting,
     reset,
     setDefaults,
-    setFields,
+    setData,
     setError,
     setDataAndDefaults,
     clearErrors,
