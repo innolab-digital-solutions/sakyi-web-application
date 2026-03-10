@@ -3,21 +3,23 @@ import Heading5 from '@/components/shared/typography/Heading5';
 import { useLanguage } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils/styles';
 
-type ContactCardProps = {
+type SocialChannelCardProps = {
+  username: string;
+  link: string;
   title: string;
   description: string;
   icon: React.ReactNode;
-  value: string;
   className?: string;
 };
 
-const ContactCard = ({
+const SocialChannelCard = ({
+  username,
+  link,
   title,
   description,
   icon,
-  value,
   className,
-}: ContactCardProps) => {
+}: SocialChannelCardProps) => {
   const { language } = useLanguage();
 
   return (
@@ -42,12 +44,12 @@ const ContactCard = ({
 
         <Body3 lang={language}>{description}</Body3>
 
-        <a href={`mailto:${value}`} className='text-brand-gradient'>
-          {value}
+        <a href={link} target='_blank' className='text-brand-gradient'>
+          {username}
         </a>
       </div>
     </div>
   );
 };
 
-export default ContactCard;
+export default SocialChannelCard;

@@ -15,16 +15,16 @@ const CallToActionSection = () => {
 
   return (
     <SectionContainer
-      id='home-cta-section'
+      id='contact-cta-section'
       className='bg-linear-to-br from-[#35bec5] to-[#0c96c4]'
     >
       <div className='mb-10 space-y-6 text-center'>
         <Heading2 lang={language} className='text-white'>
-          {translate('marketing.pages.home.call-to-action.title')}
+          {translate('marketing.pages.contact.call-to-action.title')}
         </Heading2>
 
         <Body2 lang={language} className='mx-auto max-w-2xl text-white'>
-          {translate('marketing.pages.home.call-to-action.description')}
+          {translate('marketing.pages.contact.call-to-action.description')}
         </Body2>
       </div>
 
@@ -32,15 +32,15 @@ const CallToActionSection = () => {
         <PrimaryCtaLink href={ROUTES.MARKETING.PROGRAMS}>
           <Heart className='mr-2 h-5 w-5' />
           <span className='relative z-10'>
-            {translate('marketing.pages.home.call-to-action.cta.primary')}
+            {translate('marketing.pages.contact.call-to-action.cta.primary')}
           </span>
           <ArrowRight className='ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
         </PrimaryCtaLink>
 
-        <SecondaryCtaLink href={ROUTES.MARKETING.CONTACT}>
+        <SecondaryCtaLink href={ROUTES.MARKETING.ABOUT}>
           <Mail className='mr-2 h-5 w-5' />
           <span>
-            {translate('marketing.pages.home.call-to-action.cta.secondary')}
+            {translate('marketing.pages.contact.call-to-action.cta.secondary')}
           </span>
           <ChevronRight className='ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
         </SecondaryCtaLink>
