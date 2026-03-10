@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 
-import ConnectWithUsSection from '../../../components/marketing/pages/contact/ConnectWithUsSection';
-import ContactHeroSection from '../../../components/marketing/pages/contact/ContactHeroSection';
-import OurContactDetailSection from '../../../components/marketing/pages/contact/OurContactDetailSection';
-import SendUsMessageSection from '../../../components/marketing/pages/contact/SendUsMessageSection';
+import ConnectWithUsSection from '@/components/marketing/sections/contact/ConnectWithUsSection';
+import ContactIntroSection from '@/components/marketing/sections/contact/ContactIntroSection';
+import OurContactDetailSection from '@/components/marketing/sections/contact/OurContactDetailSection';
+import SendUsMessageSection from '@/components/marketing/sections/contact/SendUsMessageSection';
 
 export const metadata: Metadata = {
   title: 'Contact SaKyi Health & Wellness',
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <>
-      <ContactHeroSection />
+      <ContactIntroSection />
 
       <OurContactDetailSection />
 
