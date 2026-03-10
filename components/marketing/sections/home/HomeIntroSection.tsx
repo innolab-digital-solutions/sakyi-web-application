@@ -9,8 +9,8 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-import GradientButton from '@/components/marketing/buttons/GradientButton';
-import OutlineButton from '@/components/marketing/buttons/OutlineButton';
+import PrimaryButton from '@/components/marketing/buttons/PrimaryButton';
+import SecondaryButton from '@/components/marketing/buttons/SecondaryButton';
 import FloatingCard from '@/components/marketing/cards/FloatingCard';
 import DecorativeImage from '@/components/marketing/DecorativeImage';
 import SectionBadge from '@/components/marketing/SectionBadge';
@@ -62,19 +62,19 @@ const HomeIntroSection = () => {
 
           {/* Primary and secondary CTAs */}
           <div className='flex min-w-0 flex-col gap-4 sm:flex-row'>
-            <GradientButton className='w-full min-w-0 sm:w-auto'>
+            <PrimaryButton className='w-full min-w-0 sm:w-auto'>
               <Heart className='h-5 w-5' />
               <span>{translate('marketing.pages.home.hero.cta.primary')}</span>
               <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
-            </GradientButton>
+            </PrimaryButton>
 
-            <OutlineButton className='w-full min-w-0 sm:w-auto'>
+            <SecondaryButton className='w-full min-w-0 sm:w-auto'>
               <Brain className='h-5 w-5' />
               <span>
                 {translate('marketing.pages.home.hero.cta.secondary')}
               </span>
               <ChevronRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
-            </OutlineButton>
+            </SecondaryButton>
           </div>
         </div>
 

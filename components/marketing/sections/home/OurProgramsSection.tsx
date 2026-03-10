@@ -1,9 +1,10 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
-import GradientButton from '@/components/marketing/buttons/GradientButton';
+import PrimaryButton from '@/components/marketing/buttons/PrimaryButton';
 import SectionBadge from '@/components/marketing/SectionBadge';
 import SectionContainer from '@/components/marketing/SectionContainer';
 import Body1 from '@/components/shared/typography/Body1';
@@ -61,13 +62,14 @@ const OurProgramsSection = () => {
             href={ROUTES.MARKETING.PROGRAMS}
             className='inline-block w-full min-w-0 sm:w-auto'
           >
-            <GradientButton className='w-full min-w-0 sm:w-auto'>
+            <PrimaryButton className='w-full min-w-0 sm:w-auto'>
               <span>
                 {translate(
                   'marketing.pages.home.programs-overview.cta.primary',
                 )}
               </span>
-            </GradientButton>
+              <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
+            </PrimaryButton>
           </Link>
         </div>
       </div>

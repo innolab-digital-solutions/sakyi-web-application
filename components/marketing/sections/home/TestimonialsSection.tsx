@@ -10,7 +10,7 @@ const TestimonialsSection = () => {
   const { language, translate } = useLanguage();
 
   return (
-    <SectionContainer id='testimonials-section' className='bg-white'>
+    <SectionContainer id='testimonials-section' className='bg-background'>
       <div className='mx-auto max-w-3xl min-w-0 space-y-6 text-center'>
         <SectionBadge
           icon={null}

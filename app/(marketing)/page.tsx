@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import AboutOverviewSection from '@/components/marketing/sections/home/AboutOverviewSection';
+import CallToActionSection from '@/components/marketing/sections/home/CallToActionSection';
 import HomeIntroSection from '@/components/marketing/sections/home/HomeIntroSection';
 import HowItWorksSection from '@/components/marketing/sections/home/HowItWorksSection';
 import LatestArticlesSection from '@/components/marketing/sections/home/LatestArticlesSection';
@@ -30,6 +31,8 @@ export default function HomePage() {
       <TestimonialsSection />
 
       <LatestArticlesSection />
+
+      <CallToActionSection />
     </>
   );
 }

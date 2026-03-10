@@ -3,7 +3,7 @@
 import { ArrowRight, Shield, Target, TrendingUp, Users } from 'lucide-react';
 import Link from 'next/link';
 
-import GradientButton from '@/components/marketing/buttons/GradientButton';
+import PrimaryButton from '@/components/marketing/buttons/PrimaryButton';
 import FloatingCard from '@/components/marketing/cards/FloatingCard';
 import DecorativeImage from '@/components/marketing/DecorativeImage';
 import FeatureList from '@/components/marketing/FeatureList';
@@ -48,14 +48,14 @@ const AboutOverviewSection = () => {
   ];
 
   return (
-    <SectionContainer id='about-section' className='bg-background'>
+    <SectionContainer id='about-overview-section' className='bg-background'>
       <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
         {/* Left: Decorative image & floating cards */}
         <div className='relative min-w-0'>
           <div className='relative'>
             <DecorativeImage
               src='/images/home-about.jpg'
-              alt='Woman doing yoga meditation for wellness and mental health'
+              alt='Doctor video consultation with patient at home on laptop'
               width={600}
               height={600}
             />
@@ -92,10 +92,14 @@ const AboutOverviewSection = () => {
             {/* Section title with gradient highlight */}
             <Heading2 lang={language}>
               <span className='text-foreground'>
-                {translate('marketing.pages.home.about-overview.title.black')}{' '}
+                {translate(
+                  'marketing.pages.home.about-overview.title.black',
+                )}{' '}
               </span>
               <span className='text-brand-gradient bg-clip-text text-transparent'>
-                {translate('marketing.pages.home.about-overview.title.gradient')}
+                {translate(
+                  'marketing.pages.home.about-overview.title.gradient',
+                )}
               </span>
             </Heading2>
 
@@ -123,12 +127,12 @@ const AboutOverviewSection = () => {
               href={ROUTES.MARKETING.PROGRAMS}
               className='inline-block w-full min-w-0 sm:w-auto'
             >
-              <GradientButton className='w-full min-w-0 sm:w-auto'>
+              <PrimaryButton className='w-full min-w-0 sm:w-auto'>
                 <span>
                   {translate('marketing.pages.home.about-overview.cta.primary')}
                 </span>
                 <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
-              </GradientButton>
+              </PrimaryButton>
             </Link>
           </div>
         </div>
