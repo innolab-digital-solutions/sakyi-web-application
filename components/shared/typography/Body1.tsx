@@ -10,7 +10,6 @@ type Body1Props = PropsWithChildren<{
   className?: string;
 }>;
 
-
 /**
  * Body1 is a presentational component that renders its children within a <p> tag,
  * applying standardized body text styles based on the specified language.

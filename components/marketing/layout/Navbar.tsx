@@ -49,7 +49,10 @@ const Navbar = () => {
       <div className='mx-auto max-w-7xl min-w-0'>
         <div className='flex h-16 min-w-0 items-center justify-between px-4 sm:px-6 lg:px-8'>
           {/* Logo and site title */}
-          <Link href={ROUTES.MARKETING.HOME} className='flex items-center space-x-3'>
+          <Link
+            href={ROUTES.MARKETING.HOME}
+            className='flex items-center space-x-3'
+          >
             <Image
               src='/images/logo.png'
               alt='SaKyi Logo'

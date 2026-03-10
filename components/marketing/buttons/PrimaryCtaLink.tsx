@@ -25,4 +25,3 @@ const PrimaryCtaLink = ({ href, className, children }: PrimaryCtaLinkProps) => {
 };
 
 export default PrimaryCtaLink;
-

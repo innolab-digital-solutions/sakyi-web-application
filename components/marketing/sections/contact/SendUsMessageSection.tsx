@@ -15,7 +15,6 @@ const SendUsMessageSection = () => {
     <SectionContainer id='send-us-message-section' className='bg-background'>
       {/* Section Header: Badge, headline, supporting summary */}
       <div className='flex min-w-0 flex-col items-center justify-center space-y-6'>
-        {/* Social Channels Badge */}
         <SectionBadge
           icon={<MessageCircle className='h-4 w-4' />}
           text={translate('marketing.pages.contact.contact-form.badge')}
@@ -24,14 +23,10 @@ const SendUsMessageSection = () => {
         {/* Section Title with black and gradient parts */}
         <Heading2 lang={language} className='mx-auto text-center'>
           <span className='text-foreground'>
-            {translate(
-              'marketing.pages.contact.contact-form.title.black',
-            )}{' '}
+            {translate('marketing.pages.contact.contact-form.title.black')}{' '}
           </span>
           <span className='text-brand-gradient bg-clip-text text-transparent'>
-            {translate(
-              'marketing.pages.contact.contact-form.title.gradient',
-            )}
+            {translate('marketing.pages.contact.contact-form.title.gradient')}
           </span>
         </Heading2>
 

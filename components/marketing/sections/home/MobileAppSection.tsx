@@ -24,9 +24,7 @@ const MobileAppSection = () => {
     <SectionContainer id='mobile-app-section' className='bg-white'>
       <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
         {/* Left Column - Text Content */}
-        <div
-          className='min-w-0 space-y-8'
-        >
+        <div className='min-w-0 space-y-8'>
           <div className='space-y-6'>
             <SectionBadge
               icon={<Smartphone className='h-4 w-4' />}
@@ -36,7 +34,9 @@ const MobileAppSection = () => {
             <div>
               <Heading2 lang={language}>
                 <span className='text-foreground'>
-                  {translate('marketing.pages.home.mobile-app.title.black')}{' '}
+                  {translate(
+                    'marketing.pages.home.mobile-app.title.black',
+                  )}{' '}
                 </span>
                 <span className='text-brand-gradient bg-clip-text text-transparent'>
                   {translate('marketing.pages.home.mobile-app.title.gradient')}
@@ -70,9 +70,7 @@ const MobileAppSection = () => {
         </div>
 
         {/* Right Column - App Mockups: scale so both phones fit without clipping */}
-        <div
-          className='relative flex min-w-0 justify-center overflow-visible'
-        >
+        <div className='relative flex min-w-0 justify-center overflow-visible'>
           <div className='flex origin-center scale-75 items-center justify-center space-x-2 sm:scale-90 sm:space-x-4 lg:scale-100 lg:space-x-6'>
             {/* First Phone Mockup - Dashboard Screen */}
             <div className='group relative z-10 shrink-0'>

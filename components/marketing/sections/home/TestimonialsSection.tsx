@@ -26,10 +26,7 @@ const TestimonialsSection = () => {
           </span>
         </Heading2>
 
-        <Body1
-          lang={language}
-          className='mx-auto text-center'
-        >
+        <Body1 lang={language} className='mx-auto text-center'>
           {translate('marketing.pages.home.testimonials.description')}
         </Body1>
       </div>
