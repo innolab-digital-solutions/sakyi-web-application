@@ -1,11 +1,12 @@
 import { cookies } from 'next/headers';
 import { PropsWithChildren } from 'react';
 
-import AuthGuard from '@/components/admin/AuthGuard';
-import DashboardHeader from '@/components/admin/layout/DashboardHeader';
-import DashboardSidebar from '@/components/admin/layout/DashboardSidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import AuthProvider from '@/context/AuthContext';
+import { AuthProvider } from '@/context/AuthContext';
+
+import DashboardHeader from '../_components/DashboardHeader';
+import DashboardSidebar from '../_components/DashboardSidebar';
+import RouteGuard from '../_components/RouteGuard';
 
 export default async function AdminProtectedLayout({
   children,
@@ -16,7 +17,7 @@ export default async function AdminProtectedLayout({
   return (
     <div className='min-h-screen'>
       <AuthProvider>
-        <AuthGuard mode='protected'>
+        <RouteGuard mode='protected'>
           <SidebarProvider defaultOpen={defaultOpen}>
             <DashboardSidebar />
 
@@ -27,7 +28,7 @@ export default async function AdminProtectedLayout({
               </div>
             </SidebarInset>
           </SidebarProvider>
-        </AuthGuard>
+        </RouteGuard>
       </AuthProvider>
     </div>
   );

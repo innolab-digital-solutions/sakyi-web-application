@@ -1,13 +1,14 @@
 import { PropsWithChildren } from 'react';
 
-import AuthGuard from '@/components/admin/AuthGuard';
-import AuthProvider from '@/context/AuthContext';
+import { AuthProvider } from '@/context/AuthContext';
+
+import RouteGuard from '../_components/RouteGuard';
 
 export default function AdminGuestLayout({ children }: PropsWithChildren) {
   return (
     <div className='min-h-screen'>
       <AuthProvider>
-        <AuthGuard mode='guest'>{children}</AuthGuard>
+        <RouteGuard mode='guest'>{children}</RouteGuard>
       </AuthProvider>
     </div>
   );

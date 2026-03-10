@@ -5,13 +5,13 @@ import type { PropsWithChildren } from 'react';
 import { useEffect } from 'react';
 
 import { Spinner } from '@/components/ui/spinner';
-import PATHS from '@/config/paths';
+import { ROUTES } from '@/config/routes';
 import { useAuth } from '@/context/AuthContext';
 
-type AuthGuardMode = 'guest' | 'protected';
+type RouteGuardMode = 'guest' | 'protected';
 
-type AuthGuardProps = PropsWithChildren<{
-  mode: AuthGuardMode;
+type RouteGuardProps = PropsWithChildren<{
+  mode: RouteGuardMode;
 }>;
 
 type AuthStatusVariant = 'checking' | 'redirect-dashboard' | 'redirect-login';
@@ -65,36 +65,36 @@ const AuthStatusScreen = ({ variant }: { variant: AuthStatusVariant }) => {
   );
 };
 
-const AuthGuard = ({ mode, children }: AuthGuardProps) => {
+const RouteGuard = ({ mode, children }: RouteGuardProps) => {
   const router = useRouter();
-  const { isReady, isAuthenticated } = useAuth();
+  const { hasInitialized, user } = useAuth();
 
   useEffect(() => {
-    if (!isReady) return;
+    if (!hasInitialized) return;
 
-    if (mode === 'guest' && isAuthenticated) {
-      router.replace(PATHS.ADMIN.DASHBOARD);
+    if (mode === 'guest' && user) {
+      router.replace(ROUTES.ADMIN.MODULES.OVERVIEW);
       return;
     }
 
-    if (mode === 'protected' && !isAuthenticated) {
-      router.replace(PATHS.ADMIN.AUTH.LOGIN);
+    if (mode === 'protected' && !user) {
+      router.replace(ROUTES.ADMIN.AUTH.LOGIN);
     }
-  }, [isReady, isAuthenticated, mode, router]);
+  }, [hasInitialized, user, mode, router]);
 
-  if (!isReady) {
+  if (!hasInitialized) {
     return <AuthStatusScreen variant='checking' />;
   }
 
-  if (mode === 'guest' && isAuthenticated) {
+  if (mode === 'guest' && user) {
     return <AuthStatusScreen variant='redirect-dashboard' />;
   }
 
-  if (mode === 'protected' && !isAuthenticated) {
+  if (mode === 'protected' && !user) {
     return <AuthStatusScreen variant='redirect-login' />;
   }
 
   return children;
 };
 
-export default AuthGuard;
+export default RouteGuard;
