@@ -1,11 +1,13 @@
 'use client';
 
-import SectionCardDescription from '@/components/marketing/typography/SectionCardDescription';
-import SectionCardTitle from '@/components/marketing/typography/SectionCardTitle';
+import type { ReactNode } from 'react';
+
+import Body3 from '@/components/shared/typography/Body3';
+import Heading6 from '@/components/shared/typography/Heading6';
 import { useLanguage } from '@/context/LanguageContext';
 
 type FeatureListProps = {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   description: string;
 };
@@ -19,10 +21,10 @@ const FeatureList = ({ icon, title, description }: FeatureListProps) => {
         {icon}
       </div>
       <div className='min-w-0 flex-1'>
-        <SectionCardTitle className='mb-1'>{title}</SectionCardTitle>
-        <SectionCardDescription language={language}>
-          {description}
-        </SectionCardDescription>
+        <Heading6 lang={language} className='mb-1'>
+          {title}
+        </Heading6>
+        <Body3 lang={language}>{description}</Body3>
       </div>
     </div>
   );

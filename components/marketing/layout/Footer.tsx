@@ -4,8 +4,8 @@ import { Copyright, Facebook, Instagram, Mail } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
-import SocialButton from '@/components/site/shared/SocialButton';
-import PATHS from '@/config/paths';
+import SocialButton from '@/components/marketing/SocialButton';
+import { ROUTES } from '@/config/routes';
 import { useLanguage } from '@/context/LanguageContext';
 
 const Footer = () => {
@@ -15,9 +15,9 @@ const Footer = () => {
     <footer className='mx-auto max-w-7xl overflow-hidden py-24 sm:px-6 lg:px-8'>
       <div className='flex flex-col items-center text-center'>
         {/* Logo and Brand */}
-        <div className='mb-8' data-aos='fade-up' data-aos-duration='1000'>
+        <div className='mb-8'>
           <Link
-            href={PATHS.SITE.HOME}
+            href={ROUTES.MARKETING.HOME}
             className='group mb-6 flex items-center justify-center space-x-3'
           >
             <Image
@@ -55,12 +55,7 @@ const Footer = () => {
         </div>
 
         {/* Divider and Copyright */}
-        <div
-          className='border-border border-t pt-8'
-          data-aos='fade-up'
-          data-aos-duration='1000'
-          data-aos-delay='200'
-        >
+        <div className='border-border border-t pt-8'>
           <div className='text-muted-foreground flex items-center space-x-2 font-sans text-sm font-medium'>
             <Copyright className='h-4 w-4' />
             <span>2026 SaKyi Health & Wellness. All rights reserved.</span>

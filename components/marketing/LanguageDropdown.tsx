@@ -1,7 +1,6 @@
 'use client';
 
 import { Check, ChevronDown } from 'lucide-react';
-import Image from 'next/image';
 
 import {
   DropdownMenu,
@@ -9,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { getLocales } from '@/config/locale';
+import { LANGUAGES, type SupportedLanguage } from '@/config/languages';
 import { useLanguage } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils/styles';
 
@@ -17,12 +16,16 @@ type LanguageDropdownProps = {
   className?: string;
 };
 
-const locales = getLocales();
-
 const LanguageDropdown = ({ className }: LanguageDropdownProps) => {
   const { language, setLanguage } = useLanguage();
 
-  const current = locales.find((l) => l.code === language) ?? locales[0];
+  const current =
+    LANGUAGES.find((entry) => entry.code === language) ?? LANGUAGES[0];
+
+  const handleSelect = (code: SupportedLanguage) => {
+    if (code === language) return;
+    setLanguage(code);
+  };
 
   return (
     <DropdownMenu>
@@ -36,13 +39,6 @@ const LanguageDropdown = ({ className }: LanguageDropdownProps) => {
         )}
         aria-label='Select language'
       >
-        <Image
-          src={current.flag}
-          alt=''
-          width={16}
-          height={16}
-          className='h-4 w-4 rounded-sm object-cover'
-        />
         <span className='min-w-7 text-left'>{current.code.toUpperCase()}</span>
         <ChevronDown className='h-4 w-4 shrink-0 opacity-60 transition-transform duration-200 group-data-[state=open]:rotate-180' />
       </DropdownMenuTrigger>
@@ -51,12 +47,12 @@ const LanguageDropdown = ({ className }: LanguageDropdownProps) => {
         className='border-border/80 min-w-44 rounded-xl bg-white p-1.5 shadow-lg'
         sideOffset={6}
       >
-        {locales.map(({ code, name, flag }) => {
+        {LANGUAGES.map(({ code, name }) => {
           const isSelected = language === code;
           return (
             <DropdownMenuItem
               key={code}
-              onClick={() => setLanguage(code)}
+              onClick={() => handleSelect(code)}
               className={cn(
                 'gap-3 rounded-lg py-2.5 pr-3 pl-8 text-sm',
                 isSelected && 'bg-brand-gradient/8 text-foreground font-medium',
@@ -72,13 +68,6 @@ const LanguageDropdown = ({ className }: LanguageDropdownProps) => {
                   <span className='size-4' aria-hidden />
                 )}
               </span>
-              <Image
-                src={flag}
-                alt=''
-                width={18}
-                height={18}
-                className='h-4.5 w-4.5 rounded-sm object-cover'
-              />
               {name}
             </DropdownMenuItem>
           );

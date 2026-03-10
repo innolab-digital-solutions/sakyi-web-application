@@ -3,14 +3,14 @@
 import { ArrowRight, Heart, Settings } from 'lucide-react';
 import Link from 'next/link';
 
-import GradientButton from '@/components/site/shared/GradientButton';
-import SectionBadge from '@/components/site/shared/SectionBadge';
-import SectionCardDescription from '@/components/site/shared/SectionCardDescription';
-import SectionCardTitle from '@/components/site/shared/SectionCardTitle';
-import SectionContainer from '@/components/site/shared/SectionContainer';
-import SectionDescription from '@/components/site/shared/SectionDescription';
-import SectionTitle from '@/components/site/shared/SectionTitle';
-import PATHS from '@/config/paths';
+import GradientButton from '@/components/marketing/buttons/GradientButton';
+import SectionBadge from '@/components/marketing/SectionBadge';
+import SectionContainer from '@/components/marketing/SectionContainer';
+import Body1 from '@/components/shared/typography/Body1';
+import Body3 from '@/components/shared/typography/Body3';
+import Heading2 from '@/components/shared/typography/Heading2';
+import Heading5 from '@/components/shared/typography/Heading5';
+import { ROUTES } from '@/config/routes';
 import { useLanguage } from '@/context/LanguageContext';
 
 const HowItWorksSection = () => {
@@ -25,20 +25,21 @@ const HowItWorksSection = () => {
           text={translate('marketing.pages.home.how-it-works.badge')}
         />
 
-        <SectionTitle
-          as='h2'
-          variant='section'
-          language={language}
-          blackPart={translate('marketing.pages.home.how-it-works.title.black')}
-          gradientPart={translate(
-            'marketing.pages.home.how-it-works.title.gradient',
-          )}
-          center
-        />
+        <Heading2 lang={language} className='mx-auto text-center'>
+          <span className='text-foreground'>
+            {translate('marketing.pages.home.how-it-works.title.black')}{' '}
+          </span>
+          <span className='text-brand-gradient bg-clip-text text-transparent'>
+            {translate('marketing.pages.home.how-it-works.title.gradient')}
+          </span>
+        </Heading2>
 
-        <SectionDescription language={language} center maxWidth>
+        <Body1
+          lang={language}
+          className='mx-auto max-w-2xl text-center'
+        >
           {translate('marketing.pages.home.how-it-works.description')}
-        </SectionDescription>
+        </Body1>
       </div>
 
       {/* Steps Grid: Visual guide for the 3-step process */}
@@ -122,23 +123,22 @@ const HowItWorksSection = () => {
           <div
             key={index}
             className='group border-border relative min-w-0 overflow-hidden rounded-2xl border bg-white p-6 text-center shadow-sm transition-all duration-300 hover:border-[#35bec5]/50 hover:shadow-lg sm:p-8'
-            data-aos='flip-up'
-            data-aos-delay={`${index * 200 + 400}`}
-            data-aos-duration='1000'
-            data-aos-easing='ease-out-cubic'
           >
             {/* Step Illustration */}
             {step.illustration}
 
             {/* Step Content: Title and description – roomy line-height to avoid Myanmar glyph clip */}
             <div className='space-y-4'>
-              <SectionCardTitle className='text-lg font-bold sm:text-xl'>
+              <Heading5
+                lang={language}
+                className='text-lg font-bold sm:text-xl'
+              >
                 {step.title}
-              </SectionCardTitle>
+              </Heading5>
 
-              <SectionCardDescription language={language}>
+              <Body3 lang={language}>
                 {step.description}
-              </SectionCardDescription>
+              </Body3>
             </div>
           </div>
         ))}
@@ -147,7 +147,7 @@ const HowItWorksSection = () => {
       {/* Section CTA: Prompt to start process */}
       <div className='mt-12 flex items-center justify-center'>
         <Link
-          href={PATHS.SITE.CONTACT}
+          href={ROUTES.MARKETING.CONTACT}
           className='inline-block w-full min-w-0 sm:w-auto'
         >
           <GradientButton className='w-full min-w-0 sm:w-auto'>

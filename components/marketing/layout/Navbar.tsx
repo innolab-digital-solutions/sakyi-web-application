@@ -6,11 +6,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+import GetTheAppButton from '@/components/marketing/GetTheAppButton';
+import LanguageDropdown from '@/components/marketing/LanguageDropdown';
 import DesktopNavigation from '@/components/marketing/layout/DesktopNavigation';
 import MobileNavigation from '@/components/marketing/layout/MobileNavigation';
-import { GetTheAppButton, LanguageDropdown } from '@/components/marketing/ui';
 import { Button } from '@/components/ui/button';
-import PATHS from '@/config/paths';
+import { ROUTES } from '@/config/routes';
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -48,7 +49,7 @@ const Navbar = () => {
       <div className='mx-auto max-w-7xl min-w-0'>
         <div className='flex h-16 min-w-0 items-center justify-between px-4 sm:px-6 lg:px-8'>
           {/* Logo and site title */}
-          <Link href={PATHS.SITE.HOME} className='flex items-center space-x-3'>
+          <Link href={ROUTES.MARKETING.HOME} className='flex items-center space-x-3'>
             <Image
               src='/images/logo.png'
               alt='SaKyi Logo'

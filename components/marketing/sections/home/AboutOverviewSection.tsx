@@ -3,15 +3,15 @@
 import { ArrowRight, Shield, Target, TrendingUp, Users } from 'lucide-react';
 import Link from 'next/link';
 
-import DecorativeImage from '@/components/site/shared/DecorativeImage';
-import FeatureList from '@/components/site/shared/FeatureList';
-import FloatingCard from '@/components/site/shared/FloatingCard';
-import GradientButton from '@/components/site/shared/GradientButton';
-import SectionBadge from '@/components/site/shared/SectionBadge';
-import SectionContainer from '@/components/site/shared/SectionContainer';
-import SectionDescription from '@/components/site/shared/SectionDescription';
-import SectionTitle from '@/components/site/shared/SectionTitle';
-import PATHS from '@/config/paths';
+import GradientButton from '@/components/marketing/buttons/GradientButton';
+import FloatingCard from '@/components/marketing/cards/FloatingCard';
+import DecorativeImage from '@/components/marketing/DecorativeImage';
+import FeatureList from '@/components/marketing/FeatureList';
+import SectionBadge from '@/components/marketing/SectionBadge';
+import SectionContainer from '@/components/marketing/SectionContainer';
+import Body1 from '@/components/shared/typography/Body1';
+import Heading2 from '@/components/shared/typography/Heading2';
+import { ROUTES } from '@/config/routes';
 import { useLanguage } from '@/context/LanguageContext';
 
 const AboutOverviewSection = () => {
@@ -90,22 +90,19 @@ const AboutOverviewSection = () => {
             />
 
             {/* Section title with gradient highlight */}
-            <SectionTitle
-              as='h2'
-              variant='section'
-              language={language}
-              blackPart={translate(
-                'marketing.pages.home.about-overview.title.black',
-              )}
-              gradientPart={translate(
-                'marketing.pages.home.about-overview.title.gradient',
-              )}
-            />
+            <Heading2 lang={language}>
+              <span className='text-foreground'>
+                {translate('marketing.pages.home.about-overview.title.black')}{' '}
+              </span>
+              <span className='text-brand-gradient bg-clip-text text-transparent'>
+                {translate('marketing.pages.home.about-overview.title.gradient')}
+              </span>
+            </Heading2>
 
             {/* Section description */}
-            <SectionDescription language={language} maxWidth>
+            <Body1 lang={language} className='max-w-2xl'>
               {translate('marketing.pages.home.about-overview.description')}
-            </SectionDescription>
+            </Body1>
           </div>
 
           {/* Features list */}
@@ -123,7 +120,7 @@ const AboutOverviewSection = () => {
           {/* Call to action: Programs page button */}
           <div className='pt-4'>
             <Link
-              href={PATHS.SITE.PROGRAMS}
+              href={ROUTES.MARKETING.PROGRAMS}
               className='inline-block w-full min-w-0 sm:w-auto'
             >
               <GradientButton className='w-full min-w-0 sm:w-auto'>

@@ -2,12 +2,12 @@
 
 import Link from 'next/link';
 
-import GradientButton from '@/components/site/shared/GradientButton';
-import SectionBadge from '@/components/site/shared/SectionBadge';
-import SectionContainer from '@/components/site/shared/SectionContainer';
-import SectionDescription from '@/components/site/shared/SectionDescription';
-import SectionTitle from '@/components/site/shared/SectionTitle';
-import PATHS from '@/config/paths';
+import GradientButton from '@/components/marketing/buttons/GradientButton';
+import SectionBadge from '@/components/marketing/SectionBadge';
+import SectionContainer from '@/components/marketing/SectionContainer';
+import Body1 from '@/components/shared/typography/Body1';
+import Heading2 from '@/components/shared/typography/Heading2';
+import { ROUTES } from '@/config/routes';
 import { useLanguage } from '@/context/LanguageContext';
 
 const OurProgramsSection = () => {
@@ -21,26 +21,27 @@ const OurProgramsSection = () => {
           text={translate('marketing.pages.home.programs-overview.badge')}
         />
 
-        <SectionTitle
-          as='h2'
-          variant='section'
-          language={language}
-          blackPart={translate(
-            'marketing.pages.home.programs-overview.title.black',
-          )}
-          gradientPart={translate(
-            'marketing.pages.home.programs-overview.title.gradient',
-          )}
-          center
-        />
+        <Heading2 lang={language} className='mx-auto text-center'>
+          <span className='text-foreground'>
+            {translate('marketing.pages.home.programs-overview.title.black')}{' '}
+          </span>
+          <span className='text-brand-gradient bg-clip-text text-transparent'>
+            {translate(
+              'marketing.pages.home.programs-overview.title.gradient',
+            )}
+          </span>
+        </Heading2>
 
-        <SectionDescription language={language} center>
+        <Body1
+          lang={language}
+          className='mx-auto text-center'
+        >
           {translate('marketing.pages.home.programs-overview.description')}
-        </SectionDescription>
+        </Body1>
 
         <div className='pt-4'>
           <Link
-            href={PATHS.SITE.PROGRAMS}
+            href={ROUTES.MARKETING.PROGRAMS}
             className='inline-block w-full min-w-0 sm:w-auto'
           >
             <GradientButton className='w-full min-w-0 sm:w-auto'>

@@ -11,10 +11,10 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-import SectionBadge from '@/components/site/shared/SectionBadge';
-import SectionContainer from '@/components/site/shared/SectionContainer';
-import SectionDescription from '@/components/site/shared/SectionDescription';
-import SectionTitle from '@/components/site/shared/SectionTitle';
+import SectionBadge from '@/components/marketing/SectionBadge';
+import SectionContainer from '@/components/marketing/SectionContainer';
+import Body1 from '@/components/shared/typography/Body1';
+import Heading2 from '@/components/shared/typography/Heading2';
 import { useLanguage } from '@/context/LanguageContext';
 
 const MobileAppSection = () => {
@@ -26,9 +26,6 @@ const MobileAppSection = () => {
         {/* Left Column - Text Content */}
         <div
           className='min-w-0 space-y-8'
-          data-aos='slide-up'
-          data-aos-duration='1200'
-          data-aos-easing='ease-out-cubic'
         >
           <div className='space-y-6'>
             <SectionBadge
@@ -36,34 +33,21 @@ const MobileAppSection = () => {
               text={translate('marketing.pages.home.mobile-app.badge')}
             />
 
-            <div
-              data-aos='fade-up'
-              data-aos-delay='300'
-              data-aos-duration='1000'
-              data-aos-easing='ease-out-cubic'
-            >
-              <SectionTitle
-                as='h2'
-                variant='section'
-                language={language}
-                blackPart={translate(
-                  'marketing.pages.home.mobile-app.title.black',
-                )}
-                gradientPart={translate(
-                  'marketing.pages.home.mobile-app.title.gradient',
-                )}
-              />
+            <div>
+              <Heading2 lang={language}>
+                <span className='text-foreground'>
+                  {translate('marketing.pages.home.mobile-app.title.black')}{' '}
+                </span>
+                <span className='text-brand-gradient bg-clip-text text-transparent'>
+                  {translate('marketing.pages.home.mobile-app.title.gradient')}
+                </span>
+              </Heading2>
             </div>
 
-            <div
-              data-aos='slide-up'
-              data-aos-delay='700'
-              data-aos-duration='1000'
-              data-aos-easing='ease-out-cubic'
-            >
-              <SectionDescription language={language} maxWidth>
+            <div>
+              <Body1 lang={language} className='max-w-2xl'>
                 {translate('marketing.pages.home.mobile-app.description')}
-              </SectionDescription>
+              </Body1>
             </div>
           </div>
 
@@ -88,10 +72,6 @@ const MobileAppSection = () => {
         {/* Right Column - App Mockups: scale so both phones fit without clipping */}
         <div
           className='relative flex min-w-0 justify-center overflow-visible'
-          data-aos='zoom-in'
-          data-aos-duration='1200'
-          data-aos-delay='400'
-          data-aos-easing='ease-out-cubic'
         >
           <div className='flex origin-center scale-75 items-center justify-center space-x-2 sm:scale-90 sm:space-x-4 lg:scale-100 lg:space-x-6'>
             {/* First Phone Mockup - Dashboard Screen */}

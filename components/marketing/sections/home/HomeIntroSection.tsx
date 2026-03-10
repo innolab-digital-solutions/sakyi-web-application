@@ -9,14 +9,15 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-import DecorativeImage from '@/components/site/shared/DecorativeImage';
-import FloatingCard from '@/components/site/shared/FloatingCard';
-import GradientButton from '@/components/site/shared/GradientButton';
-import OutlineButton from '@/components/site/shared/OutlineButton';
-import SectionBadge from '@/components/site/shared/SectionBadge';
-import SectionContainer from '@/components/site/shared/SectionContainer';
-import SectionDescription from '@/components/site/shared/SectionDescription';
-import SectionTitle from '@/components/site/shared/SectionTitle';
+import GradientButton from '@/components/marketing/buttons/GradientButton';
+import OutlineButton from '@/components/marketing/buttons/OutlineButton';
+import FloatingCard from '@/components/marketing/cards/FloatingCard';
+import DecorativeImage from '@/components/marketing/DecorativeImage';
+import SectionBadge from '@/components/marketing/SectionBadge';
+import SectionContainer from '@/components/marketing/SectionContainer';
+import Body1 from '@/components/shared/typography/Body1';
+import Body2 from '@/components/shared/typography/Body2';
+import Heading1 from '@/components/shared/typography/Heading1';
 import { useLanguage } from '@/context/LanguageContext';
 
 const HomeIntroSection = () => {
@@ -35,21 +36,28 @@ const HomeIntroSection = () => {
 
           <div className='space-y-6'>
             {/* Main hero title (with gradient highlight) */}
-            <SectionTitle
-              as='h1'
-              variant='hero'
-              language={language}
-              blackPart={translate('marketing.pages.home.hero.title.black')}
-              gradientPart={translate(
-                'marketing.pages.home.hero.title.gradient',
-              )}
-              subtitle={translate('marketing.pages.home.hero.title.subtitle')}
-            />
+            <div className='space-y-4'>
+              <Heading1 lang={language}>
+                <span className='block font-sans text-foreground'>
+                  {translate('marketing.pages.home.hero.title.black')}
+                </span>
+                <span className='text-brand-gradient block bg-clip-text font-sans text-transparent leading-relaxed'>
+                  {translate('marketing.pages.home.hero.title.gradient')}
+                </span>
+              </Heading1>
+
+              <Body2
+                lang={language}
+                className='text-muted-foreground font-light'
+              >
+                {translate('marketing.pages.home.hero.title.subtitle')}
+              </Body2>
+            </div>
 
             {/* Hero section description */}
-            <SectionDescription language={language} maxWidth>
+            <Body1 lang={language} className='max-w-2xl'>
               {translate('marketing.pages.home.hero.description')}
-            </SectionDescription>
+            </Body1>
           </div>
 
           {/* Primary and secondary CTAs */}
