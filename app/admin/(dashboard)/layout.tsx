@@ -4,9 +4,9 @@ import { PropsWithChildren } from 'react';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { AuthProvider } from '@/context/AuthContext';
 
-import DashboardHeader from '../_components/DashboardHeader';
-import DashboardSidebar from '../_components/DashboardSidebar';
-import RouteGuard from '../_components/RouteGuard';
+import DashboardHeader from '../../../components/admin/layout/DashboardHeader';
+import DashboardSidebar from '../../../components/admin/layout/DashboardSidebar';
+import RouteGuard from '../../../components/admin/layout/RouteGuard';
 
 export default async function AdminProtectedLayout({
   children,
