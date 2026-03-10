@@ -24,7 +24,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
-import NAVIGATION from '@/config/navigation';
+import { NAVIGATION } from '@/config/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 const DashboardSidebar = () => {
@@ -33,6 +33,7 @@ const DashboardSidebar = () => {
 
   return (
     <Sidebar className='z-50!'>
+      {/* Sidebar header: Logo and title */}
       <SidebarHeader className='py-3.5'>
         <div className='flex items-center gap-3 px-2'>
           <div>
@@ -53,6 +54,7 @@ const DashboardSidebar = () => {
         </div>
       </SidebarHeader>
 
+      {/* Sidebar main navigation */}
       <SidebarContent className='scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent py-3.5'>
         <SidebarGroup>
           <SidebarMenu>
@@ -67,6 +69,7 @@ const DashboardSidebar = () => {
 
               const Icon = item.icon;
 
+              // If item has subitems, render collapsible group
               if (hasSubitems) {
                 return (
                   <SidebarMenuItem key={`${item.name}-${item.path}-${index}`}>
@@ -89,6 +92,7 @@ const DashboardSidebar = () => {
                       </CollapsibleTrigger>
                       <CollapsibleContent>
                         <SidebarMenuSub className='ml-4.5'>
+                          {/* Subitems for this menu item */}
                           {item.subitems!.map((subitem, subIndex) => {
                             const isSubActive = pathname === subitem.path;
 
@@ -117,6 +121,7 @@ const DashboardSidebar = () => {
                 );
               }
 
+              // Regular single link menu item
               return (
                 <SidebarMenuItem key={`${item.name}-${item.path}-${index}`}>
                   <SidebarMenuButton
@@ -139,6 +144,7 @@ const DashboardSidebar = () => {
         </SidebarGroup>
       </SidebarContent>
 
+      {/* Sidebar footer: Logout button */}
       <SidebarFooter className='py-3.25'>
         <Button
           variant='ghost'
@@ -153,7 +159,6 @@ const DashboardSidebar = () => {
             <LogOut className='h-4 w-4 shrink-0' />
             <span className='text-[12.5px] font-semibold'>Logout</span>
           </div>
-
           <ArrowRight className='h-4 w-4 shrink-0' />
         </Button>
       </SidebarFooter>

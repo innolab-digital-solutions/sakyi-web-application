@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import { slugify } from '@/lib/utils/slug';
+import { slugify } from '@/lib/utils/string';
 
 type BlogDetailPageProps = {
   params: Promise<{ slug: string }>;

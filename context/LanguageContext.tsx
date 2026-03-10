@@ -51,7 +51,7 @@ const LanguageContext = React.createContext<LanguageContextValue | null>(null);
  * Usage:
  *   Wrap application components in <LanguageProvider> to enable localization and language switching.
  */
-const LanguageProvider = ({ children }: React.PropsWithChildren) => {
+export const LanguageProvider = ({ children }: React.PropsWithChildren) => {
   const [language, setLanguage] =
     React.useState<SupportedLanguage>(DEFAULT_LANGUAGE);
 
@@ -97,5 +97,3 @@ export const useLanguage = (): LanguageContextValue => {
 
   return context;
 };
-
-export default LanguageProvider;
