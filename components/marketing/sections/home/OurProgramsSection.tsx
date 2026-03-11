@@ -18,9 +18,9 @@ const OurProgramsSection = () => {
   const { language, translate } = useLanguage();
 
   const { data: programs } = useQuery<Program[]>({
-    queryKey: ['programs'],
+    queryKey: ['programs', language],
     queryFn: async (): Promise<Program[]> => {
-      const response = await getPrograms();
+      const response = await getPrograms(language, 3);
       return response.data as Program[];
     },
   });

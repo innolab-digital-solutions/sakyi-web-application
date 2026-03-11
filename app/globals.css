@@ -224,11 +224,14 @@ body {
   background: linear-gradient(to right, #35bec5, #4bc4db, #0c96c4);
 }
 
+/* Vertical padding prevents clipping of diacritics (e.g. Myanmar) with background-clip: text */
 .text-brand-gradient {
   background: linear-gradient(to right, #35bec5, #4bc4db, #0c96c4);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
 }
 
 .border-brand-gradient {
@@ -244,4 +247,6 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
 }
