@@ -1,41 +1,51 @@
 import {
   buildRequestHeaders,
-  resolveApiUrl,
-  serializeRequestBody,
-} from './build';
+  buildSerializedRequestBody,
+  buildVersionedEndpoint,
+} from './builders';
 import { DEFAULT_METHOD } from './constants';
 import { ensureCsrfCookie } from './csrf';
 import {
-  handleBackendError,
-  handleJsonParseFailure,
-  handleNetworkFailure,
-  handleNoContent,
-  handleNonJson,
+  handleBackendApiError,
+  handleInvalidJson,
+  handleNetworkError,
+  handleNoContentResponse,
+  handleNonJsonResponse,
 } from './handlers';
 import type { ApiError as ApiErrorPayload, ApiResponse } from './types';
 import type { ClientOptions } from './types';
 
 /**
- * Performs a flexible, production-grade HTTP API request against a resolved endpoint.
+ * Performs an HTTP request to the versioned API endpoint using the provided options,
+ * handling CSRF, request serialization, error wrapping, and response normalization.
  *
- * Handles request serialization, appropriate headers, and response parsing for JSON, non-JSON, or no-content cases.
- * Automatically manages error flows—distinguishing between network errors, backend (application) errors, JSON parse failures, and no-content responses.
+ * This is the high-level entry point for all API client requests. It prepares
+ * the request URL, headers, and body; ensures CSRF protection for unsafe methods;
+ * executes the request; and parses, normalizes, and wraps responses using a uniform
+ * ApiResponse structure. Automatically detects and handles:
+ *  - Network failures and unreachable endpoints
+ *  - Non-JSON and invalid JSON responses
+ *  - HTTP error status (including error payloads returned by backend)
+ *  - Successful (status: "success") API responses
+ *  - No content (204) responses
  *
- * - Authenticates requests with `credentials: 'include'`.
- * - Throws or returns structured error responses depending on `throwOnError`.
- * - Allows explicit control over HTTP method, request body, response parsing mode, cache policy, Next.js-specific request options, and additional fetch parameters.
- * - Expects backend responses to conform to the `ApiResponse<T>` contract (with standardized `status`, `message`, etc.).
+ * When throwOnError is true (default), throws an ApiClientError for error conditions.
+ * Otherwise, returns an error-form ApiResponse object.
  *
- * @template T The expected data type of a successful API response.
- * @param {string} endpoint - The API path or URL fragment to request.
- * @param {ClientOptions} [options] - Configuration for HTTP method, request body, parsing, error strategy, cache, and other fetch parameters.
- * @returns {Promise<ApiResponse<T>>} A resolved or rejected standardized API response with fully typed data, or an error contract if failed.
+ * @template T The expected data type for the API response's `data` field.
+ * @param {string} endpoint - Relative API endpoint path (not absolute URL).
+ * @param {ClientOptions} options - Request options: method, headers, body, cache, etc.
+ * @returns {Promise<ApiResponse<T>>} Resolves to a normalized ApiResponse<T>. May throw ApiClientError if throwOnError is true.
+ *
+ * @throws {ApiClientError} When throwOnError is true and a network, HTTP, or backend error is encountered.
  *
  * @example
- *   const res = await client<User>('/api/user', { method: 'GET' });
- *   if (res.status === 'success') { ... }
- *
- * @throws {ApiClientError} If `throwOnError` is true and the request fails due to network or backend error.
+ * const response = await client<User>('/users/42', { method: 'GET' });
+ * if (response.status === 'success') {
+ *   console.log(response.data);
+ * } else {
+ *   handle error (e.g. display error message, log, etc.)
+ * }
  */
 export const client = async <T>(
   endpoint: string,
@@ -51,50 +61,51 @@ export const client = async <T>(
     ...rest
   } = options;
 
-  if (method !== 'GET') {
-    await ensureCsrfCookie();
-  }
+  if (method !== 'GET') await ensureCsrfCookie();
 
-  const url = resolveApiUrl(endpoint);
-  const requestHeaders = buildRequestHeaders(method, options);
-  const { body: serializedBody } = serializeRequestBody(body, requestHeaders);
+  const url = buildVersionedEndpoint(endpoint);
 
-  const requestInit: RequestInit = {
-    ...rest,
-    method,
-    headers: requestHeaders,
-    body: serializedBody ?? undefined,
-    credentials: 'include',
-    cache,
-    ...(next !== undefined && { next }),
-  };
+  const headers = buildRequestHeaders(method, options);
+
+  const { body: serializedBody } = buildSerializedRequestBody(body, headers);
 
   let response: Response;
+
   try {
-    response = await fetch(url, requestInit);
+    response = await fetch(url, {
+      method,
+      headers,
+      body: serializedBody,
+      credentials: 'include',
+      cache,
+      ...(next !== undefined && { next }),
+      ...rest,
+    });
   } catch (error) {
-    return handleNetworkFailure<T>(error, throwOnError);
+    return handleNetworkError<T>(error, throwOnError);
   }
 
   if (!parseJson) {
     const text = await response.text();
-    return handleNonJson<T>(response, text);
+    return handleNonJsonResponse<T>(response, text);
   }
 
   if (response.status === 204) {
-    return handleNoContent<T>();
+    return handleNoContentResponse<T>();
   }
 
   let json: ApiResponse<T>;
+
   try {
     json = await response.json();
   } catch {
-    return handleJsonParseFailure<T>(response, throwOnError);
+    return handleInvalidJson<T>(response, throwOnError);
   }
 
   const ok = response.ok && json.status !== 'error';
+
   if (!ok) {
-    return handleBackendError<T>(
+    return handleBackendApiError<T>(
       response,
       json as ApiErrorPayload,
       throwOnError,

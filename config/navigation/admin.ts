@@ -13,34 +13,30 @@ import {
   UserSquare2,
 } from 'lucide-react';
 
-import PATHS from '@/config/paths';
+import { ADMIN_ROUTES } from '@/config/routes/admin';
 
 import type { NavItem } from './types';
 
 /**
- * ADMIN_NAVIGATION defines the sidebar navigation structure
- * for authenticated admin users (dashboard/control panel).
+ * Sidebar navigation configuration for the Admin Dashboard.
  *
- * Each item conforms to the NavItem interface:
- *  - name: Display label for the navigation link
- *  - icon: Lucide icon component used for visualization
- *  - path: Navigation route (use '#' as a placeholder for unimplemented routes)
- *  - subitems: Optional dropdown/secondary links (empty array if no children)
+ * Each object represents a primary navigation item, including its display name, icon,
+ * target route, and any associated subitems (for dropdown or nested nav items).
  *
- * Guidelines for contributors:
- *  - Maintain consistent naming and ordering for clarity.
- *  - Use specific PATHS.ADMIN entries for real routes; use '#' as a placeholder only until the route is implemented.
- *  - If adding complex nested navigation, define proper subitems.
- *  - Icons should be chosen for semantic alignment with the navigation item.
- *  - Do not expose client-only or non-admin routes here.
+ * Important:
+ * - `path` must reference a value from {@link ADMIN_ROUTES} to ensure route consistency and type safety across the application.
  *
- * @see NavItem (config/navigation/types.ts)
+ * @see NavItem - Type definition for navigation items
+ * @see ADMIN_ROUTES - Centralized admin route definitions
+ *
+ * @example
+ * import { ADMIN_NAVIGATION } from '@/config/navigation/admin';
  */
 export const ADMIN_NAVIGATION: NavItem[] = [
   {
-    name: 'Dashboard',
+    name: 'Overview',
     icon: LayoutDashboard,
-    path: PATHS.ADMIN.DASHBOARD,
+    path: ADMIN_ROUTES.MODULES.OVERVIEW,
     subitems: [],
   },
   {
@@ -58,7 +54,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
   {
     name: 'Programs',
     icon: FolderKanban,
-    path: PATHS.ADMIN.PROGRAMS,
+    path: ADMIN_ROUTES.MODULES.PROGRAMS.LIST,
     subitems: [],
   },
   {

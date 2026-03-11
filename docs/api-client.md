@@ -119,9 +119,9 @@ This guarantees:
 
 ## Request Building
 
-### Headers (`buildRequestHeaders`)
+### Headers (`createApiRequestHeaders`)
 
-`buildRequestHeaders(method, init)`:
+`createApiRequestHeaders(method, init)`:
 
 - Always includes:
 
@@ -129,7 +129,7 @@ This guarantees:
   Accept: 'application/json';
   ```
 
-- Merges any `init.headers` (supports both `Headers` and plain objects).
+- Copies any `init.headers` into the result (supports both `Headers` and plain objects).
 - For non‑`GET` methods, attempts to read the CSRF token from the `XSRF-TOKEN` cookie using `getCsrfToken()` and, if found, adds:
 
   ```ts

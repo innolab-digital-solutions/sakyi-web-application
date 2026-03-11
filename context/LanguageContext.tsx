@@ -1,81 +1,99 @@
 'use client';
 
-import {
-  createContext,
-  PropsWithChildren,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import * as React from 'react';
 
 import {
-  getTranslation,
+  DEFAULT_LANGUAGE,
+  SUPPORTED_LANGUAGE_CODES,
   type SupportedLanguage,
+} from '@/config/languages';
+import {
+  getTranslation,
   type TranslationReplacements,
 } from '@/lib/localization';
 
 type LanguageContextValue = {
   language: SupportedLanguage;
-  setLanguage: (lang: SupportedLanguage) => void;
+  setLanguage: (language: SupportedLanguage) => void;
   translate: (key: string, replacements?: TranslationReplacements) => string;
 };
 
-const LanguageContext = createContext<LanguageContextValue | null>(null);
+const getInitialLanguage = (): SupportedLanguage => {
+  if (typeof window === 'undefined') {
+    return DEFAULT_LANGUAGE;
+  }
 
-export const LanguageProvider = ({ children }: PropsWithChildren) => {
-  const [language, setLanguageState] = useState<SupportedLanguage>('en');
+  const stored = window.localStorage.getItem('language');
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
+  return stored &&
+    SUPPORTED_LANGUAGE_CODES.includes(stored as SupportedLanguage)
+    ? (stored as SupportedLanguage)
+    : DEFAULT_LANGUAGE;
+};
 
-    const stored = window.localStorage.getItem('language');
+const LanguageContext = React.createContext<LanguageContextValue | null>(null);
 
-    if (stored === 'en' || stored === 'my') {
-      window.setTimeout(() => setLanguageState(stored), 0);
-    }
+/**
+ * Provides language state and translation functionality to the React component tree.
+ *
+ * - Tracks the current language and persists it to localStorage.
+ * - Sets the HTML document's language attribute according to the current language.
+ * - Supplies a translation function using the current language context.
+ *
+ * @param {React.PropsWithChildren} props - The children to be wrapped by the language provider.
+ * @returns {JSX.Element} The provider component supplying language context to its descendants.
+ *
+ * Context value:
+ *   - language: The currently selected language code.
+ *   - setLanguage: Function to update the selected language.
+ *   - translate: Function to translate a string key with optional replacements, using the current language.
+ *
+ * Usage:
+ *   Wrap application components in <LanguageProvider> to enable localization and language switching.
+ */
+export const LanguageProvider = ({ children }: React.PropsWithChildren) => {
+  const [language, setLanguage] =
+    React.useState<SupportedLanguage>(DEFAULT_LANGUAGE);
+
+  React.useEffect(() => {
+    setLanguage(getInitialLanguage());
   }, []);
 
-  const setLanguage = useCallback((lang: SupportedLanguage) => {
-    const nextLang: SupportedLanguage =
-      lang === 'en' || lang === 'my' ? lang : 'en';
-
-    setLanguageState(nextLang);
+  React.useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.lang = language;
 
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem('language', nextLang);
+      window.localStorage.setItem('language', language);
     }
-  }, []);
+  }, [language]);
 
-  const translate = useCallback(
+  /**
+   * Translates a key into the current language, with optional string replacement interpolation.
+   *
+   * @param {string} key - The translation key (dot-separated for nested paths).
+   * @param {TranslationReplacements} [replacements] - Optional placeholder replacements.
+   * @returns {string} The translated and interpolated string.
+   */
+  const translate = React.useCallback(
     (key: string, replacements?: TranslationReplacements) =>
       getTranslation(language, key, replacements),
     [language],
   );
 
-  const value = useMemo<LanguageContextValue>(
-    () => ({
-      language,
-      setLanguage,
-      translate,
-    }),
-    [language, setLanguage, translate],
-  );
-
   return (
-    <LanguageContext.Provider value={value}>
+    <LanguageContext.Provider value={{ language, setLanguage, translate }}>
       {children}
     </LanguageContext.Provider>
   );
 };
 
-export function useLanguage(): LanguageContextValue {
-  const ctx = useContext(LanguageContext);
+export const useLanguage = (): LanguageContextValue => {
+  const context = React.useContext(LanguageContext);
 
-  if (!ctx) {
+  if (!context) {
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
 
-  return ctx;
-}
+  return context;
+};

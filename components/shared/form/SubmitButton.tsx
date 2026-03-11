@@ -5,16 +5,16 @@ import { Spinner as ShadCNSpinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils/styles';
 
 type FormButtonProps = ComponentProps<typeof ShadCNButton> & {
-  processing?: boolean;
+  isSubmitting?: boolean;
 };
 
 /**
  * Primary submit button for forms. Shows a spinner and "Submitting..." when `processing` is true.
  *
- * Use with form hooks (e.g. useForm) by passing `processing={form.processing}` so the button
+ * Use with form hooks (e.g. useForm) by passing `isSubmitting={form.isSubmitting}` so the button
  * reflects submission state and avoids double submits.
  */
-const SubmitButton = ({ processing, ...props }: FormButtonProps) => {
+const SubmitButton = ({ isSubmitting, ...props }: FormButtonProps) => {
   return (
     <ShadCNButton
       type='submit'
@@ -25,7 +25,7 @@ const SubmitButton = ({ processing, ...props }: FormButtonProps) => {
       {...props}
     >
       <div className='absolute inset-0 -translate-x-full bg-linear-to-r from-white/10 to-white/5 transition-transform duration-700 ease-out group-hover:translate-x-full' />
-      {processing ? (
+      {isSubmitting ? (
         <>
           <ShadCNSpinner />
           <span className='ml-1'>Submitting...</span>

@@ -1,25 +1,25 @@
-/**
- * Supported language codes for localization.
- * Extend this union to support additional languages.
- *
- * @example 'en' | 'my'
- */
-export type SupportedLanguage = 'en' | 'my';
+import type { SupportedLanguage } from '@/config/languages';
 
 /**
- * Represents a recursive structure for translation keys and their values.
+ * All supported language codes used for localization, re-exported from configuration.
+ * Use this type when referencing a valid language key anywhere in localization context.
+ */
+export type { SupportedLanguage };
+
+/**
+ * Represents a single dictionary of translation keys and values (with support for nested namespaces).
  *
- * Allows for both flat and nested translation objects.
+ * - Keys are string paths (dot-separated for nested objects).
+ * - Values can be either a translated string or another TranslationObject (for nested translation structure).
  *
  * @example
  * {
- *   "greeting": "Hello",
- *   "messages": {
- *     "welcome": "Welcome!",
- *     "bye": {
- *       "formal": "Goodbye!",
- *       "informal": "See ya!"
- *     }
+ *   greeting: {
+ *     hello: "Hello",
+ *     welcome: "Welcome, :name!"
+ *   },
+ *   error: {
+ *     notFound: "Not found"
  *   }
  * }
  */
@@ -28,30 +28,22 @@ export type TranslationObject = {
 };
 
 /**
- * Maps each supported language to its corresponding translation object.
- *
- * Used as the top-level container for all translations in the app.
- * Keys correspond to language codes, values to the translation trees.
+ * Top-level index of all app dictionaries, keyed by language code.
  *
  * @example
  * {
- *   "en": {
- *     "greeting": "Hello",
- *     "messages": {
- *       "welcome": "Welcome!",
- *       "bye": {
- *         "formal": "Goodbye!",
- *         "informal": "See ya!"
- *       }
- *     }
- *   },
+ *   en: { ... },
+ *   my: { ... }
  * }
  */
 export type Translations = Record<SupportedLanguage, TranslationObject>;
 
 /**
- * Replacement variables for dynamic translation strings.
+ * Placeholder values for interpolation in translation strings.
  *
- * Used for string interpolation, e.g. `{ name: 'John' }` in `"Hello, :name"`.
+ * @example
+ *   key: "greeting.welcome"
+ *   translation: "Welcome, :name!"
+ *   replacements: { name: "Alice" }
  */
 export type TranslationReplacements = Record<string, string>;

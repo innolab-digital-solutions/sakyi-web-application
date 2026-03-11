@@ -1,58 +1,76 @@
 import { MESSAGES } from './constants';
 import { ApiClientError } from './errors';
-import type { ApiError as ApiErrorPayload, ApiResponse } from './types';
+import type {
+  ApiError as ApiErrorPayload,
+  ApiResponse,
+  ThrowOrReturnOptions,
+} from './types';
 
 /**
- * Response normalizers used by the core client only.
- * Each function converts a failure case (network error, non-JSON, parse failure, backend error)
- * into either a thrown {@link ApiClientError} or a returned {@link ApiResponse} with `status: 'error'`,
- * depending on `throwOnError`. The error type itself is defined in `errors.ts`.
- */
-
-/**
- * Builds a normalized API error response object (no throw).
+ * Either throws an ApiClientError or returns an error response,
+ * depending on the value of throwOnError and an optional fallbackResponse.
  *
- * @template T - The type of the expected response data.
- * @param message - User-facing error message.
- * @param errors - Optional detailed errors, keyed by field or context.
- * @returns ApiResponse with status 'error'.
+ * @template T The expected response data type.
+ * @param {string} message - Error message describing the failure.
+ * @param {number} status - HTTP status code associated with the error.
+ * @param {ThrowOrReturnOptions<T>} options - Additional options controlling error handling and fallback response.
+ * @returns {ApiResponse<T>} An error response object, unless throwOnError is true (then throws an exception).
+ *
+ * @throws {ApiClientError} If throwOnError is true.
  */
-export const toErrorResponse = <T>(
+const throwOrReturnApiClientError = <T>(
   message: string,
-  errors?: Record<string, unknown>,
+  status: number,
+  options: ThrowOrReturnOptions<T>,
 ): ApiResponse<T> => {
-  return { status: 'error', message, errors: errors ?? undefined };
+  const { throwOnError, errors, requestId, payload, fallbackResponse } =
+    options;
+
+  if (throwOnError) {
+    throw new ApiClientError(message, status, errors, requestId, payload);
+  }
+
+  if (fallbackResponse !== undefined) {
+    return fallbackResponse;
+  }
+
+  return {
+    status: 'error',
+    message,
+    ...(errors !== undefined && { errors }),
+  };
 };
 
 /**
- * Handles failures caused by network errors while making API requests.
+ * Handles network errors during fetch requests. Converts network failures to a uniform error response,
+ * or throws an ApiClientError depending on throwOnError.
  *
- * @template T - The type of the expected response data.
- * @param {unknown} error - The error object thrown by the network failure.
- * @param {boolean} throwOnError - If true, throws an {@link ApiClientError}, otherwise returns an error response.
- * @returns {Promise<ApiResponse<T>>} A rejected error or a failure response.
- * @throws {ApiClientError} If `throwOnError` is true.
+ * @template T The expected response data type.
+ * @param {unknown} error - The error object thrown by fetch (usually a network or CORS issue).
+ * @param {boolean} throwOnError - Whether to throw an ApiClientError or return an error response.
+ * @returns {Promise<ApiResponse<T>>} Promise resolving to an ApiResponse<T> error structure.
  */
-export const handleNetworkFailure = async <T>(
+export const handleNetworkError = async <T>(
   error: unknown,
   throwOnError: boolean,
 ): Promise<ApiResponse<T>> => {
   const errors = { network: [String(error)] };
-  if (throwOnError) {
-    throw new ApiClientError(MESSAGES.NETWORK_ERROR, 0, errors);
-  }
-  return toErrorResponse<T>(MESSAGES.NETWORK_ERROR, errors);
+  return throwOrReturnApiClientError<T>(MESSAGES.NETWORK_ERROR, 0, {
+    throwOnError,
+    errors,
+  });
 };
 
 /**
- * Handles responses that do not return JSON, such as plain text or other formats.
+ * Handles responses where the content is not JSON (e.g., plain text or HTML).
+ * Returns the raw text as the response data with appropriate success/error status.
  *
- * @template T - The type of the expected response data.
- * @param {Response} response - The Fetch API response object.
- * @param {string} text - The raw response text.
- * @returns {ApiResponse<T>} A success or error response containing the raw data.
+ * @template T The expected response data type.
+ * @param {Response} response - The fetch response object.
+ * @param {string} text - The raw response body as text.
+ * @returns {ApiResponse<T>} The API response object with the raw text coerced to T.
  */
-export const handleNonJson = <T>(
+export const handleNonJsonResponse = <T>(
   response: Response,
   text: string,
 ): ApiResponse<T> => {
@@ -65,12 +83,13 @@ export const handleNonJson = <T>(
 };
 
 /**
- * Handles successful API responses that contain no content (e.g., HTTP 204).
+ * Handles HTTP 204 No Content responses.
+ * Returns a standardized "success" ApiResponse with data as undefined.
  *
- * @template T - The type of the expected response data.
- * @returns {ApiResponse<T>} A success response with `undefined` as the data.
+ * @template T The expected response data type.
+ * @returns {ApiResponse<T>} The API response object with data set to undefined.
  */
-export const handleNoContent = <T>(): ApiResponse<T> => {
+export const handleNoContentResponse = <T>(): ApiResponse<T> => {
   return {
     status: 'success',
     message: MESSAGES.SUCCESS,
@@ -79,40 +98,37 @@ export const handleNoContent = <T>(): ApiResponse<T> => {
 };
 
 /**
- * Handles errors thrown when JSON response parsing fails.
+ * Handles failures to parse a response as JSON.
+ * Returns an error ApiResponse or throws, depending on throwOnError.
  *
- * @template T - The type of the expected response data.
- * @param {Response} response - The Fetch API response object.
- * @param {boolean} throwOnError - If true, throws an {@link ApiClientError}, otherwise returns an error response.
- * @returns {Promise<ApiResponse<T>>} The error response object or throws.
- * @throws {ApiClientError} If `throwOnError` is true.
+ * @template T The expected response data type.
+ * @param {Response} response - The fetch response object that failed parsing.
+ * @param {boolean} throwOnError - Whether to throw on error or return an error response.
+ * @returns {Promise<ApiResponse<T>>} Promise resolving to the error response.
+ *
+ * @throws {ApiClientError} If throwOnError is true.
  */
-export const handleJsonParseFailure = async <T>(
+export const handleInvalidJson = async <T>(
   response: Response,
   throwOnError: boolean,
-): Promise<ApiResponse<T>> => {
-  const errorResponse = toErrorResponse<T>(MESSAGES.INVALID_JSON);
-  if (throwOnError) {
-    throw new ApiClientError(MESSAGES.INVALID_JSON, response.status);
-  }
-  return errorResponse;
-};
+): Promise<ApiResponse<T>> =>
+  throwOrReturnApiClientError<T>(MESSAGES.INVALID_JSON, response.status, {
+    throwOnError,
+  });
 
 /**
- * Handles error responses returned from the backend server,
- * constructing a formatted error result or throwing as configured.
+ * Handles error responses returned by the backend (i.e., parsed JSON object with status "error").
+ * Wraps the error payload and HTTP response metadata for downstream consumption or error throwing.
  *
- * - When `throwOnError` is true, wraps the payload in an {@link ApiClientError}.
- * - When `throwOnError` is false, returns a normalized {@link ApiResponse} with `status: 'error'`.
+ * @template T The expected response data type.
+ * @param {Response} response - The fetch response object with error status.
+ * @param {ApiErrorPayload} payload - The API error payload returned by the backend.
+ * @param {boolean} throwOnError - Whether to throw on error or return an error response.
+ * @returns {ApiResponse<T>} The structured error response, or throws ApiClientError if throwOnError is true.
  *
- * @template T - The type of the expected response data.
- * @param {Response} response - The Fetch API response object.
- * @param {ApiErrorPayload} payload - The parsed error payload from the backend.
- * @param {boolean} throwOnError - If true, throws an {@link ApiClientError}, otherwise returns an error response.
- * @returns {ApiResponse<T>} The structured backend error response or throws.
- * @throws {ApiClientError} If `throwOnError` is true.
+ * @throws {ApiClientError} If throwOnError is true.
  */
-export const handleBackendError = <T>(
+export const handleBackendApiError = <T>(
   response: Response,
   payload: ApiErrorPayload,
   throwOnError: boolean,
@@ -124,18 +140,15 @@ export const handleBackendError = <T>(
     data: payload.data,
   };
 
-  if (throwOnError) {
-    const message =
-      (errorResponse.message?.trim() && errorResponse.message) ||
-      MESSAGES.DEFAULT_ERROR;
-    throw new ApiClientError(
-      message,
-      response.status,
-      errorResponse.errors as Record<string, unknown> | undefined,
-      response.headers.get('x-request-id') ?? undefined,
-      payload,
-    );
-  }
+  const message =
+    (errorResponse.message?.trim() && errorResponse.message) ||
+    MESSAGES.DEFAULT_ERROR;
 
-  return errorResponse;
+  return throwOrReturnApiClientError<T>(message, response.status, {
+    throwOnError,
+    errors: errorResponse.errors as Record<string, unknown> | undefined,
+    requestId: response.headers.get('x-request-id') ?? undefined,
+    payload,
+    fallbackResponse: errorResponse,
+  });
 };

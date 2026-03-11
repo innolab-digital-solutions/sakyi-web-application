@@ -1,30 +1,29 @@
 import { ADMIN_NAVIGATION } from './admin';
-import { FOOTER_NAVIGATION, HEADER_NAVIGATION } from './site';
+import { HEADER_NAVIGATION } from './marketing';
 
 /**
- * NAVIGATION aggregates the principal navigation structures used throughout the application.
+ * Centralized navigation configuration for the application.
  *
- * Structure:
- *  - ADMIN: Navigation menu for authenticated admin users (sidebar/dashboard).
- *  - SITE:
- *      - HEADER: Main navigation for public-facing users (typically site header).
- *      - FOOTER: Secondary links for public users (typically site footer).
+ * Groups together admin and marketing navigation objects for unified, type-safe navigation access throughout the codebase.
  *
- * This constant centralizes all available navigation schemas for consistent consumption across the app.
+ * References:
+ * - {@link ADMIN_NAVIGATION} - Admin navigation objects
+ * - {@link HEADER_NAVIGATION} - Marketing header navigation objects
  *
- * @see ADMIN_NAVIGATION (config/navigation/admin.ts)
- * @see HEADER_NAVIGATION, FOOTER_NAVIGATION (config/navigation/site.ts)
- * @see NavItem (config/navigation/types.ts)
+ * @example
+ * import NAVIGATION from '@/config/navigation';
+ *
+ * NAVIGATION.ADMIN; // All admin navigation items
+ * NAVIGATION.MARKETING.HEADER; // All marketing header navigation items
+ *
  */
 const NAVIGATION = {
-  ADMIN: ADMIN_NAVIGATION,
-  SITE: {
+  ADMIN: {
+    ...ADMIN_NAVIGATION,
+  },
+  MARKETING: {
     HEADER: HEADER_NAVIGATION,
-    FOOTER: FOOTER_NAVIGATION,
   },
 } as const;
 
-export { NAVIGATION as default };
-export { ADMIN_NAVIGATION } from './admin';
-export { FOOTER_NAVIGATION, HEADER_NAVIGATION } from './site';
-export * from './types';
+export { ADMIN_NAVIGATION, HEADER_NAVIGATION, NAVIGATION };

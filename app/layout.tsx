@@ -3,9 +3,10 @@ import './globals.css';
 import type { Metadata } from 'next';
 import type { PropsWithChildren } from 'react';
 
-import TanstackQueryProvider from '@/components/TanstackQueryProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { interFont, notoSansMyanmarFont } from '@/config/fonts';
 import { LanguageProvider } from '@/context/LanguageContext';
+import TanstackQueryProvider from '@/lib/providers/TanstackQueryProvider';
 
 export const metadata: Metadata = {
   title: 'SaKyi Health & Wellness',
@@ -14,8 +15,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<PropsWithChildren>) {
   return (
-    <html lang='en'>
-      <body className='antialiased'>
+    <html
+      lang='en'
+      className={`${interFont.variable} ${notoSansMyanmarFont.variable}`}
+    >
+      <body className='font-sans antialiased'>
         <TanstackQueryProvider>
           <TooltipProvider>
             <LanguageProvider>{children}</LanguageProvider>
