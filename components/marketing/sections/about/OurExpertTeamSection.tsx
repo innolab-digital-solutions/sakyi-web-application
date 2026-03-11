@@ -1,4 +1,4 @@
-import SectionContainer from '@/components/site/shared/SectionContainer';
+import SectionContainer from '@/components/marketing/SectionContainer';
 
 const OurExpertTeamSection = () => {
   return (

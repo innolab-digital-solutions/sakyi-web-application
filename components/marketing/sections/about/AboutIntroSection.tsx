@@ -2,11 +2,11 @@
 
 import { Users } from 'lucide-react';
 
-import SectionBadge from '@/components/site/shared/SectionBadge';
-import SectionContainer from '@/components/site/shared/SectionContainer';
-import SectionDescription from '@/components/site/shared/SectionDescription';
-import SectionImageCard from '@/components/site/shared/SectionImageCard';
-import SectionTitle from '@/components/site/shared/SectionTitle';
+import SectionBadge from '@/components/marketing/SectionBadge';
+import SectionContainer from '@/components/marketing/SectionContainer';
+import SectionImageCard from '@/components/marketing/cards/SectionImageCard';
+import Body1 from '@/components/shared/typography/Body1';
+import Heading1 from '@/components/shared/typography/Heading1';
 import { useLanguage } from '@/context/LanguageContext';
 
 const AboutIntroSection = () => {
@@ -23,27 +23,24 @@ const AboutIntroSection = () => {
           />
 
           <div className='space-y-6'>
-            {/* Section Title and description */}
-            <SectionTitle
-              as='h1'
-              variant='hero'
-              language={language}
-              blackPart={translate('marketing.pages.about.hero.title.black')}
-              gradientPart={translate(
-                'marketing.pages.about.hero.title.gradient',
-              )}
-            />
+            <Heading1 lang={language}>
+              <span className='block font-sans text-foreground'>
+                {translate('marketing.pages.about.hero.title.black')}{' '}
+              </span>
+              <span className='text-brand-gradient block bg-clip-text font-sans leading-relaxed text-transparent'>
+                {translate('marketing.pages.about.hero.title.gradient')}
+              </span>
+            </Heading1>
 
-            <SectionDescription language={language} maxWidth>
+            <Body1 lang={language} className='max-w-2xl'>
               {translate('marketing.pages.about.hero.description')}
-            </SectionDescription>
+            </Body1>
           </div>
         </div>
 
         {/* Right: Image Cards Grid */}
         <div className='relative min-w-0'>
           <div className='grid grid-cols-2 gap-4'>
-            {/* Main team image, large card */}
             <SectionImageCard
               src='/images/about-hero-2.jpg'
               alt='SaKyi Wellness Team - Holistic Health Approach'
@@ -57,7 +54,6 @@ const AboutIntroSection = () => {
               className='col-span-2 row-span-2'
               priority
             />
-            {/* Additional small cards */}
             <SectionImageCard
               src='/images/about-hero-1.jpg'
               alt='Wellness Consultation - Personalized Care'

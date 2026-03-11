@@ -69,7 +69,7 @@ const DashboardHeader = () => {
               </h3>
               {user?.role && (
                 <p className='text-muted-foreground text-xs font-medium'>
-                  {user.role.name}
+                  {user.role}
                 </p>
               )}
             </div>

@@ -2,13 +2,13 @@
 
 import { Compass, Heart, Lightbulb, Target } from 'lucide-react';
 
-import DecorativeImage from '@/components/site/shared/DecorativeImage';
-import FeatureList from '@/components/site/shared/FeatureList';
-import FloatingCard from '@/components/site/shared/FloatingCard';
-import SectionBadge from '@/components/site/shared/SectionBadge';
-import SectionContainer from '@/components/site/shared/SectionContainer';
-import SectionDescription from '@/components/site/shared/SectionDescription';
-import SectionTitle from '@/components/site/shared/SectionTitle';
+import DecorativeImage from '@/components/marketing/DecorativeImage';
+import FeatureList from '@/components/marketing/FeatureList';
+import FloatingCard from '@/components/marketing/cards/FloatingCard';
+import SectionBadge from '@/components/marketing/SectionBadge';
+import SectionContainer from '@/components/marketing/SectionContainer';
+import Body1 from '@/components/shared/typography/Body1';
+import Heading2 from '@/components/shared/typography/Heading2';
 import { useLanguage } from '@/context/LanguageContext';
 
 const MissionAndPhilosophySection = () => {
@@ -45,9 +45,9 @@ const MissionAndPhilosophySection = () => {
   ];
 
   return (
-    <SectionContainer id='mission-and-philosophy-section' className='bg-white'>
+    <SectionContainer id='mission-and-philosophy-section' className='bg-background'>
       <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
-        {/* Left Side: Decorative Image with Floating Cards */}
+        {/* Left: Decorative Image with Floating Cards */}
         <div className='relative min-w-0'>
           <div className='relative'>
             <DecorativeImage
@@ -57,7 +57,6 @@ const MissionAndPhilosophySection = () => {
               height={600}
             />
 
-            {/* FloatingCard: Mission */}
             <FloatingCard
               icon={<Target className='h-5 w-5' />}
               title={translate(
@@ -70,7 +69,6 @@ const MissionAndPhilosophySection = () => {
               iconClassName='bg-linear-to-r from-[#35bec5] to-[#4bc4db]'
             />
 
-            {/* FloatingCard: Holistic Care */}
             <FloatingCard
               icon={<Heart className='h-5 w-5' />}
               title={translate(
@@ -85,7 +83,7 @@ const MissionAndPhilosophySection = () => {
           </div>
         </div>
 
-        {/* Right Side: Section Title, Description, and Feature List */}
+        {/* Right: Section Title, Description, and Feature List */}
         <div className='min-w-0 space-y-8'>
           <div className='space-y-6'>
             <SectionBadge
@@ -93,25 +91,20 @@ const MissionAndPhilosophySection = () => {
               text={translate('marketing.pages.about.our-mission.badge')}
             />
 
-            <SectionTitle
-              as='h2'
-              variant='section'
-              language={language}
-              blackPart={translate(
-                'marketing.pages.about.our-mission.title.black',
-              )}
-              gradientPart={translate(
-                'marketing.pages.about.our-mission.title.gradient',
-              )}
-              layout='inline'
-            />
+            <Heading2 lang={language}>
+              <span className='text-foreground'>
+                {translate('marketing.pages.about.our-mission.title.black')}{' '}
+              </span>
+              <span className='text-brand-gradient bg-clip-text text-transparent'>
+                {translate('marketing.pages.about.our-mission.title.gradient')}
+              </span>
+            </Heading2>
 
-            <SectionDescription language={language} maxWidth>
+            <Body1 lang={language} className='max-w-2xl'>
               {translate('marketing.pages.about.our-mission.description')}
-            </SectionDescription>
+            </Body1>
           </div>
 
-          {/* Feature Items (Mission, Vision, Philosophy) */}
           <div className='space-y-4'>
             {features.map((feature, index) => (
               <FeatureList
