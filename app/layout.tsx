@@ -2,6 +2,7 @@ import './globals.css';
 
 import type { Metadata } from 'next';
 import type { PropsWithChildren } from 'react';
+import { Toaster } from 'sonner';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { interFont, notoSansMyanmarFont } from '@/config/fonts';
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: Readonly<PropsWithChildren>) {
             <LanguageProvider>{children}</LanguageProvider>
           </TooltipProvider>
         </TanstackQueryProvider>
+        <Toaster />
       </body>
     </html>
   );

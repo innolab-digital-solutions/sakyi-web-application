@@ -1,23 +1,30 @@
 'use client';
 
-import { Award, Heart, Scale, Users } from 'lucide-react';
+import {
+  Compass,
+  Heart,
+  Shield,
+  Target,
+  TrendingUp,
+  Users,
+} from 'lucide-react';
 
-import PrimaryCtaLink from '@/components/marketing/buttons/PrimaryCtaLink';
-import SecondaryCtaLink from '@/components/marketing/buttons/SecondaryCtaLink';
 import FeatureList from '@/components/marketing/FeatureList';
 import SectionBadge from '@/components/marketing/SectionBadge';
 import SectionContainer from '@/components/marketing/SectionContainer';
 import Body1 from '@/components/shared/typography/Body1';
 import Heading2 from '@/components/shared/typography/Heading2';
-import { ROUTES } from '@/config/routes';
 import { useLanguage } from '@/context/LanguageContext';
+
+import FloatingCard from '../../cards/FloatingCard';
+import DecorativeImage from '../../DecorativeImage';
 
 const BeyondWeightLossSection = () => {
   const { language, translate } = useLanguage();
 
   const features = [
     {
-      icon: <Scale className='h-5 w-5' />,
+      icon: <Heart className='h-5 w-5' />,
       title: translate(
         'marketing.pages.about.beyond-weight-loss.features.impact.title',
       ),
@@ -26,7 +33,7 @@ const BeyondWeightLossSection = () => {
       ),
     },
     {
-      icon: <Users className='h-5 w-5' />,
+      icon: <Shield className='h-5 w-5' />,
       title: translate(
         'marketing.pages.about.beyond-weight-loss.features.trust.title',
       ),
@@ -35,7 +42,7 @@ const BeyondWeightLossSection = () => {
       ),
     },
     {
-      icon: <Heart className='h-5 w-5' />,
+      icon: <Users className='h-5 w-5' />,
       title: translate(
         'marketing.pages.about.beyond-weight-loss.features.sustainable-change.title',
       ),
@@ -44,7 +51,7 @@ const BeyondWeightLossSection = () => {
       ),
     },
     {
-      icon: <Award className='h-5 w-5' />,
+      icon: <TrendingUp className='h-5 w-5' />,
       title: translate(
         'marketing.pages.about.beyond-weight-loss.features.people-centered-evidence-informed.title',
       ),
@@ -56,67 +63,94 @@ const BeyondWeightLossSection = () => {
 
   return (
     <SectionContainer id='beyond-weight-loss-section' className='bg-background'>
-      <div className='mx-auto max-w-3xl min-w-0 space-y-8'>
-        <div className='space-y-6 text-center'>
-          <SectionBadge
-            icon={null}
-            text={translate('marketing.pages.about.beyond-weight-loss.badge')}
-          />
+      <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
+        {/* Left: Decorative Image with Floating Cards */}
+        <div className='relative min-w-0'>
+          <div className='relative'>
+            <DecorativeImage
+              src='/images/our-impact.jpg'
+              alt='SaKyi Mission & Philosophy - Holistic Wellness Approach'
+              width={600}
+              height={600}
+            />
 
-          <Heading2 lang={language} className='mx-auto text-center'>
-            <span className='text-foreground'>
-              {translate(
-                'marketing.pages.about.beyond-weight-loss.title.black',
-              )}{' '}
-            </span>
-            <span className='text-brand-gradient bg-clip-text text-transparent'>
-              {translate(
-                'marketing.pages.about.beyond-weight-loss.title.gradient',
+            <FloatingCard
+              icon={<Target className='h-5 w-5' />}
+              title={translate(
+                'marketing.pages.about.beyond-weight-loss.floating-cards.proven-results.title',
               )}
-            </span>
-          </Heading2>
+              description={translate(
+                'marketing.pages.about.beyond-weight-loss.floating-cards.proven-results.description',
+              )}
+              className='-top-6 -left-2 sm:-left-4 lg:-top-4 lg:-left-6'
+              iconClassName='bg-linear-to-r from-[#35bec5] to-[#4bc4db]'
+            />
 
-          <div className='space-y-4 text-left'>
-            <Body1 lang={language} className='mx-auto max-w-2xl text-center'>
-              {translate(
-                'marketing.pages.about.beyond-weight-loss.description.paragraph-1',
+            <FloatingCard
+              icon={<Heart className='h-5 w-5' />}
+              title={translate(
+                'marketing.pages.about.beyond-weight-loss.floating-cards.holistic-care.title',
               )}
-            </Body1>
-            <Body1 lang={language} className='mx-auto max-w-2xl text-center'>
-              {translate(
-                'marketing.pages.about.beyond-weight-loss.description.paragraph-2',
+              description={translate(
+                'marketing.pages.about.beyond-weight-loss.floating-cards.holistic-care.description',
               )}
-            </Body1>
-            <Body1 lang={language} className='mx-auto max-w-2xl text-center'>
-              {translate(
-                'marketing.pages.about.beyond-weight-loss.description.paragraph-3',
-              )}
-            </Body1>
+              className='-right-2 -bottom-6 sm:-right-4 lg:-right-6'
+              iconClassName='bg-linear-to-r from-[#4bc4db] to-[#0c96c4]'
+            />
           </div>
         </div>
 
-        <div className='space-y-4'>
-          {features.map((feature, index) => (
-            <FeatureList
-              key={index}
-              icon={feature.icon}
-              title={feature.title}
-              description={feature.description}
+        {/* Right: Section Title, Description, and Feature List */}
+        <div className='min-w-0 space-y-8'>
+          <div className='space-y-6'>
+            <SectionBadge
+              icon={<Compass className='h-4 w-4' />}
+              text={translate('marketing.pages.about.beyond-weight-loss.badge')}
             />
-          ))}
-        </div>
+            <Heading2 lang={language}>
+              <span className='text-foreground'>
+                {translate(
+                  'marketing.pages.about.beyond-weight-loss.title.black',
+                )}{' '}
+              </span>
+              <span className='text-brand-gradient bg-clip-text text-transparent'>
+                {translate(
+                  'marketing.pages.about.beyond-weight-loss.title.gradient',
+                )}
+              </span>
+            </Heading2>
 
-        <div className='flex flex-col items-stretch justify-center gap-4 pt-4 sm:flex-row sm:items-center sm:justify-center sm:gap-5'>
-          <PrimaryCtaLink href={ROUTES.MARKETING.PROGRAMS}>
-            <span>
-              {translate('marketing.pages.about.call-to-action.cta.primary')}
-            </span>
-          </PrimaryCtaLink>
-          <SecondaryCtaLink href={ROUTES.MARKETING.CONTACT}>
-            <span>
-              {translate('marketing.pages.about.call-to-action.cta.secondary')}
-            </span>
-          </SecondaryCtaLink>
+            <div className='space-y-4 text-left'>
+              <Body1 lang={language} className='mx-auto max-w-2xl'>
+                {translate(
+                  'marketing.pages.about.beyond-weight-loss.description.paragraph-1',
+                )}
+              </Body1>
+
+              <Body1 lang={language} className='mx-auto max-w-2xl'>
+                {translate(
+                  'marketing.pages.about.beyond-weight-loss.description.paragraph-2',
+                )}
+              </Body1>
+
+              <Body1 lang={language} className='mx-auto max-w-2xl'>
+                {translate(
+                  'marketing.pages.about.beyond-weight-loss.description.paragraph-3',
+                )}
+              </Body1>
+            </div>
+          </div>
+
+          <div className='space-y-4'>
+            {features.map((feature, index) => (
+              <FeatureList
+                key={index}
+                icon={feature.icon}
+                title={feature.title}
+                description={feature.description}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </SectionContainer>

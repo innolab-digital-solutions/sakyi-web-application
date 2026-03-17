@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import AboutIntroSection from '@/components/marketing/sections/about/AboutIntroSection';
 import BeyondWeightLossSection from '@/components/marketing/sections/about/BeyondWeightLossSection';
+import CallToActionSection from '@/components/marketing/sections/about/CallToActionSection';
 import MissionAndPhilosophySection from '@/components/marketing/sections/about/MissionAndPhilosophySection';
 import OurApproachSection from '@/components/marketing/sections/about/OurApproachSection';
 import OurExpertTeamSection from '@/components/marketing/sections/about/OurExpertTeamSection';
@@ -24,6 +25,8 @@ export default function AboutPage() {
       <OurExpertTeamSection />
 
       <BeyondWeightLossSection />
+
+      <CallToActionSection />
     </>
   );
 }

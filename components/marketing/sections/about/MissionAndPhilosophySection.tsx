@@ -2,9 +2,9 @@
 
 import { Compass, Heart, Lightbulb, Target } from 'lucide-react';
 
+import FloatingCard from '@/components/marketing/cards/FloatingCard';
 import DecorativeImage from '@/components/marketing/DecorativeImage';
 import FeatureList from '@/components/marketing/FeatureList';
-import FloatingCard from '@/components/marketing/cards/FloatingCard';
 import SectionBadge from '@/components/marketing/SectionBadge';
 import SectionContainer from '@/components/marketing/SectionContainer';
 import Body1 from '@/components/shared/typography/Body1';
@@ -45,7 +45,7 @@ const MissionAndPhilosophySection = () => {
   ];
 
   return (
-    <SectionContainer id='mission-and-philosophy-section' className='bg-background'>
+    <SectionContainer id='mission-and-philosophy-section' className='bg-white'>
       <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
         {/* Left: Decorative Image with Floating Cards */}
         <div className='relative min-w-0'>
@@ -93,7 +93,9 @@ const MissionAndPhilosophySection = () => {
 
             <Heading2 lang={language}>
               <span className='text-foreground'>
-                {translate('marketing.pages.about.our-mission.title.black')}{' '}
+                {translate(
+                  'marketing.pages.about.our-mission.title.black',
+                )}{' '}
               </span>
               <span className='text-brand-gradient bg-clip-text text-transparent'>
                 {translate('marketing.pages.about.our-mission.title.gradient')}

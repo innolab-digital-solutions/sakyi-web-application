@@ -30,11 +30,12 @@ const Heading6 = ({
 }: Heading6Props) => {
   return (
     <h6
+      style={{ fontFamily: 'Poppins, sans-serif' }}
       className={cn(
         'text-foreground min-w-0 wrap-break-word',
         lang === 'my'
           ? 'font-sans text-sm leading-relaxed font-semibold sm:text-base'
-          : 'font-sans text-base leading-tight font-semibold sm:text-lg',
+          : 'font-sans text-base leading-tight font-semibold text-slate-900 sm:text-base',
         className,
       )}
     >

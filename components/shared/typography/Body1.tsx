@@ -31,6 +31,7 @@ const Body1 = ({
 }: Body1Props) => {
   return (
     <p
+      style={{ fontFamily: 'Poppins, sans-serif' }}
       className={cn(
         'max-w-full min-w-0 wrap-break-word',
         lang === 'my'

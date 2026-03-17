@@ -18,6 +18,9 @@
     },
     "description": "Discover our carefully curated wellness programs, supported by the Sa Kyi team to guide safe, sustainable progress toward your personal health and lifestyle goals."
   },
+  "program-card": {
+    "cta": "Learn More"
+  },
   "personalized-care": {
     "badge": "Personalized Care",
     "title": {
@@ -52,6 +55,16 @@
       },
       "positive-feedback": {
         "title": "Consistently Positive Client Feedback"
+      }
+    },
+    "floating-cards": {
+      "proven-results": {
+        "title": "Customized Plan",
+        "description": "Tailored to your needs"
+      },
+      "holistic-care": {
+        "title": "Expert Guidance",
+        "description": "Professional Oversight"
       }
     }
   },
@@ -92,8 +105,8 @@
   "how-it-works": {
     "badge": "How It Works",
     "title": {
-      "black": "How It Works",
-      "gradient": "for Your Wellness Journey"
+      "black": "How It",
+      "gradient": "Works"
     },
     "description": "Our structured process ensures a fully personalized and supported wellness experience throughout the lifetime.",
     "steps": {
