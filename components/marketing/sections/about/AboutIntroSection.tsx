@@ -16,19 +16,19 @@ const AboutIntroSection = () => {
     <SectionContainer id='about-intro-section' className='bg-background'>
       <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
         {/* Left: Badge, Title, Description */}
-        <div className='min-w-0 space-y-8'>
+        <div className='min-w-0 space-y-6'>
           <SectionBadge
             icon={<Users className='h-4 w-4' />}
             text={translate('marketing.pages.about.hero.badge')}
           />
 
-          <div className='space-y-6'>
+          <div className='space-y-4'>
             <Heading1 lang={language}>
               <span className='text-foreground block font-sans'>
                 {translate('marketing.pages.about.hero.title.black')}{' '}
-              </span>
-              <span className='text-brand-gradient block bg-clip-text font-sans leading-relaxed text-transparent'>
-                {translate('marketing.pages.about.hero.title.gradient')}
+                <span className='text-brand-gradient bg-clip-text font-sans text-transparent'>
+                  {translate('marketing.pages.about.hero.title.gradient')}
+                </span>
               </span>
             </Heading1>
 
