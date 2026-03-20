@@ -12,6 +12,16 @@ import { LANGUAGES, type SupportedLanguage } from '@/config/languages';
 import { useLanguage } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils/styles';
 
+const LANGUAGE_FLAGS: Record<SupportedLanguage, string> = {
+  en: '🇬🇧',
+  my: '🇲🇲',
+};
+
+const LANGUAGE_LABELS: Record<SupportedLanguage, string> = {
+  en: 'EN',
+  my: 'MY',
+};
+
 type LanguageDropdownProps = {
   className?: string;
 };
@@ -31,21 +41,31 @@ const LanguageDropdown = ({ className }: LanguageDropdownProps) => {
     <DropdownMenu>
       <DropdownMenuTrigger
         className={cn(
-          'group border-border inline-flex items-center gap-2 rounded-full border bg-transparent py-2 pr-4 pl-3 font-sans text-sm font-medium transition-all duration-200 outline-none',
-          'text-muted-foreground hover:border-muted-foreground/30 hover:bg-muted/40 hover:text-foreground',
-          'data-[state=open]:text-foreground data-[state=open]:border-[#35bec5]/50 data-[state=open]:bg-[#35bec5]/5',
-          'w-full focus-visible:ring-2 focus-visible:ring-[#35bec5]/40 focus-visible:ring-offset-2',
+          'group inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium transition-all duration-200 outline-none',
+          'text-slate-600 hover:border-[#35bec5]/40 hover:bg-[#35bec5]/5 hover:text-slate-900',
+          'data-[state=open]:border-[#35bec5]/50 data-[state=open]:bg-[#35bec5]/5 data-[state=open]:text-slate-900',
+          'focus-visible:ring-2 focus-visible:ring-[#35bec5]/40 focus-visible:ring-offset-2',
+          'shadow-sm hover:shadow-md',
           className,
         )}
         aria-label='Select language'
       >
-        <span className='min-w-7 text-left'>{current.code.toUpperCase()}</span>
-        <ChevronDown className='h-4 w-4 shrink-0 opacity-60 transition-transform duration-200 group-data-[state=open]:rotate-180' />
+        <span className='text-base leading-none'>
+          {LANGUAGE_FLAGS[current.code]}
+        </span>
+        <span
+          className='text-xs font-semibold tracking-wide'
+          style={{ fontFamily: 'Inter, sans-serif' }}
+        >
+          {LANGUAGE_LABELS[current.code]}
+        </span>
+        <ChevronDown className='h-3.5 w-3.5 shrink-0 opacity-50 transition-transform duration-200 group-data-[state=open]:rotate-180' />
       </DropdownMenuTrigger>
+
       <DropdownMenuContent
         align='end'
-        className='border-border/80 min-w-44 rounded-xl bg-white p-1.5 shadow-lg'
-        sideOffset={6}
+        className='min-w-40 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl'
+        sideOffset={8}
       >
         {LANGUAGES.map(({ code, name }) => {
           const isSelected = language === code;
@@ -54,21 +74,27 @@ const LanguageDropdown = ({ className }: LanguageDropdownProps) => {
               key={code}
               onClick={() => handleSelect(code)}
               className={cn(
-                'gap-3 rounded-lg py-2.5 pr-3 pl-8 text-sm',
-                isSelected && 'bg-brand-gradient/8 text-foreground font-medium',
+                'flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-150',
+                isSelected
+                  ? 'bg-gradient-to-r from-[#35bec5]/10 to-[#0c96c4]/10 font-medium text-slate-900'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
               )}
             >
-              <span className='absolute left-2 flex size-4 items-center justify-center'>
-                {isSelected ? (
-                  <Check
-                    className='size-4 shrink-0 text-[#35bec5]'
-                    strokeWidth={2.5}
-                  />
-                ) : (
-                  <span className='size-4' aria-hidden />
-                )}
+              <span className='text-base leading-none'>
+                {LANGUAGE_FLAGS[code]}
               </span>
-              {name}
+              <span
+                className='flex-1'
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                {name}
+              </span>
+              {isSelected && (
+                <Check
+                  className='h-3.5 w-3.5 shrink-0 text-[#35bec5]'
+                  strokeWidth={2.5}
+                />
+              )}
             </DropdownMenuItem>
           );
         })}

@@ -20,6 +20,11 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'api.sakyi.test',
       },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+        pathname: '**',
+      },
     ],
   },
   devIndicators: {

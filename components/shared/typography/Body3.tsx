@@ -31,6 +31,7 @@ const Body3 = ({
 }: Body3Props) => {
   return (
     <p
+      style={{ fontFamily: 'Inter, sans-serif' }}
       className={cn(
         'max-w-full min-w-0 wrap-break-word',
         lang === 'my'

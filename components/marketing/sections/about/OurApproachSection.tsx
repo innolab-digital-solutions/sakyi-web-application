@@ -62,7 +62,7 @@ const OurApproachSection = () => {
   ];
 
   return (
-    <SectionContainer id='our-approach-section' className='bg-white'>
+    <SectionContainer id='our-approach-section' className='bg-background'>
       <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
         <div className='min-w-0 space-y-8'>
           <div className='space-y-6'>
@@ -78,9 +78,7 @@ const OurApproachSection = () => {
                 )}{' '}
               </span>
               <span className='text-brand-gradient bg-clip-text text-transparent'>
-                {translate(
-                  'marketing.pages.about.our-approach.title.gradient',
-                )}
+                {translate('marketing.pages.about.our-approach.title.gradient')}
               </span>
             </Heading2>
 
@@ -104,7 +102,7 @@ const OurApproachSection = () => {
         <div className='relative min-w-0'>
           <div className='relative'>
             <DecorativeImage
-              src='/images/about/our-approach.jpg'
+              src='/images/our-approach.jpg'
               alt='SaKyi Wellness Approach - Holistic Health Methodology'
               width={600}
               height={600}

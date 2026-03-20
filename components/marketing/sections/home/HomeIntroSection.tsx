@@ -36,19 +36,19 @@ const HomeIntroSection = () => {
 
           <div className='space-y-6'>
             {/* Main hero title (with gradient highlight) */}
-            <div className='space-y-4'>
+            <div className='space-y-2'>
               <Heading1 lang={language}>
                 <span className='text-foreground block font-sans'>
                   {translate('marketing.pages.home.hero.title.black')}
                 </span>
-                <span className='text-brand-gradient block bg-clip-text font-sans leading-relaxed text-transparent'>
+                <span className='text-brand-gradient block bg-clip-text font-sans text-transparent'>
                   {translate('marketing.pages.home.hero.title.gradient')}
                 </span>
               </Heading1>
 
               <Body2
                 lang={language}
-                className='text-muted-foreground font-light'
+                className='block text-xl font-light text-slate-600 sm:text-2xl'
               >
                 {translate('marketing.pages.home.hero.title.subtitle')}
               </Body2>

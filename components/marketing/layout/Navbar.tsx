@@ -39,10 +39,10 @@ const Navbar = () => {
   return (
     <nav
       // Main navigation container, fixed at the top with fade-in animation and backdrop blur
-      className={`fixed top-0 z-50 w-full bg-white transition-all duration-300 ${
+      className={`animate-fade-in fixed top-0 z-50 w-full transition-all duration-300 ${
         isMounted && isScrolled
-          ? 'border-border border-b shadow-sm backdrop-blur-md'
-          : 'backdrop-blur-sm'
+          ? 'border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-md'
+          : 'bg-slate-50/80 backdrop-blur-sm'
       }`}
       id='navbar'
     >
@@ -62,7 +62,7 @@ const Navbar = () => {
               className='h-7 w-7 object-contain'
             />
             <span className='text-foreground font-sans text-xl font-semibold'>
-              SaKyi
+              Sa Kyi
             </span>
           </Link>
 

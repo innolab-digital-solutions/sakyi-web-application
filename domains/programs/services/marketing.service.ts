@@ -12,3 +12,12 @@ export const getPrograms = async (
     ENDPOINTS.MARKETING.PROGRAMS + `?limit=${limit}&locale=${language}`,
   );
 };
+
+export const getProgramBySlug = async (
+  slug: string,
+  language: SupportedLanguage,
+): Promise<ApiResponse<Program>> => {
+  return http.get<Program>(
+    ENDPOINTS.MARKETING.PROGRAMS + `/${slug}?locale=${language}`,
+  );
+};
