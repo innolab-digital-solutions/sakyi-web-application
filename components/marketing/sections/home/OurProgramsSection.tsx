@@ -63,7 +63,7 @@ const OurProgramsSection = () => {
                 className='rounded-2xl border border-slate-200 bg-white p-6 shadow-sm'
               >
                 <div className='flex flex-col gap-6'>
-                  <Skeleton className='aspect-[3/2] w-full rounded-xl' />
+                  <Skeleton className='aspect-3/2 w-full rounded-xl' />
                   <div className='space-y-4'>
                     <Skeleton className='h-7 w-3/4' />
                     <Skeleton className='h-4 w-full' />

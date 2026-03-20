@@ -31,8 +31,8 @@ const BlogDetailHeroSection = ({ post }: BlogDetailHeroSectionProps) => {
   return (
     <section className='relative overflow-hidden bg-slate-50 py-16'>
       <div className='absolute inset-0 overflow-hidden'>
-        <div className='absolute top-1/4 -right-32 h-64 w-64 rounded-full bg-gradient-to-br from-[#35bec5]/5 to-[#0c96c4]/5 blur-3xl' />
-        <div className='absolute bottom-1/4 -left-32 h-64 w-64 rounded-full bg-gradient-to-br from-[#4bc4db]/5 to-[#35bec5]/5 blur-3xl' />
+        <div className='absolute top-1/4 -right-32 h-64 w-64 rounded-full bg-linear-to-br from-[#35bec5]/5 to-[#0c96c4]/5 blur-3xl' />
+        <div className='absolute bottom-1/4 -left-32 h-64 w-64 rounded-full bg-linear-to-br from-[#4bc4db]/5 to-[#35bec5]/5 blur-3xl' />
       </div>
 
       <div className='relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8'>
@@ -118,7 +118,7 @@ const BlogDetailHeroSection = ({ post }: BlogDetailHeroSectionProps) => {
           data-aos='fade-up'
           data-aos-delay='400'
         >
-          <div className='aspect-[16/9] w-full'>
+          <div className='aspect-video w-full'>
             <Image
               src={thumbnailSource}
               alt={post.title}

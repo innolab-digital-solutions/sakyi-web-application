@@ -1,7 +1,6 @@
 'use client';
 
 import { MessageCircle, Send } from 'lucide-react';
-import { toast } from 'sonner';
 
 import SectionBadge from '@/components/marketing/SectionBadge';
 import SectionContainer from '@/components/marketing/SectionContainer';
@@ -20,10 +19,10 @@ const SendUsMessageSection = () => {
     e.preventDefault();
     await submit(
       () =>
-        toast.success(
+        console.log(
           "Message sent successfully! We'll get back to you within 24 hours.",
         ),
-      (msg) => toast.error(msg),
+      (msg) => console.error(msg),
     );
   };
 
@@ -60,7 +59,7 @@ const SendUsMessageSection = () => {
             <div className='space-y-8'>
               {/* Form Header */}
               <div className='text-center'>
-                <div className='mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-[#35bec5]/10 to-[#0c96c4]/10'>
+                <div className='mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-r from-[#35bec5]/10 to-[#0c96c4]/10'>
                   <Send className='h-8 w-8 text-[#35bec5]' />
                 </div>
                 <h3
@@ -165,7 +164,7 @@ const SendUsMessageSection = () => {
                   error={errors.message}
                   required
                   disabled={processing}
-                  className='min-h-[160px]'
+                  className='min-h-40'
                 />
               </div>
 

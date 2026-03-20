@@ -64,7 +64,7 @@ const ExploreArticlesSection = () => {
               key={i}
               className='rounded-2xl border border-slate-200 bg-white p-6 shadow-sm'
             >
-              <Skeleton className='aspect-[3/2] w-full rounded-xl' />
+              <Skeleton className='aspect-3/2 w-full rounded-xl' />
               <div className='mt-4 space-y-3'>
                 <Skeleton className='h-4 w-24' />
                 <Skeleton className='h-6 w-3/4' />
@@ -80,7 +80,7 @@ const ExploreArticlesSection = () => {
           ))
         ) : (
           <div className='col-span-full rounded-3xl border border-dashed border-slate-200 bg-slate-50/60 p-12 text-center'>
-            <div className='mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-[#35bec5] to-[#0c96c4] text-white'>
+            <div className='mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-r from-[#35bec5] to-[#0c96c4] text-white'>
               <FileQuestion className='h-8 w-8' />
             </div>
             <h3

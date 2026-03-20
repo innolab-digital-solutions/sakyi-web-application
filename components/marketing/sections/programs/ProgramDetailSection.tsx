@@ -50,9 +50,9 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
       {/* Hero Section */}
       <section className='relative flex min-h-screen items-center overflow-hidden bg-slate-50'>
         <div className='absolute inset-0 overflow-hidden'>
-          <div className='absolute -top-40 -right-40 h-80 w-80 rounded-full bg-gradient-to-br from-[#35bec5]/10 to-[#4bc4db]/10 blur-3xl' />
-          <div className='absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-gradient-to-br from-[#4bc4db]/10 to-[#0c96c4]/10 blur-3xl' />
-          <div className='absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-[#35bec5]/5 to-[#0c96c4]/5 blur-3xl' />
+          <div className='absolute -top-40 -right-40 h-80 w-80 rounded-full bg-linear-to-br from-[#35bec5]/10 to-[#4bc4db]/10 blur-3xl' />
+          <div className='absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-linear-to-br from-[#4bc4db]/10 to-[#0c96c4]/10 blur-3xl' />
+          <div className='absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-linear-to-br from-[#35bec5]/5 to-[#0c96c4]/5 blur-3xl' />
         </div>
 
         <div className='relative mx-auto max-w-7xl px-4 pt-24 pb-20 sm:px-6 lg:px-8'>
@@ -64,7 +64,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                 <Skeleton className='h-8 w-40 rounded-full' />
               ) : (
                 program?.tagline && (
-                  <div className='inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#35bec5]/10 to-[#0c96c4]/10 px-4 py-2 text-sm font-medium text-[#35bec5]'>
+                  <div className='inline-flex items-center gap-2 rounded-full bg-linear-to-r from-[#35bec5]/10 to-[#0c96c4]/10 px-4 py-2 text-sm font-medium text-[#35bec5]'>
                     <Zap className='h-4 w-4' />
                     <span style={{ fontFamily: 'Inter, sans-serif' }}>
                       {program.tagline}
@@ -104,7 +104,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                 <Skeleton className='h-10 w-32' />
               ) : (
                 <div className='flex items-center gap-3'>
-                  <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-[#35bec5]/10 to-[#0c96c4]/10'>
+                  <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-r from-[#35bec5]/10 to-[#0c96c4]/10'>
                     <Clock className='h-5 w-5 text-[#35bec5]' />
                   </div>
                   <div>
@@ -151,10 +151,10 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
             {/* Right Column - Image */}
             <div className='relative'>
               {isLoading ? (
-                <Skeleton className='aspect-[4/5] w-full rounded-3xl' />
+                <Skeleton className='aspect-4/5 w-full rounded-3xl' />
               ) : (
                 <div className='group relative overflow-hidden rounded-3xl shadow-2xl'>
-                  <div className='aspect-[4/5] w-full sm:aspect-[3/4]'>
+                  <div className='aspect-4/5 w-full sm:aspect-3/4'>
                     <Image
                       src={
                         imageError || !program?.thumbnail_url
@@ -178,7 +178,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                     />
                   </div>
                   {!imageError && program?.thumbnail_url && (
-                    <div className='absolute inset-0 bg-gradient-to-br from-slate-900/20 to-slate-800/10 transition-opacity duration-300 group-hover:opacity-0' />
+                    <div className='absolute inset-0 bg-linear-to-br from-slate-900/20 to-slate-800/10 transition-opacity duration-300 group-hover:opacity-0' />
                   )}
                 </div>
               )}
@@ -241,7 +241,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                     ))
                   : program?.features?.map((feature, index) => (
                       <div key={index} className='flex items-center gap-4'>
-                        <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-r from-[#35bec5]/10 to-[#0c96c4]/10'>
+                        <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-r from-[#35bec5]/10 to-[#0c96c4]/10'>
                           <CheckCircle className='h-5 w-5 text-[#35bec5]' />
                         </div>
                         <p
@@ -279,7 +279,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                     ))
                   : program?.ideals?.map((item, index) => (
                       <div key={index} className='flex items-center gap-4'>
-                        <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-r from-[#35bec5]/10 to-[#0c96c4]/10'>
+                        <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-r from-[#35bec5]/10 to-[#0c96c4]/10'>
                           <CheckCircle className='h-5 w-5 text-[#35bec5]' />
                         </div>
                         <p
@@ -299,8 +299,8 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
       {/* Expected Results */}
       <section className='relative overflow-hidden bg-slate-50 py-24'>
         <div className='absolute inset-0 overflow-hidden'>
-          <div className='absolute top-1/4 -right-32 h-64 w-64 rounded-full bg-gradient-to-br from-[#35bec5]/5 to-[#0c96c4]/5 blur-3xl' />
-          <div className='absolute bottom-1/4 -left-32 h-64 w-64 rounded-full bg-gradient-to-br from-[#4bc4db]/5 to-[#35bec5]/5 blur-3xl' />
+          <div className='absolute top-1/4 -right-32 h-64 w-64 rounded-full bg-linear-to-br from-[#35bec5]/5 to-[#0c96c4]/5 blur-3xl' />
+          <div className='absolute bottom-1/4 -left-32 h-64 w-64 rounded-full bg-linear-to-br from-[#4bc4db]/5 to-[#35bec5]/5 blur-3xl' />
         </div>
 
         <div className='relative mx-auto max-w-7xl px-6 lg:px-8'>
@@ -330,7 +330,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                     key={index}
                     className='group flex items-center gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:border-[#35bec5]/50 hover:shadow-lg'
                   >
-                    <div className='flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-[#35bec5] to-[#0c96c4] transition-all duration-300 group-hover:scale-105'>
+                    <div className='flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-[#35bec5] to-[#0c96c4] transition-all duration-300 group-hover:scale-105'>
                       <CheckCircle className='h-6 w-6 text-white' />
                     </div>
                     <p
@@ -374,7 +374,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                     key={index}
                     className='group flex items-start gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:border-[#35bec5]/50 hover:shadow-lg sm:p-8'
                   >
-                    <div className='flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-r from-[#35bec5] to-[#0c96c4] font-bold text-white transition-all duration-300 group-hover:scale-105'>
+                    <div className='flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-linear-to-r from-[#35bec5] to-[#0c96c4] font-bold text-white transition-all duration-300 group-hover:scale-105'>
                       {index + 1}
                     </div>
                     <p

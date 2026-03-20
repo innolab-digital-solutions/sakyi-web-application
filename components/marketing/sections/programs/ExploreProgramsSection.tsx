@@ -1,9 +1,11 @@
 'use client';
+
 import { useQuery } from '@tanstack/react-query';
 import { Grid3X3 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import ProgramCard from '@/components/marketing/cards/ProgramCard';
+import SectionBadge from '@/components/marketing/SectionBadge';
 import SectionContainer from '@/components/marketing/SectionContainer';
 import Body1 from '@/components/shared/typography/Body1';
 import Heading1 from '@/components/shared/typography/Heading1';
@@ -11,8 +13,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/context/LanguageContext';
 import { getPrograms } from '@/domains/programs/services/marketing.service';
 import type { Program } from '@/domains/programs/types';
-
-import SectionBadge from '../../SectionBadge';
 
 const INITIAL_LIMIT = 4;
 
@@ -79,7 +79,7 @@ const ExploreProgramsSection = () => {
                 className='rounded-2xl border border-slate-200 bg-white p-6 shadow-sm'
               >
                 <div className='flex flex-col gap-6'>
-                  <Skeleton className='aspect-[3/2] w-full rounded-xl' />
+                  <Skeleton className='aspect-3/2 w-full rounded-xl' />
                   <div className='space-y-4'>
                     <Skeleton className='h-7 w-3/4' />
                     <Skeleton className='h-4 w-full' />

@@ -10,13 +10,12 @@ import {
   TrendingUp,
 } from 'lucide-react';
 
+import FeatureCard from '@/components/marketing/cards/ProgramWhyChooseCard';
+import SectionBadge from '@/components/marketing/SectionBadge';
 import SectionContainer from '@/components/marketing/SectionContainer';
 import Body1 from '@/components/shared/typography/Body1';
 import Heading1 from '@/components/shared/typography/Heading1';
 import { useLanguage } from '@/context/LanguageContext';
-
-import FeatureCard from '../../cards/ProgramWhyChooseCard';
-import SectionBadge from '../../SectionBadge';
 
 const WhyChooseSaKyiSection = () => {
   const { language, translate } = useLanguage();

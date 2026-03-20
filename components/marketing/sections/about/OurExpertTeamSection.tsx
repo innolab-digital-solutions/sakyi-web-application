@@ -112,7 +112,7 @@ const OurExpertTeamSection = () => {
                     quality={90}
                   />
                   {/* Subtle dark overlay that disappears on hover */}
-                  <div className='absolute inset-0 bg-gradient-to-br from-slate-900/10 to-slate-800/5 transition-opacity duration-300 group-hover:opacity-0'></div>
+                  <div className='absolute inset-0 bg-linear-to-br from-slate-900/10 to-slate-800/5 transition-opacity duration-300 group-hover:opacity-0'></div>
                 </div>
               </div>
 

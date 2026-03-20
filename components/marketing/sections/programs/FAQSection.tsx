@@ -76,8 +76,8 @@ const FAQSection = () => {
     <SectionContainer id='faq-section' className='bg-white'>
       {/* Background Elements */}
       <div className='pointer-events-none absolute inset-0 overflow-hidden'>
-        <div className='absolute top-1/4 -right-32 h-64 w-64 rounded-full bg-gradient-to-br from-[#35bec5]/5 to-[#0c96c4]/5 blur-3xl' />
-        <div className='absolute bottom-1/4 -left-32 h-64 w-64 rounded-full bg-gradient-to-br from-[#4bc4db]/5 to-[#35bec5]/5 blur-3xl' />
+        <div className='absolute top-1/4 -right-32 h-64 w-64 rounded-full bg-linear-to-br from-[#35bec5]/5 to-[#0c96c4]/5 blur-3xl' />
+        <div className='absolute bottom-1/4 -left-32 h-64 w-64 rounded-full bg-linear-to-br from-[#4bc4db]/5 to-[#35bec5]/5 blur-3xl' />
       </div>
 
       {/* Header */}

@@ -26,7 +26,7 @@ const FeatureCard = ({
       {/* Icon */}
       <div className='mb-6'>
         <div
-          className={`inline-flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-r ${color} shadow-lg transition-all duration-500 group-hover:scale-105 group-hover:shadow-xl`}
+          className={`inline-flex h-12 w-12 items-center justify-center rounded-lg bg-linear-to-r ${color} shadow-lg transition-all duration-500 group-hover:scale-105 group-hover:shadow-xl`}
         >
           <Icon className='h-6 w-6 text-white transition-transform duration-500 group-hover:scale-110' />
         </div>
@@ -49,7 +49,7 @@ const FeatureCard = ({
       </div>
 
       {/* Hover Effect */}
-      <div className='absolute inset-0 rounded-2xl bg-gradient-to-r from-[#35bec5]/5 to-[#0c96c4]/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
+      <div className='absolute inset-0 rounded-2xl bg-linear-to-r from-[#35bec5]/5 to-[#0c96c4]/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
     </div>
   );
 };

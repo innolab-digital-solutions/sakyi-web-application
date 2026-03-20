@@ -8,13 +8,12 @@ import {
   Settings,
 } from 'lucide-react';
 
+import HowItWorksStepCard from '@/components/marketing/cards/HowItWorksStepCard';
+import SectionBadge from '@/components/marketing/SectionBadge';
 import SectionContainer from '@/components/marketing/SectionContainer';
 import Body1 from '@/components/shared/typography/Body1';
 import Heading1 from '@/components/shared/typography/Heading1';
 import { useLanguage } from '@/context/LanguageContext';
-
-import HowItWorksStepCard from '../../cards/HowItWorksStepCard';
-import SectionBadge from '../../SectionBadge';
 
 const HowItWorks = () => {
   const { language, translate } = useLanguage();
