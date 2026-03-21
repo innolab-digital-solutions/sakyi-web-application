@@ -20,8 +20,10 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 ## Documentation
 
-- **[Architecture](docs/architecture.md)** — product surfaces, folder layout, layering, and how pieces fit together.
+- **[Contributing](CONTRIBUTING.md)** — setup, scripts, and CI expectations.
+- **[Architecture](docs/architecture.md)** — product surfaces, folder layout, layering, Proxy, testing.
 - **[Domain modules](docs/domains-conventions.md)** — `domains/` layout (marketing vs admin, `schemas/`, per-feature examples).
+- **[Security](docs/security.md)** — API trust model, env vars, Proxy vs Laravel auth.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 

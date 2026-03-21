@@ -6,39 +6,25 @@ import * as React from 'react';
 import { ROUTES } from '@/config/routes';
 import { authService } from '@/domains/auth/auth.service';
 import type { User } from '@/domains/user/types';
+import { API_UNAUTHORIZED_EVENT } from '@/lib/api/client';
 
 type AuthContextValue = {
   user: User | null;
   error: string | null;
   isLoading: boolean;
   hasInitialized: boolean;
+  /** True when `user` is non-null (session resolved successfully). */
+  isAuthenticated: boolean;
+  /** Re-fetch the current user from `/auth/me`. */
+  checkSession: () => Promise<void>;
   logout: () => Promise<void>;
 };
 
 const AuthContext = React.createContext<AuthContextValue | null>(null);
 
 /**
- * Provides authentication session state and management functions to the React component tree.
- *
- * - Tracks the current logged-in user and session authentication state.
- * - Handles session initialization, user loading, logout, authentication errors, and loading state.
- * - Exposes actions for session validation (checkSession) and logout, as well as useful flags (isAuthenticated, isReady, isLoading).
- * - Persists authentication state in memory for descendant components.
- *
- * @param {React.PropsWithChildren} props - The children to be wrapped by the authentication provider.
- * @returns {JSX.Element} The provider component supplying authentication context to its descendants.
- *
- * Context value:
- *   - user: The authenticated user object (or null if not authenticated).
- *   - isAuthenticated: Boolean indicating if a user is currently authenticated.
- *   - isLoading: Boolean indicating whether authentication/session state is currently being determined or a mutation is in progress.
- *   - hasInitialized: Boolean indicating if authentication state has been initialized.
- *   - error: An error message related to authentication (or null if there is no error).
- *   - checkSession: Function to manually verify and refresh the current session/user.
- *   - logout: Function to log out the current user and reset session state.
- *
- * Usage:
- *   Wrap application components in <AuthProvider> to enable authentication session tracking and access management actions.
+ * Admin session state (Laravel Sanctum / cookie-backed API). The real security
+ * boundary is the API; this context drives UI and redirects only.
  */
 export const AuthProvider = ({ children }: React.PropsWithChildren) => {
   const router = useRouter();
@@ -48,18 +34,6 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [hasInitialized, setHasInitialized] = React.useState<boolean>(false);
 
-  /**
-   * Verifies and refreshes the current authentication session state.
-   *
-   * - Initiates an API call to load the authenticated user (via authService.me).
-   * - Updates the user state if authenticated, or clears it and sets an error on failure.
-   * - Adjusts loading and initialization flags to reflect session resolution.
-   *
-   * @returns {Promise<void>} Resolves when session check and context state updates are complete.
-   *
-   * Usage:
-   *   Call to manually refresh authentication context/user after login, logout, or app boot.
-   */
   const checkSession = React.useCallback(async (): Promise<void> => {
     setIsLoading(true);
 
@@ -79,16 +53,6 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
     setHasInitialized(true);
   }, []);
 
-  /**
-   * Logs out the current user by calling the backend logout endpoint.
-   *
-   * - Performs a logout API call to invalidate the session.
-   * - Resets user and authentication state on successful logout.
-   * - Redirects the user to the login page.
-   * - Sets appropriate loading states during the operation.
-   *
-   * @returns {Promise<void>} Resolves when logout and redirect are complete.
-   */
   const logout = React.useCallback(async (): Promise<void> => {
     setIsLoading(true);
 
@@ -113,19 +77,34 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
     }
   }, [checkSession, hasInitialized]);
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        error,
-        isLoading,
-        hasInitialized,
-        logout,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  React.useEffect(() => {
+    const onUnauthorized = () => {
+      setUser(null);
+      setError(null);
+      setHasInitialized(true);
+      router.replace(ROUTES.ADMIN.AUTH.LOGIN);
+    };
+
+    window.addEventListener(API_UNAUTHORIZED_EVENT, onUnauthorized);
+    return () => {
+      window.removeEventListener(API_UNAUTHORIZED_EVENT, onUnauthorized);
+    };
+  }, [router]);
+
+  const value = React.useMemo<AuthContextValue>(
+    () => ({
+      user,
+      error,
+      isLoading,
+      hasInitialized,
+      isAuthenticated: user !== null,
+      checkSession,
+      logout,
+    }),
+    [user, error, isLoading, hasInitialized, checkSession, logout],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextValue => {

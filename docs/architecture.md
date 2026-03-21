@@ -6,10 +6,10 @@ This document describes how the SaKyi web application is structured, how major p
 
 The app serves two distinct audiences in one Next.js codebase:
 
-| Surface | Role | Routes (typical) |
-|--------|------|------------------|
-| **Marketing** | Public, SEO-oriented site: home, about, programs, blog, contact | `app/(marketing)/` |
-| **Admin** | Authenticated dashboard for data entry and platform content (feeds public site and mobile clients) | `app/admin/` |
+| Surface       | Role                                                                                               | Routes (typical)   |
+| ------------- | -------------------------------------------------------------------------------------------------- | ------------------ |
+| **Marketing** | Public, SEO-oriented site: home, about, programs, blog, contact                                    | `app/(marketing)/` |
+| **Admin**     | Authenticated dashboard for data entry and platform content (feeds public site and mobile clients) | `app/admin/`       |
 
 Backend business logic and persistence live in a **Laravel API**. This repository is the **Next.js front end**: it calls that API via a shared HTTP client and must not duplicate authoritative validation or secrets on the client.
 
@@ -34,6 +34,7 @@ lib/                 # Infrastructure: API client, form hook, utilities, provide
 public/              # Static assets
 types/               # Cross-cutting TS types (e.g. generic API envelope)
 docs/                # Architecture and conventions (this folder)
+proxy.ts             # Next.js 16+ Proxy (path-matched; replaces deprecated middleware)
 ```
 
 **Rule of thumb:** If it is about **what the API returns** or **how we validate an admin payload**, it belongs in **`domains/`**. If it is **layout, styling, or routing**, it belongs in **`app/`** or **`components/`**.
@@ -82,12 +83,40 @@ Full naming and folder rules are in [domains-conventions.md](./domains-conventio
 - Keep **admin-only** modules from being imported by **marketing** routes (and vice versa) so bundles stay aligned with each surface.
 - Prefer **server-side fetching** for marketing content when it does not require client-only APIs; use TanStack Query when you need caching, refetch, or client-driven filters.
 
+## Security and trust boundaries
+
+The Laravel API enforces authz and validation. See [security.md](./security.md) for cookies, `NEXT_PUBLIC_*` rules, and Proxy limitations.
+
+## Proxy (Next.js 16+)
+
+`middleware` is deprecated in favor of **`proxy.ts`** at the repository root. This project uses a narrow **`matcher`** for `/admin/:path*` for future admin-only routing or headers. **Do not** treat Proxy as an authorization layer. Official docs: [proxy.js](https://nextjs.org/docs/app/api-reference/file-conventions/proxy).
+
+## Errors and observability
+
+- Route **error boundaries:** `app/error.tsx`, `app/admin/error.tsx`, and `app/global-error.tsx` render fallbacks and use `unstable_retry` (see Next.js [error.js](https://nextjs.org/docs/app/api-reference/file-conventions/error)).
+- **`reportClientError`** (`lib/observability/report-client-error.ts`) centralizes client logging; plug in Sentry or similar in one place.
+
+## API response mapping
+
+When marketing JSON shape differs from UI types (e.g. `excerpt` vs `overview`), normalize in **`domains/<feature>/transformers.ts`** and call from the relevant `*.service.ts` (see programs).
+
+## Testing
+
+- **Vitest** + Testing Library: `tests/**/*.test.ts(x)` — run `npm run test:vitest`.
+- **Playwright:** `e2e/` — run `npm run test:playwright` (UI) or `npm run test:playwright:ci` (headless). CI uses a production server after `next build`.
+
+## Architecture Decision Records
+
+Significant structural decisions are recorded under [docs/adr/](./adr/) (see `0001-record-architecture-decisions.md`).
+
 ## Related documents
 
-| Document | Purpose |
-|----------|---------|
+| Document                                           | Purpose                                                                 |
+| -------------------------------------------------- | ----------------------------------------------------------------------- |
 | [domains-conventions.md](./domains-conventions.md) | `domains/` layout: marketing vs admin, `schemas/`, examples per feature |
-| [form-hook.md](./form-hook.md) | `useForm` API, validation, and submission patterns |
+| [form-hook.md](./form-hook.md)                     | `useForm` API, validation, and submission patterns                      |
+| [security.md](./security.md)                       | Trust boundaries, env vars, Proxy, cookies                              |
+| [CONTRIBUTING.md](../CONTRIBUTING.md)              | Local setup, scripts, PR expectations                                   |
 
 ## Contributing
 

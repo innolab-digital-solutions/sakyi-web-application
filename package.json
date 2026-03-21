@@ -6,8 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test:vitest": "vitest",
+    "verify:env": "node scripts/verify-env.mjs",
+    "test:vitest": "vitest run",
+    "test:vitest:watch": "vitest",
     "test:playwright": "playwright test --ui",
+    "test:playwright:ci": "playwright test",
     "lint": "eslint",
     "format": "prettier --write ."
   },

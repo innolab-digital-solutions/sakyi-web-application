@@ -10,9 +10,14 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+env:
+  CI: true
+  NEXT_PUBLIC_API_DOMAIN_ENDPOINT: https://api.sakyihealthandwellness.com
+  NEXT_PUBLIC_API_VERSION_ENDPOINT: https://api.sakyihealthandwellness.com/v1
+
 jobs:
   check-quality:
-    name: Checking Code Quality and Formatting
+    name: Lint, typecheck, test, and build
     runs-on: ubuntu-latest
 
     steps:
@@ -28,6 +33,9 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Verify required public env vars
+        run: npm run verify:env
+
       - name: Run ESLint
         run: npx eslint .
 
@@ -37,5 +45,17 @@ jobs:
       - name: Run TypeScript Type Check
         run: npx tsc --noEmit
 
+      - name: Run unit tests (Vitest)
+        run: npm run test:vitest
+
+      - name: Run production build
+        run: npm run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright smoke tests
+        run: npm run test:playwright:ci
+
       - name: Summary
-        run: echo "✅ Code quality and formatting checks completed!"
+        run: echo "✅ Code quality, tests, and build completed!"

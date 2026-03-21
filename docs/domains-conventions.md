@@ -4,10 +4,10 @@ Each folder under `domains/<feature>/` groups **one product feature**: API acces
 
 ## Surfaces: marketing vs admin
 
-| Pattern | When | Layout |
-|--------|------|--------|
+| Pattern          | When                                            | Layout                                                                                                                                         |
+| ---------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Dual-surface** | Public site + admin CRUD (e.g. programs, blogs) | `types/marketing.ts`, `types/admin.ts`, `services/marketing.service.ts`, `services/admin.service.ts`, optional `schemas/` for **admin** writes |
-| **Admin-only** | No public API for the feature (e.g. auth) | `services/*.service.ts`, `schemas/*.schema.ts` |
+| **Admin-only**   | No public API for the feature (e.g. auth)       | `services/*.service.ts`, `schemas/*.schema.ts`                                                                                                 |
 
 **Imports:** Marketing routes import only `marketing.service` and marketing types. Admin routes import `admin.service`, admin types, and `schemas/`.
 
@@ -36,3 +36,7 @@ Each folder under `domains/<feature>/` groups **one product feature**: API acces
 ## User (`domains/user/`)
 
 Shared user DTOs for session/auth; keep aligned with `auth.service` responses.
+
+## API → UI mapping
+
+When JSON field names differ from marketing/admin types (e.g. `excerpt` vs `overview`), add **`transformers.ts`** in the feature folder and call it from the relevant `*.service.ts` after `http.get`.

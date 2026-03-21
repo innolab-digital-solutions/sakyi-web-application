@@ -1,3 +1,5 @@
+export const API_UNAUTHORIZED_EVENT = 'sakyi:api-unauthorized';
+
 /** The URL to fetch the CSRF cookie. */
 export const CSRF_COOKIE_ENDPOINT = '/sanctum/csrf-cookie';
 

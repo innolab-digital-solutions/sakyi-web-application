@@ -1,5 +1,6 @@
 import { MESSAGES } from './constants';
 import { ApiClientError } from './errors';
+import { dispatchApiUnauthorized } from './events';
 import type {
   ApiError as ApiErrorPayload,
   ApiResponse,
@@ -133,6 +134,10 @@ export const handleBackendApiError = <T>(
   payload: ApiErrorPayload,
   throwOnError: boolean,
 ): ApiResponse<T> => {
+  if (response.status === 401 && typeof window !== 'undefined') {
+    dispatchApiUnauthorized(payload.message);
+  }
+
   const errorResponse: ApiResponse<T> = {
     status: 'error',
     message: payload.message ?? response.statusText,

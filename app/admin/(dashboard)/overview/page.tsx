@@ -5,15 +5,17 @@ import * as React from 'react';
 import ComboboxField, {
   type ComboBoxOption,
 } from '@/components/shared/form/ComboboxField';
-import DatePickerField, { type DateRange } from '@/components/shared/form/DatePickerField';
+import DatePickerField, {
+  type DateRange,
+} from '@/components/shared/form/DatePickerField';
 import FileUploadField, {
   type FileUploadFieldRemoteFile,
 } from '@/components/shared/form/FileUploadField';
+import RichTextField from '@/components/shared/form/RichTextField';
 import SelectField, {
   type SelectFieldOption,
 } from '@/components/shared/form/SelectField';
 import TextAreaField from '@/components/shared/form/TextAreaField';
-import RichTextField from '@/components/shared/form/RichTextField';
 import TextField from '@/components/shared/form/TextField';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -242,8 +244,8 @@ export default function DashboardPage() {
             <code className='text-foreground'>RichTextField</code> (TipTap),{' '}
             <code className='text-foreground'>SelectField</code>,{' '}
             <code className='text-foreground'>ComboboxField</code>, and{' '}
-            <code className='text-foreground'>DatePickerField</code> (single, range,
-            presets, optional time) — plain options, rich rows (
+            <code className='text-foreground'>DatePickerField</code> (single,
+            range, presets, optional time) — plain options, rich rows (
             <code className='text-foreground'>content</code> /
             <code className='text-foreground'>keywords</code>), multi-select
             chips (local state only).
@@ -436,10 +438,9 @@ export default function DashboardPage() {
           <CardTitle className='text-base'>File upload</CardTitle>
           <CardDescription>
             <code className='text-foreground'>FileUploadField</code> — previews
-            (image thumb or icon), <code className='text-foreground'>
-              existingFiles
-            </code>{' '}
-            URLs for edit mode, single / multiple / avatar.
+            (image thumb or icon),{' '}
+            <code className='text-foreground'>existingFiles</code> URLs for edit
+            mode, single / multiple / avatar.
           </CardDescription>
         </CardHeader>
         <CardContent className='space-y-8'>
