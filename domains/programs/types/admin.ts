@@ -1,27 +1,28 @@
+import { STATUS } from '../constants';
+
 export type Program = {
-  id: string;
+  id: number;
   title: string;
   slug: string;
   tagline: string;
-  overview: string;
-  description: string;
+  excerpt: string;
+  about: string;
   features: string[];
   ideals: string[];
   expectations: string[];
   structures: string[];
   thumbnail_url: string;
   duration: string;
-  price: string;
-  status: string;
+  price: {
+    amount: number;
+    currency: string;
+  };
+  status: (typeof STATUS)[keyof typeof STATUS];
   timestamps: {
     published_at: string | null;
     archived_at: string | null;
     created_at: string;
     updated_at: string;
   };
-  goals?: {
-    id: string;
-    name: string;
-    slug: string;
-  }[];
+  goals?: { id: string; name: string; slug: string }[];
 };
