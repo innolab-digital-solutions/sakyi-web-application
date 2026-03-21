@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { SyntheticEvent } from 'react';
 
-import SubmitButton from '@/components/shared/form/SubmitButton';
+import FormSubmitButton from '@/components/shared/form/FormSubmitButton';
 import TextField from '@/components/shared/form/TextField';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
@@ -66,10 +66,10 @@ const LoginForm = () => {
       />
 
       {/* Submit Button */}
-      <SubmitButton isSubmitting={form.isSubmitting}>
+      <FormSubmitButton isSubmitting={form.isSubmitting}>
         <span>Sign In</span>
         <ArrowRight className='size-4 transition-transform duration-200 group-hover:translate-x-1' />
-      </SubmitButton>
+      </FormSubmitButton>
     </form>
   );
 };

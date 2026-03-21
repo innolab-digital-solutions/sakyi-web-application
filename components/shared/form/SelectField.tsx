@@ -24,21 +24,21 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils/styles';
 
-/** Option row for `SelectBoxField` (plain labels; use `ComboBoxField` for search or rich rows). */
-export type SelectBoxOption = {
+/** Option row for `SelectField` (plain labels; use `ComboBoxField` for search or rich rows). */
+export type SelectFieldOption = {
   value: string;
   label: string;
   disabled?: boolean;
 };
 
-type SelectBoxFieldSharedProps = {
+type SelectFieldSharedProps = {
   label?: string;
   error?: string;
   required?: boolean;
   disabled?: boolean;
   /** Shown when no value is selected. */
   placeholder?: string;
-  options: SelectBoxOption[];
+  options: SelectFieldOption[];
   id?: string;
   /**
    * Submitted with native forms via hidden inputs (only when `onChange` is used so the value stays
@@ -48,7 +48,7 @@ type SelectBoxFieldSharedProps = {
   className?: string;
 };
 
-export type SelectBoxFieldSingleProps = SelectBoxFieldSharedProps & {
+export type SelectFieldSingleProps = SelectFieldSharedProps & {
   multiple?: false;
   /** Controlled value; `undefined` means no selection (placeholder). */
   value?: string;
@@ -57,45 +57,45 @@ export type SelectBoxFieldSingleProps = SelectBoxFieldSharedProps & {
   defaultValue?: string;
 };
 
-export type SelectBoxFieldMultiProps = SelectBoxFieldSharedProps & {
+export type SelectFieldMultiProps = SelectFieldSharedProps & {
   multiple: true;
   /** Controlled selected values (option `value`s). */
   value?: string[];
   onChange?: (value: string[]) => void;
 };
 
-export type SelectBoxFieldProps = SelectBoxFieldSingleProps | SelectBoxFieldMultiProps;
+export type SelectFieldProps = SelectFieldSingleProps | SelectFieldMultiProps;
 
 /**
  * Dropdown using shadcn `Select` (single) or Popover + list (multi), with label and error
  * presentation aligned with `TextField` / `ComboBoxField`. Multi-select uses removable chips like
  * `ComboBoxField` multiple. For searchable lists, use `ComboBoxField`.
  */
-const SelectBoxField = React.forwardRef<
+const SelectField = React.forwardRef<
   React.ComponentRef<typeof SelectTrigger> | HTMLDivElement,
-  SelectBoxFieldProps
+  SelectFieldProps
 >((props, ref) => {
   if (props.multiple) {
     return (
-      <SelectBoxFieldMultiple
+      <SelectFieldMultiple
         {...props}
         ref={ref as React.Ref<HTMLDivElement>}
       />
     );
   }
   return (
-    <SelectBoxFieldSingle
+    <SelectFieldSingle
       {...props}
       ref={ref as React.Ref<React.ComponentRef<typeof SelectTrigger>>}
     />
   );
 });
 
-SelectBoxField.displayName = 'SelectBoxField';
+SelectField.displayName = 'SelectField';
 
-const SelectBoxFieldSingle = React.forwardRef<
+const SelectFieldSingle = React.forwardRef<
   React.ComponentRef<typeof SelectTrigger>,
-  SelectBoxFieldSingleProps
+  SelectFieldSingleProps
 >(
   (
     {
@@ -217,11 +217,11 @@ const SelectBoxFieldSingle = React.forwardRef<
   },
 );
 
-SelectBoxFieldSingle.displayName = 'SelectBoxFieldSingle';
+SelectFieldSingle.displayName = 'SelectFieldSingle';
 
-const SelectBoxFieldMultiple = React.forwardRef<
+const SelectFieldMultiple = React.forwardRef<
   HTMLDivElement,
-  SelectBoxFieldMultiProps
+  SelectFieldMultiProps
 >(
   (
     {
@@ -247,14 +247,14 @@ const SelectBoxFieldMultiple = React.forwardRef<
 
     const valueArr = value ?? [];
     const optionMap = React.useMemo(() => {
-      const m = new Map<string, SelectBoxOption>();
+      const m = new Map<string, SelectFieldOption>();
       for (const o of options) m.set(o.value, o);
       return m;
     }, [options]);
 
     const hasSelection = valueArr.length > 0;
 
-    const handleToggle = (opt: SelectBoxOption) => {
+    const handleToggle = (opt: SelectFieldOption) => {
       if (opt.disabled) return;
       const exists = valueArr.includes(opt.value);
       const next = exists
@@ -452,6 +452,6 @@ const SelectBoxFieldMultiple = React.forwardRef<
   },
 );
 
-SelectBoxFieldMultiple.displayName = 'SelectBoxFieldMultiple';
+SelectFieldMultiple.displayName = 'SelectFieldMultiple';
 
-export default SelectBoxField;
+export default SelectField;

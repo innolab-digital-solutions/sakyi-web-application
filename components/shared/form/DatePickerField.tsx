@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils/styles';
 
 export type { DateRange };
 
-type DatepickerSharedProps = {
+type DatePickerFieldSharedProps = {
   label?: string;
   error?: string;
   required?: boolean;
@@ -48,7 +48,7 @@ type CalendarPassthrough = Omit<
   'mode' | 'selected' | 'onSelect' | 'defaultMonth'
 >;
 
-export type DatepickerSingleProps = DatepickerSharedProps & {
+export type DatePickerFieldSingleProps = DatePickerFieldSharedProps & {
   mode?: 'single';
   value?: Date;
   onChange?: (date: Date | undefined) => void;
@@ -60,7 +60,7 @@ export type DatepickerSingleProps = DatepickerSharedProps & {
   calendarProps?: CalendarPassthrough;
 };
 
-export type DatepickerRangeProps = DatepickerSharedProps & {
+export type DatePickerFieldRangeProps = DatePickerFieldSharedProps & {
   mode: 'range';
   value?: DateRange;
   onChange?: (range: DateRange | undefined) => void;
@@ -71,7 +71,7 @@ export type DatepickerRangeProps = DatepickerSharedProps & {
   calendarProps?: CalendarPassthrough;
 };
 
-export type DatepickerProps = DatepickerSingleProps | DatepickerRangeProps;
+export type DatePickerFieldProps = DatePickerFieldSingleProps | DatePickerFieldRangeProps;
 
 const DEFAULT_TIME = '09:00';
 
@@ -127,7 +127,7 @@ function formatRangeTrigger(
  * `TextField` / `ComboBoxField`. Optional presets, time (single mode), and clear when `clearable` is
  * true. Calendar day colors use `sidebar` tokens so selected days match the admin sidebar.
  */
-function Datepicker(props: DatepickerProps) {
+function DatePickerField(props: DatePickerFieldProps) {
   const isRange = props.mode === 'range';
 
   const {
@@ -143,24 +143,24 @@ function Datepicker(props: DatepickerProps) {
   } = props;
 
   const dateFormat =
-    (props as DatepickerSingleProps | DatepickerRangeProps).dateFormat ??
+    (props as DatePickerFieldSingleProps | DatePickerFieldRangeProps).dateFormat ??
     'PP';
 
   const calendarProps = isRange
-    ? (props as DatepickerRangeProps).calendarProps
-    : (props as DatepickerSingleProps).calendarProps;
+    ? (props as DatePickerFieldRangeProps).calendarProps
+    : (props as DatePickerFieldSingleProps).calendarProps;
 
   const generatedId = React.useId();
   const id = idProp ?? generatedId;
   const errorId = error ? `${id}-error` : undefined;
   const [open, setOpen] = React.useState(false);
 
-  const includeTime = !isRange && (props as DatepickerSingleProps).includeTime;
+  const includeTime = !isRange && (props as DatePickerFieldSingleProps).includeTime;
   const singleValue = !isRange
-    ? (props as DatepickerSingleProps).value
+    ? (props as DatePickerFieldSingleProps).value
     : undefined;
   const rangeValue = isRange
-    ? (props as DatepickerRangeProps).value
+    ? (props as DatePickerFieldRangeProps).value
     : undefined;
 
   const [timeStr, setTimeStr] = React.useState(() =>
@@ -230,7 +230,7 @@ function Datepicker(props: DatepickerProps) {
               className='bg-background text-foreground hover:bg-muted/80 border-border rounded-md border px-2 py-1 text-xs font-medium'
               onClick={() => {
                 const range = p.getRange();
-                (props as DatepickerRangeProps).onChange?.(range);
+                (props as DatePickerFieldRangeProps).onChange?.(range);
                 setOpen(false);
               }}
             >
@@ -245,7 +245,7 @@ function Datepicker(props: DatepickerProps) {
               onClick={() => {
                 let d = p.getDate();
                 if (includeTime) d = parseTimeToDate(d, timeStr);
-                (props as DatepickerSingleProps).onChange?.(d);
+                (props as DatePickerFieldSingleProps).onChange?.(d);
                 setOpen(false);
               }}
             >
@@ -255,12 +255,12 @@ function Datepicker(props: DatepickerProps) {
     </div>
   ) : null;
 
-  const hiddenSingle = !isRange ? (props as DatepickerSingleProps).name : undefined;
+  const hiddenSingle = !isRange ? (props as DatePickerFieldSingleProps).name : undefined;
   const hiddenRangeFrom = isRange
-    ? (props as DatepickerRangeProps).nameFrom
+    ? (props as DatePickerFieldRangeProps).nameFrom
     : undefined;
   const hiddenRangeTo = isRange
-    ? (props as DatepickerRangeProps).nameTo
+    ? (props as DatePickerFieldRangeProps).nameTo
     : undefined;
 
   const hiddenSingleValue =
@@ -274,9 +274,9 @@ function Datepicker(props: DatepickerProps) {
 
   const clearSelection = () => {
     if (isRange) {
-      (props as DatepickerRangeProps).onChange?.(undefined);
+      (props as DatePickerFieldRangeProps).onChange?.(undefined);
     } else {
-      (props as DatepickerSingleProps).onChange?.(undefined);
+      (props as DatePickerFieldSingleProps).onChange?.(undefined);
       setTimeStr(DEFAULT_TIME);
     }
     setOpen(false);
@@ -367,7 +367,7 @@ function Datepicker(props: DatepickerProps) {
                 mode='range'
                 selected={rangeValue}
                 onSelect={(range: DateRange | undefined) => {
-                  (props as DatepickerRangeProps).onChange?.(range);
+                  (props as DatePickerFieldRangeProps).onChange?.(range);
                   if (range?.from && range.to) setOpen(false);
                 }}
                 initialFocus
@@ -382,14 +382,14 @@ function Datepicker(props: DatepickerProps) {
                 selected={singleValue}
                 onSelect={(date: Date | undefined) => {
                   if (!date) {
-                    (props as DatepickerSingleProps).onChange?.(undefined);
+                    (props as DatePickerFieldSingleProps).onChange?.(undefined);
                     setOpen(false);
                     return;
                   }
                   const next = includeTime
                     ? parseTimeToDate(date, timeStr)
                     : date;
-                  (props as DatepickerSingleProps).onChange?.(next);
+                  (props as DatePickerFieldSingleProps).onChange?.(next);
                   setOpen(false);
                 }}
                 initialFocus
@@ -413,7 +413,7 @@ function Datepicker(props: DatepickerProps) {
                       const nextHm = e.target.value || DEFAULT_TIME;
                       setTimeStr(nextHm);
                       if (!singleValue) return;
-                      (props as DatepickerSingleProps).onChange?.(
+                      (props as DatePickerFieldSingleProps).onChange?.(
                         parseTimeToDate(singleValue, nextHm),
                       );
                     }}
@@ -436,4 +436,4 @@ function Datepicker(props: DatepickerProps) {
   );
 }
 
-export default Datepicker;
+export default DatePickerField;

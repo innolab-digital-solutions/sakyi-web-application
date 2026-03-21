@@ -19,7 +19,7 @@ import { Label as ShadCNLabel } from '@/components/ui/label';
 import { cn } from '@/lib/utils/styles';
 
 /** Existing attachment from your API (edit mode) — not a browser `File`, only a URL + metadata. */
-export type FileUploaderRemoteFile = {
+export type FileUploadFieldRemoteFile = {
   /** Optional stable id for keys and remove handlers. */
   id?: string;
   /** Public URL (storage, CDN, signed URL). */
@@ -31,7 +31,7 @@ export type FileUploaderRemoteFile = {
   sizeBytes?: number;
 };
 
-type FileUploaderSharedProps = {
+type FileUploadFieldSharedProps = {
   /** Field label above the control. */
   label?: string;
   /** Validation or helper error (takes precedence over client-side file messages). */
@@ -55,12 +55,12 @@ type FileUploaderSharedProps = {
    * Existing files already stored on the server (edit mode). Shown with the same previews as local files.
    * Pass URLs from your API; removing an item calls `onExistingFilesChange` with the remaining list.
    */
-  existingFiles?: FileUploaderRemoteFile[];
+  existingFiles?: FileUploadFieldRemoteFile[];
   /** Called when the user removes a remote attachment (update your form state / mark for deletion on save). */
-  onExistingFilesChange?: (files: FileUploaderRemoteFile[]) => void;
+  onExistingFilesChange?: (files: FileUploadFieldRemoteFile[]) => void;
 };
 
-export type FileUploaderDefaultProps = FileUploaderSharedProps & {
+export type FileUploadFieldDefaultProps = FileUploadFieldSharedProps & {
   /** Row / drop-zone layout (default). */
   variant?: 'default';
   /** Allow more than one file. */
@@ -71,8 +71,8 @@ export type FileUploaderDefaultProps = FileUploaderSharedProps & {
   emptyHint?: string;
 };
 
-export type FileUploaderAvatarProps = Omit<
-  FileUploaderSharedProps,
+export type FileUploadFieldAvatarProps = Omit<
+  FileUploadFieldSharedProps,
   'existingFiles' | 'onExistingFilesChange'
 > & {
   variant: 'avatar';
@@ -85,9 +85,11 @@ export type FileUploaderAvatarProps = Omit<
   avatarSize?: 'default' | 'lg' | 'xl';
 };
 
-export type FileUploaderProps = FileUploaderDefaultProps | FileUploaderAvatarProps;
+export type FileUploadFieldProps =
+  | FileUploadFieldDefaultProps
+  | FileUploadFieldAvatarProps;
 
-const EMPTY_REMOTE_FILES: FileUploaderRemoteFile[] = [];
+const EMPTY_REMOTE_FILES: FileUploadFieldRemoteFile[] = [];
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -112,11 +114,9 @@ function guessMimeFromFilename(name: string): string {
     zip: 'application/zip',
     rar: 'application/x-rar-compressed',
     doc: 'application/msword',
-    docx:
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     xls: 'application/vnd.ms-excel',
-    xlsx:
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   };
   return map[ext] ?? 'application/octet-stream';
 }
@@ -125,7 +125,7 @@ function resolveMime(file: File): string {
   return file.type || guessMimeFromFilename(file.name);
 }
 
-function resolveRemoteMime(item: FileUploaderRemoteFile): string {
+function resolveRemoteMime(item: FileUploadFieldRemoteFile): string {
   return item.mimeType || guessMimeFromFilename(item.name);
 }
 
@@ -191,18 +191,17 @@ function ImageThumbWithFallback({
     return (
       <div
         className={cn(
-          'bg-muted/80 flex size-10 shrink-0 items-center justify-center rounded-md border border-border',
+          'bg-muted/80 border-border flex size-10 shrink-0 items-center justify-center rounded-md border',
           className,
         )}
         aria-hidden
       >
-        <ImageIcon className='size-5 text-muted-foreground' />
+        <ImageIcon className='text-muted-foreground size-5' />
       </div>
     );
   }
 
-  const displaySrc =
-    phase === 'fallback' ? FILE_IMAGE_FALLBACK_SRC : src;
+  const displaySrc = phase === 'fallback' ? FILE_IMAGE_FALLBACK_SRC : src;
 
   return (
     // Blob / API URLs — not using next/image (no fixed domains for user or remote files)
@@ -211,12 +210,10 @@ function ImageThumbWithFallback({
       src={displaySrc}
       alt={alt}
       className={cn(
-        'size-10 rounded-md border border-border bg-muted/50 object-contain object-center',
+        'border-border bg-muted/50 size-10 rounded-md border object-contain object-center',
         className,
       )}
-      onError={() =>
-        setPhase((p) => (p === 'primary' ? 'fallback' : 'icon'))
-      }
+      onError={() => setPhase((p) => (p === 'primary' ? 'fallback' : 'icon'))}
     />
   );
 }
@@ -241,8 +238,7 @@ function AvatarImageWithFallback({
 
   if (phase === 'gone') return null;
 
-  const displaySrc =
-    phase === 'fallback' ? FILE_IMAGE_FALLBACK_SRC : src;
+  const displaySrc = phase === 'fallback' ? FILE_IMAGE_FALLBACK_SRC : src;
 
   /** Placeholder asset is visually heavy at full bleed; inset it so it matches avatar proportions. */
   const isPlaceholderGraphic = displaySrc === FILE_IMAGE_FALLBACK_SRC;
@@ -256,9 +252,7 @@ function AvatarImageWithFallback({
         isPlaceholderGraphic && 'p-[22%]',
         className,
       )}
-      onError={() =>
-        setPhase((p) => (p === 'primary' ? 'fallback' : 'gone'))
-      }
+      onError={() => setPhase((p) => (p === 'primary' ? 'fallback' : 'gone'))}
     />
   );
 }
@@ -276,7 +270,7 @@ function FilePreviewSquare({
   }
   return (
     <div
-      className='bg-muted/80 flex size-10 shrink-0 items-center justify-center rounded-md border border-border'
+      className='bg-muted/80 border-border flex size-10 shrink-0 items-center justify-center rounded-md border'
       aria-hidden
     >
       <PreviewIcon kind={kind} />
@@ -284,14 +278,14 @@ function FilePreviewSquare({
   );
 }
 
-function RemotePreviewSquare({ item }: { item: FileUploaderRemoteFile }) {
+function RemotePreviewSquare({ item }: { item: FileUploadFieldRemoteFile }) {
   const mime = resolveRemoteMime(item);
   const kind = classifyMime(mime);
   if (kind === 'image') {
     return <ImageThumbWithFallback src={item.url} alt='' />;
   }
   return (
-    <div className='bg-muted/80 flex size-10 shrink-0 items-center justify-center rounded-md border border-border'>
+    <div className='bg-muted/80 border-border flex size-10 shrink-0 items-center justify-center rounded-md border'>
       <PreviewIcon kind={kind} />
     </div>
   );
@@ -320,10 +314,7 @@ function useObjectUrlsForFiles(files: File[]) {
     };
   }, [files]);
 
-  return React.useCallback(
-    (file: File) => urls[fileKey(file)] ?? null,
-    [urls],
-  );
+  return React.useCallback((file: File) => urls[fileKey(file)] ?? null, [urls]);
 }
 
 /**
@@ -332,7 +323,7 @@ function useObjectUrlsForFiles(files: File[]) {
  * Supports single or multiple files, optional drag-and-drop, client-side size checks, `existingFiles` URLs
  * for edit mode, and an `avatar` variant for profile photos. Selection is surfaced via `onFilesChange`.
  */
-function FileUploader(props: FileUploaderProps) {
+function FileUploadField(props: FileUploadFieldProps) {
   const {
     label,
     error: errorProp,
@@ -345,31 +336,37 @@ function FileUploader(props: FileUploaderProps) {
     className,
     maxFileSize,
     onFilesChange,
-    existingFiles: existingFilesProp,
-    onExistingFilesChange,
   } = props;
 
+  const existingFilesProp =
+    'existingFiles' in props ? props.existingFiles : undefined;
+  const onExistingFilesChange =
+    'onExistingFilesChange' in props ? props.onExistingFilesChange : undefined;
+
   const isAvatar = props.variant === 'avatar';
-  const multiple = !isAvatar && (props as FileUploaderDefaultProps).multiple === true;
+  const multiple =
+    !isAvatar && (props as FileUploadFieldDefaultProps).multiple === true;
   const maxFiles = !isAvatar
-    ? ((props as FileUploaderDefaultProps).maxFiles ?? (multiple ? 10 : 1))
+    ? ((props as FileUploadFieldDefaultProps).maxFiles ?? (multiple ? 10 : 1))
     : 1;
   const emptyHint = !isAvatar
-    ? ((props as FileUploaderDefaultProps).emptyHint ??
-      (multiple
-        ? 'Drag files here or browse'
-        : 'Drag a file here or browse'))
+    ? ((props as FileUploadFieldDefaultProps).emptyHint ??
+      (multiple ? 'Drag files here or browse' : 'Drag a file here or browse'))
     : '';
 
   const acceptResolved = accept ?? (isAvatar ? 'image/*' : undefined);
 
-  const avatarSrc = isAvatar ? (props as FileUploaderAvatarProps).src : undefined;
-  const avatarAlt = isAvatar ? ((props as FileUploaderAvatarProps).alt ?? '') : '';
+  const avatarSrc = isAvatar
+    ? (props as FileUploadFieldAvatarProps).src
+    : undefined;
+  const avatarAlt = isAvatar
+    ? ((props as FileUploadFieldAvatarProps).alt ?? '')
+    : '';
   const avatarFallback = isAvatar
-    ? (props as FileUploaderAvatarProps).fallback
+    ? (props as FileUploadFieldAvatarProps).fallback
     : undefined;
   const avatarSize = isAvatar
-    ? ((props as FileUploaderAvatarProps).avatarSize ?? 'lg')
+    ? ((props as FileUploadFieldAvatarProps).avatarSize ?? 'lg')
     : 'default';
 
   const existingFiles = existingFilesProp ?? EMPTY_REMOTE_FILES;
@@ -486,10 +483,11 @@ function FileUploader(props: FileUploaderProps) {
     applyFiles(files.filter((_, i) => i !== index));
   };
 
-  const removeRemote = (item: FileUploaderRemoteFile) => {
+  const removeRemote = (item: FileUploadFieldRemoteFile) => {
     onExistingFilesChange?.(
       existingFiles.filter(
-        (f) => (f.id ?? f.url) !== (item.id ?? item.url),
+        (f: FileUploadFieldRemoteFile) =>
+          (f.id ?? f.url) !== (item.id ?? item.url),
       ),
     );
   };
@@ -552,7 +550,10 @@ function FileUploader(props: FileUploaderProps) {
       return [];
     }
     return [
-      ...existingFiles.map((item) => ({ type: 'remote' as const, item })),
+      ...existingFiles.map((item: FileUploadFieldRemoteFile) => ({
+        type: 'remote' as const,
+        item,
+      })),
       ...files.map((file, index) => ({
         type: 'local' as const,
         file,
@@ -571,7 +572,9 @@ function FileUploader(props: FileUploaderProps) {
         </ShadCNLabel>
       )}
       {description ? (
-        <p className='text-muted-foreground text-xs md:text-sm'>{description}</p>
+        <p className='text-muted-foreground text-xs md:text-sm'>
+          {description}
+        </p>
       ) : null}
 
       <input
@@ -595,7 +598,7 @@ function FileUploader(props: FileUploaderProps) {
             disabled={disabled}
             onClick={openPicker}
             className={cn(
-              'group relative rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
+              'group focus-visible:ring-ring/50 relative rounded-full outline-none focus-visible:ring-[3px]',
               displayError && 'ring-destructive/30 ring-2',
             )}
             aria-label={label ?? 'Upload profile photo'}
@@ -603,7 +606,7 @@ function FileUploader(props: FileUploaderProps) {
             <Avatar
               className={cn(
                 avatarDimensionClass,
-                'border border-neutral-200 bg-muted/40 shadow-xs dark:border-input dark:bg-muted/30',
+                'bg-muted/40 dark:border-input dark:bg-muted/30 border border-neutral-200 shadow-xs',
                 displayError && 'border-destructive',
               )}
             >
@@ -611,7 +614,7 @@ function FileUploader(props: FileUploaderProps) {
                 src={resolvedAvatarImageSrc}
                 alt={resolvedAvatarAlt}
               />
-              <AvatarFallback className='bg-muted/80 text-lg text-muted-foreground'>
+              <AvatarFallback className='bg-muted/80 text-muted-foreground text-lg'>
                 {avatarFallback ?? <ImageIcon className='size-8 opacity-60' />}
               </AvatarFallback>
             </Avatar>
@@ -651,7 +654,7 @@ function FileUploader(props: FileUploaderProps) {
                 disabled={disabled}
                 onClick={clearAll}
                 className={cn(
-                  'h-8 px-2.5 text-xs font-medium text-muted-foreground shadow-none',
+                  'text-muted-foreground h-8 px-2.5 text-xs font-medium shadow-none',
                   'hover:bg-muted/60 hover:text-foreground',
                   'md:px-3',
                 )}
@@ -687,7 +690,7 @@ function FileUploader(props: FileUploaderProps) {
           >
             <div className='text-muted-foreground flex items-center gap-2 text-xs md:text-sm'>
               <Upload className='size-4 shrink-0' aria-hidden />
-              <span className='font-medium text-foreground'>{emptyHint}</span>
+              <span className='text-foreground font-medium'>{emptyHint}</span>
             </div>
             {!hasListContent ? (
               <span className='text-muted-foreground text-xs'>
@@ -700,7 +703,7 @@ function FileUploader(props: FileUploaderProps) {
                   row.type === 'remote' ? (
                     <li
                       key={row.item.id ?? row.item.url}
-                      className='bg-muted/50 flex items-center gap-2 rounded-md border border-border px-2 py-1.5 text-xs md:text-sm'
+                      className='bg-muted/50 border-border flex items-center gap-2 rounded-md border px-2 py-1.5 text-xs md:text-sm'
                     >
                       <RemotePreviewSquare item={row.item} />
                       <span className='min-w-0 flex-1 truncate font-medium'>
@@ -731,7 +734,7 @@ function FileUploader(props: FileUploaderProps) {
                   ) : (
                     <li
                       key={`${row.file.name}-${row.file.size}-${row.index}`}
-                      className='bg-muted/50 flex items-center gap-2 rounded-md border border-border px-2 py-1.5 text-xs md:text-sm'
+                      className='bg-muted/50 border-border flex items-center gap-2 rounded-md border px-2 py-1.5 text-xs md:text-sm'
                     >
                       <FilePreviewSquare
                         objectUrl={getObjectUrl(row.file)}
@@ -774,4 +777,4 @@ function FileUploader(props: FileUploaderProps) {
   );
 }
 
-export default FileUploader;
+export default FileUploadField;

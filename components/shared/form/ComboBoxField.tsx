@@ -50,7 +50,7 @@ export type ComboBoxOption = {
   selectedDisplay?: React.ReactNode;
 };
 
-type ComboBoxFieldSharedProps = {
+type ComboboxFieldSharedProps = {
   /** Field label shown above the trigger. */
   label?: string;
   /** Validation or helper error; when set, styles the trigger as invalid and announces the message. */
@@ -76,7 +76,7 @@ type ComboBoxFieldSharedProps = {
   className?: string;
 };
 
-export type ComboBoxFieldSingleProps = ComboBoxFieldSharedProps & {
+export type ComboboxFieldSingleProps = ComboboxFieldSharedProps & {
   multiple?: false;
   /** When not `false` (default), single-select shows a clear control when a value is set. */
   clearable?: boolean;
@@ -86,7 +86,7 @@ export type ComboBoxFieldSingleProps = ComboBoxFieldSharedProps & {
   onChange?: (value: string | null) => void;
 };
 
-export type ComboBoxFieldMultiProps = ComboBoxFieldSharedProps & {
+export type ComboboxFieldMultiProps = ComboboxFieldSharedProps & {
   multiple: true;
   /** Controlled selected values (option `value`s). */
   value?: string[];
@@ -94,16 +94,16 @@ export type ComboBoxFieldMultiProps = ComboBoxFieldSharedProps & {
   onChange?: (value: string[]) => void;
 };
 
-export type ComboBoxFieldProps =
-  | ComboBoxFieldSingleProps
-  | ComboBoxFieldMultiProps;
+export type ComboboxFieldProps =
+  | ComboboxFieldSingleProps
+  | ComboboxFieldMultiProps;
 
 /**
  * Searchable combobox built from shadcn Popover + Command, with label and error presentation matching TextField.
  *
  * Supports single or multi-select; multi-select shows removable chips in the trigger.
  */
-function ComboBoxField(props: ComboBoxFieldProps) {
+function ComboboxField(props: ComboboxFieldProps) {
   const {
     label,
     error,
@@ -121,10 +121,10 @@ function ComboBoxField(props: ComboBoxFieldProps) {
   const isMulti = props.multiple === true;
   const value = isMulti ? (props.value ?? []) : (props.value ?? null);
   const onChange = isMulti
-    ? (props as ComboBoxFieldMultiProps).onChange
-    : (props as ComboBoxFieldSingleProps).onChange;
+    ? (props as ComboboxFieldMultiProps).onChange
+    : (props as ComboboxFieldSingleProps).onChange;
   const clearableSingle =
-    !isMulti && (props as ComboBoxFieldSingleProps).clearable !== false;
+    !isMulti && (props as ComboboxFieldSingleProps).clearable !== false;
 
   const generatedId = React.useId();
   const id = idProp ?? generatedId;
@@ -156,13 +156,13 @@ function ComboBoxField(props: ComboBoxFieldProps) {
       const next = exists
         ? current.filter((v) => v !== option.value)
         : [...current, option.value];
-      (onChange as ComboBoxFieldMultiProps['onChange'])?.(next);
+      (onChange as ComboboxFieldMultiProps['onChange'])?.(next);
       return;
     }
 
     const current = value as string | null;
     const next = current === option.value ? null : option.value;
-    (onChange as ComboBoxFieldSingleProps['onChange'])?.(next);
+    (onChange as ComboboxFieldSingleProps['onChange'])?.(next);
     setOpen(false);
   };
 
@@ -171,7 +171,7 @@ function ComboBoxField(props: ComboBoxFieldProps) {
     e.stopPropagation();
     if (!isMulti || disabled) return;
     const current = value as string[];
-    (onChange as ComboBoxFieldMultiProps['onChange'])?.(
+    (onChange as ComboboxFieldMultiProps['onChange'])?.(
       current.filter((v) => v !== optionValue),
     );
   };
@@ -180,7 +180,7 @@ function ComboBoxField(props: ComboBoxFieldProps) {
     e.preventDefault();
     e.stopPropagation();
     if (isMulti || disabled || !onChange) return;
-    (onChange as ComboBoxFieldSingleProps['onChange'])?.(null);
+    (onChange as ComboboxFieldSingleProps['onChange'])?.(null);
   };
 
   const showSingleClear =
@@ -432,4 +432,4 @@ function ComboBoxField(props: ComboBoxFieldProps) {
   );
 }
 
-export default ComboBoxField;
+export default ComboboxField;

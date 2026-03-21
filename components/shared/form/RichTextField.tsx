@@ -78,10 +78,10 @@ function EditorToolbarIconButton({
 }
 
 /**
- * Props for `TextEditor`. Rich HTML via TipTap; optional label, description, and error
+ * Props for `RichTextField`. Rich HTML via TipTap; optional label, description, and error
  * aligned with `TextField` / `TextAreaField`.
  */
-export type TextEditorProps = {
+export type RichTextFieldProps = {
   id?: string;
   label?: string;
   error?: string;
@@ -98,7 +98,7 @@ export type TextEditorProps = {
  * Rich text field with the same toolbar as the legacy editor: headings, lists, link,
  * alignment, undo/redo, etc. Outputs HTML via `onChange`.
  */
-export default function TextEditor({
+export default function RichTextField({
   id: idProp,
   label,
   error,
@@ -109,7 +109,7 @@ export default function TextEditor({
   disabled = false,
   className,
   editorClassName,
-}: TextEditorProps) {
+}: RichTextFieldProps) {
   const generatedId = React.useId();
   const id = idProp ?? generatedId;
   const errorId = error ? `${id}-error` : undefined;

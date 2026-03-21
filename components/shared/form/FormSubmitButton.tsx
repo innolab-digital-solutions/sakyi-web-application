@@ -14,7 +14,7 @@ type FormButtonProps = ComponentProps<typeof ShadCNButton> & {
  * Use with form hooks (e.g. useForm) by passing `isSubmitting={form.isSubmitting}` so the button
  * reflects submission state and avoids double submits.
  */
-const SubmitButton = ({ isSubmitting, ...props }: FormButtonProps) => {
+const FormSubmitButton = ({ isSubmitting, ...props }: FormButtonProps) => {
   return (
     <ShadCNButton
       type='submit'
@@ -37,4 +37,4 @@ const SubmitButton = ({ isSubmitting, ...props }: FormButtonProps) => {
   );
 };
 
-export default SubmitButton;
+export default FormSubmitButton;

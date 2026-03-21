@@ -2,18 +2,18 @@
 
 import * as React from 'react';
 
-import ComboBoxField, {
+import ComboboxField, {
   type ComboBoxOption,
-} from '@/components/shared/form/ComboBoxField';
-import Datepicker, { type DateRange } from '@/components/shared/form/Datepicker';
-import FileUploader, {
-  type FileUploaderRemoteFile,
-} from '@/components/shared/form/FileUploader';
-import SelectBoxField, {
-  type SelectBoxOption,
-} from '@/components/shared/form/SelectBoxField';
+} from '@/components/shared/form/ComboboxField';
+import DatePickerField, { type DateRange } from '@/components/shared/form/DatePickerField';
+import FileUploadField, {
+  type FileUploadFieldRemoteFile,
+} from '@/components/shared/form/FileUploadField';
+import SelectField, {
+  type SelectFieldOption,
+} from '@/components/shared/form/SelectField';
 import TextAreaField from '@/components/shared/form/TextAreaField';
-import TextEditor from '@/components/shared/form/TextEditor';
+import RichTextField from '@/components/shared/form/RichTextField';
 import TextField from '@/components/shared/form/TextField';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -135,8 +135,8 @@ const TEAM_MEMBER_OPTIONS_FULL: ComboBoxOption[] = [
   ...TEAM_MEMBER_SCROLL_EXTRA,
 ];
 
-/** Short list for non-searchable `SelectBoxField` demo. */
-const DEPARTMENT_OPTIONS: SelectBoxOption[] = [
+/** Short list for non-searchable `SelectField` demo. */
+const DEPARTMENT_OPTIONS: SelectFieldOption[] = [
   { value: 'clinical', label: 'Clinical' },
   { value: 'admin', label: 'Administration' },
   { value: 'wellness', label: 'Wellness' },
@@ -193,7 +193,7 @@ export default function DashboardPage() {
 
   /** Edit-mode demo: attachments already on the server (URLs + metadata). */
   const [documentRemote, setDocumentRemote] = React.useState<
-    FileUploaderRemoteFile[]
+    FileUploadFieldRemoteFile[]
   >([
     {
       id: 'demo-existing-pdf',
@@ -204,7 +204,7 @@ export default function DashboardPage() {
     },
   ]);
   const [galleryRemote, setGalleryRemote] = React.useState<
-    FileUploaderRemoteFile[]
+    FileUploadFieldRemoteFile[]
   >([
     {
       id: 'demo-remote-1',
@@ -239,10 +239,10 @@ export default function DashboardPage() {
           <CardDescription>
             Shared <code className='text-foreground'>TextField</code>,{' '}
             <code className='text-foreground'>TextAreaField</code>,{' '}
-            <code className='text-foreground'>TextEditor</code> (TipTap),{' '}
-            <code className='text-foreground'>SelectBoxField</code>,{' '}
-            <code className='text-foreground'>ComboBoxField</code>, and{' '}
-            <code className='text-foreground'>Datepicker</code> (single, range,
+            <code className='text-foreground'>RichTextField</code> (TipTap),{' '}
+            <code className='text-foreground'>SelectField</code>,{' '}
+            <code className='text-foreground'>ComboboxField</code>, and{' '}
+            <code className='text-foreground'>DatePickerField</code> (single, range,
             presets, optional time) — plain options, rich rows (
             <code className='text-foreground'>content</code> /
             <code className='text-foreground'>keywords</code>), multi-select
@@ -308,7 +308,7 @@ export default function DashboardPage() {
             }
           />
 
-          <TextEditor
+          <RichTextField
             label='Program description'
             description='Rich text is stored as HTML for API payloads.'
             value={richDescription}
@@ -321,7 +321,7 @@ export default function DashboardPage() {
           />
 
           <div className='grid gap-6 sm:grid-cols-2'>
-            <SelectBoxField
+            <SelectField
               label='Department'
               name='demo-department'
               placeholder='Choose a department…'
@@ -334,7 +334,7 @@ export default function DashboardPage() {
                   : undefined
               }
             />
-            <SelectBoxField
+            <SelectField
               multiple
               label='Facility focus'
               name='demo-facility-focus'
@@ -350,7 +350,7 @@ export default function DashboardPage() {
             />
           </div>
 
-          <ComboBoxField
+          <ComboboxField
             label='Primary site'
             name='demo-primary-site'
             placeholder='Search site…'
@@ -365,7 +365,7 @@ export default function DashboardPage() {
             }
           />
 
-          <Datepicker
+          <DatePickerField
             label='Appointment date'
             required
             name='demo-appointment-date'
@@ -381,7 +381,7 @@ export default function DashboardPage() {
           />
 
           <div className='grid gap-6 sm:grid-cols-2'>
-            <Datepicker
+            <DatePickerField
               mode='range'
               label='Reporting period'
               nameFrom='demo-range-from'
@@ -391,7 +391,7 @@ export default function DashboardPage() {
               onChange={setReportingRange}
               presets
             />
-            <Datepicker
+            <DatePickerField
               label='Visit date & time'
               name='demo-visit-datetime'
               placeholder='Pick date and time…'
@@ -402,7 +402,7 @@ export default function DashboardPage() {
             />
           </div>
 
-          <ComboBoxField
+          <ComboboxField
             multiple
             label='Roles'
             required
@@ -418,7 +418,7 @@ export default function DashboardPage() {
             }
           />
 
-          <ComboBoxField
+          <ComboboxField
             multiple
             label='Team members'
             placeholder='Add people…'
@@ -435,7 +435,7 @@ export default function DashboardPage() {
         <CardHeader className='gap-1'>
           <CardTitle className='text-base'>File upload</CardTitle>
           <CardDescription>
-            <code className='text-foreground'>FileUploader</code> — previews
+            <code className='text-foreground'>FileUploadField</code> — previews
             (image thumb or icon), <code className='text-foreground'>
               existingFiles
             </code>{' '}
@@ -443,7 +443,7 @@ export default function DashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className='space-y-8'>
-          <FileUploader
+          <FileUploadField
             label='Supporting document'
             required
             name='demo-document'
@@ -461,7 +461,7 @@ export default function DashboardPage() {
             onFilesChange={() => {}}
           />
 
-          <FileUploader
+          <FileUploadField
             multiple
             maxFiles={5}
             label='Gallery images'
@@ -476,7 +476,7 @@ export default function DashboardPage() {
           />
 
           <div className='border-border border-t pt-6'>
-            <FileUploader
+            <FileUploadField
               variant='avatar'
               label='Profile photo'
               name='demo-avatar'
