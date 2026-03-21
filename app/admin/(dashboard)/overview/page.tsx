@@ -9,6 +9,7 @@ import Datepicker, { type DateRange } from '@/components/shared/form/Datepicker'
 import FileUploader, {
   type FileUploaderRemoteFile,
 } from '@/components/shared/form/FileUploader';
+import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -150,6 +151,7 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [fullName, setFullName] = React.useState('');
   const [email, setEmail] = React.useState('');
+  const [clinicalNotes, setClinicalNotes] = React.useState('');
   const [roles, setRoles] = React.useState<string[]>([]);
   const [teamMembers, setTeamMembers] = React.useState<string[]>([]);
   const [showValidationPreview, setShowValidationPreview] =
@@ -211,6 +213,7 @@ export default function DashboardPage() {
           <CardTitle className='text-base'>Form components</CardTitle>
           <CardDescription>
             Shared <code className='text-foreground'>TextField</code>,{' '}
+            <code className='text-foreground'>TextAreaField</code>,{' '}
             <code className='text-foreground'>ComboBoxField</code>, and{' '}
             <code className='text-foreground'>Datepicker</code> (single, range,
             presets, optional time) — plain options, rich rows (
@@ -263,6 +266,20 @@ export default function DashboardPage() {
               }
             />
           </div>
+
+          <TextAreaField
+            label='Clinical notes'
+            name='demo-clinical-notes'
+            placeholder='Optional context for the care team…'
+            rows={4}
+            value={clinicalNotes}
+            onChange={(e) => setClinicalNotes(e.target.value)}
+            error={
+              showValidationPreview
+                ? 'Please add a short note or mark as not applicable.'
+                : undefined
+            }
+          />
 
           <Datepicker
             label='Appointment date'
