@@ -26,10 +26,7 @@ const DashboardHeader = () => {
         {/* Left section: Sidebar trigger and breadcrumbs */}
         <div className='flex h-5 items-center'>
           {/* Button to open sidebar */}
-          <SidebarTrigger
-            variant='outline'
-            className='hover:border-border hover:text-foreground h-9 w-9 cursor-pointer hover:bg-gray-100'
-          />
+          <SidebarTrigger className='border-gray-300 hover:text-foreground h-9 w-9 cursor-pointer border hover:bg-gray-100' />
 
           {/* Vertical separator (hidden on small screens) */}
           <Separator orientation='vertical' className='mx-3 hidden sm:block' />
