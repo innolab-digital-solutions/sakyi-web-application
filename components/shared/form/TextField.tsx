@@ -48,10 +48,10 @@ const TextField = React.forwardRef<HTMLInputElement, CustomInputProps>(
     const inputType = isPassword && showPassword ? 'text' : type;
 
     const responsiveInputClass = cn(
-      'text-xs h-10 px-3 font-medium',
+      'text-xs h-10 px-3 font-medium border-neutral-200',
       'md:text-sm md:h-12 md:px-4',
       isPassword && 'pr-10',
-      error && 'border-destructive focus-visible:ring-destructive/20',
+      error && 'border-destructive bg-destructive/4 focus-visible:ring-destructive/20',
       className,
     );
 
