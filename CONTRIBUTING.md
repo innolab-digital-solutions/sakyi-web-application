@@ -40,6 +40,36 @@ These must be non-empty in production and in CI (see `scripts/verify-env.mjs`):
 
 CRUD and API-submitting forms must use `useForm` from `@/lib/form` with Zod schemas from `domains/<feature>/schemas/`. See [docs/form-hook.md](docs/form-hook.md).
 
+## Naming, files, and exports
+
+### Files
+
+| Kind                   | Convention                                                   | Examples                                 |
+| ---------------------- | ------------------------------------------------------------ | ---------------------------------------- |
+| React components       | **PascalCase** matching the main export                      | `ProgramCard.tsx`, `AOSInitializer.tsx`  |
+| Hooks                  | **`use` + PascalCase** in **camelCase** file                 | `useMobile.ts`, `useContactForm.ts`      |
+| Tests                  | **`*.test.ts`** / **`*.test.tsx`**                           | `tests/domains/programs/schemas.test.ts` |
+| Config / plain modules | **kebab-case** or **camelCase** (stay consistent per folder) | `config/routes/admin.ts`                 |
+
+Do not mix **`example-component.tsx`** with **`ExampleComponent.tsx`** — use **PascalCase** for component files.
+
+### Imports and exports
+
+- **App components** (`components/marketing/`, `components/admin/`, `components/shared/`): prefer **one main component per file**, **`export default`**, and a **default import** whose name matches the file:
+
+  `import ProgramCard from '@/components/marketing/cards/ProgramCard';`
+
+- **`components/ui/` (shadcn):** keep **named exports** from the CLI/generator:
+
+  `import { Button } from '@/components/ui/button';`
+
+- **Modules that export several named items** (utilities, hooks barrel files): use **named exports** and **`import { a, b }`** from that module.
+
+### Component style
+
+- For **your** components, **arrow functions** (`const Foo = () => { ... }`) are fine if used consistently.
+- **`components/ui`**: avoid large manual rewrites of generated files; follow shadcn updates.
+
 ## Architecture
 
 - [docs/architecture.md](docs/architecture.md) — layers, routing, performance notes.
