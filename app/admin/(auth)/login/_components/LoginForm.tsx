@@ -8,7 +8,7 @@ import FormSubmitButton from '@/components/shared/form/FormSubmitButton';
 import TextField from '@/components/shared/form/TextField';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
-import { LoginSchema } from '@/domains/auth/login.schema';
+import { LoginSchema } from '@/domains/auth/schemas';
 import { useForm } from '@/lib/form';
 
 const LoginForm = () => {

@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 import ProgramTable from '@/components/admin/modules/programs/ProgramTable';
 import { Button } from '@/components/ui/button';
-import PATHS from '@/config/paths';
+import { ROUTES } from '@/config/routes';
 
 export default function ProgramListsPage() {
   return (
@@ -17,7 +17,7 @@ export default function ProgramListsPage() {
         </div>
         <div>
           <Button asChild variant='default' className='cursor-pointer gap-2'>
-            <Link href={`${PATHS.ADMIN.PROGRAMS}/create`}>
+            <Link href={ROUTES.ADMIN.MODULES.PROGRAMS.CREATE}>
               <CirclePlus className='size-4' />
               Add Program
             </Link>

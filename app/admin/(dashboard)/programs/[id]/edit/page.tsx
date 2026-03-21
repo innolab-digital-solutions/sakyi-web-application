@@ -1,26 +1,23 @@
 import ProgramForm from '@/components/admin/modules/programs/ProgramForm';
-import ENDPOINTS from '@/config/endpoints';
-import { http } from '@/lib/api/client';
-import type { Program } from '@/types/admin/program';
+import { getProgramById } from '@/domains/programs/services/admin.service';
 
 type ProgramEditPageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export default async function ProgramEditPage({
   params,
 }: ProgramEditPageProps) {
-  const id = Number.parseInt(params.id, 10);
+  const { id: idParam } = await params;
+  const id = Number.parseInt(idParam, 10);
 
   if (Number.isNaN(id)) {
     throw new Error('Invalid program id.');
   }
 
-  const response = await http.get<Program>(
-    ENDPOINTS.ADMIN.PROGRAMS.DETAIL.replace('{id}', String(id)),
-  );
+  const response = await getProgramById(id);
 
   if (response.status === 'error') {
     throw new Error(response.message);

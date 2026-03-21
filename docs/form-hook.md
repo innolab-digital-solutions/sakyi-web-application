@@ -61,6 +61,8 @@ const form = useForm(
 );
 ```
 
+Admin login schemas live under `@/domains/auth/schemas` (see `LoginSchema`).
+
 Form state is inferred from the Zod schema you pass in via `FormData<TSchema>`. The hook exposes:
 
 - **State**

@@ -2,7 +2,7 @@ import { ENDPOINTS } from '@/config/api/endpoints';
 import type { SupportedLanguage } from '@/config/languages';
 import { ApiResponse, http } from '@/lib/api/client';
 
-import type { BlogPost } from '../types';
+import type { BlogPost } from '../types/marketing';
 
 export const getBlogPosts = async (
   language: SupportedLanguage,
