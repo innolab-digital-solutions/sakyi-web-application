@@ -9,6 +9,9 @@ import Datepicker, { type DateRange } from '@/components/shared/form/Datepicker'
 import FileUploader, {
   type FileUploaderRemoteFile,
 } from '@/components/shared/form/FileUploader';
+import SelectBoxField, {
+  type SelectBoxOption,
+} from '@/components/shared/form/SelectBoxField';
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -131,6 +134,21 @@ const TEAM_MEMBER_OPTIONS_FULL: ComboBoxOption[] = [
   ...TEAM_MEMBER_SCROLL_EXTRA,
 ];
 
+/** Short list for non-searchable `SelectBoxField` demo. */
+const DEPARTMENT_OPTIONS: SelectBoxOption[] = [
+  { value: 'clinical', label: 'Clinical' },
+  { value: 'admin', label: 'Administration' },
+  { value: 'wellness', label: 'Wellness' },
+  { value: 'operations', label: 'Operations' },
+];
+
+/** Single-select combobox demo. */
+const PRIMARY_SITE_OPTIONS: ComboBoxOption[] = [
+  { value: 'north', label: 'North clinic' },
+  { value: 'south', label: 'South clinic' },
+  { value: 'virtual', label: 'Virtual' },
+];
+
 const getGreeting = (): string => {
   const hour = new Date().getHours();
   if (hour < 12) return 'Good Morning';
@@ -152,6 +170,11 @@ export default function DashboardPage() {
   const [fullName, setFullName] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [clinicalNotes, setClinicalNotes] = React.useState('');
+  const [department, setDepartment] = React.useState<string | undefined>(
+    undefined,
+  );
+  const [facilityFocus, setFacilityFocus] = React.useState<string[]>([]);
+  const [primarySite, setPrimarySite] = React.useState<string | null>(null);
   const [roles, setRoles] = React.useState<string[]>([]);
   const [teamMembers, setTeamMembers] = React.useState<string[]>([]);
   const [showValidationPreview, setShowValidationPreview] =
@@ -214,6 +237,7 @@ export default function DashboardPage() {
           <CardDescription>
             Shared <code className='text-foreground'>TextField</code>,{' '}
             <code className='text-foreground'>TextAreaField</code>,{' '}
+            <code className='text-foreground'>SelectBoxField</code>,{' '}
             <code className='text-foreground'>ComboBoxField</code>, and{' '}
             <code className='text-foreground'>Datepicker</code> (single, range,
             presets, optional time) — plain options, rich rows (
@@ -277,6 +301,51 @@ export default function DashboardPage() {
             error={
               showValidationPreview
                 ? 'Please add a short note or mark as not applicable.'
+                : undefined
+            }
+          />
+
+          <div className='grid gap-6 sm:grid-cols-2'>
+            <SelectBoxField
+              label='Department'
+              name='demo-department'
+              placeholder='Choose a department…'
+              options={DEPARTMENT_OPTIONS}
+              value={department}
+              onChange={setDepartment}
+              error={
+                showValidationPreview
+                  ? 'Please select a department.'
+                  : undefined
+              }
+            />
+            <SelectBoxField
+              multiple
+              label='Facility focus'
+              name='demo-facility-focus'
+              placeholder='Choose one or more…'
+              options={DEPARTMENT_OPTIONS}
+              value={facilityFocus}
+              onChange={setFacilityFocus}
+              error={
+                showValidationPreview
+                  ? 'Please select at least one focus area.'
+                  : undefined
+              }
+            />
+          </div>
+
+          <ComboBoxField
+            label='Primary site'
+            name='demo-primary-site'
+            placeholder='Search site…'
+            searchPlaceholder='Search sites…'
+            options={PRIMARY_SITE_OPTIONS}
+            value={primarySite}
+            onChange={setPrimarySite}
+            error={
+              showValidationPreview
+                ? 'Please choose a primary site.'
                 : undefined
             }
           />

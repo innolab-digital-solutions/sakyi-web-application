@@ -78,6 +78,8 @@ type ComboBoxFieldSharedProps = {
 
 export type ComboBoxFieldSingleProps = ComboBoxFieldSharedProps & {
   multiple?: false;
+  /** When not `false` (default), single-select shows a clear control when a value is set. */
+  clearable?: boolean;
   /** Controlled selected value (option `value`). */
   value?: string | null;
   /** Called when the selection changes (aligned with `TextField`’s `onChange` naming). */
@@ -121,6 +123,8 @@ function ComboBoxField(props: ComboBoxFieldProps) {
   const onChange = isMulti
     ? (props as ComboBoxFieldMultiProps).onChange
     : (props as ComboBoxFieldSingleProps).onChange;
+  const clearableSingle =
+    !isMulti && (props as ComboBoxFieldSingleProps).clearable !== false;
 
   const generatedId = React.useId();
   const id = idProp ?? generatedId;
@@ -171,6 +175,20 @@ function ComboBoxField(props: ComboBoxFieldProps) {
       current.filter((v) => v !== optionValue),
     );
   };
+
+  const clearSingleSelection = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isMulti || disabled || !onChange) return;
+    (onChange as ComboBoxFieldSingleProps['onChange'])?.(null);
+  };
+
+  const showSingleClear =
+    !isMulti &&
+    clearableSingle &&
+    hasSelection &&
+    !disabled &&
+    onChange !== undefined;
 
   /**
    * Trigger styles mirror `components/ui/input.tsx` (used by TextField) so border, height, background,
@@ -330,6 +348,27 @@ function ComboBoxField(props: ComboBoxFieldProps) {
                 </span>
               )}
             </div>
+            {showSingleClear ? (
+              <button
+                type='button'
+                tabIndex={disabled ? -1 : 0}
+                className='text-muted-foreground hover:text-foreground focus-visible:ring-ring -mr-0.5 shrink-0 rounded-sm p-0.5 outline-none focus-visible:ring-2'
+                onClick={clearSingleSelection}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    clearSingleSelection(e);
+                  }
+                }}
+                aria-label='Clear selection'
+              >
+                <X className='size-3.5' aria-hidden />
+              </button>
+            ) : null}
             <ChevronsUpDown className='ml-1 h-4 w-4 shrink-0 opacity-50' />
           </div>
         </PopoverTrigger>
