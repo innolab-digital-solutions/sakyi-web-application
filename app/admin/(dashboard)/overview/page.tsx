@@ -5,6 +5,9 @@ import * as React from 'react';
 import ComboBoxField, {
   type ComboBoxOption,
 } from '@/components/shared/form/ComboBoxField';
+import FileUploader, {
+  type FileUploaderRemoteFile,
+} from '@/components/shared/form/FileUploader';
 import TextField from '@/components/shared/form/TextField';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -151,6 +154,37 @@ export default function DashboardPage() {
   const [showValidationPreview, setShowValidationPreview] =
     React.useState(false);
 
+  /** Edit-mode demo: attachments already on the server (URLs + metadata). */
+  const [documentRemote, setDocumentRemote] = React.useState<
+    FileUploaderRemoteFile[]
+  >([
+    {
+      id: 'demo-existing-pdf',
+      url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+      name: 'Existing_handbook.pdf',
+      mimeType: 'application/pdf',
+      sizeBytes: 18_432,
+    },
+  ]);
+  const [galleryRemote, setGalleryRemote] = React.useState<
+    FileUploaderRemoteFile[]
+  >([
+    {
+      id: 'demo-remote-1',
+      url: 'https://picsum.photos/seed/sakyi-gallery-1/120/120',
+      name: 'clinic_front.jpg',
+      mimeType: 'image/jpeg',
+      sizeBytes: 92_000,
+    },
+    {
+      id: 'demo-remote-2',
+      url: 'https://picsum.photos/seed/sakyi-gallery-2/120/120',
+      name: 'waiting_area.jpg',
+      mimeType: 'image/jpeg',
+      sizeBytes: 88_000,
+    },
+  ]);
+
   return (
     <div className='space-y-8'>
       <div className='flex flex-col space-y-1'>
@@ -244,6 +278,75 @@ export default function DashboardPage() {
             value={teamMembers}
             onChange={setTeamMembers}
           />
+        </CardContent>
+      </Card>
+
+      <Card className='max-w-2xl'>
+        <CardHeader className='gap-1'>
+          <CardTitle className='text-base'>File upload</CardTitle>
+          <CardDescription>
+            <code className='text-foreground'>FileUploader</code> — previews
+            (image thumb or icon), <code className='text-foreground'>
+              existingFiles
+            </code>{' '}
+            URLs for edit mode, single / multiple / avatar.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className='space-y-8'>
+          <FileUploader
+            label='Supporting document'
+            required
+            name='demo-document'
+            description='One PDF up to 5 MB. Shows a sample “existing” PDF row (edit mode); pick a new file to replace it.'
+            accept='.pdf,application/pdf'
+            emptyHint='Drop one PDF or click to browse'
+            maxFileSize={5 * 1024 * 1024}
+            existingFiles={documentRemote}
+            onExistingFilesChange={setDocumentRemote}
+            error={
+              showValidationPreview
+                ? 'Please attach a PDF document.'
+                : undefined
+            }
+            onFilesChange={() => {}}
+          />
+
+          <FileUploader
+            multiple
+            maxFiles={5}
+            label='Gallery images'
+            name='demo-gallery'
+            description='Up to 5 images total, including two sample remote images you can remove.'
+            accept='image/png,image/jpeg,image/webp'
+            emptyHint='Drop images here or click to browse'
+            maxFileSize={3 * 1024 * 1024}
+            existingFiles={galleryRemote}
+            onExistingFilesChange={setGalleryRemote}
+            onFilesChange={() => {}}
+          />
+
+          <div className='border-border border-t pt-6'>
+            <FileUploader
+              variant='avatar'
+              label='Profile photo'
+              name='demo-avatar'
+              alt={user?.name ? `${user.name} profile` : 'Profile preview'}
+              src={null}
+              fallback={
+                <span className='text-lg font-semibold'>
+                  {user?.name?.charAt(0).toUpperCase() ?? '?'}
+                </span>
+              }
+              avatarSize='lg'
+              description='Square photos work best. PNG, JPG, or WebP.'
+              error={
+                showValidationPreview
+                  ? 'Please choose a profile image.'
+                  : undefined
+              }
+              onFilesChange={() => {}}
+            />
+          </div>
         </CardContent>
       </Card>
     </div>
