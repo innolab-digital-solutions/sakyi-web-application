@@ -5,6 +5,7 @@ import * as React from 'react';
 import ComboBoxField, {
   type ComboBoxOption,
 } from '@/components/shared/form/ComboBoxField';
+import Datepicker, { type DateRange } from '@/components/shared/form/Datepicker';
 import FileUploader, {
   type FileUploaderRemoteFile,
 } from '@/components/shared/form/FileUploader';
@@ -153,6 +154,15 @@ export default function DashboardPage() {
   const [teamMembers, setTeamMembers] = React.useState<string[]>([]);
   const [showValidationPreview, setShowValidationPreview] =
     React.useState(false);
+  const [appointmentDate, setAppointmentDate] = React.useState<
+    Date | undefined
+  >(undefined);
+  const [reportingRange, setReportingRange] = React.useState<
+    DateRange | undefined
+  >(undefined);
+  const [visitDateTime, setVisitDateTime] = React.useState<Date | undefined>(
+    undefined,
+  );
 
   /** Edit-mode demo: attachments already on the server (URLs + metadata). */
   const [documentRemote, setDocumentRemote] = React.useState<
@@ -200,9 +210,11 @@ export default function DashboardPage() {
         <CardHeader className='gap-1'>
           <CardTitle className='text-base'>Form components</CardTitle>
           <CardDescription>
-            Shared <code className='text-foreground'>TextField</code> and{' '}
-            <code className='text-foreground'>ComboBoxField</code> — plain options,
-            rich rows (<code className='text-foreground'>content</code> /
+            Shared <code className='text-foreground'>TextField</code>,{' '}
+            <code className='text-foreground'>ComboBoxField</code>, and{' '}
+            <code className='text-foreground'>Datepicker</code> (single, range,
+            presets, optional time) — plain options, rich rows (
+            <code className='text-foreground'>content</code> /
             <code className='text-foreground'>keywords</code>), multi-select
             chips (local state only).
           </CardDescription>
@@ -249,6 +261,43 @@ export default function DashboardPage() {
                   ? 'Enter a valid email address.'
                   : undefined
               }
+            />
+          </div>
+
+          <Datepicker
+            label='Appointment date'
+            required
+            name='demo-appointment-date'
+            placeholder='Select a date…'
+            value={appointmentDate}
+            onChange={setAppointmentDate}
+            presets
+            error={
+              showValidationPreview
+                ? 'Please choose an appointment date.'
+                : undefined
+            }
+          />
+
+          <div className='grid gap-6 sm:grid-cols-2'>
+            <Datepicker
+              mode='range'
+              label='Reporting period'
+              nameFrom='demo-range-from'
+              nameTo='demo-range-to'
+              placeholder='Select start and end…'
+              value={reportingRange}
+              onChange={setReportingRange}
+              presets
+            />
+            <Datepicker
+              label='Visit date & time'
+              name='demo-visit-datetime'
+              placeholder='Pick date and time…'
+              value={visitDateTime}
+              onChange={setVisitDateTime}
+              includeTime
+              presets
             />
           </div>
 
