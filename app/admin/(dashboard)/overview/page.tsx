@@ -13,6 +13,7 @@ import SelectBoxField, {
   type SelectBoxOption,
 } from '@/components/shared/form/SelectBoxField';
 import TextAreaField from '@/components/shared/form/TextAreaField';
+import TextEditor from '@/components/shared/form/TextEditor';
 import TextField from '@/components/shared/form/TextField';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -170,6 +171,7 @@ export default function DashboardPage() {
   const [fullName, setFullName] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [clinicalNotes, setClinicalNotes] = React.useState('');
+  const [richDescription, setRichDescription] = React.useState('');
   const [department, setDepartment] = React.useState<string | undefined>(
     undefined,
   );
@@ -237,6 +239,7 @@ export default function DashboardPage() {
           <CardDescription>
             Shared <code className='text-foreground'>TextField</code>,{' '}
             <code className='text-foreground'>TextAreaField</code>,{' '}
+            <code className='text-foreground'>TextEditor</code> (TipTap),{' '}
             <code className='text-foreground'>SelectBoxField</code>,{' '}
             <code className='text-foreground'>ComboBoxField</code>, and{' '}
             <code className='text-foreground'>Datepicker</code> (single, range,
@@ -301,6 +304,18 @@ export default function DashboardPage() {
             error={
               showValidationPreview
                 ? 'Please add a short note or mark as not applicable.'
+                : undefined
+            }
+          />
+
+          <TextEditor
+            label='Program description'
+            description='Rich text is stored as HTML for API payloads.'
+            value={richDescription}
+            onChange={setRichDescription}
+            error={
+              showValidationPreview
+                ? 'Please enter a short program description.'
                 : undefined
             }
           />
