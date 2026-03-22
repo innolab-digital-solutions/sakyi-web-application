@@ -1,11 +1,7 @@
 import { ENDPOINTS } from '@/config/api/endpoints';
 import type { SupportedLanguage } from '@/config/languages';
-import { type ApiResponse,http } from '@/lib/api/client';
+import { type ApiResponse, http } from '@/lib/api/client';
 
-import {
-  mapMarketingProgramListResponse,
-  mapMarketingProgramResponse,
-} from '../transformers';
 import type { Program } from '../types/marketing';
 
 export const getPrograms = async (
@@ -22,7 +18,7 @@ export const getPrograms = async (
 
   return {
     ...response,
-    data: mapMarketingProgramListResponse(response.data),
+    data: response.data as Program[],
   };
 };
 
@@ -40,6 +36,6 @@ export const getProgramBySlug = async (
 
   return {
     ...response,
-    data: mapMarketingProgramResponse(response.data),
+    data: response.data as Program,
   };
 };

@@ -10,7 +10,5 @@ import type { Program } from '../types/admin';
 export async function getProgramById(
   id: number,
 ): Promise<ApiResponse<Program>> {
-  return http.get<Program>(
-    ENDPOINTS.ADMIN.MODULES.PROGRAMS.DETAIL(String(id)),
-  );
+  return http.get<Program>(ENDPOINTS.ADMIN.MODULES.PROGRAMS.DETAIL(String(id)));
 }

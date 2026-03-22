@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 import { ROUTES } from '@/config/routes';
 
 const ADMIN_LOGIN_PATH = ROUTES.ADMIN.AUTH.LOGIN;
-const ADMIN_ROOT_PATH = ROUTES.ADMIN.ROOT;
+const ADMIN_ROOT_PATH = ROUTES.ADMIN.MODULES.OVERVIEW;
 
 /**
  * Middleware-like proxy that enforces admin authentication state for `/admin` routes.
