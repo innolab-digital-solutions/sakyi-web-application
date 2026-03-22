@@ -1,6 +1,8 @@
 'use client';
 
 import { MessageCircle, Send } from 'lucide-react';
+import { SyntheticEvent } from 'react';
+import { toast } from 'sonner';
 
 import SectionBadge from '@/components/marketing/SectionBadge';
 import SectionContainer from '@/components/marketing/SectionContainer';
@@ -8,22 +10,39 @@ import TextareaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
 import Body1 from '@/components/shared/typography/Body1';
 import Heading2 from '@/components/shared/typography/Heading2';
+import { MARKETING_ENDPOINTS } from '@/config/api/endpoints';
 import { useLanguage } from '@/context/LanguageContext';
-import { useContactForm } from '@/hooks/useContactForm';
+import { ContactMessageSchema } from '@/domains/contact/schemas';
+import { useForm } from '@/lib/form';
 
 const SendUsMessageSection = () => {
   const { language, translate } = useLanguage();
-  const { data, errors, processing, setField, submit } = useContactForm();
+  const form = useForm(
+    {
+      name: '',
+      email: '',
+      phone: '',
+      subject: '',
+      message: '',
+    },
+    { schema: ContactMessageSchema },
+  );
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    await submit(
-      () =>
-        console.log(
-          "Message sent successfully! We'll get back to you within 24 hours.",
-        ),
-      (msg) => console.error(msg),
-    );
+  const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await form.post(MARKETING_ENDPOINTS.CONTACT, {
+      onSuccess: () => {
+        toast.success(
+          translate('marketing.pages.contact.contact-form.form.submit.success'),
+        );
+        form.reset();
+      },
+      onFailure: () => {
+        toast.error(
+          translate('marketing.pages.contact.contact-form.form.submit.error'),
+        );
+      },
+    });
   };
 
   return (
@@ -90,11 +109,11 @@ const SendUsMessageSection = () => {
                   placeholder={translate(
                     'marketing.pages.contact.contact-form.form.fields.name.placeholder',
                   )}
-                  value={data.name}
-                  onChange={(e) => setField('name', e.target.value)}
-                  error={errors.name}
+                  value={form.fields.name as string}
+                  onChange={(e) => form.setData('name', e.target.value)}
+                  error={form.errors.name}
                   required
-                  disabled={processing}
+                  disabled={form.isSubmitting}
                 />
 
                 <div className='grid gap-6 sm:grid-cols-2'>
@@ -108,11 +127,11 @@ const SendUsMessageSection = () => {
                     placeholder={translate(
                       'marketing.pages.contact.contact-form.form.fields.phone.placeholder',
                     )}
-                    value={data.phone}
-                    onChange={(e) => setField('phone', e.target.value)}
-                    error={errors.phone}
+                    value={form.fields.phone as string}
+                    onChange={(e) => form.setData('phone', e.target.value)}
+                    error={form.errors.phone}
                     required
-                    disabled={processing}
+                    disabled={form.isSubmitting}
                   />
 
                   <TextField
@@ -125,11 +144,11 @@ const SendUsMessageSection = () => {
                     placeholder={translate(
                       'marketing.pages.contact.contact-form.form.fields.email.placeholder',
                     )}
-                    value={data.email}
-                    onChange={(e) => setField('email', e.target.value)}
-                    error={errors.email}
+                    value={form.fields.email as string}
+                    onChange={(e) => form.setData('email', e.target.value)}
+                    error={form.errors.email}
                     required
-                    disabled={processing}
+                    disabled={form.isSubmitting}
                   />
                 </div>
 
@@ -143,11 +162,11 @@ const SendUsMessageSection = () => {
                   placeholder={translate(
                     'marketing.pages.contact.contact-form.form.fields.subject.placeholder',
                   )}
-                  value={data.subject}
-                  onChange={(e) => setField('subject', e.target.value)}
-                  error={errors.subject}
+                  value={form.fields.subject as string}
+                  onChange={(e) => form.setData('subject', e.target.value)}
+                  error={form.errors.subject}
                   required
-                  disabled={processing}
+                  disabled={form.isSubmitting}
                 />
 
                 <TextareaField
@@ -159,11 +178,11 @@ const SendUsMessageSection = () => {
                   placeholder={translate(
                     'marketing.pages.contact.contact-form.form.fields.message.placeholder',
                   )}
-                  value={data.message}
-                  onChange={(e) => setField('message', e.target.value)}
-                  error={errors.message}
+                  value={form.fields.message as string}
+                  onChange={(e) => form.setData('message', e.target.value)}
+                  error={form.errors.message}
                   required
-                  disabled={processing}
+                  disabled={form.isSubmitting}
                   className='min-h-40'
                 />
               </div>
@@ -172,11 +191,11 @@ const SendUsMessageSection = () => {
               <div className='pt-4'>
                 <button
                   type='submit'
-                  disabled={processing}
+                  disabled={form.isSubmitting}
                   className='group bg-brand-gradient inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50'
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
-                  {processing
+                  {form.isSubmitting
                     ? translate(
                         'marketing.pages.contact.contact-form.form.submit.loading',
                       )

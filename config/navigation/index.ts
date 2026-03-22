@@ -18,9 +18,7 @@ import { HEADER_NAVIGATION } from './marketing';
  *
  */
 const NAVIGATION = {
-  ADMIN: {
-    ...ADMIN_NAVIGATION,
-  },
+  ADMIN: ADMIN_NAVIGATION,
   MARKETING: {
     HEADER: HEADER_NAVIGATION,
   },

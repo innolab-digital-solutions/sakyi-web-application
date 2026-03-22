@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   check-quality:
-    name: Checking Code Quality and Formatting
+    name: Linting, Formatting, and TypeScript Checking
     runs-on: ubuntu-latest
 
     steps:

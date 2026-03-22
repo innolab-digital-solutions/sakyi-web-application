@@ -92,7 +92,7 @@ export type ClientOptions = ClientRequestInit & {
  *
  * @param {boolean} throwOnError - If true, throws an ApiClientError.
  * @param {Record<string, unknown>} errors - Optional detailed errors, keyed by field or context.
- * @param {string} requestId - Optional request ID from the response headers.
+ * @param {string} requestId - Optional request ID from the response headers (passed into `ApiClientError` when throwing).
  * @param {ApiError} payload - Optional parsed error payload from the backend.
  * @param {ApiResponse<T>} fallbackResponse - Optional fallback response to return when throwOnError is false.
  */

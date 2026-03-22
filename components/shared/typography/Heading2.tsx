@@ -1,5 +1,3 @@
-'use client';
-
 import type { PropsWithChildren } from 'react';
 
 import { DEFAULT_LANGUAGE, type SupportedLanguage } from '@/config/languages';
@@ -10,19 +8,6 @@ type Heading2Props = PropsWithChildren<{
   className?: string;
 }>;
 
-/**
- * Heading2 component renders an <h2> element with responsive typography styles,
- * adapting font size, weight, and spacing based on the input language.
- *
- * - For the Myanmar language ('my'), uses distinct size and leading for improved readability.
- * - For all other languages, applies larger and tighter heading styles.
- *
- * @param {Heading2Props} props
- * @param {SupportedLanguage} [props.lang=DEFAULT_LANGUAGE] - Language code to determine heading style.
- * @param {string} [props.className] - Additional CSS classes to apply.
- * @param {React.ReactNode} props.children - Content to display inside the heading.
- * @returns {JSX.Element} Styled h2 heading element.
- */
 const Heading2 = ({
   lang = DEFAULT_LANGUAGE,
   className,

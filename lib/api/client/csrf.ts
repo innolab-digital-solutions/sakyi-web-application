@@ -1,6 +1,6 @@
 import { base } from '@/config/api/base';
 
-import { COOKIE_NAME, CSRF_COOKIE_ENDPOINT, MESSAGES } from './constants';
+import { CSRF_COOKIE_ENDPOINT, CSRF_COOKIE_NAME, MESSAGES } from './constants';
 import { ApiClientError } from './errors';
 
 /**
@@ -65,8 +65,8 @@ export const getCsrfToken = (): string | undefined => {
   try {
     for (const cookie of decodeURIComponent(document.cookie).split(';')) {
       const trimmed = cookie.trim();
-      if (trimmed.startsWith(COOKIE_NAME)) {
-        return trimmed.slice(COOKIE_NAME.length);
+      if (trimmed.startsWith(CSRF_COOKIE_NAME)) {
+        return trimmed.slice(CSRF_COOKIE_NAME.length);
       }
     }
   } catch {

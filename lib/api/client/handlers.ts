@@ -1,5 +1,6 @@
 import { MESSAGES } from './constants';
 import { ApiClientError } from './errors';
+import { dispatchApiUnauthorized } from './events';
 import type {
   ApiError as ApiErrorPayload,
   ApiResponse,
@@ -133,6 +134,12 @@ export const handleBackendApiError = <T>(
   payload: ApiErrorPayload,
   throwOnError: boolean,
 ): ApiResponse<T> => {
+  if (response.status === 401 && typeof window !== 'undefined') {
+    dispatchApiUnauthorized(payload.message);
+  }
+
+  const requestId = response.headers.get('x-request-id') ?? undefined;
+
   const errorResponse: ApiResponse<T> = {
     status: 'error',
     message: payload.message ?? response.statusText,
@@ -147,7 +154,7 @@ export const handleBackendApiError = <T>(
   return throwOrReturnApiClientError<T>(message, response.status, {
     throwOnError,
     errors: errorResponse.errors as Record<string, unknown> | undefined,
-    requestId: response.headers.get('x-request-id') ?? undefined,
+    requestId,
     payload,
     fallbackResponse: errorResponse,
   });

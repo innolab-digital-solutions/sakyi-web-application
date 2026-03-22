@@ -1,26 +1,24 @@
+import AdminPageHeader from '@/components/admin/layout/PageHeader';
 import ProgramForm from '@/components/admin/modules/programs/ProgramForm';
-import ENDPOINTS from '@/config/endpoints';
-import { http } from '@/lib/api/client';
-import type { Program } from '@/types/admin/program';
+import { getProgramById } from '@/domains/programs/services/admin.service';
 
 type ProgramEditPageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export default async function ProgramEditPage({
   params,
 }: ProgramEditPageProps) {
-  const id = Number.parseInt(params.id, 10);
+  const { id: idParam } = await params;
+  const id = Number.parseInt(idParam, 10);
 
   if (Number.isNaN(id)) {
     throw new Error('Invalid program id.');
   }
 
-  const response = await http.get<Program>(
-    ENDPOINTS.ADMIN.PROGRAMS.DETAIL.replace('{id}', String(id)),
-  );
+  const response = await getProgramById(id);
 
   if (response.status === 'error') {
     throw new Error(response.message);
@@ -30,12 +28,10 @@ export default async function ProgramEditPage({
 
   return (
     <div className='space-y-8'>
-      <div className='flex flex-col space-y-1.5'>
-        <h1 className='text-foreground text-md font-bold'>Edit Program</h1>
-        <p className='text-muted-foreground text-sm font-medium'>
-          Update program details, status, and translations.
-        </p>
-      </div>
+      <AdminPageHeader
+        title='Edit Program'
+        description='Update program details, status, and translations.'
+      />
 
       <ProgramForm mode='edit' program={program} />
     </div>

@@ -1,11 +1,10 @@
 'use client';
 
-import { ArrowRight, ChevronDown, LogOut } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { Button } from '@/components/ui/button';
 import {
   Collapsible,
   CollapsibleContent,
@@ -25,11 +24,11 @@ import {
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import { NAVIGATION } from '@/config/navigation';
-import { useAuth } from '@/context/AuthContext';
+
+import LogoutConfirmationDialog from './LogoutConfirmationDialog';
 
 const DashboardSidebar = () => {
   const pathname = usePathname();
-  const { logout, isLoading } = useAuth();
 
   return (
     <Sidebar className='z-50!'>
@@ -144,23 +143,9 @@ const DashboardSidebar = () => {
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Sidebar footer: Logout button */}
+      {/* Sidebar footer: Logout (opens confirmation dialog) */}
       <SidebarFooter className='py-3.25'>
-        <Button
-          variant='ghost'
-          size='sm'
-          className='hover:text-sidebar-primary-foreground w-full cursor-pointer! justify-between px-3 py-5 hover:bg-white/15'
-          disabled={isLoading}
-          onClick={() => {
-            void logout();
-          }}
-        >
-          <div className='flex items-center gap-2'>
-            <LogOut className='h-4 w-4 shrink-0' />
-            <span className='text-[12.5px] font-semibold'>Logout</span>
-          </div>
-          <ArrowRight className='h-4 w-4 shrink-0' />
-        </Button>
+        <LogoutConfirmationDialog />
       </SidebarFooter>
     </Sidebar>
   );
