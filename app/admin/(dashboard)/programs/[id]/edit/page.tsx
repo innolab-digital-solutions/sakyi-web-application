@@ -1,3 +1,4 @@
+import AdminPageHeader from '@/components/admin/layout/PageHeader';
 import ProgramForm from '@/components/admin/modules/programs/ProgramForm';
 import { getProgramById } from '@/domains/programs/services/admin.service';
 
@@ -27,12 +28,10 @@ export default async function ProgramEditPage({
 
   return (
     <div className='space-y-8'>
-      <div className='flex flex-col space-y-1.5'>
-        <h1 className='text-foreground text-md font-bold'>Edit Program</h1>
-        <p className='text-muted-foreground text-sm font-medium'>
-          Update program details, status, and translations.
-        </p>
-      </div>
+      <AdminPageHeader
+        title='Edit Program'
+        description='Update program details, status, and translations.'
+      />
 
       <ProgramForm mode='edit' program={program} />
     </div>

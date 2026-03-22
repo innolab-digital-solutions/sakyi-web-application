@@ -1,144 +1,205 @@
 'use client';
 
-import { Card, CardContent } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { useQuery } from '@tanstack/react-query';
+import { format, parseISO } from 'date-fns';
+import { CalendarIcon, PencilIcon, UsersIcon } from 'lucide-react';
+import Link from 'next/link';
+
+import TableListWrapper from '@/components/admin/layout/TableListWrapper';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
+  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { ROUTES } from '@/config/routes';
+import { STATUS } from '@/domains/programs/constants';
+import { getPrograms } from '@/domains/programs/services/admin.service';
+import type { Program } from '@/domains/programs/types/admin';
 
-export default function ProgramListTable() {
-  return (
-    <Card className='border-border bg-card max-w-full min-w-0 border shadow-sm'>
-      <CardContent className='min-w-0 space-y-5'>
-        <div className='border-border bg-card min-w-0 overflow-hidden rounded-lg border shadow-xs'>
-          <div className='min-w-0 overflow-x-auto'>
-            <Table className='min-w-180 table-fixed'>
-              <TableHeader className='bg-muted/50 [&_tr]:border-border'>
-                <TableRow className='border-border hover:bg-transparent'>
-                  <TableHead className='w-[34%] py-3 text-xs font-semibold normal-case'>
-                    Program
-                  </TableHead>
-                  <TableHead className='w-[11%] py-3 text-xs font-semibold normal-case'>
-                    Status
-                  </TableHead>
-                  <TableHead className='w-[18%] py-3 text-xs font-semibold normal-case'>
-                    Track
-                  </TableHead>
-                  <TableHead className='w-[14%] py-3 text-xs font-semibold normal-case'>
-                    Created
-                  </TableHead>
-                  <TableHead className='w-[11%] py-3 text-right text-xs font-semibold normal-case'>
-                    Enrolled
-                  </TableHead>
-                  <TableHead className='w-[12%] py-3 pr-3 text-right text-xs font-semibold normal-case'>
-                    <span className='sr-only'>Actions</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody></TableBody>
-            </Table>
-          </div>
-        </div>
+const PROGRAM_STATUS_LABEL: Record<Program['status'], string> = {
+  [STATUS.DRAFT]: 'Draft',
+  [STATUS.PUBLISHED]: 'Published',
+  [STATUS.ARCHIVED]: 'Archived',
+  [STATUS.HIDDEN]: 'Hidden',
+};
 
-        {/* Static pagination mock (not interactive) */}
-        <div
-          className='border-border pointer-events-none flex flex-col gap-4 border-t pt-4 select-none sm:flex-row sm:items-center sm:justify-between'
-          aria-hidden
-        >
-          <div className='flex flex-wrap items-center gap-x-5 gap-y-2'>
-            <div className='flex items-center gap-2.5'>
-              <span className='text-foreground text-xs font-medium whitespace-nowrap'>
-                Rows per page
-              </span>
-              <Select value='10' disabled>
-                <SelectTrigger
-                  size='sm'
-                  className='border-border bg-background h-9 w-17 opacity-100 shadow-none'
-                  aria-label='Rows per page (demo)'
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='10'>10</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <span className='text-muted-foreground text-xs tabular-nums'>
-              1–8 of 8
-            </span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+function programStatusBadgeVariant(
+  status: Program['status'],
+): 'default' | 'secondary' | 'outline' {
+  switch (status) {
+    case STATUS.PUBLISHED:
+      return 'default';
+    case STATUS.DRAFT:
+    case STATUS.HIDDEN:
+      return 'secondary';
+    case STATUS.ARCHIVED:
+      return 'outline';
+    default:
+      return 'outline';
+  }
 }
 
-// function ProgramRow({ row }: { row: AdminProgramListRow }) {
-//   return (
-//     <TableRow className='border-border/80'>
-//       <TableCell className='min-w-0 py-2.5 align-top'>
-//         <div className='min-w-0 pr-2'>
-//           <p className='text-foreground truncate text-sm font-medium'>
-//             {row.nameEn}
-//           </p>
-//           <p
-//             className='text-muted-foreground mt-0.5 line-clamp-2 text-xs leading-snug'
-//             lang='my'
-//             title={row.nameMy}
-//           >
-//             {row.nameMy.trim()}
-//           </p>
-//         </div>
-//       </TableCell>
-//       <TableCell className='py-2.5 align-top'>
-//         <Badge variant={statusBadgeVariant(row.status)} className='font-normal'>
-//           {STATUS_LABEL[row.status]}
-//         </Badge>
-//       </TableCell>
-//       <TableCell className='min-w-0 py-2.5 align-top'>
-//         <p className='truncate text-sm'>{row.trackEn}</p>
-//         <p
-//           className='text-muted-foreground mt-0.5 truncate text-xs'
-//           lang='my'
-//           title={row.trackMy}
-//         >
-//           {row.trackMy}
-//         </p>
-//       </TableCell>
-//       <TableCell className='py-2.5 align-top'>
-//         <span className='text-muted-foreground inline-flex items-center gap-1 text-xs'>
-//           <CalendarIcon className='size-3 shrink-0 opacity-70' />
-//           <span className='tabular-nums'>{formatCreatedAt(row.createdAt)}</span>
-//         </span>
-//       </TableCell>
-//       <TableCell className='py-2.5 text-right align-top tabular-nums'>
-//         <span className='text-muted-foreground inline-flex items-center justify-end gap-1 text-sm'>
-//           <UsersIcon className='size-3 shrink-0 opacity-70' />
-//           {row.enrolledCount}
-//         </span>
-//       </TableCell>
-//       <TableCell className='py-2.5 pr-2 text-right align-top'>
-//         <Button
-//           type='button'
-//           variant='ghost'
-//           size='icon-sm'
-//           tabIndex={-1}
-//           className='text-muted-foreground pointer-events-none size-8'
-//           aria-hidden
-//         >
-//           <MoreHorizontalIcon className='size-4' />
-//         </Button>
-//       </TableCell>
-//     </TableRow>
-//   );
-// }
+function formatCreatedAt(iso: string): string {
+  try {
+    return format(parseISO(iso), 'MMM d, yyyy');
+  } catch {
+    try {
+      return format(new Date(iso), 'MMM d, yyyy');
+    } catch {
+      return iso;
+    }
+  }
+}
+
+/** Track column: duration (wellness “track” length), else goal names, else em dash. */
+function getTrackLabel(program: Program): string {
+  const duration = program.duration?.trim();
+  if (duration) return duration;
+
+  const goals = program.goals;
+  if (goals?.length) {
+    return goals
+      .slice(0, 2)
+      .map((g) => g.name)
+      .join(', ');
+  }
+
+  return '—';
+}
+
+function formatEnrollmentCount(count: number | undefined): string {
+  if (count == null || Number.isNaN(count)) return '—';
+  return count.toLocaleString();
+}
+
+export default function ProgramListTable() {
+  const { data, isPending, isError, error } = useQuery({
+    queryKey: ['programs'],
+    queryFn: () => getPrograms(),
+  });
+
+  const programs = data?.status === 'success' ? data.data : undefined;
+  const errorMessage =
+    data?.status === 'error'
+      ? data.message
+      : isError && error instanceof Error
+        ? error.message
+        : 'Could not load programs.';
+
+  return (
+    <TableListWrapper>
+      <Table className='min-w-180 table-fixed'>
+        <TableHeader className='bg-muted/50 [&_tr]:border-border'>
+          <TableRow className='border-border hover:bg-transparent'>
+            <TableHead className='w-[28%]'>Program</TableHead>
+            <TableHead className='w-[12%]'>Status</TableHead>
+            <TableHead className='w-[18%]'>Track</TableHead>
+            <TableHead className='w-[14%]'>Created</TableHead>
+            <TableHead className='w-[12%] text-right'>Enrolled</TableHead>
+            <TableHead className='w-[16%] text-right'>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {isPending &&
+            Array.from({ length: 3 }).map((_, row) => (
+              <TableRow key={`skeleton-${row}`}>
+                {Array.from({ length: 6 }).map((_, col) => (
+                  <TableCell key={col} className='py-3'>
+                    <Skeleton className='h-8 w-full' />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+
+          {!isPending && (data?.status === 'error' || isError) && (
+            <TableRow>
+              <TableCell
+                colSpan={6}
+                className='text-destructive py-8 text-center text-sm'
+              >
+                {errorMessage}
+              </TableCell>
+            </TableRow>
+          )}
+
+          {!isPending &&
+            data?.status === 'success' &&
+            programs?.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={6}
+                  className='text-muted-foreground py-10 text-center text-sm'
+                >
+                  No programs yet. Create one to get started.
+                </TableCell>
+              </TableRow>
+            )}
+
+          {!isPending &&
+            data?.status === 'success' &&
+            programs?.map((program) => (
+              <TableRow key={program.id} className='border-border/80'>
+                <TableCell className='min-w-0 py-2.5 align-top'>
+                  <div className='min-w-0 pr-2'>
+                    <p className='text-foreground truncate text-sm font-medium'>
+                      {program.title}
+                    </p>
+                    {program.tagline?.trim() ? (
+                      <p className='text-muted-foreground mt-0.5 line-clamp-2 text-xs leading-snug'>
+                        {program.tagline.trim()}
+                      </p>
+                    ) : null}
+                  </div>
+                </TableCell>
+                <TableCell className='py-2.5 align-top'>
+                  <Badge
+                    variant={programStatusBadgeVariant(program.status)}
+                    className='font-normal'
+                  >
+                    {PROGRAM_STATUS_LABEL[program.status] ?? program.status}
+                  </Badge>
+                </TableCell>
+                <TableCell className='min-w-0 py-2.5 align-top'>
+                  <p className='truncate text-sm' title={getTrackLabel(program)}>
+                    {getTrackLabel(program)}
+                  </p>
+                </TableCell>
+                <TableCell className='py-2.5 align-top'>
+                  <span className='text-muted-foreground inline-flex items-center gap-1 text-xs'>
+                    <CalendarIcon className='size-3 shrink-0 opacity-70' />
+                    <span className='tabular-nums'>
+                      {formatCreatedAt(program.timestamps.created_at)}
+                    </span>
+                  </span>
+                </TableCell>
+                <TableCell className='py-2.5 text-right align-top tabular-nums'>
+                  <span className='text-muted-foreground inline-flex items-center justify-end gap-1 text-sm'>
+                    <UsersIcon className='size-3 shrink-0 opacity-70' />
+                    {formatEnrollmentCount(program.enrolled_count)}
+                  </span>
+                </TableCell>
+                <TableCell className='py-2.5 pr-2 text-right align-top'>
+                  <Button variant='ghost' size='sm' className='h-8 gap-1' asChild>
+                    <Link
+                      href={ROUTES.ADMIN.MODULES.PROGRAMS.EDIT(
+                        String(program.id),
+                      )}
+                    >
+                      <PencilIcon className='size-3.5' />
+                      Edit
+                    </Link>
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+        </TableBody>
+      </Table>
+    </TableListWrapper>
+  );
+}

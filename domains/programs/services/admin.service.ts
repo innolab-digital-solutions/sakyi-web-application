@@ -12,3 +12,7 @@ export async function getProgramById(
 ): Promise<ApiResponse<Program>> {
   return http.get<Program>(ENDPOINTS.ADMIN.MODULES.PROGRAMS.DETAIL(String(id)));
 }
+
+export async function getPrograms(): Promise<ApiResponse<Program[]>> {
+  return http.get<Program[]>(ENDPOINTS.ADMIN.MODULES.PROGRAMS.LIST);
+}

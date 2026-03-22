@@ -25,4 +25,9 @@ export type Program = {
     updated_at: string;
   };
   goals?: { id: string; name: string; slug: string }[];
+  /**
+   * Enrollment count when the list API includes aggregate stats (Laravel often
+   * exposes this as `enrolled_count`).
+   */
+  enrolled_count?: number;
 };
