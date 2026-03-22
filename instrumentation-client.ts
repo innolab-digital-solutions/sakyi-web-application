@@ -22,6 +22,7 @@
  * @see {@link https://docs.sentry.io/platforms/javascript/guides/nextjs/}
  */
 
+import { replayIntegration } from '@sentry/browser';
 import * as Sentry from '@sentry/nextjs';
 
 import {
@@ -56,7 +57,7 @@ if (sentryDsn) {
 
     release: getSentryRelease(),
 
-    integrations: [Sentry.replayIntegration()],
+    integrations: [replayIntegration()],
 
     tracesSampleRate: getSentryTracesSampleRate(),
 

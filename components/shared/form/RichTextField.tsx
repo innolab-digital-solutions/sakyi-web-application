@@ -145,8 +145,8 @@ export default function RichTextField({
         },
       },
       editable: !disabled,
-      onUpdate: ({ editor: ed }) => {
-        onChange?.(ed.getHTML());
+      onUpdate: ({ editor }: { editor: { getHTML: () => string } }) => {
+        onChange?.(editor.getHTML());
       },
     },
     [id],

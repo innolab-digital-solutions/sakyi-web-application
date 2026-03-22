@@ -23,7 +23,7 @@ import { cn } from '@/lib/utils/styles';
  * Combobox option: `value` / `label` are always required for filtering and fallbacks.
  * Use `content` for rich list rows (avatar, metadata, program cards, etc.).
  */
-export type ComboBoxOption = {
+export type ComboboxOption = {
   /** Stable id (submitted via hidden inputs when `name` is set). */
   value: string;
   /**
@@ -62,7 +62,7 @@ type ComboboxFieldSharedProps = {
   /** Shown when no option is selected. */
   placeholder?: string;
   /** Options to list and filter. */
-  options: ComboBoxOption[];
+  options: ComboboxOption[];
   /** Message when filtering yields no items. */
   emptyMessage?: string;
   /** Placeholder for the search input inside the popover. */
@@ -133,7 +133,7 @@ function ComboboxField(props: ComboboxFieldProps) {
   const [open, setOpen] = React.useState(false);
 
   const optionMap = React.useMemo(() => {
-    const m = new Map<string, ComboBoxOption>();
+    const m = new Map<string, ComboboxOption>();
     for (const o of options) m.set(o.value, o);
     return m;
   }, [options]);
@@ -147,7 +147,7 @@ function ComboboxField(props: ComboboxFieldProps) {
     ? (value as string[]).length > 0
     : (value as string | null) !== null && (value as string) !== '';
 
-  const handleSelect = (option: ComboBoxOption) => {
+  const handleSelect = (option: ComboboxOption) => {
     if (option.disabled) return;
 
     if (isMulti) {
@@ -236,7 +236,7 @@ function ComboboxField(props: ComboboxFieldProps) {
       ? (value as string[]).includes(optionValue)
       : (value as string | null) === optionValue;
 
-  const searchKeywordsFor = (option: ComboBoxOption) =>
+  const searchKeywordsFor = (option: ComboboxOption) =>
     [option.label, option.value, ...(option.keywords ?? [])].filter(Boolean);
 
   return (

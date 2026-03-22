@@ -3,8 +3,8 @@
 import * as React from 'react';
 
 import ComboboxField, {
-  type ComboBoxOption,
-} from '@/components/shared/form/ComboboxField';
+  type ComboboxOption,
+} from '@/components/shared/form/ComboBoxField';
 import DatePickerField, {
   type DateRange,
 } from '@/components/shared/form/DatePickerField';
@@ -29,7 +29,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 
 /** Many plain options so the list scrolls inside a fixed max height. */
-const ROLE_OPTIONS_SCROLL_DEMO: ComboBoxOption[] = [
+const ROLE_OPTIONS_SCROLL_DEMO: ComboboxOption[] = [
   { value: 'admin', label: 'Administrator' },
   { value: 'editor', label: 'Editor' },
   { value: 'viewer', label: 'Viewer' },
@@ -41,7 +41,7 @@ const ROLE_OPTIONS_SCROLL_DEMO: ComboBoxOption[] = [
 ];
 
 /** Same display name, different people — disambiguated in the list via email / org (`content`). */
-const TEAM_MEMBER_OPTIONS: ComboBoxOption[] = [
+const TEAM_MEMBER_OPTIONS: ComboboxOption[] = [
   {
     value: 'usr_acme_john',
     label: 'John Smith',
@@ -123,7 +123,7 @@ const TEAM_MEMBER_OPTIONS: ComboBoxOption[] = [
 ];
 
 /** Extra plain rows so the team combobox scrolls (rich rows + simple duplicates). */
-const TEAM_MEMBER_SCROLL_EXTRA: ComboBoxOption[] = Array.from(
+const TEAM_MEMBER_SCROLL_EXTRA: ComboboxOption[] = Array.from(
   { length: 18 },
   (_, i) => ({
     value: `usr_demo_${i + 1}`,
@@ -132,7 +132,7 @@ const TEAM_MEMBER_SCROLL_EXTRA: ComboBoxOption[] = Array.from(
   }),
 );
 
-const TEAM_MEMBER_OPTIONS_FULL: ComboBoxOption[] = [
+const TEAM_MEMBER_OPTIONS_FULL: ComboboxOption[] = [
   ...TEAM_MEMBER_OPTIONS,
   ...TEAM_MEMBER_SCROLL_EXTRA,
 ];
@@ -146,7 +146,7 @@ const DEPARTMENT_OPTIONS: SelectFieldOption[] = [
 ];
 
 /** Single-select combobox demo. */
-const PRIMARY_SITE_OPTIONS: ComboBoxOption[] = [
+const PRIMARY_SITE_OPTIONS: ComboboxOption[] = [
   { value: 'north', label: 'North clinic' },
   { value: 'south', label: 'South clinic' },
   { value: 'virtual', label: 'Virtual' },
