@@ -1,40 +1,50 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// Port for Next.js dev server (overridden in CI/e2e environments if needed)
+/**
+ * Playwright E2E Test Configuration
+ *
+ * This configuration establishes a reliable and maintainable end-to-end (E2E) testing environment for the Next.js application using Playwright.
+ *
+ * Key Behaviors:
+ * - Supports both local development and CI environments by configuring server ports, URLs, and test runners dynamically.
+ * - Ensures deterministic testing and CI-friendliness (e.g., prevents accidental .only, serializes workers in CI, retries flakey tests).
+ * - Provides clear reporting (GitHub reporter on CI, HTML/list locally) and preserves logs/artifacts only as needed.
+ * - Consistently spins up the correct web server command for each environment (dev or production build).
+ * - Runs all tests in the dedicated ./e2e directory.
+ *
+ * Variables:
+ *   - `port`: Determines the port for the Next.js dev server. Controlled by $PLAYWRIGHT_TEST_PORT.
+ *   - `baseURL`: The base URL used by Playwright; can be overridden with $PLAYWRIGHT_BASE_URL.
+ *   - `isCI`: Detects if running in a CI environment by checking $CI.
+ *   - `startCommand`: Selects the proper npm script (start for CI, dev for local) to boot the app for testing.
+ *
+ * Editing Guidance:
+ * - If you add e2e directories, update `testDir`.
+ * - If you change app port logic, update $PLAYWRIGHT_TEST_PORT handling.
+ * - If new browsers/devices should be tested, adjust the `projects` section.
+ * - To adjust timeouts, edit the respective `timeout` fields.
+ *
+ * @see https://playwright.dev/docs/test-configuration
+ * @see https://playwright.dev/docs/ci-intro
+ */
+
 const port = process.env.PLAYWRIGHT_TEST_PORT ?? '3000';
 
-// The base URL for running tests (default to local dev server)
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${port}`;
 
-// Detect if running in CI (Continuous Integration) environment
 const isCI = !!process.env.CI;
 
-// Command used to start the web server depending on environment
-// - Use 'start' for production build in CI
-// - Use 'dev' for local development
+// Use 'npm run start' for production build in CI; 'npm run dev' for local workflow.
 const startCommand = isCI
   ? `npm run start -- -p ${port}`
   : `npm run dev -- -p ${port}`;
 
 export default defineConfig({
-  // Directory containing E2E test files
   testDir: './e2e',
-
-  // Allow tests to run in parallel where possible
   fullyParallel: true,
-
-  // Prevent accidental exclusive tests (.only) from being committed on CI
   forbidOnly: isCI,
-
-  // Number of retries on CI (helps with flakiness)
   retries: isCI ? 2 : 0,
-
-  // Limit worker count on CI to ensure serial execution and avoid resource contention
   workers: isCI ? 1 : undefined,
-
-  // Configure reporters for test results:
-  // - 'github' reporter for CI integration
-  // - HTML for local/CI (open report on failure locally, do not open in CI)
   reporter: isCI
     ? [
         ['github'],
@@ -44,24 +54,16 @@ export default defineConfig({
         ['list'],
         ['html', { open: 'on-failure', outputFolder: 'playwright-report' }],
       ],
-
-  // Default test options applied to every test
   use: {
-    baseURL, // Application base URL
-    trace: 'on-first-retry', // Capture detailed traces on failure (first retry)
-    screenshot: 'only-on-failure', // Only take screenshots when a test fails
-    video: 'retain-on-failure', // Only retain videos when a test fails
+    baseURL,
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
   },
-
   expect: {
-    timeout: 10_000, // Default timeout for expect assertions (10 seconds)
+    timeout: 10_000,
   },
-
-  timeout: 60_000, // Maximum time each test can run (1 minute)
-
-  // Define which browsers/devices to test in:
-  // - On CI: Chromium only for speed/stability
-  // - Locally: Chromium, Firefox, and WebKit
+  timeout: 60_000,
   projects: isCI
     ? [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }]
     : [
@@ -70,11 +72,10 @@ export default defineConfig({
         { name: 'webkit', use: { ...devices['Desktop Safari'] } },
       ],
 
-  // Web server configuration for running the application before tests
   webServer: {
-    command: startCommand, // How to start the server
-    url: baseURL, // Ready when this URL responds
-    reuseExistingServer: !isCI, // On CI: always start fresh; locally: reuse if already running
-    timeout: 120_000, // Wait up to 2 minutes for server to start
+    command: startCommand,
+    url: baseURL,
+    reuseExistingServer: !isCI, // Reuse server locally for faster dev; always fresh boot in CI
+    timeout: 120_000, // Allow up to 2 mins for server boot (accommodate slow CI cold starts)
   },
 });
