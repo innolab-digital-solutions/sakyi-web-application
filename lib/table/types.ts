@@ -4,10 +4,15 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query';
 
-import type { TableQueryParams } from '@/lib/api/services/table';
 import type { ApiSuccess } from '@/types/api';
 
-export type { TableQueryParams };
+/** Query parameters for paginated table requests (merged into the request URL). */
+export type TableQueryParams = {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  [key: string]: unknown;
+};
 
 export interface TablePageData<TItem> {
   data: TItem[];

@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { fetchTablePage } from '@/lib/api/services/table';
+import { http } from '@/lib/api/client';
+import type { ApiResponse } from '@/types/api';
 
 import type {
   TableControls,
@@ -15,6 +16,26 @@ import type {
   UseTableHookOptions,
   UseTableReturn,
 } from './types';
+
+function buildTableQueryString(params?: TableQueryParams): string {
+  if (!params) return '';
+  const searchParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null) continue;
+    searchParams.append(key, String(value));
+  }
+  const queryString = searchParams.toString();
+  return queryString ? `?${queryString}` : '';
+}
+
+async function fetchTablePage<T>(
+  endpoint: string,
+  params?: TableQueryParams,
+): Promise<ApiResponse<T>> {
+  const queryString = buildTableQueryString(params);
+  const url = params ? `${endpoint}${queryString}` : endpoint;
+  return http.get<T>(url, { throwOnError: true });
+}
 
 const TABLE_PARAM_KEYS = ['page', 'per_page', 'search'] as const;
 
