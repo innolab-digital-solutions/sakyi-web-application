@@ -1,5 +1,3 @@
-'use client';
-
 import type { PropsWithChildren } from 'react';
 
 import { DEFAULT_LANGUAGE, type SupportedLanguage } from '@/config/languages';
@@ -10,20 +8,6 @@ type Heading3Props = PropsWithChildren<{
   className?: string;
 }>;
 
-/**
- * Heading3 is a presentational component that renders its children within an <h3> tag,
- * applying consistent typographic styles based on the provided language.
- *
- * - For Burmese ('my'), uses slightly smaller font sizes and relaxed line-height for legibility.
- * - For all other SupportedLanguage values, applies larger and tighter heading styles.
- *
- * @param {Heading3Props} props
- * @param {SupportedLanguage} [props.lang=DEFAULT_LANGUAGE] - The language used to determine heading styles.
- * @param {string} [props.className] - Optional additional class names for styling the heading.
- * @param {React.ReactNode} props.children - The content displayed inside the heading.
- *
- * @returns {JSX.Element} Styled h3 heading element.
- */
 const Heading3 = ({
   lang = DEFAULT_LANGUAGE,
   className,

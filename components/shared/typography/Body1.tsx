@@ -1,5 +1,3 @@
-'use client';
-
 import type { PropsWithChildren } from 'react';
 
 import { DEFAULT_LANGUAGE, type SupportedLanguage } from '@/config/languages';
@@ -10,20 +8,6 @@ type Body1Props = PropsWithChildren<{
   className?: string;
 }>;
 
-/**
- * Body1 is a presentational component that renders its children within a <p> tag,
- * applying standardized body text styles based on the specified language.
- *
- * - For Burmese ('my'), uses a medium font size and looser line height for readability.
- * - For other languages, uses a larger font size with relaxed line height.
- *
- * @param {Body1Props} props
- * @param {SupportedLanguage} [props.lang=DEFAULT_LANGUAGE] - The language used to determine typographic styles.
- * @param {string} [props.className] - Optional additional class names for the paragraph.
- * @param {React.ReactNode} props.children - The content to display inside the paragraph.
- *
- * @returns {JSX.Element} A styled paragraph element.
- */
 const Body1 = ({
   lang = DEFAULT_LANGUAGE,
   className,
