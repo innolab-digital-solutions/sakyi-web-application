@@ -1,19 +1,8 @@
 'use client';
 
-import Link from 'next/link';
-
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { ROUTES } from '@/config/routes';
 import { useAuth } from '@/context/AuthContext';
 import { getInitials } from '@/lib/utils/string';
 
@@ -26,14 +15,14 @@ const DashboardHeader = () => {
         {/* Left section: Sidebar trigger and breadcrumbs */}
         <div className='flex h-5 items-center'>
           {/* Button to open sidebar */}
-          <SidebarTrigger className='border-gray-300 hover:text-foreground h-9 w-9 cursor-pointer border hover:bg-gray-100' />
+          <SidebarTrigger className='hover:text-foreground h-9 w-9 cursor-pointer border border-gray-300 hover:bg-gray-100' />
 
           {/* Vertical separator (hidden on small screens) */}
           <Separator orientation='vertical' className='mx-3 hidden sm:block' />
 
           {/* Breadcrumb nav (hidden on small screens) */}
           <div className='hidden sm:block'>
-            <Breadcrumb>
+            {/* <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
                   <BreadcrumbPage className='text-foreground font-medium'>
@@ -52,7 +41,7 @@ const DashboardHeader = () => {
                   </BreadcrumbLink>
                 </BreadcrumbItem>
               </BreadcrumbList>
-            </Breadcrumb>
+            </Breadcrumb> */}
           </div>
         </div>
 
