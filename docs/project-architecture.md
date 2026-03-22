@@ -105,6 +105,8 @@ Unauthorized handling integrates with `API_UNAUTHORIZED_EVENT` (see `lib/api/cli
 
 Module layout under `lib/api/client/`: `core.ts` (orchestration), `http.ts`, `builders.ts` (URL + headers + body), `csrf.ts`, `errors.ts`, `handlers.ts`, `constants.ts`, `types.ts`, `events.ts`, barrel `index.ts`.
 
+Contributor guide: [api-client-guide.md](./api-client-guide.md).
+
 ## Paginated tables (`lib/table`)
 
 `useTable` in `lib/table/core.ts` drives admin-style lists: pagination, search, optional URL sync, and TanStack Query. It calls the API through `http.get` with typed params. Shared types (`TableControls`, `TablePagination`, etc.) are exported from `@/lib/table`. Layout helpers such as `components/admin/layout/TableLayout.tsx` consume `TableControls`.
@@ -117,6 +119,8 @@ The hook keeps **field values** in `fields`, exposes `setData`, `errors`, `isDir
 
 Do not bypass this stack with raw `fetch` to the API from components. The marketing contact section uses the same pattern (`domains/contact` schema + `MARKETING_ENDPOINTS.CONTACT`).
 
+Contributor guide: [form-handling-guide.md](./form-handling-guide.md).
+
 ## Localization
 
 Core helpers and dictionaries live under `lib/localization/` (`core.ts`, `types.ts`, `dictionaries/`). Supported languages and defaults are defined in `config/languages.ts` and reused by localization types.
@@ -124,6 +128,8 @@ Core helpers and dictionaries live under `lib/localization/` (`core.ts`, `types.
 React integration: `context/LanguageContext.tsx` provides `language`, `setLanguage`, and `translate` backed by `getTranslation`. Use `useLanguage()` in Client Components that must react to language changes; avoid using the hook outside `LanguageProvider`.
 
 Keys use dot notation; placeholders use `:name` style with a replacements object. English is the fallback when a key is missing in the active dictionary.
+
+Contributor guide: [localization-guide.md](./localization-guide.md).
 
 ## Security and trust
 
@@ -154,10 +160,6 @@ Prefer server-side fetching for marketing content when you do not need client-on
 ## Testing
 
 Vitest and Testing Library: `tests/**/*.test.ts(x)`, `npm run test:vitest`. Playwright: `e2e/`, `npm run test:playwright` (UI) or `npm run test:playwright:ci` (headless; production server after `next build` in CI-style flows).
-
-## Recorded architecture decisions
-
-When a change alters a structural convention (routing boundaries, proxy behavior, how we call the API, etc.), record it as a short ADR: `docs/adr/NNNN-title.md` with status, context, decision, and consequences. Supersede an older ADR instead of silently contradicting it. Mention new ADRs in the PR description (and add a one-line pointer here if the decision affects everyday development).
 
 ## Checklist for a new feature
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { MessageCircle, Send } from 'lucide-react';
+import { SyntheticEvent } from 'react';
 import { toast } from 'sonner';
 
 import SectionBadge from '@/components/marketing/SectionBadge';
@@ -27,8 +28,8 @@ const SendUsMessageSection = () => {
     { schema: ContactMessageSchema },
   );
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
+    event.preventDefault();
     await form.post(MARKETING_ENDPOINTS.CONTACT, {
       onSuccess: () => {
         toast.success(

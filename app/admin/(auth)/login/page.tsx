@@ -1,6 +1,6 @@
-import BrandingPanel from './_components/BrandingPanel';
-import LoginFooter from './_components/LoginFooter';
-import LoginPanel from './_components/LoginPanel';
+import BrandingPanel from '../../../../components/admin/auth/BrandingPanel';
+import LoginFooter from '../../../../components/admin/auth/LoginFooter';
+import LoginPanel from '../../../../components/admin/auth/LoginPanel';
 
 export default function AdminLoginPage() {
   return (
