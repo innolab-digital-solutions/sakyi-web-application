@@ -83,15 +83,18 @@ export const useTable = <TItem>(
 
   const extraParamsFromUrl = useMemo(() => {
     if (!syncWithUrl) return {};
-    return buildInitialStateFromUrl(
-      new URLSearchParams(searchParamsString),
-      {
-        initialPage,
-        initialPerPage,
-        initialSearch,
-      },
-    ).extraParamsFromUrl;
-  }, [syncWithUrl, searchParamsString, initialPage, initialPerPage, initialSearch]);
+    return buildInitialStateFromUrl(new URLSearchParams(searchParamsString), {
+      initialPage,
+      initialPerPage,
+      initialSearch,
+    }).extraParamsFromUrl;
+  }, [
+    syncWithUrl,
+    searchParamsString,
+    initialPage,
+    initialPerPage,
+    initialSearch,
+  ]);
 
   const initialSearchValue = fromUrl?.initialSearch ?? initialSearch ?? '';
 
@@ -107,11 +110,15 @@ export const useTable = <TItem>(
   /** Commit draft search to the query after the debounce window (or immediately if debounce is 0). */
   useEffect(() => {
     if (debounceMs <= 0) {
-      setAppliedSearch(searchInput);
+      startTransition(() => {
+        setAppliedSearch(searchInput);
+      });
       return;
     }
     const id = window.setTimeout(() => {
-      setAppliedSearch(searchInput);
+      startTransition(() => {
+        setAppliedSearch(searchInput);
+      });
     }, debounceMs);
     return () => window.clearTimeout(id);
   }, [searchInput, debounceMs]);
@@ -130,7 +137,9 @@ export const useTable = <TItem>(
       skipPageResetForUrlSyncRef.current = false;
       return;
     }
-    setPage(1);
+    startTransition(() => {
+      setPage(1);
+    });
   }, [appliedSearch]);
 
   /**
@@ -200,7 +209,10 @@ export const useTable = <TItem>(
     placeholderData: placeholderData ?? ((prev) => prev),
     queryKey: ['table', endpoint, params],
     queryFn: async () => {
-      const response = await fetchTablePage<TableListPayload<TItem>>(endpoint, params);
+      const response = await fetchTablePage<TableListPayload<TItem>>(
+        endpoint,
+        params,
+      );
 
       if (response.status !== 'success') {
         throw new Error('Unexpected table API error shape.');
@@ -232,8 +244,7 @@ export const useTable = <TItem>(
         }
       : null);
 
-  const isDebouncing =
-    debounceMs > 0 && searchInput !== appliedSearch;
+  const isDebouncing = debounceMs > 0 && searchInput !== appliedSearch;
 
   const controls: TableControls<TItem> = {
     search: {

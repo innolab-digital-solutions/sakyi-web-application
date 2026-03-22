@@ -13,15 +13,15 @@ type ProgramFormProps = {
 export default function ProgramForm({ mode, program }: ProgramFormProps) {
   return (
     <div className='text-muted-foreground rounded-lg border border-dashed p-8 text-sm'>
-      <p className='font-medium text-foreground'>
+      <p className='text-foreground font-medium'>
         {mode === 'create'
           ? 'Create program'
           : `Edit program: ${program?.title ?? '—'}`}
       </p>
       <p className='mt-2'>
         Replace this placeholder with a form that uses{' '}
-        <code className='text-xs'>@/lib/form</code> and the program create/update
-        schemas.
+        <code className='text-xs'>@/lib/form</code> and the program
+        create/update schemas.
       </p>
     </div>
   );

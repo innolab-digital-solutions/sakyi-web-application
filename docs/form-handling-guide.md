@@ -28,10 +28,7 @@ Feature code should not import `lib/form/core.ts`, `validator.ts`, `utils.ts`, o
 `FormOptions` only supports `schema?: ZodType`. There is no request transform: for non-GET methods the body is the current `fields` object, passed through the API client (JSON or FormData when the client detects files, same as any `client` call).
 
 ```ts
-const form = useForm(
-  { email: '', password: '' },
-  { schema: LoginSchema },
-);
+const form = useForm({ email: '', password: '' }, { schema: LoginSchema });
 ```
 
 ## Fields and errors

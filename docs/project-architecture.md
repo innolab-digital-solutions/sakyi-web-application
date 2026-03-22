@@ -139,9 +139,9 @@ The Laravel API owns authentication, authorization, and validation. The admin UI
 
 **Proxy (`proxy.ts`)** — Next.js 16 uses root-level `proxy.ts` with `config.matcher` `/admin/:path*` (not legacy `middleware.ts`). This is not authorization: it only reasons about **presence** of configured cookie names on the request to **this** app’s origin.
 
-  - If `PROXY_ADMIN_SESSION_COOKIE_NAMES` is **unset**, every request under `/admin` is redirected to the admin login path. In practice you need this variable set (comma-separated cookie names) when session cookies are actually sent to the Next origin so normal admin navigation works.
-  - If the session cookie is **only** on the API host and never on the Next origin, listing names here would mis-route users; align cookie domain strategy with backend and ops before enabling hints.
-  - `/admin/login` is treated as the login entry; when a listed cookie is present and the user hits login, they are redirected toward the admin root. Real session validity still comes from the API (e.g. `/me` and guarded routes).
+- If `PROXY_ADMIN_SESSION_COOKIE_NAMES` is **unset**, every request under `/admin` is redirected to the admin login path. In practice you need this variable set (comma-separated cookie names) when session cookies are actually sent to the Next origin so normal admin navigation works.
+- If the session cookie is **only** on the API host and never on the Next origin, listing names here would mis-route users; align cookie domain strategy with backend and ops before enabling hints.
+- `/admin/login` is treated as the login entry; when a listed cookie is present and the user hits login, they are redirected toward the admin root. Real session validity still comes from the API (e.g. `/me` and guarded routes).
 
 **Headers and build** — Baseline security headers and `images.remotePatterns` (API hosts and other remotes) live in `next.config.ts`, which is wrapped with `withSentryConfig` for Sentry. Tighten further (e.g. CSP) per environment if needed.
 

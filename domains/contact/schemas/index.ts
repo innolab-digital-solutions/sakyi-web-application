@@ -1,1 +1,4 @@
-export { type ContactMessageInput, ContactMessageSchema } from './contact.schema';
+export {
+  type ContactMessageInput,
+  ContactMessageSchema,
+} from './contact.schema';

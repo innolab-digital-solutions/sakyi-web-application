@@ -61,13 +61,13 @@ function EditorToolbarIconButton({
       variant='outline'
       size='icon'
       className={cn(
-        'h-8 w-8 shrink-0 rounded-md border-neutral-200 bg-background p-0 shadow-xs',
+        'bg-background h-8 w-8 shrink-0 rounded-md border-neutral-200 p-0 shadow-xs',
         'md:h-9 md:w-9',
-        'text-[11px] font-medium text-foreground md:text-xs',
+        'text-foreground text-[11px] font-medium md:text-xs',
         'hover:bg-muted/50 dark:border-input dark:bg-input/30 dark:hover:bg-input/50',
-        'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
+        'focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none',
         active &&
-          'border-neutral-200 bg-primary/15 text-foreground dark:border-input dark:bg-primary/22',
+          'bg-primary/15 text-foreground dark:border-input dark:bg-primary/22 border-neutral-200',
         className,
       )}
       aria-pressed={active}
@@ -226,7 +226,7 @@ export default function RichTextField({
       <div
         className={cn(
           'flex min-h-55 flex-col overflow-hidden rounded-md border border-neutral-200 bg-transparent font-medium shadow-xs transition-[color,box-shadow] outline-none',
-          'focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50',
+          'focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]',
           'disabled:cursor-not-allowed',
           hasError &&
             'border-destructive bg-destructive/4 focus-within:ring-destructive/20',
@@ -234,7 +234,7 @@ export default function RichTextField({
           editorClassName,
         )}
       >
-        <div className='border-b border-neutral-200 bg-muted/30 px-1.5 py-1 md:px-2 md:py-1.5'>
+        <div className='bg-muted/30 border-b border-neutral-200 px-1.5 py-1 md:px-2 md:py-1.5'>
           <TooltipProvider delayDuration={150}>
             <div className='flex flex-wrap items-center justify-between gap-1'>
               <div className='flex flex-wrap items-center gap-0.5'>
@@ -264,7 +264,7 @@ export default function RichTextField({
                   }}
                   disabled={!editor || disabled}
                 >
-                  <SelectTrigger className='data-[size=default]:h-8 md:data-[size=default]:h-9 h-8 w-[min(118px,100%)] rounded-md border border-neutral-200 bg-background px-2 py-0 text-[11px] font-medium shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:px-2.5 md:text-xs dark:bg-input/30'>
+                  <SelectTrigger className='bg-background focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 h-8 w-[min(118px,100%)] rounded-md border border-neutral-200 px-2 py-0 text-[11px] font-medium shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] data-[size=default]:h-8 md:px-2.5 md:text-xs md:data-[size=default]:h-9'>
                     <SelectValue placeholder='Paragraph' />
                   </SelectTrigger>
                   <SelectContent className='rounded-sm'>
@@ -290,7 +290,9 @@ export default function RichTextField({
                     <EditorToolbarIconButton
                       active={editor?.isActive('bold') ?? false}
                       onClick={() => editor?.chain().focus().toggleBold().run()}
-                      disabled={!editor || !editor.can().toggleBold() || disabled}
+                      disabled={
+                        !editor || !editor.can().toggleBold() || disabled
+                      }
                       aria-label='Bold'
                     >
                       <Bold className='h-3 w-3' />
@@ -321,7 +323,9 @@ export default function RichTextField({
                       onClick={() =>
                         editor?.chain().focus().toggleItalic().run()
                       }
-                      disabled={!editor || !editor.can().toggleItalic() || disabled}
+                      disabled={
+                        !editor || !editor.can().toggleItalic() || disabled
+                      }
                       aria-label='Italic'
                     >
                       <Italic className='h-3 w-3' />
@@ -418,16 +422,20 @@ export default function RichTextField({
                       active={editor?.isActive('link') ?? false}
                       onClick={() => {
                         if (!editor) return;
-                        const previousUrl = editor.getAttributes('link').href as
-                          | string
-                          | undefined;
+                        const previousUrl = editor.getAttributes('link')
+                          .href as string | undefined;
                         const url = globalThis.prompt(
                           'Enter URL',
                           previousUrl ?? 'https://',
                         );
                         if (url === null) return;
                         if (url === '') {
-                          editor.chain().focus().extendMarkRange('link').unsetLink().run();
+                          editor
+                            .chain()
+                            .focus()
+                            .extendMarkRange('link')
+                            .unsetLink()
+                            .run();
                           return;
                         }
                         editor
@@ -582,7 +590,7 @@ export default function RichTextField({
 
         <div
           className={cn(
-            'bg-white text-foreground min-h-45 dark:bg-background',
+            'text-foreground dark:bg-background min-h-45 bg-white',
             '[&_a]:text-primary [&_a:hover]:text-primary/80 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-2 [&_blockquote]:border-neutral-300 [&_blockquote]:pl-3 [&_blockquote]:italic [&_h1]:mb-1 [&_h1]:text-2xl [&_h1]:font-semibold [&_h2]:mb-1 [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:mb-1 [&_h3]:text-lg [&_h3]:font-semibold [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5',
             'placeholder:text-muted-foreground',
           )}

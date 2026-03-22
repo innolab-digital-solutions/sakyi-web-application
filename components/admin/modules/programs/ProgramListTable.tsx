@@ -167,7 +167,10 @@ export default function ProgramListTable() {
                   </Badge>
                 </TableCell>
                 <TableCell className='min-w-0 py-2.5 align-top'>
-                  <p className='truncate text-sm' title={getTrackLabel(program)}>
+                  <p
+                    className='truncate text-sm'
+                    title={getTrackLabel(program)}
+                  >
                     {getTrackLabel(program)}
                   </p>
                 </TableCell>
@@ -186,7 +189,12 @@ export default function ProgramListTable() {
                   </span>
                 </TableCell>
                 <TableCell className='py-2.5 pr-2 text-right align-top'>
-                  <Button variant='ghost' size='sm' className='h-8 gap-1' asChild>
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    className='h-8 gap-1'
+                    asChild
+                  >
                     <Link
                       href={ROUTES.ADMIN.MODULES.PROGRAMS.EDIT(
                         String(program.id),

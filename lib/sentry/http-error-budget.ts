@@ -3,11 +3,11 @@
  * Skips common auth, validation, and not-found noise; keeps server, network,
  * timeout, and throttling signals.
  */
-const QUIET_CLIENT_ERROR_STATUSES = new Set([
-  400, 401, 403, 404, 419, 422,
-]);
+const QUIET_CLIENT_ERROR_STATUSES = new Set([400, 401, 403, 404, 419, 422]);
 
-export const shouldReportHttpStatusForBudget = (httpStatus: number): boolean => {
+export const shouldReportHttpStatusForBudget = (
+  httpStatus: number,
+): boolean => {
   if (httpStatus === 0) return true;
   // Laravel (and similar) may return HTTP 200 with a JSON `status: "error"` body.
   if (httpStatus === 200) return false;

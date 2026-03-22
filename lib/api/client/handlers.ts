@@ -24,7 +24,8 @@ const throwOrReturnApiClientError = <T>(
   status: number,
   options: ThrowOrReturnOptions<T>,
 ): ApiResponse<T> => {
-  const { throwOnError, errors, requestId, payload, fallbackResponse } = options;
+  const { throwOnError, errors, requestId, payload, fallbackResponse } =
+    options;
 
   if (throwOnError) {
     throw new ApiClientError(message, status, errors, requestId, payload);

@@ -54,7 +54,9 @@ const TableListWrapper = <TItem,>({
   className,
 }: TableListWrapperProps<TItem>) => {
   const [localSearch, setLocalSearch] = useState('');
-  const [localPerPage, setLocalPerPage] = useState<number>(ROWS_PER_PAGE_OPTIONS[1]);
+  const [localPerPage, setLocalPerPage] = useState<number>(
+    ROWS_PER_PAGE_OPTIONS[1],
+  );
 
   const searchValue = controls ? controls.search.value : localSearch;
   const handleSearchChange = (value: string) => {

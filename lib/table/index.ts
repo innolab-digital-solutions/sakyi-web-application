@@ -1,5 +1,4 @@
 export { useTable } from './core';
-export { getVisiblePageNumbers, tableQueriesEqual } from './utils';
 export type {
   TableControls,
   TableListPayload,
@@ -14,3 +13,4 @@ export type {
   UseTableHookOptions,
   UseTableReturn,
 } from './types';
+export { getVisiblePageNumbers, tableQueriesEqual } from './utils';

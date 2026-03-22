@@ -208,7 +208,8 @@ function ComboboxField(props: ComboboxFieldProps) {
       'border-destructive bg-destructive/4 hover:bg-destructive/5 hover:text-foreground dark:bg-destructive/15 dark:hover:bg-destructive/20',
     'focus-visible:ring-[3px]',
     !error && 'focus-visible:border-ring focus-visible:ring-ring/50',
-    error && 'focus-visible:border-destructive focus-visible:ring-destructive/20',
+    error &&
+      'focus-visible:border-destructive focus-visible:ring-destructive/20',
     open &&
       (error
         ? 'border-destructive ring-[3px] ring-destructive/20'
@@ -385,7 +386,7 @@ function ComboboxField(props: ComboboxFieldProps) {
             <CommandList
               role='listbox'
               aria-multiselectable={isMulti ? true : undefined}
-              className='min-h-0 max-h-60 flex-1 overflow-y-auto overscroll-contain scroll-py-1'
+              className='max-h-60 min-h-0 flex-1 scroll-py-1 overflow-y-auto overscroll-contain'
             >
               <CommandEmpty>{emptyMessage}</CommandEmpty>
               <CommandGroup>

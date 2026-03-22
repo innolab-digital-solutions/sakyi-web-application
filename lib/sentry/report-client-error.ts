@@ -34,7 +34,12 @@ export const reportClientError = (
 
   Sentry.captureException(err, {
     ...(context?.segment != null && context.segment !== ''
-      ? { tags: { reporting_source: 'client-boundary', error_segment: context.segment } }
+      ? {
+          tags: {
+            reporting_source: 'client-boundary',
+            error_segment: context.segment,
+          },
+        }
       : { tags: { reporting_source: 'client-boundary' } }),
     extra: {
       digest: context?.digest,

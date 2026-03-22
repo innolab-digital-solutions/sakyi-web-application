@@ -142,7 +142,8 @@ export const getSentryReplayOnErrorSampleRate = (): number =>
  */
 export const getSentryEnableLogs = (): boolean => {
   const raw =
-    process.env.NEXT_PUBLIC_SENTRY_ENABLE_LOGS ?? process.env.SENTRY_ENABLE_LOGS;
+    process.env.NEXT_PUBLIC_SENTRY_ENABLE_LOGS ??
+    process.env.SENTRY_ENABLE_LOGS;
   if (raw !== undefined) {
     return ['1', 'true', 'yes'].includes(String(raw).trim().toLowerCase());
   }

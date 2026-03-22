@@ -65,12 +65,18 @@ export async function fetchTablePage<T>(
  */
 export function buildInitialStateFromUrl(
   searchParams: URLSearchParams,
-  options?: { initialPage?: number; initialPerPage?: number; initialSearch?: string },
+  options?: {
+    initialPage?: number;
+    initialPerPage?: number;
+    initialSearch?: string;
+  },
 ) {
-  const initialPage = Number(searchParams.get('page')) || options?.initialPage || 1;
+  const initialPage =
+    Number(searchParams.get('page')) || options?.initialPage || 1;
   const initialPerPage =
     Number(searchParams.get('per_page')) || options?.initialPerPage || 15;
-  const initialSearch = searchParams.get('search') ?? options?.initialSearch ?? '';
+  const initialSearch =
+    searchParams.get('search') ?? options?.initialSearch ?? '';
 
   const extraParamsFromUrl: TableQueryParams = {};
 
@@ -143,7 +149,7 @@ export function getVisiblePageNumbers(
 
   const half = Math.floor(maxButtons / 2);
   let start = Math.max(1, current - half);
-  let end = Math.min(safeLast, start + maxButtons - 1);
+  const end = Math.min(safeLast, start + maxButtons - 1);
   start = Math.max(1, end - maxButtons + 1);
 
   const pages: number[] = [];

@@ -71,7 +71,9 @@ export type DatePickerFieldRangeProps = DatePickerFieldSharedProps & {
   calendarProps?: CalendarPassthrough;
 };
 
-export type DatePickerFieldProps = DatePickerFieldSingleProps | DatePickerFieldRangeProps;
+export type DatePickerFieldProps =
+  | DatePickerFieldSingleProps
+  | DatePickerFieldRangeProps;
 
 const DEFAULT_TIME = '09:00';
 
@@ -143,8 +145,8 @@ function DatePickerField(props: DatePickerFieldProps) {
   } = props;
 
   const dateFormat =
-    (props as DatePickerFieldSingleProps | DatePickerFieldRangeProps).dateFormat ??
-    'PP';
+    (props as DatePickerFieldSingleProps | DatePickerFieldRangeProps)
+      .dateFormat ?? 'PP';
 
   const calendarProps = isRange
     ? (props as DatePickerFieldRangeProps).calendarProps
@@ -155,7 +157,8 @@ function DatePickerField(props: DatePickerFieldProps) {
   const errorId = error ? `${id}-error` : undefined;
   const [open, setOpen] = React.useState(false);
 
-  const includeTime = !isRange && (props as DatePickerFieldSingleProps).includeTime;
+  const includeTime =
+    !isRange && (props as DatePickerFieldSingleProps).includeTime;
   const singleValue = !isRange
     ? (props as DatePickerFieldSingleProps).value
     : undefined;
@@ -183,7 +186,8 @@ function DatePickerField(props: DatePickerFieldProps) {
       'border-destructive bg-destructive/4 hover:bg-destructive/5 hover:text-foreground dark:bg-destructive/15 dark:hover:bg-destructive/20',
     'focus-visible:ring-[3px]',
     !error && 'focus-visible:border-ring focus-visible:ring-ring/50',
-    error && 'focus-visible:border-destructive focus-visible:ring-destructive/20',
+    error &&
+      'focus-visible:border-destructive focus-visible:ring-destructive/20',
     open &&
       (error
         ? 'border-destructive ring-[3px] ring-destructive/20'
@@ -255,7 +259,9 @@ function DatePickerField(props: DatePickerFieldProps) {
     </div>
   ) : null;
 
-  const hiddenSingle = !isRange ? (props as DatePickerFieldSingleProps).name : undefined;
+  const hiddenSingle = !isRange
+    ? (props as DatePickerFieldSingleProps).name
+    : undefined;
   const hiddenRangeFrom = isRange
     ? (props as DatePickerFieldRangeProps).nameFrom
     : undefined;
@@ -318,7 +324,9 @@ function DatePickerField(props: DatePickerFieldProps) {
           <input
             type='hidden'
             name={hiddenRangeFrom}
-            value={rangeValue?.from ? format(rangeValue.from, 'yyyy-MM-dd') : ''}
+            value={
+              rangeValue?.from ? format(rangeValue.from, 'yyyy-MM-dd') : ''
+            }
             readOnly
             aria-hidden
           />

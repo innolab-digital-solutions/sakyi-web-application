@@ -14,7 +14,10 @@ From `@/lib/localization`:
 
 ```ts
 import { getDictionaries, getTranslation } from '@/lib/localization';
-import type { SupportedLanguage, TranslationReplacements } from '@/lib/localization';
+import type {
+  SupportedLanguage,
+  TranslationReplacements,
+} from '@/lib/localization';
 ```
 
 `interpolate` and `resolveKey` live in `utils.ts` and are used internally by `getTranslation`; do not duplicate that logic in features unless you have a one-off need and accept drift.
