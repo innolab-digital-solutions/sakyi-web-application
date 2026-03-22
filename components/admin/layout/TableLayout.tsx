@@ -4,7 +4,7 @@ import RowsPerPageSelect from '@/components/shared/table/RowsPerPageSelect';
 import TableDataSearchBox from '@/components/shared/table/TableDataSearchBox';
 import TableEmptyState from '@/components/shared/table/TableEmptyState';
 import TablePagination from '@/components/shared/table/TablePagination';
-import type { TableControls } from '@/hooks/table/types';
+import type { TableControls } from '@/lib/table';
 
 type TableLayoutProps = {
   filters: ReactNode;

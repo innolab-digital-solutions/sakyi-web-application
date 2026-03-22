@@ -38,7 +38,7 @@ These must be non-empty in production and in CI (see `scripts/verify-env.mjs`):
 
 ## Forms
 
-CRUD and API-submitting forms must use `useForm` from `@/lib/form` with Zod schemas from `domains/<feature>/schemas/`. See [docs/form-hook.md](docs/form-hook.md).
+CRUD and API-submitting forms must use `useForm` from `@/lib/form` with Zod schemas from `domains/<feature>/schemas/`. See the Forms section in [docs/project-architecture.md](docs/project-architecture.md).
 
 ## Naming, files, and exports
 
@@ -47,7 +47,7 @@ CRUD and API-submitting forms must use `useForm` from `@/lib/form` with Zod sche
 | Kind                   | Convention                                                   | Examples                                 |
 | ---------------------- | ------------------------------------------------------------ | ---------------------------------------- |
 | React components       | **PascalCase** matching the main export                      | `ProgramCard.tsx`, `AOSInitializer.tsx`  |
-| Hooks                  | **`use` + PascalCase** in **camelCase** file                 | `useMobile.ts`, `useContactForm.ts`      |
+| Hooks                  | **`use` + PascalCase** in **camelCase** file                 | `use-mobile.ts` (`useMobile`)            |
 | Tests                  | **`*.test.ts`** / **`*.test.tsx`**                           | `tests/domains/programs/schemas.test.ts` |
 | Config / plain modules | **kebab-case** or **camelCase** (stay consistent per folder) | `config/routes/admin.ts`                 |
 

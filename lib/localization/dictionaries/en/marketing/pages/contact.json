@@ -83,7 +83,9 @@
       },
       "submit": {
         "label": "Send Message",
-        "loading": "Sending..."
+        "loading": "Sending...",
+        "success": "Message sent! We'll get back to you within 24 hours.",
+        "error": "Something went wrong. Please try again."
       }
     }
   },

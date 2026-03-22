@@ -20,7 +20,7 @@ export default function ProgramForm({ mode, program }: ProgramFormProps) {
       </p>
       <p className='mt-2'>
         Replace this placeholder with a form that uses{' '}
-        <code className='text-xs'>@/hooks/form</code> and the program create/update
+        <code className='text-xs'>@/lib/form</code> and the program create/update
         schemas.
       </p>
     </div>

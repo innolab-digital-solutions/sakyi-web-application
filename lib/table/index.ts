@@ -1,5 +1,6 @@
 export { useTable } from './core';
 export type {
+  TableControls,
   TablePageData,
   TablePagination,
   TableQueryOptions,
