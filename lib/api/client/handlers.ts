@@ -24,8 +24,7 @@ const throwOrReturnApiClientError = <T>(
   status: number,
   options: ThrowOrReturnOptions<T>,
 ): ApiResponse<T> => {
-  const { throwOnError, errors, requestId, payload, fallbackResponse } =
-    options;
+  const { throwOnError, errors, requestId, payload, fallbackResponse } = options;
 
   if (throwOnError) {
     throw new ApiClientError(message, status, errors, requestId, payload);
@@ -138,6 +137,8 @@ export const handleBackendApiError = <T>(
     dispatchApiUnauthorized(payload.message);
   }
 
+  const requestId = response.headers.get('x-request-id') ?? undefined;
+
   const errorResponse: ApiResponse<T> = {
     status: 'error',
     message: payload.message ?? response.statusText,
@@ -152,7 +153,7 @@ export const handleBackendApiError = <T>(
   return throwOrReturnApiClientError<T>(message, response.status, {
     throwOnError,
     errors: errorResponse.errors as Record<string, unknown> | undefined,
-    requestId: response.headers.get('x-request-id') ?? undefined,
+    requestId,
     payload,
     fallbackResponse: errorResponse,
   });

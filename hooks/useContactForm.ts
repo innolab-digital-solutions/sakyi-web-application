@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { http } from '@/lib/api/client';
+import { reportNotableApiClientError } from '@/lib/sentry/client';
 
 type ContactFormData = {
   name: string;
@@ -83,7 +84,8 @@ export const useContactForm = () => {
         }
         onError(res.message ?? 'Failed to send message.');
       }
-    } catch {
+    } catch (caught) {
+      reportNotableApiClientError(caught);
       onError('Failed to send message. Please try again.');
     } finally {
       setProcessing(false);

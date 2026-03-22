@@ -109,8 +109,8 @@ export const useTable = <TItem>(
         params,
       );
 
-      if (response.status === 'error') {
-        throw new Error(response.message);
+      if (response.status !== 'success') {
+        throw new Error('Unexpected table API error shape.');
       }
 
       return response;

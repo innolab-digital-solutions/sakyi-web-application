@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/config/routes';
-import { reportClientError } from '@/lib/observability/report-client-error';
+import { reportClientError } from '@/lib/sentry/client';
 
 type AdminErrorProps = {
   error: Error & { digest?: string };

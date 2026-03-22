@@ -41,5 +41,5 @@ export async function fetchTablePage<T>(
 ): Promise<ApiResponse<T>> {
   const queryString = buildQueryString(params);
   const url = params ? `${endpoint}${queryString}` : endpoint;
-  return http.get<T>(url, { throwOnError: false });
+  return http.get<T>(url, { throwOnError: true });
 }

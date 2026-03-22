@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 
-import { reportClientError } from '@/lib/observability/report-client-error';
+import { reportClientError } from '@/lib/sentry/client';
 
 type GlobalErrorProps = {
   error: Error & { digest?: string };

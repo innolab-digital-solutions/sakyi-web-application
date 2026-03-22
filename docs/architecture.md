@@ -30,7 +30,7 @@ config/              # Routes, API endpoints, navigation, fonts — not business
 context/             # React context (e.g. language, auth) for client boundaries
 domains/             # Feature modules: types, API services, Zod, constants
 hooks/               # Reusable React hooks (tables, etc.)
-lib/                 # Infrastructure: API client, form hook, utilities, providers
+lib/                 # Infrastructure: API client, form hook, Sentry, utilities, providers
 public/              # Static assets
 types/               # Cross-cutting TS types (e.g. generic API envelope)
 docs/                # Architecture and conventions (this folder)
@@ -94,7 +94,7 @@ The Laravel API enforces authz and validation. See [security.md](./security.md) 
 ## Errors and observability
 
 - Route **error boundaries:** `app/error.tsx`, `app/admin/error.tsx`, and `app/global-error.tsx` render fallbacks and use `unstable_retry` (see Next.js [error.js](https://nextjs.org/docs/app/api-reference/file-conventions/error)).
-- **`reportClientError`** (`lib/observability/report-client-error.ts`) centralizes client logging; plug in Sentry or similar in one place.
+- **Sentry** lives under **`lib/sentry/`**: `index.ts` re-exports server-safe env/sampling helpers; **`client.ts`** re-exports client reporters (`reportClientError`, `reportNotableApiClientError`). Import reporters from `@/lib/sentry/client` in Client Components so the `'use client'` boundary stays explicit. Root `sentry.*.config.ts` and `instrumentation-client.ts` wire `@sentry/nextjs`. To stop sending events without code changes, unset `NEXT_PUBLIC_SENTRY_DSN` or set `NEXT_PUBLIC_SENTRY_ENABLED=false` (see `.env.example`).
 
 ## API response mapping
 

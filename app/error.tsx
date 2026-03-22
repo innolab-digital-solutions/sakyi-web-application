@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { reportClientError } from '@/lib/observability/report-client-error';
+import { reportClientError } from '@/lib/sentry/client';
 
 type AppErrorProps = {
   error: Error & { digest?: string };
