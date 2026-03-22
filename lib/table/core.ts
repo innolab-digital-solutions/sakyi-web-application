@@ -2,82 +2,48 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
-
-import { http } from '@/lib/api/client';
-import type { ApiResponse } from '@/types/api';
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import type {
   TableControls,
-  TablePageData,
-  TablePagination,
+  TableListPayload,
+  TablePaginationMeta,
   TableQueryParams,
   TableQueryResponse,
   UseTableHookOptions,
   UseTableReturn,
 } from './types';
+import {
+  buildInitialStateFromUrl,
+  fetchTablePage,
+  normalizeTableResponse,
+  tableQueriesEqual,
+} from './utils';
 
-function buildTableQueryString(params?: TableQueryParams): string {
-  if (!params) return '';
-  const searchParams = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    if (value === undefined || value === null) continue;
-    searchParams.append(key, String(value));
-  }
-  const queryString = searchParams.toString();
-  return queryString ? `?${queryString}` : '';
-}
-
-async function fetchTablePage<T>(
-  endpoint: string,
-  params?: TableQueryParams,
-): Promise<ApiResponse<T>> {
-  const queryString = buildTableQueryString(params);
-  const url = params ? `${endpoint}${queryString}` : endpoint;
-  return http.get<T>(url, { throwOnError: true });
-}
-
-const TABLE_PARAM_KEYS = ['page', 'per_page', 'search'] as const;
-
-type TableParamKey = (typeof TABLE_PARAM_KEYS)[number];
-
-const buildInitialStateFromUrl = <TItem>(
-  searchParams: URLSearchParams,
-  options?: UseTableHookOptions<TItem>,
-) => {
-  const initialPage =
-    Number(searchParams.get('page')) || options?.initialPage || 1;
-  const initialPerPage =
-    Number(searchParams.get('per_page')) || options?.initialPerPage || 10;
-  const initialSearch =
-    searchParams.get('search') ?? options?.initialSearch ?? '';
-
-  const extraParamsFromUrl: TableQueryParams = {};
-
-  searchParams.forEach((value, key) => {
-    if (TABLE_PARAM_KEYS.includes(key as TableParamKey)) return;
-    if (!value) return;
-    extraParamsFromUrl[key] = value;
-  });
-
-  return {
-    initialPage,
-    initialPerPage,
-    initialSearch,
-    extraParamsFromUrl,
-  };
-};
+const DEFAULT_PAGE = 1;
+const DEFAULT_PER_PAGE = 15;
+const DEFAULT_SEARCH_DEBOUNCE_MS = 300;
 
 /**
  * Data-fetching hook for paginated table endpoints.
  *
- * Owns pagination and search state (page, perPage, search) and resets to the
- * first page when search changes. Integrates the shared HTTP client with
- * TanStack Query and returns rows, pagination, and layout props for table UIs.
+ * Owns pagination and search state, keeps URL query params in sync with the API
+ * when `syncWithUrl` is enabled, and exposes TanStack Query plus control props
+ * for table layouts (`TableListWrapper`, etc.).
  *
- * @template TItem - Row/item type contained in the table data array.
- * @param endpoint - Relative API endpoint (e.g. `"admin/programs"`).
- * @param options - Initial state, extra params (e.g. filters), and TanStack Query options.
+ * Search is debounced by default so the API and URL update after typing pauses;
+ * the search field still updates on every keystroke.
+ *
+ * @template TItem - Row type for each table entry.
+ * @param endpoint - Relative API path (e.g. `"lookup/goals"`).
+ * @param options - URL sync, initial values, extra filters, and `useQuery` options.
  */
 export const useTable = <TItem>(
   endpoint: string,
@@ -88,113 +54,218 @@ export const useTable = <TItem>(
   const router = useRouter();
   const searchParamsString = searchParams.toString();
 
-  const fromUrl = options?.syncWithUrl
-    ? buildInitialStateFromUrl<TItem>(
-        new URLSearchParams(searchParamsString),
-        options,
-      )
+  const {
+    syncWithUrl,
+    initialPage,
+    initialPerPage,
+    initialSearch,
+    params: optionParams,
+    placeholderData,
+    searchDebounceMs = DEFAULT_SEARCH_DEBOUNCE_MS,
+    ...queryOptions
+  } = options ?? {};
+
+  const debounceMs = searchDebounceMs;
+
+  const fromUrl = syncWithUrl
+    ? buildInitialStateFromUrl(new URLSearchParams(searchParamsString), {
+        initialPage,
+        initialPerPage,
+        initialSearch,
+      })
     : null;
 
+  /** Skips the URL→state sync when the URL change came from our own `router.replace`. */
+  const lastWrittenQueryRef = useRef<string | null>(null);
+
+  /** Skips resetting to page 1 when `appliedSearch` changes due to URL sync. */
+  const skipPageResetForUrlSyncRef = useRef(false);
+
+  const extraParamsFromUrl = useMemo(() => {
+    if (!syncWithUrl) return {};
+    return buildInitialStateFromUrl(
+      new URLSearchParams(searchParamsString),
+      {
+        initialPage,
+        initialPerPage,
+        initialSearch,
+      },
+    ).extraParamsFromUrl;
+  }, [syncWithUrl, searchParamsString, initialPage, initialPerPage, initialSearch]);
+
+  const initialSearchValue = fromUrl?.initialSearch ?? initialSearch ?? '';
+
   const [page, setPage] = useState(
-    fromUrl?.initialPage ?? options?.initialPage ?? 1,
+    () => fromUrl?.initialPage ?? initialPage ?? DEFAULT_PAGE,
   );
   const [perPage, setPerPage] = useState(
-    fromUrl?.initialPerPage ?? options?.initialPerPage ?? 10,
+    () => fromUrl?.initialPerPage ?? initialPerPage ?? DEFAULT_PER_PAGE,
   );
-  const [search, setSearch] = useState(
-    fromUrl?.initialSearch ?? options?.initialSearch ?? '',
-  );
+  const [searchInput, setSearchInput] = useState(initialSearchValue);
+  const [appliedSearch, setAppliedSearch] = useState(initialSearchValue);
 
-  const onSearchChange = useCallback((value: string) => {
-    setSearch(value);
+  /** Commit draft search to the query after the debounce window (or immediately if debounce is 0). */
+  useEffect(() => {
+    if (debounceMs <= 0) {
+      setAppliedSearch(searchInput);
+      return;
+    }
+    const id = window.setTimeout(() => {
+      setAppliedSearch(searchInput);
+    }, debounceMs);
+    return () => window.clearTimeout(id);
+  }, [searchInput, debounceMs]);
+
+  /**
+   * When the applied search term changes from user typing (not from URL sync),
+   * reset to the first page.
+   */
+  const isFirstAppliedSearchEffect = useRef(true);
+  useEffect(() => {
+    if (isFirstAppliedSearchEffect.current) {
+      isFirstAppliedSearchEffect.current = false;
+      return;
+    }
+    if (skipPageResetForUrlSyncRef.current) {
+      skipPageResetForUrlSyncRef.current = false;
+      return;
+    }
+    setPage(1);
+  }, [appliedSearch]);
+
+  /**
+   * Clears the ref when the router reports the same query we wrote. Does not
+   * overwrite local state from the URL here — doing so races with
+   * `router.replace` (stale `searchParams` would reset search / per-page while
+   * the user is typing or before the URL updates).
+   */
+  useEffect(() => {
+    if (!syncWithUrl) return;
+    if (
+      lastWrittenQueryRef.current !== null &&
+      tableQueriesEqual(lastWrittenQueryRef.current, searchParamsString)
+    ) {
+      lastWrittenQueryRef.current = null;
+    }
+  }, [searchParamsString, syncWithUrl]);
+
+  /**
+   * Back/forward: align table state with the URL (browser history), not from
+   * the replace loop above.
+   */
+  useEffect(() => {
+    if (!syncWithUrl) return;
+
+    const onPopState = () => {
+      const next = buildInitialStateFromUrl(
+        new URLSearchParams(window.location.search),
+        {
+          initialPage,
+          initialPerPage,
+          initialSearch,
+        },
+      );
+      lastWrittenQueryRef.current = null;
+      skipPageResetForUrlSyncRef.current = true;
+      startTransition(() => {
+        setPage(next.initialPage);
+        setPerPage(next.initialPerPage);
+        setSearchInput(next.initialSearch);
+        setAppliedSearch(next.initialSearch);
+      });
+    };
+
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [syncWithUrl, initialPage, initialPerPage, initialSearch]);
+
+  const onPerPageChange = useCallback((nextPerPage: number) => {
+    setPerPage(nextPerPage);
     setPage(1);
   }, []);
 
-  const params: TableQueryParams = {
-    page,
-    per_page: perPage,
-    ...(search ? { search } : {}),
-    ...options?.params,
-    ...(options?.syncWithUrl && fromUrl ? fromUrl.extraParamsFromUrl : {}),
-  };
-
-  const { placeholderData, ...restOptions } = options ?? {};
+  const params: TableQueryParams = useMemo(() => {
+    const search = appliedSearch.trim();
+    return {
+      page,
+      per_page: perPage,
+      ...(search ? { search } : {}),
+      ...optionParams,
+      ...extraParamsFromUrl,
+    };
+  }, [page, perPage, appliedSearch, optionParams, extraParamsFromUrl]);
 
   const query = useQuery<TableQueryResponse<TItem>, Error>({
-    ...restOptions,
+    ...queryOptions,
     placeholderData: placeholderData ?? ((prev) => prev),
     queryKey: ['table', endpoint, params],
     queryFn: async () => {
-      const response = await fetchTablePage<TablePageData<TItem>>(
-        endpoint,
-        params,
-      );
+      const response = await fetchTablePage<TableListPayload<TItem>>(endpoint, params);
 
       if (response.status !== 'success') {
         throw new Error('Unexpected table API error shape.');
       }
 
-      return response;
+      return response as TableQueryResponse<TItem>;
     },
   });
 
-  // Normalise API response shapes so the hook can work with:
-  // 1) data: { data: TItem[], current_page, ... }  (Laravel paginator-style)
-  // 2) data: TItem[], meta: { current_page, ... }  (flat array + meta)
-  let rows: TItem[] = [];
-  let pagination: TablePagination<TItem> | null = null;
+  const { rows, meta: paginationMeta } = query.data
+    ? normalizeTableResponse(query.data)
+    : { rows: [] as TItem[], meta: null };
 
-  const apiData = query.data;
+  /**
+   * When the API returns a bare array without `meta.pagination`, keep the footer
+   * usable (range + pagination) using the current page slice as a single page.
+   */
+  const paginationMetaResolved: TablePaginationMeta | null =
+    paginationMeta ??
+    (query.isSuccess && query.data?.status === 'success'
+      ? {
+          current_page: page,
+          per_page: perPage,
+          last_page: 1,
+          total: rows.length,
+          from: rows.length > 0 ? 1 : 0,
+          to: rows.length,
+          has_more_pages: false,
+        }
+      : null);
 
-  if (apiData) {
-    const payload = apiData.data as unknown;
-
-    if (payload && Array.isArray((payload as TablePageData<TItem>).data)) {
-      const pageData = payload as TablePageData<TItem>;
-      rows = pageData.data;
-      // Strip the rows array to keep only pagination metadata.
-
-      const { data: _rows, ...meta } = pageData;
-      pagination = meta;
-    } else if (Array.isArray(payload)) {
-      rows = payload as TItem[];
-      if (apiData.meta && typeof apiData.meta === 'object') {
-        pagination = apiData.meta as TablePagination<TItem>;
-      }
-    }
-  }
+  const isDebouncing =
+    debounceMs > 0 && searchInput !== appliedSearch;
 
   const controls: TableControls<TItem> = {
     search: {
-      value: search,
-      onChange: onSearchChange,
+      value: searchInput,
+      onChange: setSearchInput,
+      ...(debounceMs > 0 ? { isDebouncing } : {}),
     },
     perPage: {
       value: perPage,
-      onChange: setPerPage,
+      onChange: onPerPageChange,
     },
     pagination: {
       page,
       onPageChange: setPage,
-      meta: pagination,
+      meta: paginationMetaResolved,
     },
-    isLoading: query.isLoading,
+    isLoading: query.isFetching,
     query,
   };
 
-  // When table state changes via UI interactions, push the new state
-  // into the URL query string (while preserving other params).
   useEffect(() => {
-    if (!options?.syncWithUrl) return;
+    if (!syncWithUrl) return;
     if (typeof window === 'undefined') return;
 
     const urlParams = new URLSearchParams(searchParamsString);
 
-    urlParams.set('page', String(controls.pagination.page));
-    urlParams.set('per_page', String(controls.perPage.value));
+    urlParams.set('page', String(page));
+    urlParams.set('per_page', String(perPage));
 
-    if (controls.search.value) {
-      urlParams.set('search', controls.search.value);
+    const trimmed = appliedSearch.trim();
+    if (trimmed) {
+      urlParams.set('search', trimmed);
     } else {
       urlParams.delete('search');
     }
@@ -204,16 +275,17 @@ export const useTable = <TItem>(
     const currentUrl = `${window.location.pathname}${window.location.search}`;
 
     if (nextUrl !== currentUrl) {
+      lastWrittenQueryRef.current = nextQuery;
       router.replace(nextUrl, { scroll: false });
     }
   }, [
-    controls.pagination.page,
-    controls.perPage.value,
-    controls.search.value,
-    options,
+    page,
+    perPage,
+    appliedSearch,
     pathname,
     router,
     searchParamsString,
+    syncWithUrl,
   ]);
 
   return {

@@ -1,6 +1,7 @@
 import { PlusIcon } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
 import PageHeader from '@/components/admin/layout/PageHeader';
 import ProgramListTable from '@/components/admin/modules/programs/ProgramListTable';
@@ -29,7 +30,15 @@ export default function ProgramListsPage() {
         }
       />
 
-      <ProgramListTable />
+      <Suspense
+        fallback={
+          <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
+            Loading programs…
+          </div>
+        }
+      >
+        <ProgramListTable />
+      </Suspense>
     </div>
   );
 }

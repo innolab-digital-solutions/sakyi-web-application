@@ -1,6 +1,5 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { CalendarIcon, PencilIcon, UsersIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -17,10 +16,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
 import { STATUS } from '@/domains/programs/constants';
-import { getPrograms } from '@/domains/programs/services/admin.service';
 import type { Program } from '@/domains/programs/types/admin';
+import { useTable } from '@/lib/table';
 
 const PROGRAM_STATUS_LABEL: Record<Program['status'], string> = {
   [STATUS.DRAFT]: 'Draft',
@@ -79,21 +79,20 @@ function formatEnrollmentCount(count: number | undefined): string {
 }
 
 export default function ProgramListTable() {
-  const { data, isPending, isError, error } = useQuery({
-    queryKey: ['programs'],
-    queryFn: () => getPrograms(),
-  });
+  const { rows, controls } = useTable<Program>(
+    ENDPOINTS.ADMIN.MODULES.PROGRAMS.LIST,
+    { syncWithUrl: true },
+  );
 
-  const programs = data?.status === 'success' ? data.data : undefined;
+  const { query } = controls;
+  const showSkeleton = query.isPending && !query.data;
   const errorMessage =
-    data?.status === 'error'
-      ? data.message
-      : isError && error instanceof Error
-        ? error.message
-        : 'Could not load programs.';
+    query.isError && query.error instanceof Error
+      ? query.error.message
+      : 'Could not load programs.';
 
   return (
-    <TableListWrapper>
+    <TableListWrapper controls={controls}>
       <Table className='min-w-180 table-fixed'>
         <TableHeader className='bg-muted/50 [&_tr]:border-border'>
           <TableRow className='border-border hover:bg-transparent'>
@@ -106,7 +105,7 @@ export default function ProgramListTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {isPending &&
+          {showSkeleton &&
             Array.from({ length: 3 }).map((_, row) => (
               <TableRow key={`skeleton-${row}`}>
                 {Array.from({ length: 6 }).map((_, col) => (
@@ -117,7 +116,7 @@ export default function ProgramListTable() {
               </TableRow>
             ))}
 
-          {!isPending && (data?.status === 'error' || isError) && (
+          {!showSkeleton && query.isError && (
             <TableRow>
               <TableCell
                 colSpan={6}
@@ -128,9 +127,10 @@ export default function ProgramListTable() {
             </TableRow>
           )}
 
-          {!isPending &&
-            data?.status === 'success' &&
-            programs?.length === 0 && (
+          {!showSkeleton &&
+            !query.isError &&
+            query.data?.status === 'success' &&
+            rows.length === 0 && (
               <TableRow>
                 <TableCell
                   colSpan={6}
@@ -141,9 +141,10 @@ export default function ProgramListTable() {
               </TableRow>
             )}
 
-          {!isPending &&
-            data?.status === 'success' &&
-            programs?.map((program) => (
+          {!showSkeleton &&
+            !query.isError &&
+            query.data?.status === 'success' &&
+            rows.map((program) => (
               <TableRow key={program.id} className='border-border/80'>
                 <TableCell className='min-w-0 py-2.5 align-top'>
                   <div className='min-w-0 pr-2'>

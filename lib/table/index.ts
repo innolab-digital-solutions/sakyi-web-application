@@ -1,11 +1,16 @@
 export { useTable } from './core';
+export { getVisiblePageNumbers, tableQueriesEqual } from './utils';
 export type {
   TableControls,
+  TableListPayload,
   TablePageData,
-  TablePagination,
+  TablePaginationConfig,
+  TablePaginationMeta,
+  TablePerPageConfig,
   TableQueryOptions,
   TableQueryParams,
   TableQueryResponse,
+  TableSearchConfig,
   UseTableHookOptions,
   UseTableReturn,
 } from './types';

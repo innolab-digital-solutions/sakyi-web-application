@@ -6,7 +6,7 @@ import type {
 
 import type { ApiSuccess } from '@/types/api';
 
-/** Query parameters for paginated table requests (merged into the request URL). */
+/** Query parameters merged into paginated list requests (URL and API stay aligned). */
 export type TableQueryParams = {
   page?: number;
   per_page?: number;
@@ -14,6 +14,9 @@ export type TableQueryParams = {
   [key: string]: unknown;
 };
 
+/**
+ * Laravel-style paginator embedded in `data` (alternative to top-level array + meta.pagination).
+ */
 export interface TablePageData<TItem> {
   data: TItem[];
   current_page: number;
@@ -35,7 +38,35 @@ export interface TablePageData<TItem> {
   total: number;
 }
 
-export type TableQueryResponse<TItem> = ApiSuccess<TablePageData<TItem>>;
+/**
+ * Pagination block returned under `meta.pagination` for list endpoints.
+ */
+export type TablePaginationMeta = {
+  current_page: number;
+  per_page: number;
+  total: number;
+  last_page: number;
+  from: number | null;
+  to: number | null;
+  has_more_pages?: boolean;
+  path?: string;
+  next_page_url?: string | null;
+  prev_page_url?: string | null;
+};
+
+export type TableListPayload<TItem> = TItem[] | TablePageData<TItem>;
+
+/**
+ * Successful list response: either a bare array in `data` with `meta.pagination`,
+ * or an embedded paginator object in `data`.
+ */
+export type TableQueryResponse<TItem> = ApiSuccess<TableListPayload<TItem>> & {
+  meta?: {
+    version?: string;
+    pagination?: TablePaginationMeta;
+    [key: string]: unknown;
+  };
+};
 
 export type TableQueryOptions<TItem> = Omit<
   UseQueryOptions<
@@ -48,35 +79,40 @@ export type TableQueryOptions<TItem> = Omit<
 >;
 
 /**
- * Options for useTable when the hook owns pagination and search state.
- * Extra params (e.g. filters) are merged with page, per_page, and search.
+ * Options for `useTable`: URL sync, initial UI state, extra filters, and TanStack Query options.
  */
 export interface UseTableHookOptions<TItem> extends TableQueryOptions<TItem> {
   /**
-   * When true, useTable will sync its core controls (page, per_page, search)
-   * with the URL query string (both read on mount and write on change).
+   * When true, page, per_page, and search are read from and written to the URL
+   * so `?search=&page=&per_page=` matches the API request.
    */
   syncWithUrl?: boolean;
 
   initialPage?: number;
   initialPerPage?: number;
   initialSearch?: string;
-  /** Additional query params merged with page, per_page, search (e.g. filters). */
+  /**
+   * Milliseconds to wait after the last keystroke before applying search to the query and URL.
+   * Set to `0` to apply on every change (no debounce).
+   * @default 300
+   */
+  searchDebounceMs?: number;
+  /** Additional query params merged with page, per_page, and search (e.g. filters). */
   params?: Omit<TableQueryParams, 'page' | 'per_page' | 'search'>;
 }
-
-/**
- * Pagination metadata derived from the backend response,
- * excluding the row data array.
- */
-export type TablePagination<TItem> = Omit<TablePageData<TItem>, 'data'>;
 
 /**
  * Config for search controls in table layouts.
  */
 export interface TableSearchConfig {
+  /** Current input value (updates on every keystroke). */
   value: string;
   onChange: (value: string) => void;
+  /**
+   * True while the input has not yet been applied to the list query (debounce window).
+   * Omitted when `searchDebounceMs` is 0 or debouncing is disabled.
+   */
+  isDebouncing?: boolean;
 }
 
 /**
@@ -90,42 +126,27 @@ export interface TablePerPageConfig {
 /**
  * Config for pagination controls (current page, handler, and API metadata).
  */
-export interface TablePaginationConfig<TItem = unknown> {
+export interface TablePaginationConfig {
   page: number;
   onPageChange: (page: number) => void;
-  /** API response metadata (total, last_page, links, etc.). Null before first load. */
-  meta: TablePagination<TItem> | null;
+  /** Normalized API pagination; null before the first successful load. */
+  meta: TablePaginationMeta | null;
 }
 
 /**
- * Grouped table control props used by layout components.
- *
- * This keeps search, page size, pagination, and loading/query wiring nested
- * and easier to pass around instead of many discrete props.
+ * Grouped table control props for layout components (search, page size, pagination, query).
  */
 export interface TableControls<TItem = unknown> {
   search: TableSearchConfig;
   perPage: TablePerPageConfig;
-  pagination: TablePaginationConfig<TItem>;
+  pagination: TablePaginationConfig;
 
-  /**
-   * Derived loading state for the table query.
-   * This mirrors `query.isLoading` but keeps the consuming components
-   * decoupled from React Query's full API surface.
-   */
   isLoading: boolean;
 
-  /**
-   * Underlying TanStack Query result for advanced consumers.
-   * Most components should prefer the higher-level fields above.
-   */
   query: UseQueryResult<TableQueryResponse<TItem>, Error>;
 }
 
 export interface UseTableReturn<TItem> {
-  /** Flattened list of row items for rendering the table. */
   rows: TItem[];
-
-  /** Nested config for controls, loading state, and query meta. */
   controls: TableControls<TItem>;
 }
