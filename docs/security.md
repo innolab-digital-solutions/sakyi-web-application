@@ -12,6 +12,7 @@ This Next.js app is a **browser client** to a **Laravel API**. Treat the API as 
 
 - `proxy.ts` at the project root replaces deprecated `middleware` for path-matched logic. See [Proxy (Next.js)](https://nextjs.org/docs/app/api-reference/file-conventions/proxy).
 - The matcher is limited to `/admin/:path*`. **Do not** rely on Proxy for authorization; keep checks in Laravel.
+- **Optional optimistic session hint:** set `PROXY_ADMIN_SESSION_COOKIE_NAMES` (comma-separated) only when the browser actually sends those cookies on requests to the **Next.js origin** (e.g. Sanctum stateful domains + shared parent domain). If the session cookie is **API-host-only**, leave this unset; otherwise you will redirect logged-in users incorrectly. `/admin/login` is always allowed through. `RouteGuard` + `/me` remain the source of truth for client state.
 
 ## Environment variables
 

@@ -1,10 +1,14 @@
+/** The event name for API unauthorized errors. */
 export const API_UNAUTHORIZED_EVENT = 'sakyi:api-unauthorized';
 
 /** The URL to fetch the CSRF cookie. */
 export const CSRF_COOKIE_ENDPOINT = '/sanctum/csrf-cookie';
 
 /** The name of the CSRF cookie. */
-export const COOKIE_NAME = 'XSRF-TOKEN=';
+export const CSRF_COOKIE_NAME = 'XSRF-TOKEN=';
+
+/** The name of the backend session cookie. */
+export const SESSION_COOKIE_NAME = 'sakyi_backend_session';
 
 /** The default HTTP method used by the API client when none is specified. */
 export const DEFAULT_METHOD = 'GET' as const;

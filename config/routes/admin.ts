@@ -11,6 +11,7 @@
 const BASE = '/admin';
 
 export const ADMIN_ROUTES = {
+  ROOT: BASE,
   AUTH: {
     LOGIN: `${BASE}/login`,
   },
