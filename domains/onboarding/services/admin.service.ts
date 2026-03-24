@@ -2,6 +2,7 @@ import { ENDPOINTS } from '@/config/api/endpoints';
 import type { ApiResponse } from '@/lib/api/client';
 import { http } from '@/lib/api/client';
 
+import { buildSaveSectionFormData } from '../mappers/admin';
 import type {
   CancelOnboardingIntakePayload,
   CreateOnboardingIntakePayload,
@@ -68,18 +69,22 @@ export async function getOnboardingIntakeById(
 
 /**
  * Saves one section's answers for an intake.
+ *
+ * Uses `multipart/form-data` so real {@link File} uploads are accepted by Laravel and `file` is
+ * not sent for questions without a new upload (avoids invalid nested JSON file placeholders).
  */
 export async function saveOnboardingIntakeSection(
   intakeId: number,
   sectionId: number,
   payload: SaveOnboardingSectionPayload,
 ): Promise<OnboardingIntakeResponse | ApiResponse<OnboardingIntakeData>> {
+  const body = buildSaveSectionFormData(payload);
   return http.put<OnboardingIntakeData>(
     ENDPOINTS.ADMIN.MODULES.ONBOARDING.INTAKES.SAVE_SECTION_ANSWERS(
       String(intakeId),
       String(sectionId),
     ),
-    payload,
+    body,
   );
 }
 

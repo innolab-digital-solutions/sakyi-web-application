@@ -607,9 +607,23 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
               <Button
                 type='button'
                 variant='default'
-                disabled={isReadonly || completeMutation.isPending}
+                disabled={
+                  isReadonly ||
+                  saveMutation.isPending ||
+                  completeMutation.isPending
+                }
                 className='min-w-28'
-                onClick={() => completeMutation.mutate()}
+                onClick={async () => {
+                  const isValid = validateCurrentSectionRequired(activeSection);
+                  if (!isValid) return;
+
+                  const saveResponse = await saveMutation.mutateAsync(
+                    activeSection,
+                  );
+                  if (saveResponse.status === 'error') return;
+
+                  completeMutation.mutate();
+                }}
               >
                 <CheckCircle2Icon className='size-4' />
                 Complete

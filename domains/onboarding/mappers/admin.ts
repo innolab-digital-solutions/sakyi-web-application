@@ -105,37 +105,85 @@ export function findResumeSectionId(
 
 /**
  * Normalizes section draft values to backend `answers` payload format.
+ *
+ * - Non-file answers never include a `file` key (avoids `file: null` tripping strict API validation).
+ * - File questions are only included when a new {@link File} is selected. Existing server-side uploads
+ *   are omitted so we do not resend `{ answer: null, file: null }`, which many backends treat as invalid.
  */
 export function buildSaveSectionPayload(
   section: OnboardingIntakeSection,
   sectionDraft: SectionDraftAnswers,
 ): SaveOnboardingSectionPayload {
-  const answers = section.questions.reduce<SaveOnboardingSectionAnswerInput[]>(
-    (result, question) => {
-      const value = sectionDraft[question.id];
-      if (value === undefined) return result;
+  const answers: SaveOnboardingSectionAnswerInput[] = [];
 
-      if (question.type === 'file') {
-        result.push({
+  for (const question of section.questions) {
+    const value = sectionDraft[question.id];
+    if (value === undefined) continue;
+
+    if (question.type === 'file') {
+      if (value instanceof File) {
+        answers.push({
           question_id: question.id,
           answer: null,
-          file: value instanceof File ? value : null,
+          file: value,
         });
-        return result;
+        continue;
       }
+      // No new file: skip — already stored on the server (`question.answer`) or intentionally empty.
+      continue;
+    }
 
-      result.push({
-        question_id: question.id,
-        answer: normalizeScalarForPayload(value),
-        file: null,
-      });
-
-      return result;
-    },
-    [],
-  );
+    answers.push({
+      question_id: question.id,
+      answer: normalizeScalarForPayload(value),
+    });
+  }
 
   return { answers };
+}
+
+/**
+ * Builds `multipart/form-data` for PUT section save.
+ *
+ * Laravel cannot validate uploaded files from a JSON body; nested {@link File} values are also
+ * lost/`{}`-serialized when passed through `JSON.stringify`. This shape uses nested keys
+ * `answers[i][question_id]`, `answers[i][answer]` / `answers[i][answer][]`, and **only** when
+ * uploading: `answers[i][file]` — never appends `file` for non-upload rows (avoids “must be a file” 422s).
+ */
+export function buildSaveSectionFormData(
+  payload: SaveOnboardingSectionPayload,
+): FormData {
+  const form = new FormData();
+
+  payload.answers.forEach((item, index) => {
+    form.append(`answers[${index}][question_id]`, String(item.question_id));
+
+    if (item.file instanceof File) {
+      form.append(`answers[${index}][file]`, item.file, item.file.name);
+    }
+
+    const ans = item.answer;
+    if (ans === undefined) {
+      return;
+    }
+    if (ans === null) {
+      form.append(`answers[${index}][answer]`, '');
+      return;
+    }
+    if (Array.isArray(ans)) {
+      if (ans.length === 0) {
+        form.append(`answers[${index}][answer]`, '');
+        return;
+      }
+      for (const entry of ans) {
+        form.append(`answers[${index}][answer][]`, String(entry));
+      }
+      return;
+    }
+    form.append(`answers[${index}][answer]`, String(ans));
+  });
+
+  return form;
 }
 
 /**
