@@ -1,5 +1,6 @@
 import * as React from 'react';
 
+import { base } from '@/config/api/base';
 import { client } from '@/lib/api/client';
 
 import { buildSubmitShortcuts } from './shortcuts';
@@ -14,8 +15,6 @@ import {
 } from './types';
 import { deepClone, isEqual } from './utils';
 import { validateFormFields } from './validator';
-
-const UNKNOWN_API_VERSION = 'unknown';
 
 /**
  * React hook for managing robust form state, validation, errors, and HTTP submission.
@@ -282,8 +281,8 @@ export const useForm = (
           setErrors(clientValidationErrors);
           onError?.({
             status: 'error',
-            message: 'Please review the fields and correct any issues.',
-            meta: { version: UNKNOWN_API_VERSION },
+            message: 'One or more fields require your attention. Please correct the highlighted issues.',
+            meta: { version: base.apiVersion },
             errors: clientValidationErrors,
           });
           onFinish?.();

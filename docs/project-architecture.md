@@ -83,7 +83,12 @@ Concrete examples today: `domains/programs/`, `domains/blogs/` (marketing-focuse
 
 ## API base URLs
 
-`config/api/base.ts` exposes `base.domain` (API origin, used for Sanctum CSRF cookie fetch) and `base.version` (versioned API root for resource calls). Override with `NEXT_PUBLIC_API_DOMAIN_ENDPOINT` and `NEXT_PUBLIC_API_VERSION_ENDPOINT`; defaults are defined in that file.
+`config/api/base.ts` exposes:
+- `base.domainEndpoint` (API origin, used for Sanctum CSRF cookie fetch)
+- `base.versionEndpoint` (versioned API root for resource calls)
+- `base.apiVersion` (response envelope fallback version used in client-generated `meta.version`)
+
+Override with `NEXT_PUBLIC_API_DOMAIN_ENDPOINT`, `NEXT_PUBLIC_API_VERSION_ENDPOINT`, and `NEXT_PUBLIC_API_VERSION`; defaults are defined in that file.
 
 ## HTTP client (`lib/api/client`)
 

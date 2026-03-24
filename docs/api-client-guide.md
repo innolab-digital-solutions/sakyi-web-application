@@ -27,9 +27,9 @@ import type {
 
 ## URLs
 
-`buildVersionedEndpoint` prepends `base.version` from `config/api/base.ts` to a relative path. Absolute URLs (`http://`, `https://`, `//`) throw.
+`buildVersionedEndpoint` prepends `base.versionEndpoint` from `config/api/base.ts` to a relative path. Absolute URLs (`http://`, `https://`, `//`) throw.
 
-CSRF priming uses a separate request: `GET` `${base.domain}/sanctum/csrf-cookie` (see `constants.ts`), not the versioned base.
+CSRF priming uses a separate request: `GET` `${base.domainEndpoint}/sanctum/csrf-cookie` (see `constants.ts`), not the versioned base.
 
 Resource calls use the strings from `config/api/endpoints` as the path passed into `client` / `http`.
 
@@ -49,7 +49,12 @@ With `parseJson` false: the body is read as text and wrapped in a success or err
 
 ## ApiResponse shape
 
-Types come from `@/types/api` and are re-exported from `client/types.ts`. Success: `status: 'success'`, `message`, `data`, optional `meta`. Error: `status: 'error'`, `message`, optional `errors`, optional `data`.
+Types come from `@/types/api` and are re-exported from `client/types.ts`.
+
+- Success: `status: 'success'`, `message`, `data`, required `meta` with required `version` (plus optional extra keys).
+- Error: `status: 'error'`, `message`, required `meta` with required `version`, optional `errors`, optional `data`.
+
+When the backend payload does not include `meta.version` (or when the client creates a synthetic fallback response), the client uses `base.apiVersion` from `config/api/base.ts`.
 
 ## throwOnError
 

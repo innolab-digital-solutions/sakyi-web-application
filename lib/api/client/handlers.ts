@@ -1,3 +1,5 @@
+import { base } from '@/config/api/base';
+
 import { MESSAGES } from './constants';
 import { ApiClientError } from './errors';
 import { dispatchApiUnauthorized } from './events';
@@ -6,8 +8,6 @@ import type {
   ApiResponse,
   ThrowOrReturnOptions,
 } from './types';
-
-const UNKNOWN_API_VERSION = 'unknown';
 
 /**
  * Either throws an ApiClientError or returns an error response,
@@ -40,7 +40,7 @@ const throwOrReturnApiClientError = <T>(
   return {
     status: 'error',
     message,
-    meta: { version: UNKNOWN_API_VERSION },
+    meta: { version: base.apiVersion },
     ...(errors !== undefined && { errors }),
   };
 };
@@ -83,7 +83,7 @@ export const handleNonJsonResponse = <T>(
     status: ok ? 'success' : 'error',
     message: ok ? MESSAGES.SUCCESS : response.statusText,
     data: text as unknown as T,
-    meta: { version: UNKNOWN_API_VERSION },
+    meta: { version: base.apiVersion },
   };
 };
 
@@ -99,7 +99,7 @@ export const handleNoContentResponse = <T>(): ApiResponse<T> => {
     status: 'success',
     message: MESSAGES.SUCCESS,
     data: undefined as unknown as T,
-    meta: { version: UNKNOWN_API_VERSION },
+    meta: { version: base.apiVersion },
   };
 };
 
@@ -148,7 +148,7 @@ export const handleBackendApiError = <T>(
   const errorResponse: ApiResponse<T> = {
     status: 'error',
     message: payload.message ?? response.statusText,
-    meta: payload.meta ?? { version: UNKNOWN_API_VERSION },
+    meta: payload.meta ?? { version: base.apiVersion },
     errors: payload.errors,
     data: payload.data,
   };

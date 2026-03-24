@@ -25,7 +25,7 @@ export const ensureCsrfCookie = async (): Promise<void> => {
 
   if (csrfInitPromise) return csrfInitPromise;
 
-  csrfInitPromise = fetch(`${base.domain}${CSRF_COOKIE_ENDPOINT}`, {
+  csrfInitPromise = fetch(`${base.domainEndpoint}${CSRF_COOKIE_ENDPOINT}`, {
     method: 'GET',
     credentials: 'include',
   })
