@@ -23,6 +23,13 @@ export type UserLite = {
   email: string;
 };
 
+export type OnboardingQuestionOption =
+  | string
+  | {
+      label: string;
+      value: string;
+    };
+
 // -------------------------------------
 // Onboarding Template resource
 // -------------------------------------
@@ -31,7 +38,7 @@ export type OnboardingTemplateQuestion = {
   question: string;
   key: string;
   type: OnboardingQuestionType;
-  options: unknown[] | null; // backend currently returns question options as mixed array/null
+  options: OnboardingQuestionOption[] | null;
   required: boolean;
   sort_order: number;
 };
@@ -64,7 +71,7 @@ export type OnboardingIntakeQuestion = {
   key: string;
   type: OnboardingQuestionType;
   required: boolean;
-  options: unknown[] | null;
+  options: OnboardingQuestionOption[] | null;
   answer: Record<string, unknown> | null; // e.g. { value: "..."} / { values: [...] } / file meta object
 };
 
@@ -104,6 +111,8 @@ export type OnboardingProgressMeta = {
   };
 };
 
+export type OnboardingProgress = OnboardingProgressMeta['progress'];
+
 // endpoint: GET /onboarding/intakes/{id}, PUT section save, POST complete, POST cancel
 export type OnboardingIntakeResponse = ApiSuccess<
   OnboardingIntakeData,
@@ -133,3 +142,41 @@ export type OnboardingIntakeListResponse = ApiSuccess<
   OnboardingIntakeData[],
   PaginationMeta
 >;
+
+export type OnboardingIntakeListStatusFilter = Extract<
+  OnboardingStatus,
+  'draft' | 'in_progress' | 'completed' | 'cancelled'
+>;
+
+export type OnboardingListIntakesParams = {
+  status?: OnboardingIntakeListStatusFilter;
+  per_page?: number;
+  page?: number;
+};
+
+export type CreateOnboardingIntakePayload = {
+  user_id: number;
+  onboarding_template_id: number;
+  notes?: string;
+};
+
+export type CancelOnboardingIntakePayload = {
+  notes?: string;
+};
+
+export type OnboardingQuestionAnswerValue =
+  | string
+  | number
+  | null
+  | string[]
+  | number[];
+
+export type SaveOnboardingSectionAnswerInput = {
+  question_id: number;
+  answer?: OnboardingQuestionAnswerValue;
+  file?: File | null;
+};
+
+export type SaveOnboardingSectionPayload = {
+  answers: SaveOnboardingSectionAnswerInput[];
+};

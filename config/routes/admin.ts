@@ -23,5 +23,13 @@ export const ADMIN_ROUTES = {
       EDIT: (id: string) => `${BASE}/programs/${id}/edit`,
       DETAIL: (id: string) => `${BASE}/programs/${id}`,
     },
+    ONBOARDING: {
+      INTAKES: {
+        LIST: `${BASE}/onboarding/intakes`,
+        CREATE: `${BASE}/onboarding/intakes/create`,
+        WIZARD: (id: string) => `${BASE}/onboarding/intakes/${id}/wizard`,
+        DETAIL: (id: string) => `${BASE}/onboarding/intakes/${id}`,
+      },
+    },
   },
 } as const;

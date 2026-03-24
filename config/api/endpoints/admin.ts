@@ -26,7 +26,7 @@ export const ADMIN_ENDPOINTS = {
       DETAIL: (id: string) => `${BASE}/programs/${id}`,
     },
     ONBOARDING: {
-      TEMPLATE: (version: number) => `${BASE}/onboarding/template/${version}`,
+      TEMPLATE: (version: number) => `${BASE}/onboarding/templates/${version}`,
       INTAKES: {
         LIST: `${BASE}/onboarding/intakes`,
         CREATE: `${BASE}/onboarding/intakes`,
