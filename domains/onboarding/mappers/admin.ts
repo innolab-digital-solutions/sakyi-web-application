@@ -8,7 +8,13 @@ import type {
   SaveOnboardingSectionPayload,
 } from '../types/admin';
 
-export type DraftAnswerValue = string | number | string[] | number[] | File | null;
+export type DraftAnswerValue =
+  | string
+  | number
+  | string[]
+  | number[]
+  | File
+  | null;
 export type SectionDraftAnswers = Record<number, DraftAnswerValue>;
 export type DraftBySection = Record<number, SectionDraftAnswers>;
 
@@ -21,7 +27,10 @@ export function hydrateDraftAnswersFromSections(
   return sections.reduce<DraftBySection>((draft, section) => {
     const sectionDraft = section.questions.reduce<SectionDraftAnswers>(
       (answers, question) => {
-        answers[question.id] = normalizeApiAnswerValue(question.type, question.answer);
+        answers[question.id] = normalizeApiAnswerValue(
+          question.type,
+          question.answer,
+        );
         return answers;
       },
       {},
@@ -83,7 +92,10 @@ export function isSectionRequiredComplete(
   section: OnboardingIntakeSection,
   sectionDraft: SectionDraftAnswers,
 ): boolean {
-  return Object.keys(getRequiredFieldErrorsForSection(section, sectionDraft)).length === 0;
+  return (
+    Object.keys(getRequiredFieldErrorsForSection(section, sectionDraft))
+      .length === 0
+  );
 }
 
 /**
@@ -223,9 +235,9 @@ function normalizeApiAnswerValue(
   if (type === 'multiselect') {
     const values = answer.values;
     if (Array.isArray(values)) {
-      return values.filter((value) => ['string', 'number'].includes(typeof value)) as
-        | string[]
-        | number[];
+      return values.filter((value) =>
+        ['string', 'number'].includes(typeof value),
+      ) as string[] | number[];
     }
     return [];
   }

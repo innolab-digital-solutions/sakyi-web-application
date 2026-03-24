@@ -16,7 +16,11 @@ export default function OnboardingIntakesPage() {
         title='Onboarding intakes'
         description='Queue for admin-led phone intakes. Start a new session or continue one in progress—progress is saved per section.'
       />
-      <Suspense fallback={<div className='text-muted-foreground text-sm'>Loading...</div>}>
+      <Suspense
+        fallback={
+          <div className='text-muted-foreground text-sm'>Loading...</div>
+        }
+      >
         <IntakeListTable />
       </Suspense>
     </div>

@@ -13,7 +13,9 @@ type OnboardingQuestionFieldProps = {
   value: string | number | string[] | number[] | File | null;
   error?: string;
   disabled?: boolean;
-  onChange: (value: string | number | string[] | number[] | File | null) => void;
+  onChange: (
+    value: string | number | string[] | number[] | File | null,
+  ) => void;
 };
 
 function getSelectOptions(
@@ -80,7 +82,9 @@ export default function OnboardingQuestionField({
         required={question.required}
         type='number'
         disabled={disabled}
-        value={typeof value === 'number' || typeof value === 'string' ? value : ''}
+        value={
+          typeof value === 'number' || typeof value === 'string' ? value : ''
+        }
         error={error}
         onChange={(event) => onChange(event.target.value)}
       />

@@ -281,7 +281,8 @@ export const useForm = (
           setErrors(clientValidationErrors);
           onError?.({
             status: 'error',
-            message: 'One or more fields require your attention. Please correct the highlighted issues.',
+            message:
+              'One or more fields require your attention. Please correct the highlighted issues.',
             meta: { version: base.apiVersion },
             errors: clientValidationErrors,
           });

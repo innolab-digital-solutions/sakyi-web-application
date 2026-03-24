@@ -60,7 +60,10 @@ export default function IntakeListTable() {
       : 'Could not load onboarding intakes.';
 
   return (
-    <TableListWrapper controls={controls} searchPlaceholder='Search by notes...'>
+    <TableListWrapper
+      controls={controls}
+      searchPlaceholder='Search by notes...'
+    >
       <div className='mb-4 flex justify-end'>
         <Button asChild>
           <Link href={ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.CREATE}>
@@ -130,7 +133,9 @@ export default function IntakeListTable() {
                 </TableCell>
                 <TableCell>
                   <div className='space-y-0.5'>
-                    <p className='text-sm font-medium'>{intake.user?.name ?? '—'}</p>
+                    <p className='text-sm font-medium'>
+                      {intake.user?.name ?? '—'}
+                    </p>
                     <p className='text-muted-foreground text-xs'>
                       {intake.user?.email ?? 'No email'}
                     </p>
@@ -154,18 +159,19 @@ export default function IntakeListTable() {
                         View
                       </Link>
                     </Button>
-                    {intake.status !== 'completed' && intake.status !== 'cancelled' && (
-                      <Button variant='ghost' size='sm' asChild>
-                        <Link
-                          href={ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.INTERVIEW(
-                            String(intake.id),
-                          )}
-                        >
-                          <PencilIcon className='size-3.5' />
-                          Continue
-                        </Link>
-                      </Button>
-                    )}
+                    {intake.status !== 'completed' &&
+                      intake.status !== 'cancelled' && (
+                        <Button variant='ghost' size='sm' asChild>
+                          <Link
+                            href={ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.INTERVIEW(
+                              String(intake.id),
+                            )}
+                          >
+                            <PencilIcon className='size-3.5' />
+                            Continue
+                          </Link>
+                        </Button>
+                      )}
                   </div>
                 </TableCell>
               </TableRow>

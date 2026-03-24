@@ -23,7 +23,9 @@ function formatDate(iso: string | null): string {
   }
 }
 
-export default function IntakeDetailPanel({ intakeId }: IntakeDetailPanelProps) {
+export default function IntakeDetailPanel({
+  intakeId,
+}: IntakeDetailPanelProps) {
   const intakeQuery = useQuery({
     queryKey: ['onboarding', 'intake', intakeId],
     queryFn: () => getOnboardingIntakeById(intakeId),
@@ -34,13 +36,16 @@ export default function IntakeDetailPanel({ intakeId }: IntakeDetailPanelProps) 
   }
 
   if (intakeQuery.data?.status === 'error') {
-    return <p className='text-destructive text-sm'>{intakeQuery.data.message}</p>;
+    return (
+      <p className='text-destructive text-sm'>{intakeQuery.data.message}</p>
+    );
   }
 
   const intake = intakeQuery.data?.data;
   if (!intake) return null;
 
-  const isEditable = intake.status === 'draft' || intake.status === 'in_progress';
+  const isEditable =
+    intake.status === 'draft' || intake.status === 'in_progress';
 
   return (
     <Card>
@@ -50,11 +55,12 @@ export default function IntakeDetailPanel({ intakeId }: IntakeDetailPanelProps) 
       </CardHeader>
       <CardContent className='space-y-3 text-sm'>
         <p>
-          <span className='font-semibold'>Client:</span> {intake.user?.name ?? '—'} (
-          {intake.user?.email ?? 'No email'})
+          <span className='font-semibold'>Client:</span>{' '}
+          {intake.user?.name ?? '—'} ({intake.user?.email ?? 'No email'})
         </p>
         <p>
-          <span className='font-semibold'>Handler:</span> {intake.handler?.name ?? '—'}
+          <span className='font-semibold'>Handler:</span>{' '}
+          {intake.handler?.name ?? '—'}
         </p>
         <p>
           <span className='font-semibold'>Template:</span>{' '}
@@ -78,7 +84,11 @@ export default function IntakeDetailPanel({ intakeId }: IntakeDetailPanelProps) 
         <div className='pt-2'>
           {isEditable ? (
             <Button asChild>
-              <Link href={ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.INTERVIEW(String(intake.id))}>
+              <Link
+                href={ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.INTERVIEW(
+                  String(intake.id),
+                )}
+              >
                 Continue intake
               </Link>
             </Button>

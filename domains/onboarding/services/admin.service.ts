@@ -33,7 +33,8 @@ export async function getOnboardingIntakes(
 ): Promise<OnboardingIntakeListResponse | ApiResponse<OnboardingIntakeData[]>> {
   const searchParams = new URLSearchParams();
   if (params.status) searchParams.set('status', params.status);
-  if (params.per_page != null) searchParams.set('per_page', String(params.per_page));
+  if (params.per_page != null)
+    searchParams.set('per_page', String(params.per_page));
   if (params.page != null) searchParams.set('page', String(params.page));
 
   const query = searchParams.toString();

@@ -9,7 +9,13 @@ import type { ComboboxOption } from '@/components/shared/form/ComboBoxField';
 import ComboBoxField from '@/components/shared/form/ComboBoxField';
 import FormSubmitButton from '@/components/shared/form/FormSubmitButton';
 import TextAreaField from '@/components/shared/form/TextAreaField';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { ROUTES } from '@/config/routes';
 import { getLookupClients } from '@/domains/client/services/lookup.service';
 import {
@@ -47,9 +53,7 @@ export default function IntakeCreateForm() {
       clientsQuery.data?.status === 'success' ? clientsQuery.data.data : [];
     return list.map((client) => {
       const primary =
-        client.name?.trim() ||
-        client.email?.trim() ||
-        `Client #${client.id}`;
+        client.name?.trim() || client.email?.trim() || `Client #${client.id}`;
       return {
         value: String(client.id),
         label: primary,
@@ -58,10 +62,10 @@ export default function IntakeCreateForm() {
         ),
         content: (
           <span className='flex min-w-0 flex-col gap-0.5 text-left'>
-            <span className='text-foreground font-medium leading-tight'>
+            <span className='text-foreground leading-tight font-medium'>
               {client.name || primary}
             </span>
-            <span className='text-muted-foreground text-xs font-normal leading-tight'>
+            <span className='text-muted-foreground text-xs leading-tight font-normal'>
               {client.email}
             </span>
           </span>
@@ -163,8 +167,8 @@ export default function IntakeCreateForm() {
       <CardHeader>
         <CardTitle className='text-base'>Who is this session for?</CardTitle>
         <CardDescription>
-          Creates the intake record, then opens the questionnaire. You can return anytime from
-          the intake list.
+          Creates the intake record, then opens the questionnaire. You can
+          return anytime from the intake list.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -201,11 +205,12 @@ export default function IntakeCreateForm() {
             error={form.errors.user_id}
           />
 
-          {clientsQuery.data?.status === 'success' && clientOptions.length === 0 && (
-            <p className='text-muted-foreground text-xs'>
-              No clients available for this lookup.
-            </p>
-          )}
+          {clientsQuery.data?.status === 'success' &&
+            clientOptions.length === 0 && (
+              <p className='text-muted-foreground text-xs'>
+                No clients available for this lookup.
+              </p>
+            )}
 
           <TextAreaField
             label='Notes'

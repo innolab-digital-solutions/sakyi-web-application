@@ -87,21 +87,49 @@ vi.mock('@/domains/onboarding/services/admin.service', () => ({
       },
       meta: {
         version: 'v1',
-        progress: { answered_required: 0, total_required: 1, completion_rate: 0 },
+        progress: {
+          answered_required: 0,
+          total_required: 1,
+          completion_rate: 0,
+        },
       },
     };
   },
   completeOnboardingIntake: async () => ({
     status: 'success',
     message: 'completed',
-    data: { id: 1, status: 'completed', notes: null, timestamps: { created_at: null, updated_at: null } },
-    meta: { version: 'v1', progress: { answered_required: 1, total_required: 1, completion_rate: 100 } },
+    data: {
+      id: 1,
+      status: 'completed',
+      notes: null,
+      timestamps: { created_at: null, updated_at: null },
+    },
+    meta: {
+      version: 'v1',
+      progress: {
+        answered_required: 1,
+        total_required: 1,
+        completion_rate: 100,
+      },
+    },
   }),
   cancelOnboardingIntake: async () => ({
     status: 'success',
     message: 'cancelled',
-    data: { id: 1, status: 'cancelled', notes: null, timestamps: { created_at: null, updated_at: null } },
-    meta: { version: 'v1', progress: { answered_required: 1, total_required: 1, completion_rate: 100 } },
+    data: {
+      id: 1,
+      status: 'cancelled',
+      notes: null,
+      timestamps: { created_at: null, updated_at: null },
+    },
+    meta: {
+      version: 'v1',
+      progress: {
+        answered_required: 1,
+        total_required: 1,
+        completion_rate: 100,
+      },
+    },
   }),
 }));
 

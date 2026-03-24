@@ -84,6 +84,7 @@ Concrete examples today: `domains/programs/`, `domains/blogs/` (marketing-focuse
 ## API base URLs
 
 `config/api/base.ts` exposes:
+
 - `base.domainEndpoint` (API origin, used for Sanctum CSRF cookie fetch)
 - `base.versionEndpoint` (versioned API root for resource calls)
 - `base.apiVersion` (response envelope fallback version used in client-generated `meta.version`)

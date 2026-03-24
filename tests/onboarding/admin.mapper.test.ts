@@ -131,7 +131,9 @@ describe('onboarding mapper', () => {
     const sectionDraft = { ...draft[10], 201: 'Call notes' };
     const payload = buildSaveSectionPayload(withFile, sectionDraft);
 
-    expect(payload.answers).toEqual([{ question_id: 201, answer: 'Call notes' }]);
+    expect(payload.answers).toEqual([
+      { question_id: 201, answer: 'Call notes' },
+    ]);
   });
 
   it('buildSaveSectionFormData never appends file for text-only rows', () => {

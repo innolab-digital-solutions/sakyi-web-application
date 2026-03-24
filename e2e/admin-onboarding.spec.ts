@@ -16,7 +16,10 @@ test.describe('admin onboarding interview', () => {
   });
 
   test('failure path: unauthorized and forbidden', async () => {
-    test.fixme(true, 'Requires role-specific auth fixtures in E2E environment.');
+    test.fixme(
+      true,
+      'Requires role-specific auth fixtures in E2E environment.',
+    );
   });
 
   test('failure path: concurrent status change while editing', async () => {
