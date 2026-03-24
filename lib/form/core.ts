@@ -15,6 +15,8 @@ import {
 import { deepClone, isEqual } from './utils';
 import { validateFormFields } from './validator';
 
+const UNKNOWN_API_VERSION = 'unknown';
+
 /**
  * React hook for managing robust form state, validation, errors, and HTTP submission.
  *
@@ -281,6 +283,7 @@ export const useForm = (
           onError?.({
             status: 'error',
             message: 'Please review the fields and correct any issues.',
+            meta: { version: UNKNOWN_API_VERSION },
             errors: clientValidationErrors,
           });
           onFinish?.();
