@@ -44,7 +44,7 @@ vi.mock('@/domains/onboarding/services/admin.service', () => ({
                 type: 'text',
                 required: true,
                 options: null,
-                answer: { value: 'Alice' },
+                answer: null,
               },
             ],
           },
@@ -71,7 +71,7 @@ vi.mock('@/domains/onboarding/services/admin.service', () => ({
     },
     meta: {
       version: 'v1',
-      progress: { answered_required: 1, total_required: 1, completion_rate: 100 },
+      progress: { answered_required: 0, total_required: 1, completion_rate: 0 },
     },
   }),
   saveOnboardingIntakeSection: async (...args: unknown[]) => {
@@ -87,7 +87,7 @@ vi.mock('@/domains/onboarding/services/admin.service', () => ({
       },
       meta: {
         version: 'v1',
-        progress: { answered_required: 1, total_required: 1, completion_rate: 100 },
+        progress: { answered_required: 0, total_required: 1, completion_rate: 0 },
       },
     };
   },
@@ -117,6 +117,10 @@ describe('OnboardingWizard flow', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Section A')).toBeTruthy();
+    });
+
+    fireEvent.change(screen.getByLabelText(/Name/i), {
+      target: { value: 'Alice' },
     });
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));

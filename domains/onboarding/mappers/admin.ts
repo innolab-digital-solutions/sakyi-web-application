@@ -33,6 +33,77 @@ export function hydrateDraftAnswersFromSections(
 }
 
 /**
+ * Returns client-side required-field errors for a section (mirrors wizard validation rules).
+ */
+export function getRequiredFieldErrorsForSection(
+  section: OnboardingIntakeSection,
+  sectionDraft: SectionDraftAnswers,
+): Record<number, string> {
+  const nextErrors: Record<number, string> = {};
+
+  for (const question of section.questions) {
+    if (!question.required) continue;
+
+    const draftValue = sectionDraft[question.id];
+    const hasExistingServerAnswer = question.answer != null;
+
+    let isMissing = false;
+
+    if (question.type === 'text' || question.type === 'date') {
+      const text = typeof draftValue === 'string' ? draftValue.trim() : '';
+      isMissing = text.length === 0;
+    } else if (question.type === 'number') {
+      const numberText =
+        typeof draftValue === 'string' || typeof draftValue === 'number'
+          ? String(draftValue).trim()
+          : '';
+      isMissing = numberText.length === 0;
+    } else if (question.type === 'select') {
+      const selected = typeof draftValue === 'string' ? draftValue.trim() : '';
+      isMissing = selected.length === 0;
+    } else if (question.type === 'multiselect') {
+      const values = Array.isArray(draftValue) ? draftValue : [];
+      isMissing = values.length === 0;
+    } else if (question.type === 'file') {
+      isMissing = !(draftValue instanceof File) && !hasExistingServerAnswer;
+    }
+
+    if (isMissing) {
+      nextErrors[question.id] = 'This field is required.';
+    }
+  }
+
+  return nextErrors;
+}
+
+/**
+ * Whether every required question in the section has a value (API answer and/or draft).
+ */
+export function isSectionRequiredComplete(
+  section: OnboardingIntakeSection,
+  sectionDraft: SectionDraftAnswers,
+): boolean {
+  return Object.keys(getRequiredFieldErrorsForSection(section, sectionDraft)).length === 0;
+}
+
+/**
+ * First section that still has missing required answers, otherwise the last section (all complete).
+ */
+export function findResumeSectionId(
+  sections: OnboardingIntakeSection[],
+  draftBySection: DraftBySection,
+): number | null {
+  if (!sections.length) return null;
+  for (const section of sections) {
+    const draft = draftBySection[section.id] ?? {};
+    if (!isSectionRequiredComplete(section, draft)) {
+      return section.id;
+    }
+  }
+  return sections[sections.length - 1].id;
+}
+
+/**
  * Normalizes section draft values to backend `answers` payload format.
  */
 export function buildSaveSectionPayload(

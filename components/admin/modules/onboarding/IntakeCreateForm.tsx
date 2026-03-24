@@ -2,14 +2,16 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
+import type { ComboboxOption } from '@/components/shared/form/ComboBoxField';
+import ComboBoxField from '@/components/shared/form/ComboBoxField';
 import FormSubmitButton from '@/components/shared/form/FormSubmitButton';
 import TextAreaField from '@/components/shared/form/TextAreaField';
-import TextField from '@/components/shared/form/TextField';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ROUTES } from '@/config/routes';
+import { getLookupClients } from '@/domains/client/services/lookup.service';
 import {
   createOnboardingIntake,
   getOnboardingTemplateByVersion,
@@ -34,16 +36,60 @@ export default function IntakeCreateForm() {
     queryFn: () => getOnboardingTemplateByVersion(1),
   });
 
+  const clientsQuery = useQuery({
+    queryKey: ['lookup', 'clients'],
+    queryFn: () => getLookupClients(),
+    staleTime: 60_000,
+  });
+
+  const clientOptions = useMemo((): ComboboxOption[] => {
+    const list =
+      clientsQuery.data?.status === 'success' ? clientsQuery.data.data : [];
+    return list.map((client) => {
+      const primary =
+        client.name?.trim() ||
+        client.email?.trim() ||
+        `Client #${client.id}`;
+      return {
+        value: String(client.id),
+        label: primary,
+        keywords: [client.email, client.phone, String(client.id)].filter(
+          (part): part is string => Boolean(part && String(part).trim()),
+        ),
+        content: (
+          <span className='flex min-w-0 flex-col gap-0.5 text-left'>
+            <span className='text-foreground font-medium leading-tight'>
+              {client.name || primary}
+            </span>
+            <span className='text-muted-foreground text-xs font-normal leading-tight'>
+              {client.email}
+            </span>
+          </span>
+        ),
+        selectedDisplay: (
+          <span className='flex min-w-0 flex-col gap-0.5 text-left'>
+            <span className='leading-tight font-medium'>
+              {client.name || primary}
+            </span>
+            <span className='text-muted-foreground text-xs leading-tight'>
+              {client.email}
+            </span>
+          </span>
+        ),
+      };
+    });
+  }, [clientsQuery.data]);
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError(null);
     form.clearErrors();
 
     const userIdValue =
-      typeof form.fields.user_id === 'string' ? form.fields.user_id : '';
+      typeof form.fields.user_id === 'string' ? form.fields.user_id.trim() : '';
     const userId = Number.parseInt(userIdValue, 10);
     if (!Number.isInteger(userId) || userId <= 0) {
-      form.setError('user_id', 'User ID must be a valid positive integer.');
+      form.setError('user_id', 'Select a client.');
       return;
     }
 
@@ -119,17 +165,43 @@ export default function IntakeCreateForm() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className='space-y-4'>
-          <TextField
-            label='Client user ID'
+          {clientsQuery.isError && (
+            <p className='text-destructive text-sm'>
+              Could not load clients. Refresh the page or try again later.
+            </p>
+          )}
+
+          <ComboBoxField
+            label='Client'
             name='user_id'
-            type='number'
             required
-            value={
-              typeof form.fields.user_id === 'string' ? form.fields.user_id : ''
+            placeholder='Search by name or email…'
+            searchPlaceholder='Name, email, or phone…'
+            emptyMessage='No clients match your search.'
+            options={clientOptions}
+            disabled={
+              clientsQuery.isPending ||
+              clientsQuery.isError ||
+              clientOptions.length === 0
             }
-            onChange={(event) => form.setData('user_id', event.target.value)}
+            value={
+              typeof form.fields.user_id === 'string' &&
+              form.fields.user_id.trim() !== ''
+                ? form.fields.user_id.trim()
+                : null
+            }
+            onChange={(next) => {
+              form.setData('user_id', next ?? '');
+              if (form.errors.user_id) form.clearErrors('user_id');
+            }}
             error={form.errors.user_id}
           />
+
+          {clientsQuery.data?.status === 'success' && clientOptions.length === 0 && (
+            <p className='text-muted-foreground text-xs'>
+              No clients available for this lookup.
+            </p>
+          )}
 
           <TextAreaField
             label='Notes'
@@ -152,7 +224,11 @@ export default function IntakeCreateForm() {
           {formError && <p className='text-destructive text-sm'>{formError}</p>}
 
           <FormSubmitButton
-            isSubmitting={form.isSubmitting || templateQuery.isFetching}
+            isSubmitting={
+              form.isSubmitting ||
+              templateQuery.isFetching ||
+              clientsQuery.isFetching
+            }
           >
             Create intake
           </FormSubmitButton>

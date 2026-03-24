@@ -30,6 +30,8 @@ import { trackOnboardingEvent } from '@/domains/onboarding/analytics';
 import {
   buildSaveSectionPayload,
   type DraftBySection,
+  findResumeSectionId,
+  getRequiredFieldErrorsForSection,
   hydrateDraftAnswersFromSections,
   mapSectionFieldErrorsFromApi,
 } from '@/domains/onboarding/mappers/admin';
@@ -65,7 +67,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const hasRedirectedOnReadonly = useRef(false);
 
-  const cancelForm = useForm({ notes: '' });
+  const cancelForm = useForm({ cancellation_note: '' });
   const saveForm = useForm({ answers: [] as unknown[] });
 
   const intakeQuery = useQuery({
@@ -109,9 +111,17 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
   const activeSectionId = useMemo(() => {
     if (selectedSectionId != null) return selectedSectionId;
     if (!sections.length) return null;
-    const fromQuery = Number.parseInt(searchParams.get('step') ?? '', 10);
-    return Number.isInteger(fromQuery) ? fromQuery : sections[0].id;
-  }, [searchParams, sections, selectedSectionId]);
+    const stepParam = searchParams.get('step') ?? '';
+    const fromQuery = Number.parseInt(stepParam, 10);
+    if (
+      Number.isInteger(fromQuery) &&
+      sections.some((section) => section.id === fromQuery)
+    ) {
+      return fromQuery;
+    }
+    const resumeId = findResumeSectionId(sections, hydratedDraftBySection);
+    return resumeId ?? sections[0].id;
+  }, [hydratedDraftBySection, searchParams, sections, selectedSectionId]);
 
   const activeSection = useMemo(
     () => sections.find((section) => section.id === activeSectionId) ?? null,
@@ -194,11 +204,11 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
 
   const cancelMutation = useMutation({
     mutationFn: () => {
-      const notes =
-        typeof cancelForm.fields.notes === 'string'
-          ? cancelForm.fields.notes.trim() || undefined
+      const cancellation_note =
+        typeof cancelForm.fields.cancellation_note === 'string'
+          ? cancelForm.fields.cancellation_note.trim() || undefined
           : undefined;
-      return cancelOnboardingIntake(intakeId, { notes });
+      return cancelOnboardingIntake(intakeId, { cancellation_note });
     },
     onSuccess: (response) => {
       if (response.status === 'error') {
@@ -246,40 +256,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
     section: OnboardingIntakeSection,
   ): boolean => {
     const sectionDraft = draftBySection[section.id] ?? {};
-    const nextErrors: Record<number, string> = {};
-
-    for (const question of section.questions) {
-      if (!question.required) continue;
-
-      const draftValue = sectionDraft[question.id];
-      const hasExistingServerAnswer = question.answer != null;
-
-      let isMissing = false;
-
-      if (question.type === 'text' || question.type === 'date') {
-        const text = typeof draftValue === 'string' ? draftValue.trim() : '';
-        isMissing = text.length === 0;
-      } else if (question.type === 'number') {
-        const numberText =
-          typeof draftValue === 'string' || typeof draftValue === 'number'
-            ? String(draftValue).trim()
-            : '';
-        isMissing = numberText.length === 0;
-      } else if (question.type === 'select') {
-        const selected = typeof draftValue === 'string' ? draftValue.trim() : '';
-        isMissing = selected.length === 0;
-      } else if (question.type === 'multiselect') {
-        const values = Array.isArray(draftValue) ? draftValue : [];
-        isMissing = values.length === 0;
-      } else if (question.type === 'file') {
-        // Treat existing server answer as valid unless replaced with empty local draft.
-        isMissing = !(draftValue instanceof File) && !hasExistingServerAnswer;
-      }
-
-      if (isMissing) {
-        nextErrors[question.id] = 'This field is required.';
-      }
-    }
+    const nextErrors = getRequiredFieldErrorsForSection(section, sectionDraft);
 
     if (Object.keys(nextErrors).length > 0) {
       setFieldErrorsBySection((prev) => ({
@@ -407,7 +384,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
           )}
 
           <div className='space-y-4'>
-            <div className='scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent flex gap-2 overflow-x-auto pb-1'>
+            <div className='flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'>
               {sections.map((section, index) => {
                 const isActive = section.id === activeSection.id;
                 const isPassed = index < sectionIndex;
@@ -521,14 +498,14 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
 
                   <div className='py-1'>
                     <TextAreaField
-                      label='Cancel note (optional)'
+                      label='Cancellation note (optional)'
                       value={
-                        typeof cancelForm.fields.notes === 'string'
-                          ? cancelForm.fields.notes
+                        typeof cancelForm.fields.cancellation_note === 'string'
+                          ? cancelForm.fields.cancellation_note
                           : ''
                       }
                       onChange={(event) =>
-                        cancelForm.setData('notes', event.target.value)
+                        cancelForm.setData('cancellation_note', event.target.value)
                       }
                     />
                   </div>

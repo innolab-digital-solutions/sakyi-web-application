@@ -161,7 +161,7 @@ export type CreateOnboardingIntakePayload = {
 };
 
 export type CancelOnboardingIntakePayload = {
-  notes?: string;
+  cancellation_note?: string;
 };
 
 export type OnboardingQuestionAnswerValue =
