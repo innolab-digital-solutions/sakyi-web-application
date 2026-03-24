@@ -8,6 +8,7 @@ import {
   SaveIcon,
   XCircleIcon,
 } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -246,6 +247,8 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
   }
 
   const progress = successIntake?.meta?.progress;
+  const intakeRecord = successIntake?.data;
+  const clientUser = intakeRecord?.user;
   const activeFieldErrors = fieldErrorsBySection[activeSection.id] ?? {};
   const canGoBack = sectionIndex > 0;
   const canGoNext = sectionIndex >= 0 && sectionIndex < sections.length - 1;
@@ -345,13 +348,47 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
           <div className='flex flex-wrap items-start justify-between gap-3'>
             <div className='space-y-1'>
               <CardTitle className='text-base md:text-lg'>
-                {intakeQuery.data?.data.template?.title ?? 'Onboarding wizard'}
+                {intakeQuery.data?.data.template?.title ?? 'Phone intake'}
               </CardTitle>
               <p className='text-muted-foreground text-sm'>
-                Capture client details section-by-section and save progress.
+                Phone intake: work through each section with the client. Answers save when you
+                move forward or tap Save draft.
               </p>
             </div>
           </div>
+
+          {intakeRecord && (
+            <div className='bg-background/80 border-border/80 rounded-lg border px-4 py-3'>
+              <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+                <div className='min-w-0 space-y-0.5'>
+                  <p className='text-muted-foreground text-xs font-medium tracking-wide uppercase'>
+                    Client
+                  </p>
+                  {clientUser ? (
+                    <>
+                      <p className='text-foreground truncate font-semibold'>{clientUser.name}</p>
+                      <p className='text-muted-foreground truncate text-sm'>{clientUser.email}</p>
+                    </>
+                  ) : (
+                    <p className='text-muted-foreground text-sm'>Client information unavailable.</p>
+                  )}
+                </div>
+                <div className='flex flex-wrap items-center gap-3 sm:justify-end'>
+                  <div className='text-left sm:text-right'>
+                    <p className='text-muted-foreground text-xs'>Intake</p>
+                    <p className='text-foreground font-mono text-sm font-medium'>
+                      #{intakeRecord.id}
+                    </p>
+                  </div>
+                  <Button variant='outline' size='sm' asChild className='shrink-0'>
+                    <Link href={ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.LIST}>
+                      Intake queue
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className='grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto] md:items-center'>
             <div className='space-y-2'>

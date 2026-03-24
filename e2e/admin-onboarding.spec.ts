@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
-test.describe('admin onboarding wizard', () => {
-  test('happy path: queue -> create -> wizard -> complete', async () => {
+test.describe('admin onboarding interview', () => {
+  test('happy path: queue -> create -> interview -> complete', async () => {
     test.fixme(
       true,
       'Requires seeded admin session and deterministic onboarding fixture data.',

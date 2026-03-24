@@ -1,13 +1,13 @@
 import PageHeader from '@/components/admin/layout/PageHeader';
 import OnboardingWizard from '@/components/admin/modules/onboarding/OnboardingWizard';
 
-type OnboardingWizardPageProps = {
+type OnboardingInterviewPageProps = {
   params: Promise<{ id: string }>;
 };
 
-export default async function OnboardingWizardPage({
+export default async function OnboardingInterviewPage({
   params,
-}: OnboardingWizardPageProps) {
+}: OnboardingInterviewPageProps) {
   const { id } = await params;
   const intakeId = Number.parseInt(id, 10);
 
@@ -18,8 +18,8 @@ export default async function OnboardingWizardPage({
   return (
     <div className='space-y-8'>
       <PageHeader
-        title='Onboarding Wizard'
-        description='Capture client details section-by-section and save progress.'
+        title='Phone intake'
+        description='Complete the questionnaire with your client; each tab is saved as you go.'
       />
       <OnboardingWizard intakeId={intakeId} />
     </div>

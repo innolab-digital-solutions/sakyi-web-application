@@ -65,7 +65,7 @@ export default function IntakeListTable() {
         <Button asChild>
           <Link href={ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.CREATE}>
             <PlusIcon className='size-4' />
-            New intake
+            Start intake
           </Link>
         </Button>
       </div>
@@ -157,7 +157,7 @@ export default function IntakeListTable() {
                     {intake.status !== 'completed' && intake.status !== 'cancelled' && (
                       <Button variant='ghost' size='sm' asChild>
                         <Link
-                          href={ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.WIZARD(
+                          href={ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.INTERVIEW(
                             String(intake.id),
                           )}
                         >

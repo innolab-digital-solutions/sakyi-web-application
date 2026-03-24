@@ -78,8 +78,8 @@ export default function IntakeDetailPanel({ intakeId }: IntakeDetailPanelProps) 
         <div className='pt-2'>
           {isEditable ? (
             <Button asChild>
-              <Link href={ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.WIZARD(String(intake.id))}>
-                Open wizard
+              <Link href={ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.INTERVIEW(String(intake.id))}>
+                Continue intake
               </Link>
             </Button>
           ) : (

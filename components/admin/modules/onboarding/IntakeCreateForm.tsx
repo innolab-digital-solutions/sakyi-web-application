@@ -9,7 +9,7 @@ import type { ComboboxOption } from '@/components/shared/form/ComboBoxField';
 import ComboBoxField from '@/components/shared/form/ComboBoxField';
 import FormSubmitButton from '@/components/shared/form/FormSubmitButton';
 import TextAreaField from '@/components/shared/form/TextAreaField';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ROUTES } from '@/config/routes';
 import { getLookupClients } from '@/domains/client/services/lookup.service';
 import {
@@ -151,7 +151,7 @@ export default function IntakeCreateForm() {
 
       toast.success('Intake created.');
       router.push(
-        ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.WIZARD(
+        ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.INTERVIEW(
           String(response.data.id),
         ),
       );
@@ -161,7 +161,11 @@ export default function IntakeCreateForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className='text-base'>Start onboarding intake</CardTitle>
+        <CardTitle className='text-base'>Who is this session for?</CardTitle>
+        <CardDescription>
+          Creates the intake record, then opens the questionnaire. You can return anytime from
+          the intake list.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className='space-y-4'>

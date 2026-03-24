@@ -33,7 +33,7 @@ export function hydrateDraftAnswersFromSections(
 }
 
 /**
- * Returns client-side required-field errors for a section (mirrors wizard validation rules).
+ * Returns client-side required-field errors for a section (mirrors interview step validation rules).
  */
 export function getRequiredFieldErrorsForSection(
   section: OnboardingIntakeSection,

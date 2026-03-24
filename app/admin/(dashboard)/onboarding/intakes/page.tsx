@@ -13,8 +13,8 @@ export default function OnboardingIntakesPage() {
   return (
     <div className='space-y-8'>
       <PageHeader
-        title='Onboarding Intakes'
-        description='Track draft, in-progress, completed, and cancelled onboarding intakes.'
+        title='Onboarding intakes'
+        description='Queue for admin-led phone intakes. Start a new session or continue one in progress—progress is saved per section.'
       />
       <Suspense fallback={<div className='text-muted-foreground text-sm'>Loading...</div>}>
         <IntakeListTable />
