@@ -50,12 +50,18 @@ const { rows, controls } = useTable<RowType>(ENDPOINT, {
   params: {
     enabled: true,
     sync: true,
+    writeInitialToUrl: true,
     initial: { page: 1, per_page: 15 },
   },
   search: { enabled: true, debounceMs: 300 },
   pagination: { enabled: true },
 });
 ```
+
+### Expected results (basic usage)
+
+- **If the user visits**: `/admin/things` (no query params)\n  and `params.sync: true` + `params.writeInitialToUrl: true`:\n  - URL becomes: `/admin/things?page=1&per_page=15`\n  - Backend request params: `{ page: 1, per_page: 15 }`\n  - `controls.pagination.page === 1`\n  - `controls.pagination.perPage === 15`\n
+- **If the URL includes a search** (after debounce):\n  - URL: `?page=1&per_page=15&search=yoga`\n  - Request params include `search: 'yoga'`\n  - Page is reset to `1` when search changes due to typing.\n 
 
 ## Pagination, search, and URL params (flexible options)
 
@@ -109,6 +115,24 @@ At runtime:
 - `controls.params.set(patch)` sets keys (nullish/empty values remove keys)
 - `controls.params.clear(keys)` removes keys
 
+### Expected results (extra params)
+
+If you set a filter:
+
+```ts
+controls.params.set({ status: 'published' });
+```
+
+- URL becomes: `?page=1&per_page=15&status=published`\n- Request params include: `{ page: 1, per_page: 15, status: 'published' }`\n- Page resets to `1` when the filter changes (default behavior)\n
+
+If you clear a filter:
+
+```ts
+controls.params.clear(['status']);
+```
+
+- URL becomes: `?page=1&per_page=15`\n- Request params no longer include `status`\n 
+
 ## API response expectations and normalization
 
 `useTable` fetches through `fetchTablePage` → `http.get(url, { throwOnError: true })`:
@@ -124,6 +148,13 @@ The success payload can be either:
 Pagination meta can also be provided in `meta.pagination`. The default normalizer supports both shapes (`lib/table/normalize.ts`).
 
 If the API returns a bare array without `meta.pagination`, `useTable` synthesizes a single-page pagination footer so pagination UI can remain stable when enabled.
+
+### What if pagination is enabled but the backend does not paginate?
+
+If you leave `pagination.enabled: true` but the endpoint returns a bare array with no pagination meta, the hook will:\n
+- still render `rows` normally\n- synthesize `controls.pagination.meta` as a **single page** (`last_page: 1`, `has_more_pages: false`)\n- disable next-page navigation in typical UI\n
+
+Recommendation: for endpoints that truly don’t paginate, set `pagination: { enabled: false }`.\n 
 
 You can override response normalization with:
 

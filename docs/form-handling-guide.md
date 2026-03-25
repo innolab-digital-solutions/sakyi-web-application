@@ -2,6 +2,17 @@
 
 How to submit forms to the Laravel API with `useForm` from `@/lib/form`. Wider layout, domains, and HTTP rules: [project-architecture.md](./project-architecture.md).
 
+## Purpose
+
+`@/lib/form` exists to make API-submitting forms consistent, predictable, and easy to maintain. It standardizes:
+
+- Field state (single source of truth)
+- Dirty tracking and defaults
+- Client-side Zod validation (optional)
+- Server validation error mapping into `form.errors`
+- Submission lifecycle and callbacks (`onSuccess`, `onError`, `onFailure`, `onFinish`)
+- Abort/cancel for in-flight requests
+
 ## When to use it
 
 Use `useForm` in Client Components whenever the user submits data to the API (login, CRUD, contact, and similar). The hook calls `client` from `@/lib/api/client` with `throwOnError: false`, so it can read `status`, `message`, and `errors` without try/catch for normal failures.
@@ -31,6 +42,121 @@ Feature code should not import `lib/form/core.ts`, `validator.ts`, `utils.ts`, o
 const form = useForm({ email: '', password: '' }, { schema: LoginSchema });
 ```
 
+## Cookbook: common scenarios
+
+### Scenario A: Create form (POST)
+
+```ts
+'use client';
+
+import { useForm } from '@/lib/form';
+import { ENDPOINTS } from '@/config/api/endpoints';
+import { CreateThingSchema } from '@/domains/things/schemas/create.schema';
+
+export const CreateThingForm = () => {
+  const form = useForm(
+    { name: '', status: 'draft' },
+    { schema: CreateThingSchema },
+  );
+
+  const submit = async () => {
+    await form.post(ENDPOINTS.ADMIN.THINGS.CREATE, {
+      onSuccess: () => {
+        // redirect / toast / reset defaults
+      },
+      onError: () => {
+        // validation errors are already in form.errors
+      },
+      onFailure: () => {
+        // non-field error (e.g. permissions) – show a toast
+      },
+    });
+  };
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        submit();
+      }}
+    >
+      {/* bind inputs to form.fields + form.setData */}
+    </form>
+  );
+};
+```
+
+**Expected result**:
+- Zod schema fails → request is not sent; `form.errors` is filled; `onError` runs; `onFinish` runs.
+- Backend returns `status:'error'` with `errors` map → `form.errors` is filled; `onError` runs.
+- Backend returns `status:'error'` without `errors` map → `onFailure` runs.
+- Backend returns `status:'success'` → `onSuccess` runs and dirty state resets.
+
+### Scenario B: Edit form (load entity then `setDataAndDefaults`)
+
+When editing, the form should not be “dirty” immediately after data loads.
+
+```ts
+const form = useForm(
+  { name: '', status: 'draft' },
+  { schema: UpdateThingSchema },
+);
+
+useEffect(() => {
+  if (!thing) return;
+  form.setDataAndDefaults({
+    name: thing.name,
+    status: thing.status,
+  });
+}, [thing]); // eslint-disable-line react-hooks/exhaustive-deps
+```
+
+Then submit:
+
+```ts
+await form.patch(ENDPOINTS.ADMIN.THINGS.UPDATE(String(id)));
+```
+
+### Scenario C: Server validation errors (422-style field errors)
+
+If the backend responds with `errors: { field: 'message' }`, `useForm`:
+- writes them into `form.errors`
+- calls `onError(errorResponse)`
+
+You should not duplicate that mapping in components.
+
+### Scenario D: Cancel / abort an in-flight submit
+
+Use this when the user closes a modal/sheet, navigates away, or presses “Cancel”.
+
+```ts
+form.cancel(); // aborts current request (if any) and clears isSubmitting
+```
+
+### Scenario E: Reset behavior
+
+```ts
+form.reset(); // resets all fields to defaults
+form.reset('email', 'password'); // resets only specific keys
+```
+
+If you want the current values to become the new “clean” baseline:
+
+```ts
+form.setDefaults(); // snapshot current fields into defaults and clears dirty
+```
+
+### Scenario F: Dynamic forms
+
+If you need dynamic keys, `useForm({})` is supported, but prefer a stable schema and stable keys whenever possible.\n+
+Dynamic forms still benefit from:\n+- `setData` partial updates\n+- shared submit flow\n+
+## Callbacks (what to use and why)
+
+- `onSuccess`: success response; good place to redirect or toast
+- `onError`: validation-like errors (Zod failure or backend errors map)\n+- `onFailure`: non-field failure where `errors` is empty (auth, forbidden, generic)\n+- `onFinish`: always runs (after schema failure or network attempt)\n+
+## Common pitfalls
+
+- **Bypassing `useForm`**: do not call `http`/`client` directly from form components.\n+- **Mismatched keys**: the keys in `initialFields`, your Zod schema, and backend payload should align.\n+- **Confusing onError vs onFailure**: use `onError` for field-level errors and `onFailure` for non-field failures.\n+- **Dirty surprises**: use `setDataAndDefaults` after loading existing entities for edit.\n+- **Partial reset dirty state**: `reset('a','b')` does not recompute dirty for the whole object until next `setData`.\n+
 ## Fields and errors
 
 `fields` / `setData` - read and update values. `setData('email', value)` or `setData({ email, name })`.

@@ -115,7 +115,21 @@ Contributor guide: [api-client-guide.md](./api-client-guide.md).
 
 ## Paginated tables (`lib/table`)
 
-`useTable` in `lib/table/core.ts` drives admin-style lists: pagination, search, optional URL sync, and TanStack Query. It calls the API through `http.get` with typed params. Shared types (`TableControls`, `TablePagination`, etc.) are exported from `@/lib/table`. Layout helpers such as `components/admin/layout/TableLayout.tsx` consume `TableControls`.
+`useTable` from `@/lib/table` drives list/table data fetching for admin-style pages (and any other surface that needs it). It provides a consistent mechanism for:
+
+- Pagination (optional)
+- Search (optional, debounced)
+- Deep-linking via URL query params (optional; shareable filtered URLs, back/forward support)
+- Extra query params for feature-specific filters/facets (optional)
+- TanStack Query integration (caching, refetch states, “keep previous data” behavior)
+
+**Public surface:** import only from the barrel `@/lib/table` (do not import `lib/table/core.ts` or other internals from feature code).
+
+**Core rule:** when `options.params.sync === true`, the URL query string becomes the source of truth for the backend request params. When `options.params.writeInitialToUrl === true`, missing defaults from `options.params.initial` are written into the URL so **URL === request**.
+
+**Master switch:** `options.params.enabled` is the master switch for table param mechanics. When `params.enabled === false`, `useTable` removes search/pagination controls and stops deriving request params from the URL.
+
+`useTable` calls the API through the shared client (`http.get`), and expects the standard `ApiSuccess` envelope (`types/api.ts`). It normalizes common Laravel list shapes (array payloads and paginator payloads) and exposes a stable `rows: TItem[]` plus `controls` for UI wiring.
 
 ## Forms (`lib/form`)
 
