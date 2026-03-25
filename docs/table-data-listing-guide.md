@@ -60,8 +60,8 @@ const { rows, controls } = useTable<RowType>(ENDPOINT, {
 
 ### Expected results (basic usage)
 
-- **If the user visits**: `/admin/things` (no query params)\n  and `params.sync: true` + `params.writeInitialToUrl: true`:\n  - URL becomes: `/admin/things?page=1&per_page=15`\n  - Backend request params: `{ page: 1, per_page: 15 }`\n  - `controls.pagination.page === 1`\n  - `controls.pagination.perPage === 15`\n
-- **If the URL includes a search** (after debounce):\n  - URL: `?page=1&per_page=15&search=yoga`\n  - Request params include `search: 'yoga'`\n  - Page is reset to `1` when search changes due to typing.\n 
+- **If the user visits**: `/admin/things` (no query params)\n and `params.sync: true` + `params.writeInitialToUrl: true`:\n - URL becomes: `/admin/things?page=1&per_page=15`\n - Backend request params: `{ page: 1, per_page: 15 }`\n - `controls.pagination.page === 1`\n - `controls.pagination.perPage === 15`\n
+- **If the URL includes a search** (after debounce):\n - URL: `?page=1&per_page=15&search=yoga`\n - Request params include `search: 'yoga'`\n - Page is reset to `1` when search changes due to typing.\n
 
 ## Pagination, search, and URL params (flexible options)
 
@@ -131,7 +131,7 @@ If you clear a filter:
 controls.params.clear(['status']);
 ```
 
-- URL becomes: `?page=1&per_page=15`\n- Request params no longer include `status`\n 
+- URL becomes: `?page=1&per_page=15`\n- Request params no longer include `status`\n
 
 ## API response expectations and normalization
 
@@ -152,9 +152,10 @@ If the API returns a bare array without `meta.pagination`, `useTable` synthesize
 ### What if pagination is enabled but the backend does not paginate?
 
 If you leave `pagination.enabled: true` but the endpoint returns a bare array with no pagination meta, the hook will:\n
+
 - still render `rows` normally\n- synthesize `controls.pagination.meta` as a **single page** (`last_page: 1`, `has_more_pages: false`)\n- disable next-page navigation in typical UI\n
 
-Recommendation: for endpoints that truly don’t paginate, set `pagination: { enabled: false }`.\n 
+Recommendation: for endpoints that truly don’t paginate, set `pagination: { enabled: false }`.\n
 
 You can override response normalization with:
 
@@ -186,4 +187,3 @@ Search for `useTable(` across components and route screens that render lists. `p
 - Keep endpoint strings in `config/api/endpoints` (don’t hard-code paths).
 - If you add custom filters, manage them as extra params via `controls.params.set/clear`.
 - Ensure the backend response matches one of the supported success shapes (array payload or paginated payload) and uses the standard `ApiSuccess` envelope.
-

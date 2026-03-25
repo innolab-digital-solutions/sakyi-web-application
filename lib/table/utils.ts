@@ -1,4 +1,3 @@
-
 /**
  * Compares two URL query string representations to determine if they contain the same keys and values.
  *
@@ -28,5 +27,3 @@ export const tableQueriesEqual = (a: string, b: string): boolean => {
   }
   return true;
 };
-
-

@@ -2,7 +2,7 @@ import type { TableParamKeys } from './types';
 
 /**
  * Defines URL parameter keys for table state management.
- * 
+ *
  * @property {string} page - The query parameter for current page number.
  * @property {string} perPage - The query parameter for results per page.
  * @property {string} search - The query parameter for search input.

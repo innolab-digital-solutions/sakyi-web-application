@@ -42,6 +42,7 @@ const title = getTranslation('en', 'marketing.pages.home.hero.title');
 ```
 
 **Expected result**:
+
 - If the key exists in the selected language → returns the translated string.
 - If missing in that language but exists in fallback (`en`) → returns fallback string.
 - If missing everywhere → returns the key string itself.
@@ -57,6 +58,7 @@ getTranslation('en', 'shared.validation.min', { min: 3 });
 ```
 
 **Expected result**:
+
 - `:min` is replaced with `3`.\n+- Missing replacements leave the token untouched (intentional; makes missing data visible).
 
 ### Scenario C: React usage with `useLanguage()`
@@ -82,7 +84,10 @@ Server Components cannot read localStorage. If you need server-side translations
 import { DEFAULT_LANGUAGE } from '@/config/languages';
 import { getTranslation } from '@/lib/localization';
 
-const title = getTranslation(DEFAULT_LANGUAGE, 'marketing.pages.home.hero.title');
+const title = getTranslation(
+  DEFAULT_LANGUAGE,
+  'marketing.pages.home.hero.title',
+);
 ```
 
 ## Keys and placeholders
@@ -100,6 +105,7 @@ Adding strings: extend the right JSON under `dictionaries/<lang>/` and ensure th
 ## Common pitfalls
 
 - **Using `useLanguage` outside the provider**: it throws by design.\n+- **Key drift between languages**: keep `en` and `my` structural shape aligned.\n+- **Translating on the server with localStorage assumptions**: always pass an explicit language on the server.\n+
+
 ## Adding a language
 
 1. Extend `SupportedLanguage` and `SUPPORTED_LANGUAGE_CODES` in `config/languages.ts`, and add an entry to `LANGUAGES`.

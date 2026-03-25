@@ -1,8 +1,8 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import SelectField, {
@@ -16,7 +16,6 @@ import { UNIT_TYPE } from '@/domains/units/constants';
 import {
   type UnitCreateInput,
   UnitCreateSchema,
-  type UnitUpdateInput,
   UnitUpdateSchema,
 } from '@/domains/units/schemas';
 import type { Unit } from '@/domains/units/types/admin';
@@ -85,7 +84,10 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
         {
           onSuccess: () => {
             queryClient.invalidateQueries({
-              queryKey: ['table', ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.LIST],
+              queryKey: [
+                'table',
+                ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.LIST,
+              ],
             });
             toast.success('Unit updated successfully.');
             if (onSuccess) onSuccess();
@@ -148,7 +150,9 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
           placeholder='Select a type…'
           options={UNIT_TYPE_OPTIONS}
           value={String(form.fields.type ?? '')}
-          onChange={(val) => form.setData('type', val as UnitCreateInput['type'])}
+          onChange={(val) =>
+            form.setData('type', val as UnitCreateInput['type'])
+          }
           error={form.errors.type}
         />
         <SelectField

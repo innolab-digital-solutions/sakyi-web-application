@@ -11,7 +11,10 @@ import {
   useState,
 } from 'react';
 
-import { TABLE_DEFAULT_SEARCH_DEBOUNCE_MS, TABLE_PARAM_KEYS } from './constants';
+import {
+  TABLE_DEFAULT_SEARCH_DEBOUNCE_MS,
+  TABLE_PARAM_KEYS,
+} from './constants';
 import { fetchTablePage } from './fetch';
 import { normalizeTableResponse } from './normalize';
 import {
@@ -28,7 +31,6 @@ import type {
   UseTableReturn,
 } from './types';
 import { tableQueriesEqual } from './utils';
-
 
 /**
  * React hook for managing the state, controls, and data fetching of a table component.
@@ -359,4 +361,3 @@ export const useTable = <TItem>(
     },
   };
 };
-

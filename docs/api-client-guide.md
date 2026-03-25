@@ -93,10 +93,10 @@ const response = await http.get<User[]>(
 ```ts
 import { http } from '@/lib/api/client';
 
-const response = await http.post<User>(
-  ENDPOINTS.ADMIN.USERS.CREATE,
-  { name: 'Alice', email: 'alice@example.com' },
-);
+const response = await http.post<User>(ENDPOINTS.ADMIN.USERS.CREATE, {
+  name: 'Alice',
+  email: 'alice@example.com',
+});
 ```
 
 ### PATCH / PUT (JSON body)
@@ -104,10 +104,9 @@ const response = await http.post<User>(
 ```ts
 import { http } from '@/lib/api/client';
 
-await http.patch<User>(
-  ENDPOINTS.ADMIN.USERS.UPDATE('42'),
-  { name: 'Alice Updated' },
-);
+await http.patch<User>(ENDPOINTS.ADMIN.USERS.UPDATE('42'), {
+  name: 'Alice Updated',
+});
 ```
 
 ### DELETE

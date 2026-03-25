@@ -65,10 +65,7 @@ export default function IntakeListTable() {
       : 'Could not load onboarding intakes.';
 
   return (
-    <TableListShell
-      controls={controls}
-      searchPlaceholder='Search by notes...'
-    >
+    <TableListShell controls={controls} searchPlaceholder='Search by notes...'>
       <div className='mb-4 flex justify-end'>
         <Button asChild>
           <Link href={ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.CREATE}>

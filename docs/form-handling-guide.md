@@ -87,6 +87,7 @@ export const CreateThingForm = () => {
 ```
 
 **Expected result**:
+
 - Zod schema fails → request is not sent; `form.errors` is filled; `onError` runs; `onFinish` runs.
 - Backend returns `status:'error'` with `errors` map → `form.errors` is filled; `onError` runs.
 - Backend returns `status:'error'` without `errors` map → `onFailure` runs.
@@ -120,6 +121,7 @@ await form.patch(ENDPOINTS.ADMIN.THINGS.UPDATE(String(id)));
 ### Scenario C: Server validation errors (422-style field errors)
 
 If the backend responds with `errors: { field: 'message' }`, `useForm`:
+
 - writes them into `form.errors`
 - calls `onError(errorResponse)`
 
@@ -150,13 +152,16 @@ form.setDefaults(); // snapshot current fields into defaults and clears dirty
 
 If you need dynamic keys, `useForm({})` is supported, but prefer a stable schema and stable keys whenever possible.\n+
 Dynamic forms still benefit from:\n+- `setData` partial updates\n+- shared submit flow\n+
+
 ## Callbacks (what to use and why)
 
 - `onSuccess`: success response; good place to redirect or toast
 - `onError`: validation-like errors (Zod failure or backend errors map)\n+- `onFailure`: non-field failure where `errors` is empty (auth, forbidden, generic)\n+- `onFinish`: always runs (after schema failure or network attempt)\n+
+
 ## Common pitfalls
 
 - **Bypassing `useForm`**: do not call `http`/`client` directly from form components.\n+- **Mismatched keys**: the keys in `initialFields`, your Zod schema, and backend payload should align.\n+- **Confusing onError vs onFailure**: use `onError` for field-level errors and `onFailure` for non-field failures.\n+- **Dirty surprises**: use `setDataAndDefaults` after loading existing entities for edit.\n+- **Partial reset dirty state**: `reset('a','b')` does not recompute dirty for the whole object until next `setData`.\n+
+
 ## Fields and errors
 
 `fields` / `setData` - read and update values. `setData('email', value)` or `setData({ email, name })`.

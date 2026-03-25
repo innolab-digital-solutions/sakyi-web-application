@@ -4,7 +4,6 @@ import type {
   TableQueryResponse,
 } from './types';
 
-
 /**
  * Normalizes table query responses into a consistent structure with rows and pagination meta.
  *
@@ -62,4 +61,3 @@ export const normalizeTableResponse = <TItem>(
 
   return { rows: [], meta: null };
 };
-

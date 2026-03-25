@@ -107,7 +107,8 @@ const TableListShell = <TItem,>({
         : `${total} ${total === 1 ? 'row' : 'rows'}`;
 
   const searchBusy =
-    controls?.query.isFetching === true || controls?.search?.isDebouncing === true;
+    controls?.query.isFetching === true ||
+    controls?.search?.isDebouncing === true;
 
   return (
     <div
@@ -230,4 +231,3 @@ const TableListShell = <TItem,>({
 };
 
 export default TableListShell;
-
