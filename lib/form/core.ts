@@ -1,5 +1,6 @@
 import * as React from 'react';
 
+import { base } from '@/config/api/base';
 import { client } from '@/lib/api/client';
 
 import { buildSubmitShortcuts } from './shortcuts';
@@ -280,7 +281,9 @@ export const useForm = (
           setErrors(clientValidationErrors);
           onError?.({
             status: 'error',
-            message: 'Please review the fields and correct any issues.',
+            message:
+              'One or more fields require your attention. Please correct the highlighted issues.',
+            meta: { version: base.apiVersion },
             errors: clientValidationErrors,
           });
           onFinish?.();

@@ -191,9 +191,9 @@ const SelectFieldSingle = React.forwardRef<
             align='start'
             className='border-input bg-popover max-h-60 min-w-(--radix-select-trigger-width) border shadow-xs'
           >
-            {options.map((opt) => (
+            {options.map((opt, index) => (
               <SelectItem
-                key={opt.value}
+                key={`${opt.value}-${index}`}
                 value={opt.value}
                 disabled={opt.disabled}
                 className='py-2 text-xs font-medium md:text-sm'
@@ -407,9 +407,9 @@ const SelectFieldMultiple = React.forwardRef<
                 className='max-h-60 min-h-0 flex-1 scroll-py-1 overflow-y-auto overscroll-contain'
               >
                 <CommandGroup>
-                  {options.map((opt) => (
+                  {options.map((opt, index) => (
                     <CommandItem
-                      key={opt.value}
+                      key={`${opt.value}-${index}`}
                       disabled={opt.disabled}
                       value={opt.value}
                       className={cn(

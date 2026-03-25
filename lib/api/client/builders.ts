@@ -25,7 +25,7 @@ export const buildVersionedEndpoint = (path: string): string => {
 
   const normalizedPath = sanitized.replace(/^\/+/, '').trim();
 
-  return `${base.version}/${normalizedPath}`;
+  return `${base.versionEndpoint}/${normalizedPath}`;
 };
 
 /**

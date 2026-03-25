@@ -84,7 +84,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
   {
     name: 'Intakes',
     icon: ListChecks,
-    path: '#',
+    path: ADMIN_ROUTES.MODULES.ONBOARDING.INTAKES.LIST,
     subitems: [],
   },
   {

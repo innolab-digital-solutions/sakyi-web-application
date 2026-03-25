@@ -23,5 +23,14 @@ export const ADMIN_ROUTES = {
       EDIT: (id: string) => `${BASE}/programs/${id}/edit`,
       DETAIL: (id: string) => `${BASE}/programs/${id}`,
     },
+    ONBOARDING: {
+      INTAKES: {
+        LIST: `${BASE}/onboarding/intakes`,
+        CREATE: `${BASE}/onboarding/intakes/create`,
+        /** In-person / phone questionnaire for an existing intake record. */
+        INTERVIEW: (id: string) => `${BASE}/onboarding/intakes/${id}/interview`,
+        DETAIL: (id: string) => `${BASE}/onboarding/intakes/${id}`,
+      },
+    },
   },
 } as const;
