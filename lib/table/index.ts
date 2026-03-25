@@ -1,16 +1,28 @@
-export { useTable } from './core';
+export { tableQueriesEqual, useTable } from './core';
+export { buildQueryString, fetchTablePage } from './fetch';
+export { normalizeTableResponse } from './normalize';
+export { getVisiblePageNumbers } from './pagination';
+export {
+  applyUrlParamPatch,
+  buildTableRequestParams,
+  DEFAULT_TABLE_PARAM_KEYS,
+  ensureTableUrlDefaults,
+  parseTableUrlParams,
+} from './params';
 export type {
+  ParsedTableUrlParams,
   TableControls,
   TableListPayload,
   TablePageData,
-  TablePaginationConfig,
+  TablePaginationControls,
   TablePaginationMeta,
-  TablePerPageConfig,
-  TableQueryOptions,
+  TableParamKeys,
+  TableParamsControls,
+  TableParamsOptions,
   TableQueryParams,
   TableQueryResponse,
-  TableSearchConfig,
-  UseTableHookOptions,
+  TableSearchControls,
+  TableTanstackOptions,
+  UseTableOptions,
   UseTableReturn,
 } from './types';
-export { getVisiblePageNumbers, tableQueriesEqual } from './utils';

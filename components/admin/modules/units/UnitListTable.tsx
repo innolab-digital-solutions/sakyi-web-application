@@ -1,7 +1,7 @@
 'use client';
 
 import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import TableListWrapper from '@/components/admin/layout/TableListWrapper';
 import UnitFilters from '@/components/admin/modules/units/UnitFilters';
@@ -44,9 +44,6 @@ function unitTypeBadgeVariant(
 }
 
 export default function UnitListTable() {
-  const [statusFilter, setStatusFilter] = useState<
-    'all' | 'active' | 'inactive'
-  >('all');
   const [editUnit, setEditUnit] = useState<Unit | null>(null);
 
   const [deleteUnit, setDeleteUnit] = useState<Unit | null>(null);
@@ -61,14 +58,19 @@ export default function UnitListTable() {
   const { rows, controls } = useTable<Unit>(
     ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.LIST,
     {
-      syncWithUrl: true,
       params: {
-        ...(statusFilter !== 'all' && {
-          is_active: statusFilter === 'active' ? '1' : '0',
-        }),
+        sync: true,
+        writeInitialToUrl: true,
       },
     },
   );
+
+  const statusFilter = useMemo(() => {
+    const v = controls.params.values.is_active;
+    if (v === '1') return 'active' as const;
+    if (v === '0') return 'inactive' as const;
+    return 'all' as const;
+  }, [controls.params.values.is_active]);
 
   const { query } = controls;
   const showSkeleton = query.isPending && !query.data;
@@ -80,7 +82,18 @@ export default function UnitListTable() {
   return (
     <>
       <div className='mb-4 flex items-center gap-3'>
-        <UnitFilters status={statusFilter} onStatusChange={setStatusFilter} />
+        <UnitFilters
+          status={statusFilter}
+          onStatusChange={(next) => {
+            if (next === 'all') {
+              controls.params.clear(['is_active']);
+              return;
+            }
+            controls.params.set({
+              is_active: next === 'active' ? '1' : '0',
+            });
+          }}
+        />
       </div>
 
       <TableListWrapper controls={controls}>

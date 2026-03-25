@@ -58,19 +58,21 @@ const TableListWrapper = <TItem,>({
     ROWS_PER_PAGE_OPTIONS[1],
   );
 
-  const searchValue = controls ? controls.search.value : localSearch;
+  const searchEnabled = controls ? controls.search != null : true;
+  const searchValue = controls?.search ? controls.search.value : localSearch;
   const handleSearchChange = (value: string) => {
-    if (controls) {
+    if (controls?.search) {
       controls.search.onChange(value);
     } else {
       setLocalSearch(value);
     }
   };
 
-  const perPageValue = controls ? controls.perPage.value : localPerPage;
+  const paginationEnabled = controls ? controls.pagination != null : true;
+  const perPageValue = controls?.pagination ? controls.pagination.perPage : localPerPage;
   const handlePerPageChange = (n: number) => {
-    if (controls) {
-      controls.perPage.onChange(n);
+    if (controls?.pagination) {
+      controls.pagination.onPerPageChange(n);
     } else {
       setLocalPerPage(n);
     }
@@ -81,8 +83,8 @@ const TableListWrapper = <TItem,>({
     [perPageValue],
   );
 
-  const meta = controls?.pagination.meta;
-  const currentPage = controls?.pagination.page ?? 1;
+  const meta = controls?.pagination?.meta;
+  const currentPage = controls?.pagination?.page ?? 1;
   const lastPage = Math.max(1, meta?.last_page ?? 1);
   const total = meta?.total ?? 0;
   const from = meta?.from ?? null;
@@ -104,7 +106,7 @@ const TableListWrapper = <TItem,>({
         : `${total} ${total === 1 ? 'row' : 'rows'}`;
 
   const searchBusy =
-    controls?.isLoading === true || controls?.search.isDebouncing === true;
+    controls?.query.isFetching === true || controls?.search?.isDebouncing === true;
 
   return (
     <div
@@ -113,16 +115,18 @@ const TableListWrapper = <TItem,>({
         className,
       )}
     >
-      <div>
-        <TextField
-          type='search'
-          placeholder={searchPlaceholder}
-          className='bg-background h-11! w-full max-w-xs rounded-md text-[13px]!'
-          value={searchValue}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          aria-busy={searchBusy}
-        />
-      </div>
+      {searchEnabled ? (
+        <div>
+          <TextField
+            type='search'
+            placeholder={searchPlaceholder}
+            className='bg-background h-11! w-full max-w-xs rounded-md text-[13px]!'
+            value={searchValue}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            aria-busy={searchBusy}
+          />
+        </div>
+      ) : null}
       <div className='border-border bg-card min-w-0 overflow-hidden rounded-lg border shadow-xs'>
         <div className='min-w-0 overflow-x-auto'>{children}</div>
       </div>
@@ -132,85 +136,93 @@ const TableListWrapper = <TItem,>({
           'border-border flex flex-col gap-4 border-t pt-4 sm:flex-row sm:items-center sm:justify-between',
         )}
       >
-        <div className='flex flex-wrap items-center gap-x-5 gap-y-2'>
-          <div className='flex items-center gap-2.5'>
-            <span className='text-foreground text-xs font-medium whitespace-nowrap'>
-              Rows per page
-            </span>
-            <Select
-              value={String(perPageValue)}
-              onValueChange={(v) => handlePerPageChange(Number(v))}
-            >
-              <SelectTrigger
-                size='sm'
-                className='border-border bg-background h-9 w-17 shadow-none'
-                aria-label='Rows per page'
-              >
-                <SelectValue placeholder='Per page' />
-              </SelectTrigger>
-              <SelectContent position='popper' sideOffset={4}>
-                {perPageSelectOptions.map((n) => (
-                  <SelectItem key={n} value={String(n)}>
-                    {n}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <span className='text-muted-foreground text-xs tabular-nums'>
-            {rangeLabel}
-          </span>
-        </div>
-
-        {controls ? (
-          <Pagination className='mx-0 w-full justify-end sm:w-auto'>
-            <PaginationContent className='flex-wrap'>
-              <PaginationItem>
-                <PaginationPrevious
-                  href='#'
-                  className={cn(!canPrev && 'pointer-events-none opacity-40')}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (!canPrev) return;
-                    controls.pagination.onPageChange(currentPage - 1);
-                  }}
-                />
-              </PaginationItem>
-
-              {pageNumbers.map((n) => (
-                <PaginationItem key={n}>
-                  <PaginationLink
-                    href='#'
-                    size='default'
-                    isActive={n === currentPage}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      controls.pagination.onPageChange(n);
-                    }}
+        {paginationEnabled ? (
+          <>
+            <div className='flex flex-wrap items-center gap-x-5 gap-y-2'>
+              <div className='flex items-center gap-2.5'>
+                <span className='text-foreground text-xs font-medium whitespace-nowrap'>
+                  Rows per page
+                </span>
+                <Select
+                  value={String(perPageValue)}
+                  onValueChange={(v) => handlePerPageChange(Number(v))}
+                >
+                  <SelectTrigger
+                    size='sm'
+                    className='border-border bg-background h-9 w-17 shadow-none'
+                    aria-label='Rows per page'
                   >
-                    {n}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
+                    <SelectValue placeholder='Per page' />
+                  </SelectTrigger>
+                  <SelectContent position='popper' sideOffset={4}>
+                    {perPageSelectOptions.map((n) => (
+                      <SelectItem key={n} value={String(n)}>
+                        {n}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <span className='text-muted-foreground text-xs tabular-nums'>
+                {rangeLabel}
+              </span>
+            </div>
 
-              <PaginationItem>
-                <PaginationNext
-                  href='#'
-                  className={cn(!canNext && 'pointer-events-none opacity-40')}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (!canNext) return;
-                    controls.pagination.onPageChange(currentPage + 1);
-                  }}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        ) : (
-          <div className='text-muted-foreground text-xs'>
-            Pagination (connect useTable)
-          </div>
-        )}
+            {controls?.pagination ? (
+              <Pagination className='mx-0 w-full justify-end sm:w-auto'>
+                <PaginationContent className='flex-wrap'>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href='#'
+                      className={cn(
+                        !canPrev && 'pointer-events-none opacity-40',
+                      )}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (!canPrev) return;
+                        controls.pagination.onPageChange(currentPage - 1);
+                      }}
+                    />
+                  </PaginationItem>
+
+                  {pageNumbers.map((n) => (
+                    <PaginationItem key={n}>
+                      <PaginationLink
+                        href='#'
+                        size='default'
+                        isActive={n === currentPage}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          controls.pagination.onPageChange(n);
+                        }}
+                      >
+                        {n}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      href='#'
+                      className={cn(
+                        !canNext && 'pointer-events-none opacity-40',
+                      )}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (!canNext) return;
+                        controls.pagination.onPageChange(currentPage + 1);
+                      }}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            ) : (
+              <div className='text-muted-foreground text-xs'>
+                Pagination (connect useTable)
+              </div>
+            )}
+          </>
+        ) : null}
       </div>
     </div>
   );

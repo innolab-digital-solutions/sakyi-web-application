@@ -49,7 +49,12 @@ function formatDate(iso: string | null): string {
 export default function IntakeListTable() {
   const { rows, controls } = useTable<OnboardingIntakeData>(
     ENDPOINTS.ADMIN.MODULES.ONBOARDING.INTAKES.LIST,
-    { syncWithUrl: true },
+    {
+      params: {
+        sync: true,
+        writeInitialToUrl: true,
+      },
+    },
   );
 
   const { query } = controls;

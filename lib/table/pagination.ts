@@ -2,11 +2,11 @@
  * Builds a compact list of page numbers to show in the pagination control
  * (current window with first/last when needed).
  */
-export function getVisiblePageNumbers(
+export const getVisiblePageNumbers = (
   currentPage: number,
   lastPage: number,
   maxButtons = 5,
-): number[] {
+): number[] => {
   if (lastPage < 1) return [1];
   const safeLast = Math.max(1, lastPage);
   const current = Math.min(Math.max(1, currentPage), safeLast);
@@ -23,4 +23,5 @@ export function getVisiblePageNumbers(
   const pages: number[] = [];
   for (let p = start; p <= end; p += 1) pages.push(p);
   return pages;
-}
+};
+

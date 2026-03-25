@@ -81,7 +81,12 @@ function formatEnrollmentCount(count: number | undefined): string {
 export default function ProgramListTable() {
   const { rows, controls } = useTable<Program>(
     ENDPOINTS.ADMIN.MODULES.PROGRAMS.LIST,
-    { syncWithUrl: true },
+    {
+      params: {
+        sync: true,
+        writeInitialToUrl: true,
+      },
+    },
   );
 
   const { query } = controls;
