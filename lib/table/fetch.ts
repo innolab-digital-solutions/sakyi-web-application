@@ -2,9 +2,13 @@ import { http } from '@/lib/api/client';
 import type { ApiResponse } from '@/types/api';
 
 /**
- * Serializes params into a query string for GET requests.
+ * Constructs a query string from a provided object of parameters.
  *
- * Omits undefined/null; coerces values to strings for URL encoding.
+ * Converts key-value pairs in the given params object into a URL-encoded query string.
+ * Ignores keys whose values are undefined or null.
+ *
+ * @param {Record<string, unknown>} [params] - The query parameters as a record object.
+ * @returns {string} A query string starting with '?', or an empty string if no parameters exist.
  */
 export const buildQueryString = (params?: Record<string, unknown>): string => {
   if (!params) return '';
@@ -18,7 +22,15 @@ export const buildQueryString = (params?: Record<string, unknown>): string => {
 };
 
 /**
- * Fetches a list endpoint page using the shared HTTP client.
+ * Fetches a page of table data from a specified API endpoint, with optional query parameters.
+ *
+ * Constructs the full URL with query string and calls the shared HTTP client.
+ * Throws on HTTP errors by default.
+ *
+ * @template T Response data type
+ * @param {string} endpoint - The API endpoint path.
+ * @param {Record<string, unknown>} [params] - Optional query parameters to include.
+ * @returns {Promise<ApiResponse<T>>} The structured API response with data of type T.
  */
 export const fetchTablePage = async <T>(
   endpoint: string,
@@ -27,4 +39,3 @@ export const fetchTablePage = async <T>(
   const url = params ? `${endpoint}${buildQueryString(params)}` : endpoint;
   return http.get<T>(url, { throwOnError: true });
 };
-

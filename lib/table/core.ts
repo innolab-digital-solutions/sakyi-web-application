@@ -11,12 +11,12 @@ import {
   useState,
 } from 'react';
 
+import { TABLE_DEFAULT_SEARCH_DEBOUNCE_MS, TABLE_PARAM_KEYS } from './constants';
 import { fetchTablePage } from './fetch';
 import { normalizeTableResponse } from './normalize';
 import {
   applyUrlParamPatch,
   buildTableRequestParams,
-  DEFAULT_TABLE_PARAM_KEYS,
   ensureTableUrlDefaults,
   parseTableUrlParams,
 } from './params';
@@ -27,45 +27,29 @@ import type {
   UseTableOptions,
   UseTableReturn,
 } from './types';
+import { tableQueriesEqual } from './utils';
 
-const DEFAULT_SEARCH_DEBOUNCE_MS = 300;
-
-/**
- * Returns true when two query strings represent the same key/value pairs
- * (order-insensitive).
- */
-export const tableQueriesEqual = (a: string, b: string): boolean => {
-  const A = new URLSearchParams(a);
-  const B = new URLSearchParams(b);
-  const keysA = [...new Set([...A.keys()])].sort();
-  const keysB = [...new Set([...B.keys()])].sort();
-  if (keysA.length !== keysB.length) return false;
-  for (let i = 0; i < keysA.length; i += 1) {
-    if (keysA[i] !== keysB[i]) return false;
-  }
-  for (const key of keysA) {
-    if (A.get(key) !== B.get(key)) return false;
-  }
-  return true;
-};
 
 /**
- * Data-fetching hook for admin tables.
+ * React hook for managing the state, controls, and data fetching of a table component.
  *
- * Provides a unified table query model for list endpoints, including:
- * - URL-synced query params (pagination/search + dynamic filters)
- * - debounced search input
- * - optional pagination / optional search
- * - full TanStack Query capability via a dedicated `tanstack` options object
+ * Handles pagination, search (with debounce), and synchronizes state with the URL for deep-linking and navigation.
+ * Designed for Next.js apps with React Query and navigation utilities.
  *
- * The core rule: when `params.sync` is enabled, the URL is the source of truth.
- * The backend request params are derived from the URL, so the frontend route query
- * string and backend request always match.
+ * Typical usage:
  *
- * @template TItem - Row type for each table entry.
- * @param endpoint - Relative API path (e.g. `ENDPOINTS.ADMIN...LIST`).
- * @param options - Params config, search/pagination toggles, and TanStack options.
- * @returns Table rows plus UI controls (search/pagination/params + query state).
+ * ```tsx
+ * const { rows, controls } = useTable('/api/items', {
+ *   params: { enabled: true, sync: true, initial: { page: 1, perPage: 10 } },
+ *   pagination: { enabled: true },
+ *   search: { enabled: true, debounceMs: 300 },
+ * });
+ * ```
+ *
+ * @template TItem The shape of items in the returned table rows.
+ * @param endpoint API endpoint for fetching table data.
+ * @param options Configuration options for search, pagination, params, and fetch/query behavior.
+ * @returns {UseTableReturn<TItem>}
  */
 export const useTable = <TItem>(
   endpoint: string,
@@ -81,7 +65,7 @@ export const useTable = <TItem>(
   const syncUrl = paramsEnabled && paramsOpt.sync === true;
   const writeDefaultsToUrl = syncUrl && (paramsOpt.writeInitialToUrl ?? true);
   const history = paramsOpt.history ?? 'replace';
-  const keys = DEFAULT_TABLE_PARAM_KEYS;
+  const keys = TABLE_PARAM_KEYS;
 
   const paginationEnabledRaw = options.pagination?.enabled !== false;
   const searchEnabledRaw = options.search?.enabled !== false;
@@ -91,10 +75,14 @@ export const useTable = <TItem>(
    */
   const paginationEnabled = paramsEnabled && paginationEnabledRaw;
   const searchEnabled = paramsEnabled && searchEnabledRaw;
-  const debounceMs = options.search?.debounceMs ?? DEFAULT_SEARCH_DEBOUNCE_MS;
+  const debounceMs =
+    options.search?.debounceMs ?? TABLE_DEFAULT_SEARCH_DEBOUNCE_MS;
 
   const extraMode = paramsOpt.extra?.mode ?? 'passthrough';
-  const extraAllowlist = paramsOpt.extra?.allowlist ?? [];
+  const extraAllowlist = useMemo(
+    () => paramsOpt.extra?.allowlist ?? [],
+    [paramsOpt.extra?.allowlist],
+  );
   const resetPageOnChange = paramsOpt.extra?.resetPageOnChange ?? true;
   const cleanExtra = paramsOpt.extra?.clean;
 
@@ -298,6 +286,9 @@ export const useTable = <TItem>(
           from: rows.length > 0 ? 1 : 0,
           to: rows.length,
           has_more_pages: false,
+          path: pathname,
+          next_page_url: null,
+          prev_page_url: null,
         }
       : null);
 

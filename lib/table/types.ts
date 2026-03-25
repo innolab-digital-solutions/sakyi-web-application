@@ -5,48 +5,67 @@ import type {
 } from '@tanstack/react-query';
 
 import type { ApiSuccess } from '@/types/api';
+import type { Pagination } from '@/types/meta';
 
 /**
- * URL key mapping for table-owned query params.
+ * Maps semantic table parameter keys to their corresponding query string key names.
+ * Used for customizing the core keys for page, perPage, and search params.
  *
- * This library “owns” a small set of keys for table mechanics (pagination + search).
- * All other keys in the URL are treated as dynamic filters (“extra params”).
+ * @example
+ * {
+ *   page: 'page',
+ *   perPage: 'per_page',
+ *   search: 'search'
+ * }
  */
 export type TableParamKeys = {
-  /** URL key for the current page. @default 'page' */
   page: string;
-  /** URL key for page size (rows per page). @default 'per_page' */
   perPage: string;
-  /** URL key for search term. @default 'search' */
   search: string;
 };
 
 /**
- * Dynamic params that are attached to list requests.
+ * Represents table-related parameters as parsed from the URL.
  *
- * These come from the URL (when `params.sync` is enabled) and represent
- * backend filters like `status`, `type`, `is_active`, etc.
+ * - `page`, `perPage`, and `search` refer to core pagination and filtering state.
+ * - `extra` includes all other dynamic string params found in the URL (for additional filtering/facets).
+ */
+export type ParsedTableUrlParams = {
+  page: number | null;
+  perPage: number | null;
+  search: string | null;
+  extra: Record<string, string>;
+};
+
+/**
+ * General-purpose query params for table requests.
+ * Keys are strings; values can be any type.
  */
 export type TableQueryParams = Record<string, unknown>;
 
 /**
- * Pagination block returned by list endpoints under `meta.pagination`.
+ * Pagination metadata for table responses.
+ * Re-exports the shape from the domain Pagination type.
  */
-export type TablePaginationMeta = {
-  current_page: number;
-  per_page: number;
-  total: number;
-  last_page: number;
-  from: number | null;
-  to: number | null;
-  has_more_pages?: boolean;
-  path?: string;
-  next_page_url?: string | null;
-  prev_page_url?: string | null;
-};
+export type TablePaginationMeta = Pagination;
 
 /**
- * Laravel-style paginator embedded in `data` (alternative shape used by some APIs).
+ * Represents a paginated response payload for a table endpoint.
+ *
+ * @template TItem - The type for each row/item in the table.
+ * @property {TItem[]} data - Array of items for the current page.
+ * @property {number} current_page - The current page number.
+ * @property {string | null} first_page_url - URL for the first page, if available.
+ * @property {number | null} from - The starting item number.
+ * @property {number} last_page - The last available page number.
+ * @property {string | null} last_page_url - URL for the last page, if available.
+ * @property {Array<Object>} links - Page link objects for building pagination UI.
+ * @property {string | null} next_page_url - URL for the next page, if available.
+ * @property {string} path - Base path for the resource requests.
+ * @property {number} per_page - Number of items per page.
+ * @property {string | null} prev_page_url - URL for the previous page, if available.
+ * @property {number | null} to - The ending item number.
+ * @property {number} total - The total number of items.
  */
 export interface TablePageData<TItem> {
   data: TItem[];
@@ -69,12 +88,16 @@ export interface TablePageData<TItem> {
   total: number;
 }
 
+/**
+ * Top-level list response shape for a table query.
+ * Supports either a paginated object (TablePageData) or a simple array.
+ */
 export type TableListPayload<TItem> = TItem[] | TablePageData<TItem>;
 
 /**
- * Successful list response shape used by this project’s API client.
+ * API response type for a table query, augmenting the payload with optional pagination meta.
  *
- * Note: meta already includes the shared `Meta` type via `ApiSuccess`.
+ * @template TItem - Item type for the table rows.
  */
 export type TableQueryResponse<TItem> = ApiSuccess<
   TableListPayload<TItem>,
@@ -84,82 +107,96 @@ export type TableQueryResponse<TItem> = ApiSuccess<
   }
 >;
 
+/**
+ * Forwarded options for `@tanstack/react-query` useQuery, but disallows queryKey and queryFn,
+ * which are auto-managed by the table utility.
+ *
+ * @template TItem - Item type for the table rows.
+ */
 export type TableTanstackOptions<TItem> = Omit<
-  UseQueryOptions<TableQueryResponse<TItem>, Error, TableQueryResponse<TItem>, QueryKey>,
+  UseQueryOptions<
+    TableQueryResponse<TItem>,
+    Error,
+    TableQueryResponse<TItem>,
+    QueryKey
+  >,
   'queryKey' | 'queryFn'
 >;
 
+/**
+ * Table params (URL/query string) sync and management options.
+ *
+ * - Controls URL sync, defaults writing, history mode, and advanced behaviors for "extra" custom filters.
+ */
 export type TableParamsOptions = {
-  /** Master enable switch for param-driven behavior. @default true */
   enabled?: boolean;
-  /**
-   * When true, the URL search params become the source of truth for request params.
-   * @default false
-   */
   sync?: boolean;
-  /**
-   * When true, missing defaults are written into the URL so the URL and backend request
-   * remain identical.
-   * @default true (when sync is true)
-   */
   writeInitialToUrl?: boolean;
-  /** Defaults for owned keys and extra filter keys. */
   initial?: Record<string, unknown>;
-  /** URL history strategy for param updates. @default 'replace' */
   history?: 'replace' | 'push';
   extra?: {
-    /** Controls which extra keys are accepted from the URL. @default 'passthrough' */
     mode?: 'passthrough' | 'allowlist';
-    /** When mode is allowlist, only these keys are included and settable. */
     allowlist?: readonly string[];
-    /** Reset page to 1 when extra params change. @default true */
     resetPageOnChange?: boolean;
-    /** Optional sanitizer/coercer applied before writing values to URL. */
     clean?: (next: Record<string, unknown>) => Record<string, unknown>;
   };
 };
 
+/**
+ * High-level options for table utility behavior and configuration.
+ *
+ * @template TItem - Row/item type.
+ */
 export type UseTableOptions<TItem> = {
   params?: TableParamsOptions;
   pagination?: { enabled?: boolean };
   search?: { enabled?: boolean; debounceMs?: number };
   tanstack?: TableTanstackOptions<TItem>;
   response?: {
-    normalize?: (
-      response: TableQueryResponse<TItem>,
-    ) => { rows: TItem[]; meta: TablePaginationMeta | null };
+    /**
+     * Normalizes a full API table response (including pagination) into flat rows plus meta.
+     */
+    normalize?: (response: TableQueryResponse<TItem>) => {
+      rows: TItem[];
+      meta: TablePaginationMeta | null;
+    };
   };
 };
 
+/**
+ * Controls state and events for a table's search box, if enabled.
+ */
 export type TableSearchControls = {
-  /** Current input value (updates on every keystroke). */
   value: string;
   onChange: (value: string) => void;
-  /** True while the input has not yet been applied to the list query (debounce window). */
   isDebouncing?: boolean;
 };
 
+/**
+ * Controls and state for table pagination (page/perPage) UI.
+ */
 export type TablePaginationControls = {
   page: number;
   perPage: number;
   onPageChange: (page: number) => void;
   onPerPageChange: (perPage: number) => void;
-  /** Normalized API pagination; null before the first successful load. */
   meta: TablePaginationMeta | null;
 };
 
+/**
+ * Parameter/filter controls for manipulating extra params via the URL or state.
+ */
 export type TableParamsControls = {
-  /** Current extra params (dynamic filters) derived from the URL. */
   values: Record<string, string>;
-  /**
-   * Sets one or more extra params. Pass `null`/`undefined`/'' to delete a key.
-   * Updates the URL; request params follow the URL.
-   */
   set: (patch: Record<string, unknown>) => void;
-  /** Clears one or more keys from the URL. */
   clear: (keys: readonly string[]) => void;
 };
 
+/**
+ * All controls and state exposed by the table utility, including search, pagination, params, and query state.
+ *
+ * @template TItem - Row/item type.
+ */
 export type TableControls<TItem> = {
   search?: TableSearchControls;
   pagination?: TablePaginationControls;
@@ -167,8 +204,58 @@ export type TableControls<TItem> = {
   query: UseQueryResult<TableQueryResponse<TItem>, Error>;
 };
 
+/**
+ * Return value from the useTable hook/utility.
+ * Contains normalized rows and all table UI/query controls.
+ *
+ * @template TItem - Row/item type.
+ */
 export type UseTableReturn<TItem> = {
   rows: TItem[];
   controls: TableControls<TItem>;
 };
 
+/**
+ * Arguments for ensuring default values are applied to table-related URL search parameters.
+ *
+ * @property {URLSearchParams} current - The current set of URL search parameters.
+ * @property {boolean} paginationEnabled - Whether table pagination is enabled.
+ * @property {boolean} searchEnabled - Whether table search is enabled.
+ * @property {Record<string, unknown>=} initial - Optional object containing initial values for other URL parameters.
+ */
+export type EnsureTableUrlDefaultsArgs = {
+  current: URLSearchParams;
+  paginationEnabled: boolean;
+  searchEnabled: boolean;
+  initial?: Record<string, unknown>;
+};
+
+/**
+ * Result of applying default table URL parameters.
+ *
+ * @property {URLSearchParams} next - The resulting URLSearchParams object after applying defaults.
+ * @property {boolean} changed - Indicates if any parameters were changed.
+ */
+export type EnsureTableUrlDefaultsResult = {
+  next: URLSearchParams;
+  changed: boolean;
+};
+
+/**
+ * Arguments for building the API request parameters used by the table utility.
+ *
+ * @property {number | null} page - The current page number, or null if pagination is disabled or not set.
+ * @property {number | null} perPage - The number of items per page, or null if pagination is disabled or not set.
+ * @property {string | null} search - The current search value, or null if search is disabled or not set.
+ * @property {Record<string, string>} extra - Additional custom parameters included in the request.
+ * @property {boolean} paginationEnabled - Whether table pagination is enabled.
+ * @property {boolean} searchEnabled - Whether table search is enabled.
+ */
+export type BuildTableRequestParamsArgs = {
+  page: number | null;
+  perPage: number | null;
+  search: string | null;
+  extra: Record<string, string>;
+  paginationEnabled: boolean;
+  searchEnabled: boolean;
+};

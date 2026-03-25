@@ -1,26 +1,32 @@
+
 /**
- * Builds a compact list of page numbers to show in the pagination control
- * (current window with first/last when needed).
+ * Compares two URL query string representations to determine if they contain the same keys and values.
+ *
+ * This function normalizes query parameters (ignoring order) and performs a strict comparison
+ * of both parameter names and their corresponding values.
+ *
+ * @param {string} a - The first query string to compare (e.g. "foo=1&bar=2").
+ * @param {string} b - The second query string to compare.
+ * @returns {boolean} True if both query strings have exactly the same parameter keys and values, false otherwise.
+ *
+ * @remarks
+ * - Parameter value comparison uses strict equality.
+ * - Parameter keys are sorted before comparison.
+ * - Duplicate parameter keys (with multiple values) are ignored; only the first value per key is compared.
  */
-export function getVisiblePageNumbers(
-  currentPage: number,
-  lastPage: number,
-  maxButtons = 5,
-): number[] {
-  if (lastPage < 1) return [1];
-  const safeLast = Math.max(1, lastPage);
-  const current = Math.min(Math.max(1, currentPage), safeLast);
-
-  if (safeLast <= maxButtons) {
-    return Array.from({ length: safeLast }, (_, i) => i + 1);
+export const tableQueriesEqual = (a: string, b: string): boolean => {
+  const A = new URLSearchParams(a);
+  const B = new URLSearchParams(b);
+  const keysA = [...new Set([...A.keys()])].sort();
+  const keysB = [...new Set([...B.keys()])].sort();
+  if (keysA.length !== keysB.length) return false;
+  for (let i = 0; i < keysA.length; i += 1) {
+    if (keysA[i] !== keysB[i]) return false;
   }
+  for (const key of keysA) {
+    if (A.get(key) !== B.get(key)) return false;
+  }
+  return true;
+};
 
-  const half = Math.floor(maxButtons / 2);
-  let start = Math.max(1, current - half);
-  const end = Math.min(safeLast, start + maxButtons - 1);
-  start = Math.max(1, end - maxButtons + 1);
 
-  const pages: number[] = [];
-  for (let p = start; p <= end; p += 1) pages.push(p);
-  return pages;
-}
