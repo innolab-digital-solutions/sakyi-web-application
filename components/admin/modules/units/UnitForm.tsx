@@ -1,18 +1,18 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { type Resolver, useForm } from 'react-hook-form';
+import { useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 import SelectField, {
   type SelectFieldOption,
 } from '@/components/shared/form/SelectField';
 import TextField from '@/components/shared/form/TextField';
 import { Button } from '@/components/ui/button';
+import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
 import { UNIT_TYPE } from '@/domains/units/constants';
-import { useCreateUnit } from '@/domains/units/hooks/useCreateUnit';
-import { useUpdateUnit } from '@/domains/units/hooks/useUpdateUnit';
 import {
   type UnitCreateInput,
   UnitCreateSchema,
@@ -20,6 +20,7 @@ import {
   UnitUpdateSchema,
 } from '@/domains/units/schemas';
 import type { Unit } from '@/domains/units/types/admin';
+import { useForm } from '@/lib/form';
 
 const UNIT_TYPE_OPTIONS: SelectFieldOption[] = [
   { value: UNIT_TYPE.VOLUME, label: 'Volume' },
@@ -51,61 +52,94 @@ type Props = CreateProps | EditProps;
 
 export default function UnitForm({ mode, unit, onSuccess }: Props) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const isEdit = mode === 'edit';
 
-  const { mutateAsync: createUnit, isPending: isCreating } = useCreateUnit();
-  const { mutateAsync: updateUnit, isPending: isUpdating } = useUpdateUnit();
-
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors, isSubmitting },
-  } = useForm<UnitCreateInput | UnitUpdateInput>({
-    resolver: zodResolver(
-      isEdit ? UnitUpdateSchema : UnitCreateSchema,
-    ) as Resolver<UnitCreateInput | UnitUpdateInput>,
-    defaultValues: {
-      name: unit?.name ?? '',
-      abbreviation: unit?.abbreviation ?? '',
-      type: unit?.type,
-      is_active: unit?.is_active ?? true,
+  const form = useForm(
+    {
+      name: '',
+      abbreviation: '',
+      type: UNIT_TYPE.MASS,
+      is_active: true,
     },
-  });
+    { schema: isEdit ? UnitUpdateSchema : UnitCreateSchema },
+  );
 
-  const onSubmit = async (data: UnitCreateInput | UnitUpdateInput) => {
+  useEffect(() => {
+    if (!isEdit) return;
+    if (!unit) return;
+    form.setDataAndDefaults({
+      name: unit.name ?? '',
+      abbreviation: unit.abbreviation ?? '',
+      type: unit.type,
+      is_active: unit.is_active ?? true,
+    });
+    // Intentionally omit `form` to avoid re-snapshotting defaults.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEdit, unit]);
+
+  const submit = async () => {
     if (isEdit) {
-      await updateUnit({ id: unit.id, data: data as UnitUpdateInput });
-    } else {
-      await createUnit(data as UnitCreateInput);
+      await form.patch(
+        ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.DETAIL(String(unit.id)),
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({
+              queryKey: ['table', ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.LIST],
+            });
+            toast.success('Unit updated successfully.');
+            if (onSuccess) onSuccess();
+            else router.push(ROUTES.ADMIN.MODULES.MEASUREMENT_UNITS.LIST);
+          },
+          onFailure: (error) => {
+            toast.error(error.message ?? 'Failed to update unit.');
+          },
+        },
+      );
+      return;
     }
 
-    if (onSuccess) {
-      onSuccess();
-    } else {
-      router.push(ROUTES.ADMIN.MODULES.MEASUREMENT_UNITS.LIST);
-    }
+    await form.post(ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.CREATE, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.LIST],
+        });
+        toast.success('Unit created successfully.');
+        if (onSuccess) onSuccess();
+        else router.push(ROUTES.ADMIN.MODULES.MEASUREMENT_UNITS.LIST);
+      },
+      onFailure: (error) => {
+        toast.error(error.message ?? 'Failed to create unit.');
+      },
+    });
   };
 
-  const loading = isSubmitting || isCreating || isUpdating;
+  const loading = form.isSubmitting;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        submit();
+      }}
+      noValidate
+    >
       <div className='space-y-6'>
         <TextField
           label='Name'
           required
           placeholder='e.g. Kilogram'
-          error={errors.name?.message}
-          {...register('name')}
+          value={String(form.fields.name ?? '')}
+          onChange={(e) => form.setData('name', e.target.value)}
+          error={form.errors.name}
         />
         <TextField
           label='Abbreviation'
           required
           placeholder='e.g. kg'
-          error={errors.abbreviation?.message}
-          {...register('abbreviation')}
+          value={String(form.fields.abbreviation ?? '')}
+          onChange={(e) => form.setData('abbreviation', e.target.value)}
+          error={form.errors.abbreviation}
         />
         <SelectField
           label='Type'
@@ -113,13 +147,9 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
           required
           placeholder='Select a type…'
           options={UNIT_TYPE_OPTIONS}
-          value={watch('type')}
-          onChange={(val) =>
-            setValue('type', val as UnitCreateInput['type'], {
-              shouldValidate: true,
-            })
-          }
-          error={errors.type?.message}
+          value={String(form.fields.type ?? '')}
+          onChange={(val) => form.setData('type', val as UnitCreateInput['type'])}
+          error={form.errors.type}
         />
         <SelectField
           label='Status'
@@ -127,13 +157,9 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
           required
           placeholder='Select status…'
           options={STATUS_OPTIONS}
-          value={String(watch('is_active'))}
-          onChange={(val) =>
-            setValue('is_active', val === 'true', {
-              shouldValidate: true,
-            })
-          }
-          error={errors.is_active?.message}
+          value={String(form.fields.is_active ?? true)}
+          onChange={(val) => form.setData('is_active', val === 'true')}
+          error={form.errors.is_active}
         />
 
         <div className='flex items-center justify-end gap-3'>

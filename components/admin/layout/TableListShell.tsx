@@ -35,7 +35,7 @@ function rowsPerPageSelectOptions(current: number): number[] {
   return base;
 }
 
-export type TableListWrapperProps<TItem = unknown> = {
+export type TableListShellProps<TItem = unknown> = {
   children: React.ReactNode;
   /**
    * When provided, search, rows-per-page, and pagination are wired to `useTable` controls.
@@ -47,12 +47,12 @@ export type TableListWrapperProps<TItem = unknown> = {
   className?: string;
 };
 
-const TableListWrapper = <TItem,>({
+const TableListShell = <TItem,>({
   children,
   controls,
   searchPlaceholder = 'Search ...',
   className,
-}: TableListWrapperProps<TItem>) => {
+}: TableListShellProps<TItem>) => {
   const [localSearch, setLocalSearch] = useState('');
   const [localPerPage, setLocalPerPage] = useState<number>(
     ROWS_PER_PAGE_OPTIONS[1],
@@ -69,10 +69,11 @@ const TableListWrapper = <TItem,>({
   };
 
   const paginationEnabled = controls ? controls.pagination != null : true;
-  const perPageValue = controls?.pagination ? controls.pagination.perPage : localPerPage;
+  const pagination = controls?.pagination;
+  const perPageValue = pagination ? pagination.perPage : localPerPage;
   const handlePerPageChange = (n: number) => {
-    if (controls?.pagination) {
-      controls.pagination.onPerPageChange(n);
+    if (pagination) {
+      pagination.onPerPageChange(n);
     } else {
       setLocalPerPage(n);
     }
@@ -83,8 +84,8 @@ const TableListWrapper = <TItem,>({
     [perPageValue],
   );
 
-  const meta = controls?.pagination?.meta;
-  const currentPage = controls?.pagination?.page ?? 1;
+  const meta = pagination?.meta;
+  const currentPage = pagination?.page ?? 1;
   const lastPage = Math.max(1, meta?.last_page ?? 1);
   const total = meta?.total ?? 0;
   const from = meta?.from ?? null;
@@ -168,7 +169,7 @@ const TableListWrapper = <TItem,>({
               </span>
             </div>
 
-            {controls?.pagination ? (
+            {pagination ? (
               <Pagination className='mx-0 w-full justify-end sm:w-auto'>
                 <PaginationContent className='flex-wrap'>
                   <PaginationItem>
@@ -180,7 +181,7 @@ const TableListWrapper = <TItem,>({
                       onClick={(e) => {
                         e.preventDefault();
                         if (!canPrev) return;
-                        controls.pagination.onPageChange(currentPage - 1);
+                        pagination.onPageChange(currentPage - 1);
                       }}
                     />
                   </PaginationItem>
@@ -193,7 +194,7 @@ const TableListWrapper = <TItem,>({
                         isActive={n === currentPage}
                         onClick={(e) => {
                           e.preventDefault();
-                          controls.pagination.onPageChange(n);
+                          pagination.onPageChange(n);
                         }}
                       >
                         {n}
@@ -210,7 +211,7 @@ const TableListWrapper = <TItem,>({
                       onClick={(e) => {
                         e.preventDefault();
                         if (!canNext) return;
-                        controls.pagination.onPageChange(currentPage + 1);
+                        pagination.onPageChange(currentPage + 1);
                       }}
                     />
                   </PaginationItem>
@@ -228,4 +229,5 @@ const TableListWrapper = <TItem,>({
   );
 };
 
-export default TableListWrapper;
+export default TableListShell;
+

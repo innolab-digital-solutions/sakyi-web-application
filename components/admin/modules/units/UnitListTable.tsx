@@ -3,7 +3,7 @@
 import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-import TableListWrapper from '@/components/admin/layout/TableListWrapper';
+import TableListShell from '@/components/admin/layout/TableListShell';
 import UnitFilters from '@/components/admin/modules/units/UnitFilters';
 import UnitSheet from '@/components/admin/modules/units/UnitSheet';
 import DeleteAlertDialog from '@/components/shared/dialogs/DeleteAlertDialog';
@@ -96,7 +96,7 @@ export default function UnitListTable() {
         />
       </div>
 
-      <TableListWrapper controls={controls}>
+      <TableListShell controls={controls}>
         <Table className='min-w-120 table-fixed'>
           <TableHeader className='bg-muted/50 [&_tr]:border-border'>
             <TableRow className='border-border hover:bg-transparent'>
@@ -207,7 +207,7 @@ export default function UnitListTable() {
               ))}
           </TableBody>
         </Table>
-      </TableListWrapper>
+      </TableListShell>
 
       {editUnit && (
         <UnitSheet

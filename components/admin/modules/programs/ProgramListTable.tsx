@@ -4,7 +4,7 @@ import { format, parseISO } from 'date-fns';
 import { CalendarIcon, PencilIcon, UsersIcon } from 'lucide-react';
 import Link from 'next/link';
 
-import TableListWrapper from '@/components/admin/layout/TableListWrapper';
+import TableListShell from '@/components/admin/layout/TableListShell';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -97,7 +97,7 @@ export default function ProgramListTable() {
       : 'Could not load programs.';
 
   return (
-    <TableListWrapper controls={controls}>
+    <TableListShell controls={controls}>
       <Table className='min-w-180 table-fixed'>
         <TableHeader className='bg-muted/50 [&_tr]:border-border'>
           <TableRow className='border-border hover:bg-transparent'>
@@ -214,6 +214,6 @@ export default function ProgramListTable() {
             ))}
         </TableBody>
       </Table>
-    </TableListWrapper>
+    </TableListShell>
   );
 }

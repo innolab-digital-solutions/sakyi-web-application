@@ -4,7 +4,7 @@ import { format, parseISO } from 'date-fns';
 import { EyeIcon, PencilIcon, PlusIcon } from 'lucide-react';
 import Link from 'next/link';
 
-import TableListWrapper from '@/components/admin/layout/TableListWrapper';
+import TableListShell from '@/components/admin/layout/TableListShell';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -65,7 +65,7 @@ export default function IntakeListTable() {
       : 'Could not load onboarding intakes.';
 
   return (
-    <TableListWrapper
+    <TableListShell
       controls={controls}
       searchPlaceholder='Search by notes...'
     >
@@ -183,6 +183,6 @@ export default function IntakeListTable() {
             ))}
         </TableBody>
       </Table>
-    </TableListWrapper>
+    </TableListShell>
   );
 }
