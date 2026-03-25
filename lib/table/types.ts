@@ -60,13 +60,13 @@ export type TableListPayload<TItem> = TItem[] | TablePageData<TItem>;
  * Successful list response: either a bare array in `data` with `meta.pagination`,
  * or an embedded paginator object in `data`.
  */
-export type TableQueryResponse<TItem> = ApiSuccess<TableListPayload<TItem>> & {
-  meta?: {
-    version?: string;
+export type TableQueryResponse<TItem> = ApiSuccess<
+  TableListPayload<TItem>,
+  {
     pagination?: TablePaginationMeta;
     [key: string]: unknown;
-  };
-};
+  }
+>;
 
 export type TableQueryOptions<TItem> = Omit<
   UseQueryOptions<

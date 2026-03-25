@@ -8,17 +8,23 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 /**
  * Standard shape for a successful API response.
  *
- * @template T - The data payload type.
+ * @template TData - The data payload type.
+ * @template TMeta - Additional metadata fields merged with the required `version`.
  * @property status - Always 'success' for successful responses.
  * @property message - Human-readable message describing the outcome.
  * @property data - The main response payload.
- * @property meta - Optional metadata (e.g., pagination, extra info).
+ * @property meta - Required metadata that always includes response version.
  */
-export type ApiSuccess<T> = {
+export type ApiSuccess<
+  TData,
+  TMeta extends Record<string, unknown> = Record<string, unknown>,
+> = {
   status: 'success';
   message: string;
-  data: T;
-  meta?: Record<string, unknown>;
+  data: TData;
+  meta: {
+    version: string;
+  } & TMeta;
 };
 
 /**
@@ -28,12 +34,16 @@ export type ApiSuccess<T> = {
  * @property message - Human-readable error message.
  * @property errors - Optional field-level or object-scoped errors.
  * @property data - Optional additional context or details.
+ * @property meta - Required metadata containing response version.
  */
 export type ApiError = {
   status: 'error';
   message: string;
   errors?: Record<string, unknown>;
   data?: unknown;
+  meta: {
+    version: string;
+  };
 };
 
 /**
