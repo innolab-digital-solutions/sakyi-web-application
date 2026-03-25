@@ -23,5 +23,11 @@ export const ADMIN_ROUTES = {
       EDIT: (id: string) => `${BASE}/programs/${id}/edit`,
       DETAIL: (id: string) => `${BASE}/programs/${id}`,
     },
+    MEASUREMENT_UNITS: {
+      LIST: `${BASE}/units`,
+      CREATE: `${BASE}/units/create`,
+      EDIT: (id: string) => `${BASE}/units/${id}/edit`,
+      DETAIL: (id: string) => `${BASE}/units/${id}`,
+    },
   },
 } as const;

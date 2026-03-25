@@ -158,7 +158,7 @@ export default function ProgramListTable() {
                     ) : null}
                   </div>
                 </TableCell>
-                <TableCell className='py-2.5 align-top'>
+                <TableCell className='py-2.5 align-middle'>
                   <Badge
                     variant={programStatusBadgeVariant(program.status)}
                     className='font-normal'
@@ -166,7 +166,7 @@ export default function ProgramListTable() {
                     {PROGRAM_STATUS_LABEL[program.status] ?? program.status}
                   </Badge>
                 </TableCell>
-                <TableCell className='min-w-0 py-2.5 align-top'>
+                <TableCell className='min-w-0 py-2.5 align-middle'>
                   <p
                     className='truncate text-sm'
                     title={getTrackLabel(program)}
@@ -174,7 +174,7 @@ export default function ProgramListTable() {
                     {getTrackLabel(program)}
                   </p>
                 </TableCell>
-                <TableCell className='py-2.5 align-top'>
+                <TableCell className='py-2.5 align-middle'>
                   <span className='text-muted-foreground inline-flex items-center gap-1 text-xs'>
                     <CalendarIcon className='size-3 shrink-0 opacity-70' />
                     <span className='tabular-nums'>
@@ -182,13 +182,13 @@ export default function ProgramListTable() {
                     </span>
                   </span>
                 </TableCell>
-                <TableCell className='py-2.5 text-right align-top tabular-nums'>
+                <TableCell className='py-2.5 text-right align-middle tabular-nums'>
                   <span className='text-muted-foreground inline-flex items-center justify-end gap-1 text-sm'>
                     <UsersIcon className='size-3 shrink-0 opacity-70' />
                     {formatEnrollmentCount(program.enrolled_count)}
                   </span>
                 </TableCell>
-                <TableCell className='py-2.5 pr-2 text-right align-top'>
+                <TableCell className='py-2.5 pr-2 text-right align-middle'>
                   <Button
                     variant='ghost'
                     size='sm'
