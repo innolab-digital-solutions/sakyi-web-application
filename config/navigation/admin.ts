@@ -90,7 +90,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
   {
     name: 'Measurement Units',
     icon: Scale,
-    path: '#',
+    path: ADMIN_ROUTES.MODULES.MEASUREMENT_UNITS.LIST,
     subitems: [],
   },
   {

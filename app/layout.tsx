@@ -26,7 +26,7 @@ export default function RootLayout({ children }: Readonly<PropsWithChildren>) {
             <LanguageProvider>{children}</LanguageProvider>
           </TooltipProvider>
         </TanstackQueryProvider>
-        <Toaster />
+        <Toaster position='top-right' />
       </body>
     </html>
   );

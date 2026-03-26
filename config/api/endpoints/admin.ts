@@ -25,6 +25,13 @@ export const ADMIN_ENDPOINTS = {
       DELETE: (id: string) => `${BASE}/programs/${id}`,
       DETAIL: (id: string) => `${BASE}/programs/${id}`,
     },
+    MEASUREMENT_UNITS: {
+      LIST: `${BASE}/units`,
+      CREATE: `${BASE}/units`,
+      UPDATE: (id: string) => `${BASE}/units/${id}`,
+      DELETE: (id: string) => `${BASE}/units/${id}`,
+      DETAIL: (id: string) => `${BASE}/units/${id}`,
+    },
     ONBOARDING: {
       TEMPLATE: (version: number) => `${BASE}/onboarding/templates/${version}`,
       INTAKES: {

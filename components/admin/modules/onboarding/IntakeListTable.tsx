@@ -4,7 +4,7 @@ import { format, parseISO } from 'date-fns';
 import { EyeIcon, PencilIcon, PlusIcon } from 'lucide-react';
 import Link from 'next/link';
 
-import TableListWrapper from '@/components/admin/layout/TableListWrapper';
+import TableListShell from '@/components/admin/layout/TableListShell';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -49,7 +49,12 @@ function formatDate(iso: string | null): string {
 export default function IntakeListTable() {
   const { rows, controls } = useTable<OnboardingIntakeData>(
     ENDPOINTS.ADMIN.MODULES.ONBOARDING.INTAKES.LIST,
-    { syncWithUrl: true },
+    {
+      params: {
+        sync: true,
+        writeInitialToUrl: true,
+      },
+    },
   );
 
   const { query } = controls;
@@ -60,10 +65,7 @@ export default function IntakeListTable() {
       : 'Could not load onboarding intakes.';
 
   return (
-    <TableListWrapper
-      controls={controls}
-      searchPlaceholder='Search by notes...'
-    >
+    <TableListShell controls={controls} searchPlaceholder='Search by notes...'>
       <div className='mb-4 flex justify-end'>
         <Button asChild>
           <Link href={ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.CREATE}>
@@ -178,6 +180,6 @@ export default function IntakeListTable() {
             ))}
         </TableBody>
       </Table>
-    </TableListWrapper>
+    </TableListShell>
   );
 }

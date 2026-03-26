@@ -2,6 +2,22 @@
 
 How to call the Laravel API through `client` and `http` in `lib/api/client`. Env and layering: [project-architecture.md](./project-architecture.md).
 
+## Purpose
+
+This repository must never call the Laravel API with ad-hoc `fetch` from feature code. `@/lib/api/client` is the single integration layer that standardizes:
+
+- Versioned URL building
+- CSRF priming and XSRF header handling (Sanctum-style)
+- JSON and multipart/form-data request serialization
+- Response normalization into `ApiResponse` (`success` / `error`)
+- Optional thrown errors (`ApiClientError`) when `throwOnError: true`
+
+## When to use what
+
+- Use `http.get` / `http.post` / etc. for most call sites.
+- Use `client` when you need fine control (`parseJson`, `throwOnError`, `signal`, `cache`, `next`, headers).
+- Put HTTP calls in `domains/.../*.service.ts` (or a shared lib) rather than components, except where a dedicated hook owns the call (for example `useForm`).
+
 ## Public surface
 
 Import from `@/lib/api/client` only:
@@ -25,6 +41,14 @@ import type {
 
 `ensureCsrfCookie` and `getCsrfToken` are not re-exported from the barrel; CSRF is applied inside `client`. Do not import `handlers.ts` from feature code.
 
+## Quick rules (Do / Don’t)
+
+- **Do** use endpoint constants from `config/api/endpoints` for request paths.
+- **Do** assume `credentials: 'include'` is required for session cookies.
+- **Do** decide whether you want thrown exceptions (`throwOnError: true`) or a returned error object (`throwOnError: false`).
+- **Don’t** pass absolute URLs into `client`/`http` (they are rejected by design).
+- **Don’t** import `lib/api/client/*` internals from feature code.
+
 ## URLs
 
 `buildVersionedEndpoint` prepends `base.versionEndpoint` from `config/api/base.ts` to a relative path. Absolute URLs (`http://`, `https://`, `//`) throw.
@@ -32,6 +56,97 @@ import type {
 CSRF priming uses a separate request: `GET` `${base.domainEndpoint}/sanctum/csrf-cookie` (see `constants.ts`), not the versioned base.
 
 Resource calls use the strings from `config/api/endpoints` as the path passed into `client` / `http`.
+
+## Cookbook: common request patterns
+
+### GET (simple)
+
+```ts
+import { http } from '@/lib/api/client';
+
+const response = await http.get<User[]>(ENDPOINTS.ADMIN.USERS.LIST);
+if (response.status === 'success') {
+  console.log(response.data);
+}
+```
+
+### GET (with query params)
+
+Prefer building query params close to the call site (services), not in components.
+
+```ts
+import { http } from '@/lib/api/client';
+
+const params = new URLSearchParams({
+  page: '1',
+  per_page: '15',
+  search: 'yoga',
+});
+
+const response = await http.get<User[]>(
+  `${ENDPOINTS.ADMIN.USERS.LIST}?${params.toString()}`,
+);
+```
+
+### POST (JSON body)
+
+```ts
+import { http } from '@/lib/api/client';
+
+const response = await http.post<User>(ENDPOINTS.ADMIN.USERS.CREATE, {
+  name: 'Alice',
+  email: 'alice@example.com',
+});
+```
+
+### PATCH / PUT (JSON body)
+
+```ts
+import { http } from '@/lib/api/client';
+
+await http.patch<User>(ENDPOINTS.ADMIN.USERS.UPDATE('42'), {
+  name: 'Alice Updated',
+});
+```
+
+### DELETE
+
+```ts
+import { http } from '@/lib/api/client';
+
+await http.delete(ENDPOINTS.ADMIN.USERS.DELETE('42'));
+```
+
+### File upload (FormData is automatic)
+
+If the body contains a `File`/`Blob`, the client will serialize as `FormData`.
+
+```ts
+import { http } from '@/lib/api/client';
+
+const avatar = new File(['...'], 'avatar.png', { type: 'image/png' });
+
+const response = await http.post<User>(
+  ENDPOINTS.ADMIN.USERS.UPLOAD_AVATAR('42'),
+  { avatar },
+);
+```
+
+### Abort / cancel an in-flight request (AbortController)
+
+```ts
+import { client } from '@/lib/api/client';
+
+const controller = new AbortController();
+
+const promise = client<User[]>(ENDPOINTS.ADMIN.USERS.LIST, {
+  method: 'GET',
+  signal: controller.signal,
+});
+
+controller.abort();
+await promise; // will resolve/throw based on internal handler behavior
+```
 
 ## Request flow (core.ts)
 
@@ -62,6 +177,49 @@ Default is `true`. When true, failures throw `ApiClientError` (network, invalid 
 
 `useForm` always uses `throwOnError: false` so it can fill `form.errors` and callbacks.
 
+### Error handling patterns
+
+#### Pattern A: prefer thrown exceptions (`throwOnError: true`)
+
+Use this when you want a `try/catch` boundary and treat failures as exceptions.
+
+```ts
+import { client, ApiClientError } from '@/lib/api/client';
+
+try {
+  const response = await client<User[]>(ENDPOINTS.ADMIN.USERS.LIST, {
+    method: 'GET',
+    throwOnError: true,
+  });
+  // response is success-shaped here
+} catch (error) {
+  if (error instanceof ApiClientError) {
+    if (error.isUnauthorized) {
+      // redirect or show login UI
+    }
+  }
+  throw error;
+}
+```
+
+#### Pattern B: prefer result objects (`throwOnError: false`)
+
+Use this when you want `if (status === 'error')` flow without exceptions.
+
+```ts
+import { client } from '@/lib/api/client';
+
+const response = await client<User[]>(ENDPOINTS.ADMIN.USERS.LIST, {
+  method: 'GET',
+  throwOnError: false,
+});
+
+if (response.status === 'error') {
+  // response.message + optional response.errors
+  return;
+}
+```
+
 ## http helpers
 
 `http.get`, `http.post`, `http.put`, `http.patch`, `http.delete` delegate to `client` with the right `method`. POST/PUT/PATCH take an optional body as the second argument.
@@ -88,4 +246,4 @@ Put HTTP calls in `domains/.../*.service.ts` (or shared infrastructure), not sca
 
 ## Checklist
 
-Relative paths only. Endpoints from `config/api/endpoints`. Handle both thrown `ApiClientError` (when `throwOnError` true) and `ApiResponse` with `status === 'error'` (when false). Do not bypass the client for same-origin API traffic from app code.
+- **Paths**: relative paths only; use `config/api/endpoints`.\n+- **Auth**: assume cookies; do not remove `credentials: 'include'` behavior.\n+- **Errors**: choose `throwOnError` strategy and handle accordingly.\n+- **Uploads**: pass plain objects; client will choose JSON vs FormData.\n+- **No bypass**: do not use ad-hoc `fetch` to the API from feature code.

@@ -1,3 +1,5 @@
+import { Meta } from './meta';
+
 /**
  * Supported HTTP methods for API requests.
  *
@@ -22,9 +24,7 @@ export type ApiSuccess<
   status: 'success';
   message: string;
   data: TData;
-  meta: {
-    version: string;
-  } & TMeta;
+  meta: Meta & TMeta;
 };
 
 /**
@@ -41,9 +41,7 @@ export type ApiError = {
   message: string;
   errors?: Record<string, unknown>;
   data?: unknown;
-  meta: {
-    version: string;
-  };
+  meta: Meta;
 };
 
 /**
