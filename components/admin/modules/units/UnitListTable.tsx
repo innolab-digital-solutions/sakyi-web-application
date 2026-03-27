@@ -2,6 +2,8 @@
 
 import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import UnitFilters from '@/components/admin/modules/units/UnitFilters';
@@ -25,10 +27,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ENDPOINTS } from '@/config/api/endpoints';
+import { deleteUnit as deleteUnitService } from '@/domains/units/services';
 import type { Unit } from '@/domains/units/types';
 import { useTable } from '@/lib/table';
-
-import { useDeleteUnit } from './useDeleteUnit';
 
 function unitTypeBadgeVariant(
   type: Unit['type'],
@@ -44,10 +45,27 @@ function unitTypeBadgeVariant(
 }
 
 export default function UnitListTable() {
+  const queryClient = useQueryClient();
   const [editUnit, setEditUnit] = useState<Unit | null>(null);
 
   const [deleteUnit, setDeleteUnit] = useState<Unit | null>(null);
-  const { mutateAsync: confirmDelete, isPending: isDeleting } = useDeleteUnit();
+  const { mutateAsync: confirmDelete, isPending: isDeleting } = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await deleteUnitService(id);
+      if (response.status === 'error') {
+        throw new Error(response.message || 'Failed to delete unit.');
+      }
+    },
+    onSuccess: () => {
+      toast.success('Unit deleted successfully.');
+      queryClient.invalidateQueries({
+        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.UNITS.LIST],
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message ?? 'Failed to delete unit.');
+    },
+  });
 
   const handleDelete = async () => {
     if (!deleteUnit) return;

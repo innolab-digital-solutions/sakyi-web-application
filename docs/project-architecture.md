@@ -58,8 +58,9 @@ Dependencies should point **inward** toward feature modules and shared libraries
 4. **Infrastructure** — `lib/api/client`, `config/api/base`, `config/api/endpoints`: transport, env-aware URLs.
 
 Prefer `domains/.../services/...` over duplicating HTTP logic inside components.
-
-**Exception:** `domains/auth/auth.service.ts` lives at the feature root (no `services/` subfolder). Dual-surface features like programs use `services/marketing.service.ts` and `services/admin.service.ts`.
+Presentation-layer modules (`app/`, `components/`, feature-local UI hooks) should not call
+`http`/`client` directly for business endpoints. Route API calls through domain services and keep
+transport details in `domains/<feature>/services`.
 
 ## Routing and URL constants
 
@@ -68,6 +69,10 @@ Marketing and admin path strings live in `config/routes/`. API path segments liv
 ## Feature modules (`domains/`)
 
 Each folder under `domains/<feature>/` is one product feature: types, API access, validation, and optional mapping from API JSON to UI types. No JSX here.
+
+**Service placement and imports** — Keep feature HTTP calls in `domains/<feature>/services/*.service.ts`
+and export a stable public surface from `domains/<feature>/services/index.ts`. Consumers should import
+from the barrel (for example `@/domains/auth/services`) instead of deep service paths.
 
 **Dual surface (public + admin CRUD)** — For features like programs: `types/marketing.ts`, `types/admin.ts`, `services/marketing.service.ts`, `services/admin.service.ts`, and `schemas/` for admin writes. Export stable names from `types/index.ts` when useful. Marketing routes should import only marketing services and types; admin routes import admin services, admin types, and schemas.
 
