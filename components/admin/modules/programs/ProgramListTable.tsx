@@ -1,7 +1,7 @@
 'use client';
 
 import { format, parseISO } from 'date-fns';
-import { CalendarIcon, PencilIcon, UsersIcon } from 'lucide-react';
+import { CalendarIcon, ClipboardListIcon, PencilIcon, UsersIcon } from 'lucide-react';
 import Link from 'next/link';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
@@ -139,9 +139,20 @@ export default function ProgramListTable() {
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className='text-muted-foreground py-10 text-center text-sm'
+                  className='py-14'
                 >
-                  No programs yet. Create one to get started.
+                  <div className='mx-auto flex max-w-md flex-col items-center justify-center text-center'>
+                    <div className='bg-primary/10 text-primary mb-4 inline-flex size-12 items-center justify-center rounded-full'>
+                      <ClipboardListIcon className='size-6' />
+                    </div>
+                    <p className='text-foreground text-base font-semibold'>
+                      No programs available yet
+                    </p>
+                    <p className='text-muted-foreground mt-1 text-sm leading-relaxed'>
+                      Program entries will appear here once wellness plans are
+                      configured for your organization.
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}

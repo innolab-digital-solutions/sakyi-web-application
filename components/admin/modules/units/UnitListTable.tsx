@@ -1,7 +1,12 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react';
+import {
+  MoreHorizontalIcon,
+  PencilIcon,
+  RulerDimensionLineIcon,
+  Trash2Icon,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -154,9 +159,20 @@ export default function UnitListTable() {
                 <TableRow>
                   <TableCell
                     colSpan={4}
-                    className='text-muted-foreground py-10 text-center text-sm'
+                    className='py-14'
                   >
-                    No units yet. Create one to get started.
+                    <div className='mx-auto flex max-w-md flex-col items-center justify-center text-center'>
+                      <div className='bg-primary/10 text-primary mb-4 inline-flex size-12 items-center justify-center rounded-full'>
+                        <RulerDimensionLineIcon className='size-6' />
+                      </div>
+                      <p className='text-foreground text-base font-semibold'>
+                        No measurement units yet
+                      </p>
+                      <p className='text-muted-foreground mt-1 text-sm leading-relaxed'>
+                        Units will be listed here once your team defines
+                        standards for nutrition and wellness tracking.
+                      </p>
+                    </div>
                   </TableCell>
                 </TableRow>
               )}

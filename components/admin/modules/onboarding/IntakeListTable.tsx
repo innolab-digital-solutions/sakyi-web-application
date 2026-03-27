@@ -1,7 +1,7 @@
 'use client';
 
 import { format, parseISO } from 'date-fns';
-import { EyeIcon, PencilIcon, PlusIcon } from 'lucide-react';
+import { EyeIcon, HeartPulseIcon, PencilIcon } from 'lucide-react';
 import Link from 'next/link';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
@@ -66,14 +66,6 @@ export default function IntakeListTable() {
 
   return (
     <TableListShell controls={controls} searchPlaceholder='Search by notes...'>
-      <div className='mb-4 flex justify-end'>
-        <Button asChild>
-          <Link href={ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.CREATE}>
-            <PlusIcon className='size-4' />
-            Start intake
-          </Link>
-        </Button>
-      </div>
       <Table className='min-w-180 table-fixed'>
         <TableHeader className='bg-muted/50 [&_tr]:border-border'>
           <TableRow className='border-border hover:bg-transparent'>
@@ -115,9 +107,20 @@ export default function IntakeListTable() {
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className='text-muted-foreground py-10 text-center text-sm'
+                  className='py-14'
                 >
-                  No intakes yet.
+                  <div className='mx-auto flex max-w-md flex-col items-center justify-center text-center'>
+                    <div className='bg-primary/10 text-primary mb-4 inline-flex size-12 items-center justify-center rounded-full'>
+                      <HeartPulseIcon className='size-6' />
+                    </div>
+                    <p className='text-foreground text-base font-semibold'>
+                      No onboarding intakes yet
+                    </p>
+                    <p className='text-muted-foreground mt-1 text-sm leading-relaxed'>
+                      New intake sessions will appear here once assessments begin
+                      for clients in your care.
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
