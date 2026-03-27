@@ -20,7 +20,7 @@ export default function OnboardingIntakesPage() {
         title='Onboarding intakes'
         description='Queue for admin-led phone intakes. Start a new session or continue one in progress—progress is saved per section.'
         actions={
-          <Button asChild>
+          <Button asChild size='lg'>
             <Link href={ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.CREATE}>
               <PlusIcon className='size-4' />
               Start intake
