@@ -6,7 +6,7 @@ import TextField from '@/components/shared/form/TextField';
 import type {
   OnboardingIntakeQuestion,
   OnboardingQuestionOption,
-} from '@/domains/onboarding/types/admin';
+} from '@/domains/onboarding/types';
 
 type OnboardingQuestionFieldProps = {
   question: OnboardingIntakeQuestion;

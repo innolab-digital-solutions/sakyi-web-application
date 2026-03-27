@@ -9,7 +9,7 @@ import type { Unit } from '../types/admin';
 
 async function createUnit(data: UnitCreateInput): Promise<Unit> {
   const response = await http.post<Unit>(
-    ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.LIST,
+    ENDPOINTS.ADMIN.MODULES.UNITS.LIST,
     data,
   );
 
@@ -27,7 +27,7 @@ export function useCreateUnit() {
     mutationFn: createUnit,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.LIST],
+        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.UNITS.LIST],
       });
       toast.success('Unit created successfully.');
     },

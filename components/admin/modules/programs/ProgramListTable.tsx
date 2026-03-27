@@ -19,7 +19,7 @@ import {
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
 import { STATUS } from '@/domains/programs/constants';
-import type { Program } from '@/domains/programs/types/admin';
+import type { AdminProgram as Program } from '@/domains/programs/types';
 import { useTable } from '@/lib/table';
 
 const PROGRAM_STATUS_LABEL: Record<Program['status'], string> = {

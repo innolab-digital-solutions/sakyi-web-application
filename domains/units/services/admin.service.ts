@@ -9,10 +9,10 @@ import type { Unit } from '../types/admin';
  */
 export async function getUnitById(id: number): Promise<ApiResponse<Unit>> {
   return http.get<Unit>(
-    ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.DETAIL(String(id)),
+    ENDPOINTS.ADMIN.MODULES.UNITS.DETAIL(String(id)),
   );
 }
 
 export async function getUnits(): Promise<ApiResponse<Unit[]>> {
-  return http.get<Unit[]>(ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.LIST);
+  return http.get<Unit[]>(ENDPOINTS.ADMIN.MODULES.UNITS.LIST);
 }

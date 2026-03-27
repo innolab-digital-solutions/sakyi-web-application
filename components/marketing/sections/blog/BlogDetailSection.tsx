@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/context/LanguageContext';
-import { getBlogPostBySlug } from '@/domains/blogs/services/marketing.service';
+import { getBlogPostBySlug } from '@/domains/blogs/services';
 import type { BlogPost } from '@/domains/blogs/types';
 
 import BlogDetailContentSection from './BlogDetailContentSection';

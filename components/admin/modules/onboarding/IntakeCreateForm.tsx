@@ -17,11 +17,11 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { ROUTES } from '@/config/routes';
-import { getLookupClients } from '@/domains/client/services/lookup.service';
+import { getLookupClients } from '@/domains/client/services';
 import {
   createOnboardingIntake,
   getOnboardingTemplateByVersion,
-} from '@/domains/onboarding/services/admin.service';
+} from '@/domains/onboarding/services';
 import { useForm } from '@/lib/form';
 import type { ApiError } from '@/types/api';
 

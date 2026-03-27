@@ -11,7 +11,7 @@ import Body1 from '@/components/shared/typography/Body1';
 import Heading1 from '@/components/shared/typography/Heading1';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/context/LanguageContext';
-import { getBlogPosts } from '@/domains/blogs/services/marketing.service';
+import { getBlogPosts } from '@/domains/blogs/services';
 import type { BlogPost } from '@/domains/blogs/types';
 
 import SectionBadge from '../../SectionBadge';

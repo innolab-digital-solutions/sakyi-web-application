@@ -41,11 +41,11 @@ import {
   completeOnboardingIntake,
   getOnboardingIntakeById,
   saveOnboardingIntakeSection,
-} from '@/domains/onboarding/services/admin.service';
+} from '@/domains/onboarding/services';
 import type {
   OnboardingIntakeResponse,
   OnboardingIntakeSection,
-} from '@/domains/onboarding/types/admin';
+} from '@/domains/onboarding/types';
 import { useForm } from '@/lib/form';
 import type { ApiError } from '@/types/api';
 

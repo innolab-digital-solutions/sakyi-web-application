@@ -18,7 +18,7 @@ import {
   UnitCreateSchema,
   UnitUpdateSchema,
 } from '@/domains/units/schemas';
-import type { Unit } from '@/domains/units/types/admin';
+import type { Unit } from '@/domains/units/types';
 import { useForm } from '@/lib/form';
 
 const UNIT_TYPE_OPTIONS: SelectFieldOption[] = [
@@ -80,18 +80,18 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
   const submit = async () => {
     if (isEdit) {
       await form.patch(
-        ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.DETAIL(String(unit.id)),
+        ENDPOINTS.ADMIN.MODULES.UNITS.DETAIL(String(unit.id)),
         {
           onSuccess: () => {
             queryClient.invalidateQueries({
               queryKey: [
                 'table',
-                ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.LIST,
+                ENDPOINTS.ADMIN.MODULES.UNITS.LIST,
               ],
             });
             toast.success('Unit updated successfully.');
             if (onSuccess) onSuccess();
-            else router.push(ROUTES.ADMIN.MODULES.MEASUREMENT_UNITS.LIST);
+            else router.push(ROUTES.ADMIN.MODULES.UNITS.LIST);
           },
           onFailure: (error) => {
             toast.error(error.message ?? 'Failed to update unit.');
@@ -101,14 +101,14 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
       return;
     }
 
-    await form.post(ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.CREATE, {
+    await form.post(ENDPOINTS.ADMIN.MODULES.UNITS.CREATE, {
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.LIST],
+          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.UNITS.LIST],
         });
         toast.success('Unit created successfully.');
         if (onSuccess) onSuccess();
-        else router.push(ROUTES.ADMIN.MODULES.MEASUREMENT_UNITS.LIST);
+        else router.push(ROUTES.ADMIN.MODULES.UNITS.LIST);
       },
       onFailure: (error) => {
         toast.error(error.message ?? 'Failed to create unit.');
@@ -174,7 +174,7 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
             onClick={() =>
               onSuccess
                 ? onSuccess()
-                : router.push(ROUTES.ADMIN.MODULES.MEASUREMENT_UNITS.LIST)
+                : router.push(ROUTES.ADMIN.MODULES.UNITS.LIST)
             }
           >
             Cancel

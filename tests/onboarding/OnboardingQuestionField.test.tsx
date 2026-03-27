@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import OnboardingQuestionField from '@/components/admin/modules/onboarding/OnboardingQuestionField';
-import type { OnboardingIntakeQuestion } from '@/domains/onboarding/types/admin';
+import type { OnboardingIntakeQuestion } from '@/domains/onboarding/types';
 
 const onChange = vi.fn();
 

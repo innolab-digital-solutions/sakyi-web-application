@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import * as React from 'react';
 
 import { ROUTES } from '@/config/routes';
-import { authService } from '@/domains/auth/auth.service';
+import { authService } from '@/domains/auth/services';
 import type { User } from '@/domains/user/types';
 import { API_UNAUTHORIZED_EVENT } from '@/lib/api/client';
 

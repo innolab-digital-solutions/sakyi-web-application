@@ -15,7 +15,7 @@ async function updateUnit({
   data: UnitUpdateInput;
 }): Promise<Unit> {
   const response = await http.patch<Unit>(
-    ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.DETAIL(String(id)),
+    ENDPOINTS.ADMIN.MODULES.UNITS.DETAIL(String(id)),
     data,
   );
 
@@ -33,7 +33,7 @@ export function useUpdateUnit() {
     mutationFn: updateUnit,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.LIST],
+        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.UNITS.LIST],
       });
       toast.success('Unit updated successfully.');
     },

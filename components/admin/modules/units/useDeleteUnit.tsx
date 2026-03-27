@@ -6,7 +6,7 @@ import { http } from '@/lib/api/client';
 
 async function deleteUnit(id: number): Promise<void> {
   const response = await http.delete(
-    ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.DETAIL(String(id)),
+    ENDPOINTS.ADMIN.MODULES.UNITS.DETAIL(String(id)),
   );
 
   if (response.status !== 'success') {
@@ -22,7 +22,7 @@ export function useDeleteUnit() {
     onSuccess: () => {
       toast.success('Unit deleted successfully.');
       queryClient.invalidateQueries({
-        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.LIST],
+        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.UNITS.LIST],
       });
     },
     onError: (error) => {

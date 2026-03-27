@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
-import type { OnboardingIntakeData } from '@/domains/onboarding/types/admin';
+import type { OnboardingIntakeData } from '@/domains/onboarding/types';
 import { useTable } from '@/lib/table';
 
 const STATUS_LABEL: Record<OnboardingIntakeData['status'], string> = {

@@ -6,7 +6,7 @@ import {
   findResumeSectionId,
   hydrateDraftAnswersFromSections,
 } from '@/domains/onboarding/mappers/admin';
-import type { OnboardingIntakeSection } from '@/domains/onboarding/types/admin';
+import type { OnboardingIntakeSection } from '@/domains/onboarding/types';
 
 const sectionFixture: OnboardingIntakeSection = {
   id: 10,

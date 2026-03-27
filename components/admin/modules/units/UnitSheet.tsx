@@ -13,7 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import type { Unit } from '@/domains/units/types/admin';
+import type { Unit } from '@/domains/units/types';
 
 type CreateProps = {
   mode: 'create';

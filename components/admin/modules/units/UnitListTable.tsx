@@ -25,7 +25,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ENDPOINTS } from '@/config/api/endpoints';
-import type { Unit } from '@/domains/units/types/admin';
+import type { Unit } from '@/domains/units/types';
 import { useTable } from '@/lib/table';
 
 import { useDeleteUnit } from './useDeleteUnit';
@@ -56,7 +56,7 @@ export default function UnitListTable() {
   };
 
   const { rows, controls } = useTable<Unit>(
-    ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.LIST,
+    ENDPOINTS.ADMIN.MODULES.UNITS.LIST,
     {
       params: {
         sync: true,
