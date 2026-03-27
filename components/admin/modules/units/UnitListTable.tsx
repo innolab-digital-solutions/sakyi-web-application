@@ -1,8 +1,8 @@
 'use client';
 
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';

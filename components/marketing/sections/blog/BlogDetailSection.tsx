@@ -35,7 +35,7 @@ const BlogDetailSection = ({ slug }: BlogDetailSectionProps) => {
         <Skeleton className='mb-4 h-12 w-full' />
         <Skeleton className='mb-4 h-6 w-5/6' />
         <Skeleton className='mb-8 h-6 w-4/6' />
-        <Skeleton className='aspect-[16/9] w-full rounded-2xl' />
+        <Skeleton className='aspect-video w-full rounded-2xl' />
       </div>
     );
   }

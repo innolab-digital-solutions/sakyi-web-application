@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import type { ComboboxOption } from '@/components/shared/form/ComboBoxField';
@@ -16,14 +16,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
 import { getLookupClients } from '@/domains/client/services';
+import { OnboardingIntakeCreateSchema } from '@/domains/onboarding/schemas';
 import {
-  createOnboardingIntake,
   getOnboardingTemplateByVersion,
 } from '@/domains/onboarding/services';
 import { useForm } from '@/lib/form';
-import type { ApiError } from '@/types/api';
 
 export default function IntakeCreateForm() {
   const router = useRouter();
@@ -32,9 +32,12 @@ export default function IntakeCreateForm() {
   const form = useForm(
     {
       user_id: '',
+      onboarding_template_id: '',
       notes: '',
     },
-    {},
+    {
+      schema: OnboardingIntakeCreateSchema,
+    },
   );
 
   const templateQuery = useQuery({
@@ -47,6 +50,15 @@ export default function IntakeCreateForm() {
     queryFn: () => getLookupClients(),
     staleTime: 60_000,
   });
+
+  useEffect(() => {
+    if (templateQuery.data?.status !== 'success') return;
+    const templateId = String(templateQuery.data.data.id);
+    if (form.fields.onboarding_template_id === templateId) return;
+    form.setData('onboarding_template_id', templateId);
+    // Keep template id synced to active template response.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [templateQuery.data]);
 
   const clientOptions = useMemo((): ComboboxOption[] => {
     const list =
@@ -87,78 +99,34 @@ export default function IntakeCreateForm() {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError(null);
-    form.clearErrors();
 
-    const userIdValue =
-      typeof form.fields.user_id === 'string' ? form.fields.user_id.trim() : '';
-    const userId = Number.parseInt(userIdValue, 10);
-    if (!Number.isInteger(userId) || userId <= 0) {
-      form.setError('user_id', 'Select a client.');
-      return;
-    }
-
-    if (templateQuery.data?.status !== 'success') {
+    if (templateQuery.data?.status !== 'success' || templateQuery.isFetching) {
       setFormError('Template could not be loaded. Please try again.');
       return;
     }
 
-    const onboardingTemplateID = templateQuery.data.data.id;
+    void form.post(ENDPOINTS.ADMIN.MODULES.ONBOARDING.INTAKES.CREATE, {
+      onSuccess: (response) => {
+        const intakeId =
+          response &&
+          typeof response === 'object' &&
+          'data' in response &&
+          response.data &&
+          typeof response.data === 'object' &&
+          'id' in response.data
+            ? String(response.data.id)
+            : null;
 
-    const notesValue =
-      typeof form.fields.notes === 'string' ? form.fields.notes : '';
-
-    void createOnboardingIntake({
-      user_id: userId,
-      onboarding_template_id: onboardingTemplateID,
-      notes: notesValue.trim() || undefined,
-    }).then((response) => {
-      if (response.status === 'error') {
-        const fieldErrors = (response as ApiError).errors;
-        if (fieldErrors && typeof fieldErrors === 'object') {
-          const userError = fieldErrors.user_id;
-          if (typeof userError === 'string') {
-            form.setError('user_id', userError);
-          } else if (
-            Array.isArray(userError) &&
-            typeof userError[0] === 'string'
-          ) {
-            form.setError('user_id', userError[0]);
-          }
-
-          const notesError = fieldErrors.notes;
-          if (typeof notesError === 'string') {
-            form.setError('notes', notesError);
-          } else if (
-            Array.isArray(notesError) &&
-            typeof notesError[0] === 'string'
-          ) {
-            form.setError('notes', notesError[0]);
-          }
-
-          const templateError = fieldErrors.onboarding_template_id;
-          if (typeof templateError === 'string') {
-            setFormError(templateError);
-            return;
-          }
-          if (
-            Array.isArray(templateError) &&
-            typeof templateError[0] === 'string'
-          ) {
-            setFormError(templateError[0]);
-            return;
-          }
+        toast.success('Intake created.');
+        if (!intakeId) {
+          router.push(ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.LIST);
+          return;
         }
-
-        setFormError(response.message);
-        return;
-      }
-
-      toast.success('Intake created.');
-      router.push(
-        ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.INTERVIEW(
-          String(response.data.id),
-        ),
-      );
+        router.push(ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.INTERVIEW(intakeId));
+      },
+      onFailure: (error) => {
+        setFormError(error.message || 'Could not create intake.');
+      },
     });
   };
 

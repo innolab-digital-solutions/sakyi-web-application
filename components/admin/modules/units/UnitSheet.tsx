@@ -58,9 +58,9 @@ export default function UnitSheet({ mode, unit, open, onOpenChange }: Props) {
           </SheetDescription>
         </SheetHeader>
         <UnitForm
-          {...(isEdit
-            ? { mode: 'edit' as const, unit, onSuccess: () => setOpen(false) }
-            : { mode: 'create' as const, onSuccess: () => setOpen(false) })}
+          mode={isEdit ? 'edit' : 'create'}
+          {...(isEdit ? { unit } : {})}
+          onSuccess={() => setOpen(false)}
         />
       </SheetContent>
     </Sheet>
