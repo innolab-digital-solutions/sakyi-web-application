@@ -12,7 +12,13 @@
 const BASE = '/web/marketing';
 
 export const MARKETING_ENDPOINTS = {
-  PROGRAMS: `${BASE}/programs`,
-  BLOGS: `${BASE}/blog-posts`,
+  PROGRAMS: {
+    LIST: `${BASE}/programs`,
+    DETAIL: (id: string) => `${BASE}/programs/${id}`,
+  },
+  BLOGS: {
+    LIST: `${BASE}/blog-posts`,
+    DETAIL: (id: string) => `${BASE}/blog-posts/${id}`,
+  },
   CONTACT: `${BASE}/contact`,
 } as const;
