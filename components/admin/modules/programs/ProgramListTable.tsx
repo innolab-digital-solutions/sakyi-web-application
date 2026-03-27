@@ -1,7 +1,12 @@
 'use client';
 
 import { format, parseISO } from 'date-fns';
-import { CalendarIcon, ClipboardListIcon, PencilIcon, UsersIcon } from 'lucide-react';
+import {
+  CalendarIcon,
+  ClipboardListIcon,
+  PencilIcon,
+  UsersIcon,
+} from 'lucide-react';
 import Link from 'next/link';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
@@ -137,10 +142,7 @@ export default function ProgramListTable() {
             query.data?.status === 'success' &&
             rows.length === 0 && (
               <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className='py-14'
-                >
+                <TableCell colSpan={6} className='py-14'>
                   <div className='mx-auto flex max-w-md flex-col items-center justify-center text-center'>
                     <div className='bg-primary/10 text-primary mb-4 inline-flex size-12 items-center justify-center rounded-full'>
                       <ClipboardListIcon className='size-6' />
@@ -162,9 +164,9 @@ export default function ProgramListTable() {
             query.data?.status === 'success' &&
             rows.map((program) => (
               <TableRow key={program.id} className='border-border/80'>
-                <TableCell className='min-w-0 py-2.5 align-top'>
+                <TableCell className='min-w-0 align-top'>
                   <div className='min-w-0 pr-2'>
-                    <p className='text-foreground truncate text-sm font-medium'>
+                    <p className='text-foreground/90 truncate text-sm font-semibold'>
                       {program.title}
                     </p>
                     {program.tagline?.trim() ? (
@@ -174,7 +176,7 @@ export default function ProgramListTable() {
                     ) : null}
                   </div>
                 </TableCell>
-                <TableCell className='py-2.5 align-middle'>
+                <TableCell>
                   <Badge
                     variant={programStatusBadgeVariant(program.status)}
                     className='font-normal'
@@ -182,7 +184,7 @@ export default function ProgramListTable() {
                     {PROGRAM_STATUS_LABEL[program.status] ?? program.status}
                   </Badge>
                 </TableCell>
-                <TableCell className='min-w-0 py-2.5 align-middle'>
+                <TableCell className='min-w-0'>
                   <p
                     className='truncate text-sm'
                     title={getTrackLabel(program)}
@@ -190,7 +192,7 @@ export default function ProgramListTable() {
                     {getTrackLabel(program)}
                   </p>
                 </TableCell>
-                <TableCell className='py-2.5 align-middle'>
+                <TableCell>
                   <span className='text-muted-foreground inline-flex items-center gap-1 text-xs'>
                     <CalendarIcon className='size-3 shrink-0 opacity-70' />
                     <span className='tabular-nums'>
@@ -198,13 +200,13 @@ export default function ProgramListTable() {
                     </span>
                   </span>
                 </TableCell>
-                <TableCell className='py-2.5 text-right align-middle tabular-nums'>
+                <TableCell className='text-right tabular-nums'>
                   <span className='text-muted-foreground inline-flex items-center justify-end gap-1 text-sm'>
                     <UsersIcon className='size-3 shrink-0 opacity-70' />
                     {formatEnrollmentCount(program.enrolled_count)}
                   </span>
                 </TableCell>
-                <TableCell className='py-2.5 pr-2 text-right align-middle'>
+                <TableCell className='pr-2 text-right'>
                   <Button
                     variant='ghost'
                     size='sm'
