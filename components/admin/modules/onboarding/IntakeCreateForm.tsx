@@ -20,9 +20,7 @@ import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
 import { getLookupClients } from '@/domains/client/services';
 import { OnboardingIntakeCreateSchema } from '@/domains/onboarding/schemas';
-import {
-  getOnboardingTemplateByVersion,
-} from '@/domains/onboarding/services';
+import { getOnboardingTemplateByVersion } from '@/domains/onboarding/services';
 import { useForm } from '@/lib/form';
 
 export default function IntakeCreateForm() {
@@ -122,7 +120,9 @@ export default function IntakeCreateForm() {
           router.push(ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.LIST);
           return;
         }
-        router.push(ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.INTERVIEW(intakeId));
+        router.push(
+          ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.INTERVIEW(intakeId),
+        );
       },
       onFailure: (error) => {
         setFormError(error.message || 'Could not create intake.');

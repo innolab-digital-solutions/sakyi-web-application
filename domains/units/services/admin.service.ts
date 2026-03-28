@@ -9,9 +9,7 @@ import type { Unit } from '../types/admin';
  * Fetches a single unit for admin edit/detail views.
  */
 export async function getUnitById(id: number): Promise<ApiResponse<Unit>> {
-  return http.get<Unit>(
-    ENDPOINTS.ADMIN.MODULES.UNITS.DETAIL(String(id)),
-  );
+  return http.get<Unit>(ENDPOINTS.ADMIN.MODULES.UNITS.DETAIL(String(id)));
 }
 
 export async function getUnits(): Promise<ApiResponse<Unit[]>> {
@@ -30,9 +28,13 @@ export async function updateUnit(
   id: number,
   payload: UnitUpdateInput,
 ): Promise<ApiResponse<Unit>> {
-  return http.patch<Unit>(ENDPOINTS.ADMIN.MODULES.UNITS.DETAIL(String(id)), payload, {
-    throwOnError: false,
-  });
+  return http.patch<Unit>(
+    ENDPOINTS.ADMIN.MODULES.UNITS.DETAIL(String(id)),
+    payload,
+    {
+      throwOnError: false,
+    },
+  );
 }
 
 export async function deleteUnit(id: number): Promise<ApiResponse<void>> {

@@ -105,10 +105,7 @@ export default function IntakeListTable() {
             query.data?.status === 'success' &&
             rows.length === 0 && (
               <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className='py-14'
-                >
+                <TableCell colSpan={6} className='py-14'>
                   <div className='mx-auto flex max-w-md flex-col items-center justify-center text-center'>
                     <div className='bg-primary/10 text-primary mb-4 inline-flex size-12 items-center justify-center rounded-full'>
                       <HeartPulseIcon className='size-6' />
@@ -117,8 +114,8 @@ export default function IntakeListTable() {
                       No onboarding intakes yet
                     </p>
                     <p className='text-muted-foreground mt-1 text-sm leading-relaxed'>
-                      New intake sessions will appear here once assessments begin
-                      for clients in your care.
+                      New intake sessions will appear here once assessments
+                      begin for clients in your care.
                     </p>
                   </div>
                 </TableCell>

@@ -58,7 +58,12 @@ export default function UnitSheet({ mode, unit, open, onOpenChange }: Props) {
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (
-          <UnitForm mode='edit' unit={unit} onSuccess={() => setOpen(false)} />
+          <UnitForm
+            key={unit.id}
+            mode='edit'
+            unit={unit}
+            onSuccess={() => setOpen(false)}
+          />
         ) : (
           <UnitForm mode='create' onSuccess={() => setOpen(false)} />
         )}

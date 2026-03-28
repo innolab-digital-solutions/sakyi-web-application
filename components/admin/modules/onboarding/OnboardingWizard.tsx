@@ -36,9 +36,7 @@ import {
   hydrateDraftAnswersFromSections,
   mapSectionFieldErrorsFromApi,
 } from '@/domains/onboarding/mappers/admin';
-import {
-  OnboardingCancelIntakeSchema,
-} from '@/domains/onboarding/schemas';
+import { OnboardingCancelIntakeSchema } from '@/domains/onboarding/schemas';
 import {
   cancelOnboardingIntake,
   completeOnboardingIntake,
