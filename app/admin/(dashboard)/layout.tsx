@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { PropsWithChildren } from 'react';
 
+import PageTransition from '@/components/shared/navigation/PageTransition';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { AuthProvider } from '@/context/AuthContext';
 
@@ -24,7 +25,9 @@ export default async function AdminProtectedLayout({
             <SidebarInset className='min-w-0'>
               <DashboardHeader />
               <div className='bg-background flex flex-1 flex-col p-4 md:p-6'>
-                {children}
+                <PageTransition effect='scale' durationMs={440}>
+                  {children}
+                </PageTransition>
               </div>
             </SidebarInset>
           </SidebarProvider>
