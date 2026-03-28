@@ -1,7 +1,14 @@
 'use client';
 
-import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  MoreHorizontalIcon,
+  PencilIcon,
+  RulerDimensionLineIcon,
+  Trash2Icon,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import UnitFilters from '@/components/admin/modules/units/UnitFilters';
@@ -25,13 +32,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ENDPOINTS } from '@/config/api/endpoints';
-import type { Unit } from '@/domains/units/types/admin';
+import { getUnitTypeFromRecord } from '@/domains/units/coerce-unit-type';
+import { deleteUnit as deleteUnitService } from '@/domains/units/services';
+import type { Unit } from '@/domains/units/types';
 import { useTable } from '@/lib/table';
 
-import { useDeleteUnit } from './useDeleteUnit';
-
 function unitTypeBadgeVariant(
-  type: Unit['type'],
+  type: string | undefined,
 ): 'default' | 'secondary' | 'outline' {
   switch (type) {
     case 'mass':
@@ -44,10 +51,27 @@ function unitTypeBadgeVariant(
 }
 
 export default function UnitListTable() {
+  const queryClient = useQueryClient();
   const [editUnit, setEditUnit] = useState<Unit | null>(null);
 
   const [deleteUnit, setDeleteUnit] = useState<Unit | null>(null);
-  const { mutateAsync: confirmDelete, isPending: isDeleting } = useDeleteUnit();
+  const { mutateAsync: confirmDelete, isPending: isDeleting } = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await deleteUnitService(id);
+      if (response.status === 'error') {
+        throw new Error(response.message || 'Failed to delete unit.');
+      }
+    },
+    onSuccess: () => {
+      toast.success('Unit deleted successfully.');
+      queryClient.invalidateQueries({
+        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.UNITS.LIST],
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message ?? 'Failed to delete unit.');
+    },
+  });
 
   const handleDelete = async () => {
     if (!deleteUnit) return;
@@ -56,7 +80,7 @@ export default function UnitListTable() {
   };
 
   const { rows, controls } = useTable<Unit>(
-    ENDPOINTS.ADMIN.MODULES.MEASUREMENT_UNITS.LIST,
+    ENDPOINTS.ADMIN.MODULES.UNITS.LIST,
     {
       params: {
         sync: true,
@@ -134,11 +158,19 @@ export default function UnitListTable() {
               query.data?.status === 'success' &&
               rows.length === 0 && (
                 <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className='text-muted-foreground py-10 text-center text-sm'
-                  >
-                    No units yet. Create one to get started.
+                  <TableCell colSpan={4} className='py-14'>
+                    <div className='mx-auto flex max-w-md flex-col items-center justify-center text-center'>
+                      <div className='bg-primary/10 text-primary mb-4 inline-flex size-12 items-center justify-center rounded-full'>
+                        <RulerDimensionLineIcon className='size-6' />
+                      </div>
+                      <p className='text-foreground text-base font-semibold'>
+                        No measurement units yet
+                      </p>
+                      <p className='text-muted-foreground mt-1 text-sm leading-relaxed'>
+                        Units will be listed here once your team defines
+                        standards for nutrition and wellness tracking.
+                      </p>
+                    </div>
                   </TableCell>
                 </TableRow>
               )}
@@ -146,65 +178,68 @@ export default function UnitListTable() {
             {!showSkeleton &&
               !query.isError &&
               query.data?.status === 'success' &&
-              rows.map((unit) => (
-                <TableRow key={unit.id} className='border-border/80'>
-                  <TableCell className='min-w-0 py-2.5 align-top'>
-                    <div className='min-w-0 pr-2'>
-                      <p className='text-foreground truncate text-sm font-medium'>
-                        {unit.name}
-                      </p>
-                      <p className='text-muted-foreground mt-0.5 text-xs'>
-                        {unit.abbreviation}
-                      </p>
-                    </div>
-                  </TableCell>
-                  <TableCell className='py-2.5 align-middle'>
-                    <Badge
-                      variant={unitTypeBadgeVariant(unit.type)}
-                      className='font-normal capitalize'
-                    >
-                      {unit.type}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className='py-2.5 align-middle'>
-                    <Badge
-                      variant={unit.is_active ? 'default' : 'secondary'}
-                      className='font-normal'
-                    >
-                      {unit.is_active ? 'Active' : 'Inactive'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className='py-2.5 pr-2 text-right align-middle'>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant='ghost'
-                          size='icon'
-                          className='size-8 cursor-pointer'
-                        >
-                          <MoreHorizontalIcon className='size-4' />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align='end'>
-                        <DropdownMenuItem
-                          className='flex cursor-pointer items-center gap-2'
-                          onClick={() => setEditUnit(unit)}
-                        >
-                          <PencilIcon className='size-3.5' />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className='text-destructive focus:text-destructive flex cursor-pointer items-center gap-2'
-                          onClick={() => setDeleteUnit(unit)}
-                        >
-                          <Trash2Icon className='size-3.5' />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              rows.map((unit) => {
+                const resolvedType = getUnitTypeFromRecord(unit);
+                return (
+                  <TableRow key={unit.id} className='border-border/80'>
+                    <TableCell className='min-w-0 py-2.5 align-top'>
+                      <div className='min-w-0 pr-2'>
+                        <p className='text-foreground truncate text-sm font-medium'>
+                          {unit.name}
+                        </p>
+                        <p className='text-muted-foreground mt-0.5 text-xs'>
+                          {unit.abbreviation}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell className='py-2.5 align-middle'>
+                      <Badge
+                        variant={unitTypeBadgeVariant(resolvedType)}
+                        className='font-normal capitalize'
+                      >
+                        {resolvedType ?? '—'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className='py-2.5 align-middle'>
+                      <Badge
+                        variant={unit.is_active ? 'default' : 'secondary'}
+                        className='font-normal'
+                      >
+                        {unit.is_active ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className='py-2.5 pr-2 text-right align-middle'>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant='ghost'
+                            size='icon'
+                            className='size-8 cursor-pointer'
+                          >
+                            <MoreHorizontalIcon className='size-4' />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align='end'>
+                          <DropdownMenuItem
+                            className='flex cursor-pointer items-center gap-2'
+                            onClick={() => setEditUnit(unit)}
+                          >
+                            <PencilIcon className='size-3.5' />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className='text-destructive focus:text-destructive flex cursor-pointer items-center gap-2'
+                            onClick={() => setDeleteUnit(unit)}
+                          >
+                            <Trash2Icon className='size-3.5' />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
           </TableBody>
         </Table>
       </TableListShell>

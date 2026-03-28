@@ -21,7 +21,7 @@ export default function ProgramListsPage() {
         title='Programs'
         description='People-centered health and wellness tracks. Review bilingual names, status, and enrollment at a glance—then open a program to edit details or translations.'
         actions={
-          <Button asChild>
+          <Button asChild size='lg'>
             <Link href={ROUTES.ADMIN.MODULES.PROGRAMS.CREATE}>
               <PlusIcon className='size-4' />
               Create program

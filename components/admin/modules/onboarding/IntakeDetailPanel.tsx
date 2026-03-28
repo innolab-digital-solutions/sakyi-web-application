@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ROUTES } from '@/config/routes';
-import { getOnboardingIntakeById } from '@/domains/onboarding/services/admin.service';
+import { getOnboardingIntakeById } from '@/domains/onboarding/services';
 
 type IntakeDetailPanelProps = {
   intakeId: number;

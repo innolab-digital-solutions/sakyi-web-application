@@ -1,6 +1,6 @@
 import AdminPageHeader from '@/components/admin/layout/PageHeader';
 import ProgramForm from '@/components/admin/modules/programs/ProgramForm';
-import { getProgramById } from '@/domains/programs/services/admin.service';
+import { getProgramById } from '@/domains/programs/services';
 
 type ProgramEditPageProps = {
   params: Promise<{

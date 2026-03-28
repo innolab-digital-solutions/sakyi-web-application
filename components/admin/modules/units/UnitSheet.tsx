@@ -13,7 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import type { Unit } from '@/domains/units/types/admin';
+import type { Unit } from '@/domains/units/types';
 
 type CreateProps = {
   mode: 'create';
@@ -42,7 +42,7 @@ export default function UnitSheet({ mode, unit, open, onOpenChange }: Props) {
     <Sheet open={isOpen} onOpenChange={setOpen}>
       {!isEdit && (
         <SheetTrigger asChild>
-          <Button className='cursor-pointer'>
+          <Button className='cursor-pointer' size='lg'>
             <PlusIcon className='size-4' />
             Create Unit
           </Button>
@@ -57,11 +57,16 @@ export default function UnitSheet({ mode, unit, open, onOpenChange }: Props) {
               : 'Add a new measurement unit for use in nutrition profiles and items.'}
           </SheetDescription>
         </SheetHeader>
-        <UnitForm
-          {...(isEdit
-            ? { mode: 'edit' as const, unit, onSuccess: () => setOpen(false) }
-            : { mode: 'create' as const, onSuccess: () => setOpen(false) })}
-        />
+        {isEdit ? (
+          <UnitForm
+            key={unit.id}
+            mode='edit'
+            unit={unit}
+            onSuccess={() => setOpen(false)}
+          />
+        ) : (
+          <UnitForm mode='create' onSuccess={() => setOpen(false)} />
+        )}
       </SheetContent>
     </Sheet>
   );

@@ -11,7 +11,7 @@ import Body1 from '@/components/shared/typography/Body1';
 import Heading1 from '@/components/shared/typography/Heading1';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/context/LanguageContext';
-import { getPrograms } from '@/domains/programs/services/marketing.service';
+import { getMarketingPrograms } from '@/domains/programs/services';
 import type { Program } from '@/domains/programs/types';
 
 const INITIAL_LIMIT = 4;
@@ -22,7 +22,7 @@ const ExploreProgramsSection = () => {
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['programs', language],
-    queryFn: () => getPrograms(language, 100),
+    queryFn: () => getMarketingPrograms(language, 100),
     staleTime: 1000 * 60 * 5,
   });
 

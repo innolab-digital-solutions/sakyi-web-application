@@ -90,6 +90,7 @@ const TableListShell = <TItem,>({
   const total = meta?.total ?? 0;
   const from = meta?.from ?? null;
   const to = meta?.to ?? null;
+  const hasResults = total > 0;
 
   const canPrev = currentPage > 1;
   const canNext =
@@ -98,13 +99,6 @@ const TableListShell = <TItem,>({
       : false;
 
   const pageNumbers = getVisiblePageNumbers(currentPage, lastPage, 5);
-
-  const rangeLabel =
-    total === 0
-      ? '0 of 0'
-      : from != null && to != null
-        ? `${from}–${to} of ${total}`
-        : `${total} ${total === 1 ? 'row' : 'rows'}`;
 
   const searchBusy =
     controls?.query.isFetching === true ||
@@ -135,14 +129,14 @@ const TableListShell = <TItem,>({
 
       <div
         className={cn(
-          'border-border flex flex-col gap-4 border-t pt-4 sm:flex-row sm:items-center sm:justify-between',
+          'border-border flex flex-col gap-4 border-t pt-5 sm:flex-row sm:items-center sm:justify-between',
         )}
       >
         {paginationEnabled ? (
           <>
             <div className='flex flex-wrap items-center gap-x-5 gap-y-2'>
               <div className='flex items-center gap-2.5'>
-                <span className='text-foreground text-xs font-medium whitespace-nowrap'>
+                <span className='text-foreground/80 text-[13px] font-medium whitespace-nowrap'>
                   Rows per page
                 </span>
                 <Select
@@ -151,7 +145,7 @@ const TableListShell = <TItem,>({
                 >
                   <SelectTrigger
                     size='sm'
-                    className='border-border bg-background h-9 w-17 shadow-none'
+                    className='border-border bg-background h-9! w-17 shadow-none'
                     aria-label='Rows per page'
                   >
                     <SelectValue placeholder='Per page' />
@@ -165,64 +159,69 @@ const TableListShell = <TItem,>({
                   </SelectContent>
                 </Select>
               </div>
-              <span className='text-muted-foreground text-xs tabular-nums'>
-                {rangeLabel}
-              </span>
             </div>
 
-            {pagination ? (
-              <Pagination className='mx-0 w-full justify-end sm:w-auto'>
-                <PaginationContent className='flex-wrap'>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      href='#'
-                      className={cn(
-                        !canPrev && 'pointer-events-none opacity-40',
-                      )}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (!canPrev) return;
-                        pagination.onPageChange(currentPage - 1);
-                      }}
-                    />
-                  </PaginationItem>
+            {hasResults ? (
+              <>
+                <div className='text-foreground/80 text-[13px] font-medium whitespace-nowrap'>
+                  Showing {from} to {to} of {total} results
+                </div>
 
-                  {pageNumbers.map((n) => (
-                    <PaginationItem key={n}>
-                      <PaginationLink
-                        href='#'
-                        size='default'
-                        isActive={n === currentPage}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          pagination.onPageChange(n);
-                        }}
-                      >
-                        {n}
-                      </PaginationLink>
-                    </PaginationItem>
-                  ))}
+                {pagination ? (
+                  <Pagination className='mx-0 w-full justify-end sm:w-auto'>
+                    <PaginationContent className='flex-wrap'>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          href='#'
+                          className={cn(
+                            !canPrev && 'pointer-events-none opacity-40',
+                          )}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (!canPrev) return;
+                            pagination.onPageChange(currentPage - 1);
+                          }}
+                        />
+                      </PaginationItem>
 
-                  <PaginationItem>
-                    <PaginationNext
-                      href='#'
-                      className={cn(
-                        !canNext && 'pointer-events-none opacity-40',
-                      )}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (!canNext) return;
-                        pagination.onPageChange(currentPage + 1);
-                      }}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            ) : (
-              <div className='text-muted-foreground text-xs'>
-                Pagination (connect useTable)
-              </div>
-            )}
+                      {pageNumbers.map((n) => (
+                        <PaginationItem key={n}>
+                          <PaginationLink
+                            href='#'
+                            size='default'
+                            isActive={n === currentPage}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              pagination.onPageChange(n);
+                            }}
+                          >
+                            {n}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+
+                      <PaginationItem>
+                        <PaginationNext
+                          href='#'
+                          className={cn(
+                            !canNext && 'pointer-events-none opacity-40',
+                          )}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (!canNext) return;
+                            pagination.onPageChange(currentPage + 1);
+                          }}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                ) : (
+                  <div className='text-muted-foreground text-xs'>
+                    Pagination (connect useTable)
+                  </div>
+                )}
+              </>
+            ) : null}
           </>
         ) : null}
       </div>

@@ -36,16 +36,17 @@ import {
   hydrateDraftAnswersFromSections,
   mapSectionFieldErrorsFromApi,
 } from '@/domains/onboarding/mappers/admin';
+import { OnboardingCancelIntakeSchema } from '@/domains/onboarding/schemas';
 import {
   cancelOnboardingIntake,
   completeOnboardingIntake,
   getOnboardingIntakeById,
   saveOnboardingIntakeSection,
-} from '@/domains/onboarding/services/admin.service';
+} from '@/domains/onboarding/services';
 import type {
   OnboardingIntakeResponse,
   OnboardingIntakeSection,
-} from '@/domains/onboarding/types/admin';
+} from '@/domains/onboarding/types';
 import { useForm } from '@/lib/form';
 import type { ApiError } from '@/types/api';
 
@@ -72,7 +73,10 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const hasRedirectedOnReadonly = useRef(false);
 
-  const cancelForm = useForm({ cancellation_note: '' });
+  const cancelForm = useForm(
+    { cancellation_note: '' },
+    { schema: OnboardingCancelIntakeSchema },
+  );
   const saveForm = useForm({ answers: [] as unknown[] });
 
   const intakeQuery = useQuery({
@@ -596,6 +600,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
                           event.target.value,
                         )
                       }
+                      error={cancelForm.errors.cancellation_note}
                     />
                   </div>
 
@@ -607,7 +612,23 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
                       type='button'
                       variant='destructive'
                       disabled={cancelMutation.isPending}
-                      onClick={() => cancelMutation.mutate()}
+                      onClick={() => {
+                        const validation =
+                          OnboardingCancelIntakeSchema.safeParse(
+                            cancelForm.fields,
+                          );
+                        if (!validation.success) {
+                          const noteError =
+                            validation.error.flatten().fieldErrors
+                              .cancellation_note?.[0];
+                          if (noteError) {
+                            cancelForm.setError('cancellation_note', noteError);
+                          }
+                          return;
+                        }
+                        cancelForm.clearErrors('cancellation_note');
+                        cancelMutation.mutate();
+                      }}
                     >
                       Confirm cancel
                     </Button>

@@ -23,7 +23,7 @@ export const ADMIN_ROUTES = {
       EDIT: (id: string) => `${BASE}/programs/${id}/edit`,
       DETAIL: (id: string) => `${BASE}/programs/${id}`,
     },
-    MEASUREMENT_UNITS: {
+    UNITS: {
       LIST: `${BASE}/units`,
       CREATE: `${BASE}/units/create`,
       EDIT: (id: string) => `${BASE}/units/${id}/edit`,
@@ -33,7 +33,6 @@ export const ADMIN_ROUTES = {
       INTAKES: {
         LIST: `${BASE}/onboarding/intakes`,
         CREATE: `${BASE}/onboarding/intakes/create`,
-        /** In-person / phone questionnaire for an existing intake record. */
         INTERVIEW: (id: string) => `${BASE}/onboarding/intakes/${id}/interview`,
         DETAIL: (id: string) => `${BASE}/onboarding/intakes/${id}`,
       },

@@ -13,7 +13,7 @@ import Heading2 from '@/components/shared/typography/Heading2';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ROUTES } from '@/config/routes';
 import { useLanguage } from '@/context/LanguageContext';
-import { getPrograms } from '@/domains/programs/services/marketing.service';
+import { getMarketingPrograms } from '@/domains/programs/services';
 import type { Program } from '@/domains/programs/types';
 
 const OurProgramsSection = () => {
@@ -21,7 +21,7 @@ const OurProgramsSection = () => {
 
   const { data, isLoading } = useQuery({
     queryKey: ['programs-home', language],
-    queryFn: () => getPrograms(language, 3),
+    queryFn: () => getMarketingPrograms(language, 3),
     staleTime: 1000 * 60 * 5,
   });
 

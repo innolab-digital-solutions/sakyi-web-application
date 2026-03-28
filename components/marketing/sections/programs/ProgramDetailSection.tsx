@@ -17,7 +17,7 @@ import { useState } from 'react';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/context/LanguageContext';
-import { getProgramBySlug } from '@/domains/programs/services/marketing.service';
+import { getProgramBySlug } from '@/domains/programs/services';
 import type { Program } from '@/domains/programs/types';
 
 type ProgramDetailSectionProps = {

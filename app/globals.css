@@ -202,6 +202,84 @@
 }
 
 @layer utilities {
+  /* Route enter animations: long enough to read as “new page” without feeling sluggish */
+  .route-transition {
+    animation-duration: var(--route-transition-duration, 420ms);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    animation-fill-mode: both;
+    will-change: opacity, transform;
+  }
+
+  .route-transition--fade {
+    animation-name: route-fade-in;
+  }
+
+  .route-transition--scale {
+    animation-name: route-scale-in;
+    transform-origin: center top;
+  }
+
+  .route-transition--slide {
+    animation-name: route-slide-up-in;
+  }
+
+  .route-transition--zoom {
+    animation-name: route-zoom-in-soft;
+    transform-origin: center center;
+  }
+}
+
+@keyframes route-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes route-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.975);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes route-slide-up-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes route-zoom-in-soft {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-transition,
+  .route-transition--fade,
+  .route-transition--scale,
+  .route-transition--slide,
+  .route-transition--zoom {
+    animation: none !important;
+    transform: none !important;
+  }
 }
 
 /* Prevent horizontal overflow on mobile; site sections rely on this */

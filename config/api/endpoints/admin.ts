@@ -25,7 +25,7 @@ export const ADMIN_ENDPOINTS = {
       DELETE: (id: string) => `${BASE}/programs/${id}`,
       DETAIL: (id: string) => `${BASE}/programs/${id}`,
     },
-    MEASUREMENT_UNITS: {
+    UNITS: {
       LIST: `${BASE}/units`,
       CREATE: `${BASE}/units`,
       UPDATE: (id: string) => `${BASE}/units/${id}`,
