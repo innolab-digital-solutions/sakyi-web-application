@@ -387,6 +387,8 @@ function ComboboxField(props: ComboboxFieldProps) {
               role='listbox'
               aria-multiselectable={isMulti ? true : undefined}
               className='max-h-60 min-h-0 flex-1 scroll-py-1 overflow-y-auto overscroll-contain'
+              onWheel={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
             >
               <CommandEmpty>{emptyMessage}</CommandEmpty>
               <CommandGroup>

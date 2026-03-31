@@ -14,4 +14,5 @@ const BASE = '/lookup';
 export const LOOKUP_ENDPOINTS = {
   GOALS: `${BASE}/goals`,
   CLIENTS: `${BASE}/clients`,
+  NUTRITION_CATEGORIES: `${BASE}/nutrition-categories`,
 } as const;
