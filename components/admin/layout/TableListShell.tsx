@@ -115,16 +115,18 @@ const TableListShell = <TItem,>({
       )}
     >
       {searchEnabled || filters ? (
-        <div className='flex items-center justify-between gap-3'>
+        <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
           {searchEnabled ? (
-            <TextField
-              type='search'
-              placeholder={searchPlaceholder}
-              className='bg-background h-11! w-full max-w-xs rounded-md text-[13px]!'
-              value={searchValue}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              aria-busy={searchBusy}
-            />
+            <div className='w-full sm:flex-1'>
+              <TextField
+                type='search'
+                placeholder={searchPlaceholder}
+                className='bg-background h-11! w-full max-w-xs rounded-md text-[13px]!'
+                value={searchValue}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                aria-busy={searchBusy}
+              />
+            </div>
           ) : null}
           {filters ? (
             <div className='flex items-center gap-2'>{filters}</div>

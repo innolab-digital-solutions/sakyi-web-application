@@ -40,7 +40,7 @@ export default function NutritionCategoryFilters({
           <Button
             variant='outline'
             size='sm'
-            className='h-11 cursor-pointer gap-2'
+            className='border-border h-11 cursor-pointer gap-2 hover:bg-transparent'
           >
             <FilterIcon className='size-3.5' />
             Status
