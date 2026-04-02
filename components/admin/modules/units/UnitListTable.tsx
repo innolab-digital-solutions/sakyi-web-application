@@ -75,8 +75,12 @@ export default function UnitListTable() {
 
   const handleDelete = async () => {
     if (!deleteUnit) return;
-    await confirmDelete(deleteUnit.id);
-    setDeleteUnit(null);
+    try {
+      await confirmDelete(deleteUnit.id);
+      setDeleteUnit(null);
+    } catch {
+      // onError already toasts; swallow rejection so the click handler does not surface an unhandled promise
+    }
   };
 
   const { rows, controls } = useTable<Unit>(
@@ -105,22 +109,23 @@ export default function UnitListTable() {
 
   return (
     <>
-      <div className='mb-4 flex items-center gap-3'>
-        <UnitFilters
-          status={statusFilter}
-          onStatusChange={(next) => {
-            if (next === 'all') {
-              controls.params.clear(['is_active']);
-              return;
-            }
-            controls.params.set({
-              is_active: next === 'active' ? '1' : '0',
-            });
-          }}
-        />
-      </div>
-
-      <TableListShell controls={controls}>
+      <TableListShell
+        controls={controls}
+        filters={
+          <UnitFilters
+            status={statusFilter}
+            onStatusChange={(next) => {
+              if (next === 'all') {
+                controls.params.clear(['is_active']);
+                return;
+              }
+              controls.params.set({
+                is_active: next === 'active' ? '1' : '0',
+              });
+            }}
+          />
+        }
+      >
         <Table className='min-w-120 table-fixed'>
           <TableHeader className='bg-muted/50 [&_tr]:border-border'>
             <TableRow className='border-border hover:bg-transparent'>

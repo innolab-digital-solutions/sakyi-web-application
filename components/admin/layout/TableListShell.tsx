@@ -44,6 +44,8 @@ export type TableListShellProps<TItem = unknown> = {
    */
   controls?: TableControls<TItem>;
   searchPlaceholder?: string;
+  /** Rendered to the right of the search box (e.g. filter controls). */
+  filters?: React.ReactNode;
   className?: string;
 };
 
@@ -51,6 +53,7 @@ const TableListShell = <TItem,>({
   children,
   controls,
   searchPlaceholder = 'Search ...',
+  filters,
   className,
 }: TableListShellProps<TItem>) => {
   const [localSearch, setLocalSearch] = useState('');
@@ -111,16 +114,23 @@ const TableListShell = <TItem,>({
         className,
       )}
     >
-      {searchEnabled ? (
-        <div>
-          <TextField
-            type='search'
-            placeholder={searchPlaceholder}
-            className='bg-background h-11! w-full max-w-xs rounded-md text-[13px]!'
-            value={searchValue}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            aria-busy={searchBusy}
-          />
+      {searchEnabled || filters ? (
+        <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+          {searchEnabled ? (
+            <div className='w-full sm:flex-1'>
+              <TextField
+                type='search'
+                placeholder={searchPlaceholder}
+                className='bg-background h-11! w-full max-w-xs rounded-md text-[13px]!'
+                value={searchValue}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                aria-busy={searchBusy}
+              />
+            </div>
+          ) : null}
+          {filters ? (
+            <div className='flex items-center gap-2'>{filters}</div>
+          ) : null}
         </div>
       ) : null}
       <div className='border-border bg-card min-w-0 overflow-hidden rounded-lg border shadow-xs'>

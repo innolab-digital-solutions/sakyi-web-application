@@ -32,6 +32,13 @@ export const ADMIN_ENDPOINTS = {
       DELETE: (id: string) => `${BASE}/units/${id}`,
       DETAIL: (id: string) => `${BASE}/units/${id}`,
     },
+    NUTRITION_CATEGORIES: {
+      LIST: `${BASE}/nutrition-categories`,
+      CREATE: `${BASE}/nutrition-categories`,
+      UPDATE: (id: string) => `${BASE}/nutrition-categories/${id}`,
+      DELETE: (id: string) => `${BASE}/nutrition-categories/${id}`,
+      DETAIL: (id: string) => `${BASE}/nutrition-categories/${id}`,
+    },
     ONBOARDING: {
       TEMPLATE: (version: number) => `${BASE}/onboarding/templates/${version}`,
       INTAKES: {

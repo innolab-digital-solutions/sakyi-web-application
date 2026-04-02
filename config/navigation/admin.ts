@@ -98,7 +98,10 @@ export const ADMIN_NAVIGATION: NavItem[] = [
     icon: Apple,
     path: '#',
     subitems: [
-      { name: 'Categories', path: '#' },
+      {
+        name: 'Categories',
+        path: ADMIN_ROUTES.MODULES.NUTRITION_CATEGORIES.LIST,
+      },
       { name: 'Items', path: '#' },
     ],
   },

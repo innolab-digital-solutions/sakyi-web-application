@@ -14,7 +14,8 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   title: string;
   description: React.ReactNode;
-  onConfirm: () => void;
+  /** May be async; callers should catch rejections inside the handler. */
+  onConfirm: () => void | Promise<void>;
   isDeleting?: boolean;
 };
 

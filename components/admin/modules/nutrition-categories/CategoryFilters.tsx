@@ -27,7 +27,10 @@ const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'inactive', label: 'Inactive' },
 ];
 
-export default function UnitFilters({ status, onStatusChange }: Props) {
+export default function NutritionCategoryFilters({
+  status,
+  onStatusChange,
+}: Props) {
   const hasFilter = status !== 'all';
 
   return (
@@ -37,7 +40,7 @@ export default function UnitFilters({ status, onStatusChange }: Props) {
           <Button
             variant='outline'
             size='sm'
-            className='h-11 cursor-pointer gap-2'
+            className='border-border h-11 cursor-pointer gap-2 hover:bg-transparent'
           >
             <FilterIcon className='size-3.5' />
             Status
