@@ -75,8 +75,12 @@ export default function UnitListTable() {
 
   const handleDelete = async () => {
     if (!deleteUnit) return;
-    await confirmDelete(deleteUnit.id);
-    setDeleteUnit(null);
+    try {
+      await confirmDelete(deleteUnit.id);
+      setDeleteUnit(null);
+    } catch {
+      // onError already toasts; swallow rejection so the click handler does not surface an unhandled promise
+    }
   };
 
   const { rows, controls } = useTable<Unit>(

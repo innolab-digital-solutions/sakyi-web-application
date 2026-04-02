@@ -65,8 +65,12 @@ export default function NutritionCategoryListTable() {
 
   const handleDelete = async () => {
     if (!deleteCategory) return;
-    await confirmDelete(deleteCategory.id);
-    setDeleteCategory(null);
+    try {
+      await confirmDelete(deleteCategory.id);
+      setDeleteCategory(null);
+    } catch {
+      // onError already toasts; swallow rejection so the click handler does not surface an unhandled promise
+    }
   };
 
   const { rows, controls } = useTable<NutritionCategory>(
