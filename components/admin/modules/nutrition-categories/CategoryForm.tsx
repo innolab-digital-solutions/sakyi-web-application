@@ -118,6 +118,9 @@ export default function NutritionCategoryForm({
                 ENDPOINTS.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST,
               ],
             });
+            queryClient.invalidateQueries({
+              queryKey: ['lookup', LOOKUP_ENDPOINTS.NUTRITION_CATEGORIES],
+            });
             toast.success('Category updated successfully.');
             if (onSuccess) onSuccess();
             else router.push(ROUTES.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST);
@@ -137,6 +140,9 @@ export default function NutritionCategoryForm({
             'table',
             ENDPOINTS.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST,
           ],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['lookup', LOOKUP_ENDPOINTS.NUTRITION_CATEGORIES],
         });
         toast.success('Category created successfully.');
         if (onSuccess) onSuccess();

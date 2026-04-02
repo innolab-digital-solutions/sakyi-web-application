@@ -30,6 +30,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ENDPOINTS } from '@/config/api/endpoints';
+import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
 import { deleteNutritionCategory } from '@/domains/nutrition-categories/services';
 import type { NutritionCategory } from '@/domains/nutrition-categories/types';
 import { useTable } from '@/lib/table';
@@ -56,6 +57,9 @@ export default function NutritionCategoryListTable() {
       toast.success('Category deleted successfully.');
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['lookup', LOOKUP_ENDPOINTS.NUTRITION_CATEGORIES],
       });
     },
     onError: (error) => {
