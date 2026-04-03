@@ -118,4 +118,3 @@ Copy `.env.example` to `.env.local`. Key variables:
 - **TipTap** — rich text editor
 - **Vitest** — unit/component tests
 - **Playwright** — E2E tests
-- **Sentry** — error tracking

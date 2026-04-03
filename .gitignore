@@ -43,12 +43,8 @@ yarn-error.log*
 next-env.d.ts
 
 
-# AI Powered IDE & Tools
+# cursor IDE
 .cursor
-.claude
-CLAUDE.md
-
-
 
 # Playwright
 node_modules/
@@ -61,5 +57,7 @@ node_modules/
 # Sentry Config File
 .env.sentry-build-plugin
 
-# MCP config (local dev only)
+# MCP Config File
 .mcp.json
+CLAUDE.md
+.claude

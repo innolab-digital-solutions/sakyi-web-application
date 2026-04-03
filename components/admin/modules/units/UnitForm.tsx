@@ -190,6 +190,7 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
             type='button'
             variant='outline'
             disabled={loading}
+            className='cursor-pointer'
             onClick={() =>
               onSuccess
                 ? onSuccess()
@@ -198,7 +199,7 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
           >
             Cancel
           </Button>
-          <Button type='submit' disabled={loading}>
+          <Button type='submit' className='cursor-pointer' disabled={loading}>
             {loading
               ? isEdit
                 ? 'Saving…'

@@ -1,7 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -18,12 +17,13 @@ import { Button } from '@/components/ui/button';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
 import { ROUTES } from '@/config/routes';
-import {
-  NutritionCategoryCreateSchema,
-  NutritionCategoryUpdateSchema,
-} from '@/domains/nutrition-categories/schemas';
 import { getNutritionCategoriesLookup } from '@/domains/nutrition-categories/services';
-import type { NutritionCategory } from '@/domains/nutrition-categories/types';
+import {
+  NutritionItemCreateSchema,
+  NutritionItemUpdateSchema,
+} from '@/domains/nutrition-items/schemas';
+import type { NutritionItem } from '@/domains/nutrition-items/types';
+import { getUnitsLookup } from '@/domains/units/services';
 import { useForm } from '@/lib/form';
 
 const STATUS_OPTIONS: SelectFieldOption[] = [
@@ -33,28 +33,24 @@ const STATUS_OPTIONS: SelectFieldOption[] = [
 
 type CreateProps = {
   mode: 'create';
-  category?: never;
+  item?: never;
   onSuccess?: () => void;
 };
 
 type EditProps = {
   mode: 'edit';
-  category: NutritionCategory;
+  item: NutritionItem;
   onSuccess?: () => void;
 };
 
 type Props = CreateProps | EditProps;
 
-export default function NutritionCategoryForm({
-  mode,
-  category,
-  onSuccess,
-}: Props) {
+export default function NutritionItemForm({ mode, item, onSuccess }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const isEdit = mode === 'edit';
 
-  const { data: lookupData } = useQuery({
+  const { data: categoriesData } = useQuery({
     queryKey: ['lookup', LOOKUP_ENDPOINTS.NUTRITION_CATEGORIES],
     queryFn: async () => {
       const response = await getNutritionCategoriesLookup();
@@ -63,93 +59,97 @@ export default function NutritionCategoryForm({
     },
   });
 
-  const parentOptions = useMemo<ComboboxOption[]>(() => {
-    if (!lookupData) return [];
-    return lookupData
-      .filter((c) => c.id !== category?.id)
-      .map((c) => ({ value: String(c.id), label: c.name }));
-  }, [lookupData, category?.id]);
+  const { data: unitsData } = useQuery({
+    queryKey: ['lookup', LOOKUP_ENDPOINTS.UNITS],
+    queryFn: async () => {
+      const response = await getUnitsLookup();
+      if (response.status !== 'success') return [];
+      return response.data;
+    },
+  });
+
+  const categoryOptions = useMemo<ComboboxOption[]>(() => {
+    if (!categoriesData) return [];
+    return categoriesData.map((c) => ({ value: String(c.id), label: c.name }));
+  }, [categoriesData]);
+
+  const unitOptions = useMemo<ComboboxOption[]>(() => {
+    if (!unitsData) return [];
+    return unitsData.map((u) => ({
+      value: String(u.id),
+      label: `${u.name} (${u.abbreviation})`,
+    }));
+  }, [unitsData]);
 
   const initialFields = useMemo(() => {
-    if (mode === 'edit' && category) {
+    if (mode === 'edit' && item) {
       return {
-        name: category.name ?? '',
-        description: category.description ?? '',
-        parent_id: category.parent?.id ?? null,
-        is_active: category.is_active ?? true,
+        name: item.name ?? '',
+        description: item.description ?? '',
+        nutrition_category_id:
+          item.nutrition_category?.id ?? (null as number | null),
+        default_unit_id: item.default_unit?.id ?? (null as number | null),
+        is_active: item.is_active ?? true,
       };
     }
     return {
       name: '',
       description: '',
-      parent_id: null as number | null,
+      nutrition_category_id: null as number | null,
+      default_unit_id: null as number | null,
       is_active: true,
     };
-  }, [mode, category]);
+  }, [mode, item]);
 
   const form = useForm(initialFields, {
-    schema: isEdit
-      ? NutritionCategoryUpdateSchema
-      : NutritionCategoryCreateSchema,
+    schema: isEdit ? NutritionItemUpdateSchema : NutritionItemCreateSchema,
   });
 
   useEffect(() => {
-    if (mode !== 'edit' || !category) return;
+    if (mode !== 'edit' || !item) return;
     form.setDataAndDefaults({
-      name: category.name ?? '',
-      description: category.description ?? '',
-      parent_id: category.parent?.id ?? null,
-      is_active: category.is_active ?? true,
+      name: item.name ?? '',
+      description: item.description ?? '',
+      nutrition_category_id: item.nutrition_category?.id ?? null,
+      default_unit_id: item.default_unit?.id ?? null,
+      is_active: item.is_active ?? true,
     });
+    // Intentionally omit `form` to avoid re-snapshotting defaults.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, category]);
+  }, [mode, item]);
 
   const submit = async () => {
     if (isEdit) {
       await form.patch(
-        ENDPOINTS.ADMIN.MODULES.NUTRITION_CATEGORIES.DETAIL(
-          String(category.id),
-        ),
+        ENDPOINTS.ADMIN.MODULES.NUTRITION_ITEMS.DETAIL(String(item.id)),
         {
           onSuccess: () => {
             queryClient.invalidateQueries({
-              queryKey: [
-                'table',
-                ENDPOINTS.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST,
-              ],
+              queryKey: ['table', ENDPOINTS.ADMIN.MODULES.NUTRITION_ITEMS.LIST],
             });
-            queryClient.invalidateQueries({
-              queryKey: ['lookup', LOOKUP_ENDPOINTS.NUTRITION_CATEGORIES],
-            });
-            toast.success('Category updated successfully.');
+            toast.success('Item updated successfully.');
             if (onSuccess) onSuccess();
-            else router.push(ROUTES.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST);
+            else router.push(ROUTES.ADMIN.MODULES.NUTRITION_ITEMS.LIST);
           },
           onFailure: (error) => {
-            toast.error(error.message ?? 'Failed to update category.');
+            toast.error(error.message ?? 'Failed to update item.');
           },
         },
       );
       return;
     }
 
-    await form.post(ENDPOINTS.ADMIN.MODULES.NUTRITION_CATEGORIES.CREATE, {
+    await form.post(ENDPOINTS.ADMIN.MODULES.NUTRITION_ITEMS.CREATE, {
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: [
-            'table',
-            ENDPOINTS.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST,
-          ],
+          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.NUTRITION_ITEMS.LIST],
         });
-        queryClient.invalidateQueries({
-          queryKey: ['lookup', LOOKUP_ENDPOINTS.NUTRITION_CATEGORIES],
-        });
-        toast.success('Category created successfully.');
+        toast.success('Item created successfully.');
         if (onSuccess) onSuccess();
-        else router.push(ROUTES.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST);
+        else router.push(ROUTES.ADMIN.MODULES.NUTRITION_ITEMS.LIST);
       },
       onFailure: (error) => {
-        toast.error(error.message ?? 'Failed to create category.');
+        toast.error(error.message ?? 'Failed to create item.');
       },
     });
   };
@@ -168,7 +168,7 @@ export default function NutritionCategoryForm({
         <TextField
           label='Name'
           required
-          placeholder='e.g. Macronutrients'
+          placeholder='e.g. Chicken Breast'
           value={String(form.fields.name ?? '')}
           onChange={(e) => form.setData('name', e.target.value)}
           error={form.errors.name}
@@ -176,23 +176,43 @@ export default function NutritionCategoryForm({
         <TextAreaField
           label='Description'
           name='description'
-          placeholder='Optional description for this category…'
+          placeholder='Optional description for this item…'
           rows={3}
           value={String(form.fields.description ?? '')}
           onChange={(e) => form.setData('description', e.target.value)}
           error={form.errors.description}
         />
         <ComboboxField
-          label='Parent Category'
-          placeholder='Select a parent category…'
+          label='Category'
+          placeholder='Select a category…'
           searchPlaceholder='Search categories…'
           emptyMessage='No categories found.'
-          options={parentOptions}
-          value={form.fields.parent_id ? String(form.fields.parent_id) : null}
-          onChange={(val) =>
-            form.setData('parent_id', val ? Number(val) : null)
+          options={categoryOptions}
+          value={
+            form.fields.nutrition_category_id
+              ? String(form.fields.nutrition_category_id)
+              : null
           }
-          error={form.errors.parent_id}
+          onChange={(val) =>
+            form.setData('nutrition_category_id', val ? Number(val) : null)
+          }
+          error={form.errors.nutrition_category_id}
+        />
+        <ComboboxField
+          label='Default Unit'
+          placeholder='Select a unit…'
+          searchPlaceholder='Search units…'
+          emptyMessage='No units found.'
+          options={unitOptions}
+          value={
+            form.fields.default_unit_id
+              ? String(form.fields.default_unit_id)
+              : null
+          }
+          onChange={(val) =>
+            form.setData('default_unit_id', val ? Number(val) : null)
+          }
+          error={form.errors.default_unit_id}
         />
         <SelectField
           label='Status'
@@ -214,7 +234,7 @@ export default function NutritionCategoryForm({
             onClick={() =>
               onSuccess
                 ? onSuccess()
-                : router.push(ROUTES.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST)
+                : router.push(ROUTES.ADMIN.MODULES.NUTRITION_ITEMS.LIST)
             }
           >
             Cancel
@@ -226,7 +246,7 @@ export default function NutritionCategoryForm({
                 : 'Creating…'
               : isEdit
                 ? 'Save Changes'
-                : 'Create Category'}
+                : 'Create Item'}
           </Button>
         </div>
       </div>
