@@ -9,4 +9,6 @@ export const NutritionItemCreateSchema = NutritionItemBodySchema.extend({
   is_active: z.boolean(),
 }).required({ is_active: true });
 
-export type NutritionItemCreateInput = z.infer<typeof NutritionItemCreateSchema>;
+export type NutritionItemCreateInput = z.infer<
+  typeof NutritionItemCreateSchema
+>;

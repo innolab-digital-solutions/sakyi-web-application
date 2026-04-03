@@ -27,7 +27,10 @@ const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'inactive', label: 'Inactive' },
 ];
 
-export default function NutritionItemFilters({ status, onStatusChange }: Props) {
+export default function NutritionItemFilters({
+  status,
+  onStatusChange,
+}: Props) {
   const hasFilter = status !== 'all';
 
   return (

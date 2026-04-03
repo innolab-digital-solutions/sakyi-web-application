@@ -22,7 +22,9 @@ export async function getNutritionItemById(
 export async function getNutritionItems(): Promise<
   ApiResponse<NutritionItem[]>
 > {
-  return http.get<NutritionItem[]>(ENDPOINTS.ADMIN.MODULES.NUTRITION_ITEMS.LIST);
+  return http.get<NutritionItem[]>(
+    ENDPOINTS.ADMIN.MODULES.NUTRITION_ITEMS.LIST,
+  );
 }
 
 export async function createNutritionItem(

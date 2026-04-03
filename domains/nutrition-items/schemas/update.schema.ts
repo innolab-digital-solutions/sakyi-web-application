@@ -7,4 +7,6 @@ import { NutritionItemBodySchema } from './base.schema';
  */
 export const NutritionItemUpdateSchema = NutritionItemBodySchema.partial();
 
-export type NutritionItemUpdateInput = z.infer<typeof NutritionItemUpdateSchema>;
+export type NutritionItemUpdateInput = z.infer<
+  typeof NutritionItemUpdateSchema
+>;
