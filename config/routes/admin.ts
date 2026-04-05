@@ -35,6 +35,12 @@ export const ADMIN_ROUTES = {
       EDIT: (id: string) => `${BASE}/nutrition-categories/${id}/edit`,
       DETAIL: (id: string) => `${BASE}/nutrition-categories/${id}`,
     },
+    MOVEMENT_CATEGORIES: {
+      LIST: `${BASE}/movement-categories`,
+      CREATE: `${BASE}/movement-categories/create`,
+      EDIT: (id: string) => `${BASE}/movement-categories/${id}/edit`,
+      DETAIL: (id: string) => `${BASE}/movement-categories/${id}`,
+    },
     ONBOARDING: {
       INTAKES: {
         LIST: `${BASE}/onboarding/intakes`,
