@@ -102,7 +102,10 @@ export const ADMIN_NAVIGATION: NavItem[] = [
         name: 'Categories',
         path: ADMIN_ROUTES.MODULES.NUTRITION_CATEGORIES.LIST,
       },
-      { name: 'Items', path: '#' },
+      {
+        name: 'Items',
+        path: ADMIN_ROUTES.MODULES.NUTRITION_ITEMS.LIST,
+      },
     ],
   },
   {
