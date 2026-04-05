@@ -6,6 +6,6 @@ export {
   updateMovementCategory,
 } from './admin.service';
 export {
-  type MovementCategoryLookup,
   getMovementCategoriesLookup,
+  type MovementCategoryLookup,
 } from './lookup.service';
