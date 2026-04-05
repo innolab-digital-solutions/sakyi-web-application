@@ -181,10 +181,19 @@ export const useTable = <TItem>(
   const [searchInput, setSearchInput] = useState(initialSearchValue);
   const [appliedSearch, setAppliedSearch] = useState(initialSearchValue);
 
+  // Ref so the URL sync effect can read the current appliedSearch without it becoming a dep.
+  const appliedSearchRef = useRef(appliedSearch);
+  appliedSearchRef.current = appliedSearch;
+
   // Align local search state with URL changes (back/forward, external navigation).
   useEffect(() => {
     if (!syncUrl) return;
-    skipPageResetForUrlSyncRef.current = true;
+    // Only flag a skip when the URL is driving a *different* search value (e.g. back/forward nav).
+    // When the URL change is just confirming our own write the values are already equal,
+    // so we must not set the flag — otherwise the next user-typed search would incorrectly skip the page reset.
+    if (initialSearchValue !== appliedSearchRef.current) {
+      skipPageResetForUrlSyncRef.current = true;
+    }
     startTransition(() => {
       setSearchInput(initialSearchValue);
       setAppliedSearch(initialSearchValue);
@@ -204,26 +213,35 @@ export const useTable = <TItem>(
     return () => window.clearTimeout(id);
   }, [searchInput, debounceMs, searchEnabled]);
 
-  // Write applied search into URL (source of truth) when enabled.
+  // Write applied search and reset page in one URL update to prevent stale-closure races
+  // where two separate effects overwrite each other's changes.
+  const isFirstAppliedSearchEffect = useRef(true);
   useEffect(() => {
     if (!syncUrl || !searchEnabled) return;
     const trimmed = appliedSearch.trim();
-    setUrlParams({ [keys.search]: trimmed || null });
-  }, [syncUrl, searchEnabled, appliedSearch, keys.search, setUrlParams]);
+    const patch: Record<string, unknown> = {
+      [keys.search]: trimmed || null,
+    };
 
-  // When applied search changes due to typing (not URL sync), reset page to 1.
-  const isFirstAppliedSearchEffect = useRef(true);
-  useEffect(() => {
-    if (!syncUrl || !paginationEnabled || !searchEnabled) return;
+    // First mount: only sync search value, page is already correct.
     if (isFirstAppliedSearchEffect.current) {
       isFirstAppliedSearchEffect.current = false;
+      setUrlParams(patch);
       return;
     }
+
+    // URL-sync triggered change (back/forward nav): update search without resetting page.
     if (skipPageResetForUrlSyncRef.current) {
       skipPageResetForUrlSyncRef.current = false;
+      setUrlParams(patch);
       return;
     }
-    setUrlParams({ [keys.page]: 1 });
+
+    // User typed: reset page to 1 together with search in one write so neither is lost.
+    if (paginationEnabled) {
+      patch[keys.page] = 1;
+    }
+    setUrlParams(patch);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [appliedSearch]);
 

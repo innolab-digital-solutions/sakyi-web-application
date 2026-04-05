@@ -5,3 +5,4 @@ export {
   getUnits,
   updateUnit,
 } from './admin.service';
+export { getUnitsLookup, type UnitLookup } from './lookup.service';
