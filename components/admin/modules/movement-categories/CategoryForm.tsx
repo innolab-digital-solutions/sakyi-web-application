@@ -21,9 +21,7 @@ import {
   MovementCategoryCreateSchema,
   MovementCategoryUpdateSchema,
 } from '@/domains/movement-categories/schemas';
-import {
-  getMovementCategoriesLookup,
-} from '@/domains/movement-categories/services';
+import { getMovementCategoriesLookup } from '@/domains/movement-categories/services';
 import type { MovementCategory } from '@/domains/movement-categories/types';
 import { useForm } from '@/lib/form';
 
@@ -89,7 +87,9 @@ export default function MovementCategoryForm({
   }, [mode, category]);
 
   const form = useForm(initialFields, {
-    schema: isEdit ? MovementCategoryUpdateSchema : MovementCategoryCreateSchema,
+    schema: isEdit
+      ? MovementCategoryUpdateSchema
+      : MovementCategoryCreateSchema,
   });
 
   useEffect(() => {
@@ -106,9 +106,7 @@ export default function MovementCategoryForm({
   const submit = async () => {
     if (isEdit) {
       await form.patch(
-        ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.DETAIL(
-          String(category.id),
-        ),
+        ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.DETAIL(String(category.id)),
         {
           onSuccess: () => {
             queryClient.invalidateQueries({
@@ -135,10 +133,7 @@ export default function MovementCategoryForm({
     await form.post(ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.CREATE, {
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: [
-            'table',
-            ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST,
-          ],
+          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST],
         });
         queryClient.invalidateQueries({
           queryKey: ['lookup', LOOKUP_ENDPOINTS.MOVEMENT_CATEGORIES],

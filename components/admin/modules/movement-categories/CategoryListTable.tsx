@@ -43,8 +43,9 @@ export default function MovementCategoryListTable() {
   const [editCategory, setEditCategory] = useState<MovementCategory | null>(
     null,
   );
-  const [deleteCategory, setDeleteCategory] =
-    useState<MovementCategory | null>(null);
+  const [deleteCategory, setDeleteCategory] = useState<MovementCategory | null>(
+    null,
+  );
 
   const { mutateAsync: confirmDelete, isPending: isDeleting } = useMutation({
     mutationFn: async (id: number) => {
