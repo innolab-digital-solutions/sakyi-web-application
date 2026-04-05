@@ -187,6 +187,7 @@ export default function NutritionItemForm({ mode, item, onSuccess }: Props) {
           placeholder='Select a category…'
           searchPlaceholder='Search categories…'
           emptyMessage='No categories found.'
+          required
           options={categoryOptions}
           value={
             form.fields.nutrition_category_id
