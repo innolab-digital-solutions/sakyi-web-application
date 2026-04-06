@@ -1,6 +1,5 @@
-import type { Metadata } from 'next';
-
 import { ScrollText } from 'lucide-react';
+import type { Metadata } from 'next';
 
 import SectionBadge from '@/components/marketing/SectionBadge';
 import SectionContainer from '@/components/marketing/SectionContainer';

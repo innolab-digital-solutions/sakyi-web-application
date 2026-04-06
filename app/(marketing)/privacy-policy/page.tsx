@@ -1,5 +1,5 @@
-import type { Metadata } from 'next';
 import { ShieldCheck } from 'lucide-react';
+import type { Metadata } from 'next';
 
 import SectionBadge from '@/components/marketing/SectionBadge';
 import SectionContainer from '@/components/marketing/SectionContainer';
