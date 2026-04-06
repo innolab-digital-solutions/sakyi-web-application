@@ -14,4 +14,6 @@ export const MARKETING_ROUTES = {
   PROGRAMS: '/programs',
   BLOG: '/blog',
   CONTACT: '/contact',
+  PRIVACY_POLICY: '/privacy-policy',
+  TERMS_OF_SERVICE: '/terms-of-service',
 } as const;
