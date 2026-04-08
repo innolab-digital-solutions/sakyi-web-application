@@ -13,6 +13,7 @@ import TextField from '@/components/shared/form/TextField';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ENDPOINTS } from '@/config/api/endpoints';
+import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
 import { ROUTES } from '@/config/routes';
 import {
   createBlogCategory,
@@ -135,6 +136,9 @@ export default function BlogCategoryForm({ mode, category, onSuccess }: Props) {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.BLOG_CATEGORIES.LIST],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['lookup', LOOKUP_ENDPOINTS.BLOG_CATEGORIES],
       });
       toast.success(
         isEdit
