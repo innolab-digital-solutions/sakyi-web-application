@@ -125,15 +125,21 @@ export const buildSerializedRequestBody = (
       if (value instanceof File || value instanceof Blob) {
         form.append(key, value);
       } else if (Array.isArray(value)) {
-        // Each array item: append as multiple values for that key
-        value.forEach((item) => {
-          if (item !== undefined && item !== null) {
-            form.append(
-              key,
-              item instanceof File || item instanceof Blob
-                ? item
-                : String(item),
-            );
+        // Serialize array items using indexed bracket notation so PHP/Laravel
+        // parses them as a proper array.
+        value.forEach((item, index) => {
+          if (item === undefined || item === null) return;
+          if (item instanceof File || item instanceof Blob) {
+            form.append(`${key}[]`, item);
+          } else if (typeof item === 'object') {
+            // Nested object: flatten one level deep (e.g. translations[0][locale])
+            for (const [subKey, subVal] of Object.entries(item)) {
+              if (subVal !== undefined && subVal !== null) {
+                form.append(`${key}[${index}][${subKey}]`, String(subVal));
+              }
+            }
+          } else {
+            form.append(`${key}[]`, String(item));
           }
         });
       } else {
