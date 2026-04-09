@@ -93,13 +93,10 @@ export default function BlogPostForm({ mode, post }: Props) {
 
   const categoryOptions = useMemo<ComboboxOption[]>(() => {
     if (!categoriesData) return [];
-    return categoriesData.map((c) => {
-      const enName =
-        c.translations.find((t) => t.locale === 'en')?.name ??
-        c.translations[0]?.name ??
-        String(c.id);
-      return { value: String(c.id), label: enName };
-    });
+    return categoriesData.map((c) => ({
+      value: String(c.id),
+      label: c.name,
+    }));
   }, [categoriesData]);
 
   const [existingThumbnail, setExistingThumbnail] = useState<
@@ -325,6 +322,24 @@ export default function BlogPostForm({ mode, post }: Props) {
                         }
                         error={getTranslationError(lang.code, 'title')}
                       />
+                      {isEdit && (() => {
+                        const slug = post.translations.find(
+                          (tr) => tr.locale === lang.code,
+                        )?.slug;
+                        return slug ? (
+                          <div className='space-y-1.5'>
+                            <p className='text-muted-foreground text-xs font-medium'>
+                              Slug
+                            </p>
+                            <div className='border-border bg-muted/50 text-muted-foreground truncate rounded-md border px-3 py-2 font-mono text-xs'>
+                              {slug}
+                            </div>
+                            <p className='text-muted-foreground text-xs'>
+                              Auto-generated from title. Updates on save.
+                            </p>
+                          </div>
+                        ) : null;
+                      })()}
                       <TextAreaField
                         label='Excerpt'
                         placeholder='Short summary shown in post listings…'

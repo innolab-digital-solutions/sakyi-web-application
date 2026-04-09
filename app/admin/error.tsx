@@ -9,10 +9,10 @@ import { reportClientError } from '@/lib/sentry/client';
 
 type AdminErrorProps = {
   error: Error & { digest?: string };
-  unstable_retry: () => void;
+  reset: () => void;
 };
 
-export default function AdminError({ error, unstable_retry }: AdminErrorProps) {
+export default function AdminError({ error, reset }: AdminErrorProps) {
   useEffect(() => {
     reportClientError(error, { digest: error.digest, segment: 'admin' });
   }, [error]);
@@ -29,7 +29,7 @@ export default function AdminError({ error, unstable_retry }: AdminErrorProps) {
         </p>
       </div>
       <div className='flex flex-wrap justify-center gap-3'>
-        <Button type='button' onClick={() => unstable_retry()}>
+        <Button type='button' onClick={() => reset()}>
           Try again
         </Button>
         <Button asChild variant='outline'>

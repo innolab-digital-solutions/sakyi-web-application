@@ -3,6 +3,7 @@ export type BlogPostStatus = 'draft' | 'published' | 'archived';
 export type BlogPostTranslation = {
   locale: 'en' | 'my';
   title: string;
+  slug: string;
   excerpt: string | null;
   content: string;
 };

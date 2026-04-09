@@ -4,7 +4,8 @@ import { http } from '@/lib/api/client';
 
 export type BlogCategoryLookup = {
   id: number;
-  translations: { locale: string; name: string }[];
+  name: string;
+  slug: string;
 };
 
 export async function getBlogCategoriesLookup(): Promise<

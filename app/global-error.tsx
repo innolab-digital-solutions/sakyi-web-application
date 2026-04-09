@@ -6,7 +6,7 @@ import { reportClientError } from '@/lib/sentry/client';
 
 type GlobalErrorProps = {
   error: Error & { digest?: string };
-  unstable_retry: () => void;
+  reset: () => void;
 };
 
 /**
@@ -15,7 +15,7 @@ type GlobalErrorProps = {
  */
 export default function GlobalError({
   error,
-  unstable_retry,
+  reset,
 }: GlobalErrorProps) {
   useEffect(() => {
     reportClientError(error, { digest: error.digest, segment: 'global' });
@@ -29,7 +29,7 @@ export default function GlobalError({
           <button
             type='button'
             className='rounded-md border px-4 py-2 text-sm'
-            onClick={() => unstable_retry()}
+            onClick={() => reset()}
           >
             Try again
           </button>
