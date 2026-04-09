@@ -16,6 +16,7 @@ export async function getMovementCategoryById(
 ): Promise<ApiResponse<MovementCategory>> {
   return http.get<MovementCategory>(
     ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.DETAIL(String(id)),
+    { throwOnError: false },
   );
 }
 
@@ -24,6 +25,7 @@ export async function getMovementCategories(): Promise<
 > {
   return http.get<MovementCategory[]>(
     ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST,
+    { throwOnError: false },
   );
 }
 
