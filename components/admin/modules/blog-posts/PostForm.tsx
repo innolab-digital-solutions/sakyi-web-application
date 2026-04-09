@@ -194,11 +194,11 @@ export default function BlogPostForm({ mode, post }: Props) {
   const submit = async () => {
     const myTranslation = translations.find((t) => t.locale === 'my');
     if (!myTranslation?.title?.trim() || !myTranslation?.content?.trim()) {
-      toast.warning('Myanmar translation is incomplete.', {
-        description:
-          'The post will be saved without Myanmar title or content. You can add it later.',
+      toast.error('Myanmar translation is required.', {
+        description: 'Please fill in the Myanmar title and content before saving.',
         duration: 5000,
       });
+      return;
     }
 
     const callbacks = {

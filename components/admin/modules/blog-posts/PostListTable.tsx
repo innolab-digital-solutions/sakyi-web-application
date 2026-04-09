@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   FileTextIcon,
+  ImageIcon,
   MoreHorizontalIcon,
   PencilIcon,
   Trash2Icon,
@@ -36,6 +37,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
 import { deleteBlogPost, updateBlogPost } from '@/domains/blogs/services';
@@ -252,17 +254,39 @@ export default function BlogPostListTable() {
                   (t) => t.locale === 'my',
                 )?.title;
 
+                const thumbnailUrl = post.thumbnail
+                  ? post.thumbnail.startsWith('http')
+                    ? post.thumbnail
+                    : `${base.domainEndpoint}${post.thumbnail}`
+                  : null;
+
                 return (
                   <TableRow key={post.id} className='border-border/80'>
                     <TableCell className='min-w-0 py-2.5 align-middle'>
-                      <p className='text-foreground truncate text-sm font-medium'>
-                        {enTitle}
-                      </p>
-                      {myTitle && (
-                        <p className='text-muted-foreground mt-0.5 truncate text-xs'>
-                          {myTitle}
-                        </p>
-                      )}
+                      <div className='flex items-center gap-3'>
+                        {thumbnailUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={thumbnailUrl}
+                            alt={enTitle}
+                            className='border-border bg-muted size-10 shrink-0 rounded-lg border object-cover object-center'
+                          />
+                        ) : (
+                          <div className='border-border bg-muted text-muted-foreground flex size-10 shrink-0 items-center justify-center rounded-lg border'>
+                            <ImageIcon className='size-4' />
+                          </div>
+                        )}
+                        <div className='min-w-0'>
+                          <p className='text-foreground truncate text-sm font-medium'>
+                            {enTitle}
+                          </p>
+                          {myTitle && (
+                            <p className='text-muted-foreground mt-0.5 truncate text-xs'>
+                              {myTitle}
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell className='py-2 align-middle'>
                       <StatusSelect post={post} />
