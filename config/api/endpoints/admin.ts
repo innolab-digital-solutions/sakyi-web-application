@@ -53,6 +53,13 @@ export const ADMIN_ENDPOINTS = {
       DELETE: (id: string) => `${BASE}/movement-categories/${id}`,
       DETAIL: (id: string) => `${BASE}/movement-categories/${id}`,
     },
+    BLOG_CATEGORIES: {
+      LIST: `${BASE}/blog-categories`,
+      CREATE: `${BASE}/blog-categories`,
+      UPDATE: (id: string) => `${BASE}/blog-categories/${id}`,
+      DELETE: (id: string) => `${BASE}/blog-categories/${id}`,
+      DETAIL: (id: string) => `${BASE}/blog-categories/${id}`,
+    },
     ONBOARDING: {
       TEMPLATE: (version: number) => `${BASE}/onboarding/templates/${version}`,
       INTAKES: {
