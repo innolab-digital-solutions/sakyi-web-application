@@ -46,6 +46,13 @@ export const ADMIN_ENDPOINTS = {
       DELETE: (id: string) => `${BASE}/nutrition-items/${id}`,
       DETAIL: (id: string) => `${BASE}/nutrition-items/${id}`,
     },
+    MOVEMENT_CATEGORIES: {
+      LIST: `${BASE}/movement-categories`,
+      CREATE: `${BASE}/movement-categories`,
+      UPDATE: (id: string) => `${BASE}/movement-categories/${id}`,
+      DELETE: (id: string) => `${BASE}/movement-categories/${id}`,
+      DETAIL: (id: string) => `${BASE}/movement-categories/${id}`,
+    },
     BLOG_CATEGORIES: {
       LIST: `${BASE}/blog-categories`,
       CREATE: `${BASE}/blog-categories`,
