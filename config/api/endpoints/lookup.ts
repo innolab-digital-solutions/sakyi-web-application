@@ -16,4 +16,5 @@ export const LOOKUP_ENDPOINTS = {
   CLIENTS: `${BASE}/clients`,
   NUTRITION_CATEGORIES: `${BASE}/nutrition-categories`,
   UNITS: `${BASE}/units`,
+  BLOG_CATEGORIES: `${BASE}/blog-categories`,
 } as const;
