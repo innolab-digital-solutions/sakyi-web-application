@@ -322,24 +322,25 @@ export default function BlogPostForm({ mode, post }: Props) {
                         }
                         error={getTranslationError(lang.code, 'title')}
                       />
-                      {isEdit && (() => {
-                        const slug = post.translations.find(
-                          (tr) => tr.locale === lang.code,
-                        )?.slug;
-                        return slug ? (
-                          <div className='space-y-1.5'>
-                            <p className='text-muted-foreground text-xs font-medium'>
-                              Slug
-                            </p>
-                            <div className='border-border bg-muted/50 text-muted-foreground truncate rounded-md border px-3 py-2 font-mono text-xs'>
-                              {slug}
+                      {isEdit &&
+                        (() => {
+                          const slug = post.translations.find(
+                            (tr) => tr.locale === lang.code,
+                          )?.slug;
+                          return slug ? (
+                            <div className='space-y-1.5'>
+                              <p className='text-muted-foreground text-xs font-medium'>
+                                Slug
+                              </p>
+                              <div className='border-border bg-muted/50 text-muted-foreground truncate rounded-md border px-3 py-2 font-mono text-xs'>
+                                {slug}
+                              </div>
+                              <p className='text-muted-foreground text-xs'>
+                                Auto-generated from title. Updates on save.
+                              </p>
                             </div>
-                            <p className='text-muted-foreground text-xs'>
-                              Auto-generated from title. Updates on save.
-                            </p>
-                          </div>
-                        ) : null;
-                      })()}
+                          ) : null;
+                        })()}
                       <TextAreaField
                         label='Excerpt'
                         placeholder='Short summary shown in post listings…'

@@ -13,10 +13,7 @@ type GlobalErrorProps = {
  * Catches errors in the root layout. Must include `html` and `body`.
  * @see https://nextjs.org/docs/app/api-reference/file-conventions/error
  */
-export default function GlobalError({
-  error,
-  reset,
-}: GlobalErrorProps) {
+export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
     reportClientError(error, { digest: error.digest, segment: 'global' });
   }, [error]);
