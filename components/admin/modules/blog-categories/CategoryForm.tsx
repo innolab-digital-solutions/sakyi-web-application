@@ -51,6 +51,47 @@ type EditProps = {
 
 type Props = CreateProps | EditProps;
 
+function getErrorMessage(value: unknown): string | null {
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value)) {
+    const firstString = value.find((item) => typeof item === 'string');
+    return typeof firstString === 'string' ? firstString : null;
+  }
+  return null;
+}
+
+function mapServerFieldKey(key: string): string {
+  if (
+    key === 'translations.0.name' ||
+    key === 'translations.en.name' ||
+    key === 'en.name'
+  ) {
+    return 'en_name';
+  }
+  if (
+    key === 'translations.1.name' ||
+    key === 'translations.my.name' ||
+    key === 'my.name'
+  ) {
+    return 'my_name';
+  }
+  return key;
+}
+
+function mapServerErrorsToFormErrors(
+  serverErrors?: Record<string, unknown>,
+): Record<string, string> {
+  if (!serverErrors) return {};
+
+  const mapped: Record<string, string> = {};
+  for (const [key, value] of Object.entries(serverErrors)) {
+    const message = getErrorMessage(value);
+    if (!message) continue;
+    mapped[mapServerFieldKey(key)] = message;
+  }
+  return mapped;
+}
+
 function resolveTranslation(
   category: BlogCategory,
   locale: 'en' | 'my',
@@ -129,6 +170,10 @@ export default function BlogCategoryForm({ mode, category, onSuccess }: Props) {
         : await createBlogCategory(payload);
 
       if (response.status === 'error') {
+        const serverErrors = mapServerErrorsToFormErrors(response.errors);
+        if (Object.keys(serverErrors).length > 0) {
+          setErrors((prev) => ({ ...prev, ...serverErrors }));
+        }
         throw new Error(response.message || 'Request failed.');
       }
       return response;
