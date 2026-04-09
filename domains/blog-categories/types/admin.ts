@@ -8,7 +8,9 @@ export type BlogCategoryTranslation = {
 export type BlogCategory = {
   id: number;
   is_active: boolean;
-  translations: BlogCategoryTranslation[];
+  name: string;
+  slug: string;
+  description: string;
   timestamps: {
     created_at: string;
     updated_at: string;

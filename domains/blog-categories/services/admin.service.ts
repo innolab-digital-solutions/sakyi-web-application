@@ -10,12 +10,19 @@ import type { BlogCategory } from '../types';
 
 /**
  * Fetches a single blog category for admin edit/detail views.
+ *
+ * Pass `locale` to match list/detail localized fields (`en` | `my`); omit for API default (English).
  */
 export async function getBlogCategoryById(
   id: number,
+  options?: { locale?: 'en' | 'my' },
 ): Promise<ApiResponse<BlogCategory>> {
+  const qs =
+    options?.locale != null
+      ? `?locale=${encodeURIComponent(options.locale)}`
+      : '';
   return http.get<BlogCategory>(
-    ENDPOINTS.ADMIN.MODULES.BLOG_CATEGORIES.DETAIL(String(id)),
+    `${ENDPOINTS.ADMIN.MODULES.BLOG_CATEGORIES.DETAIL(String(id))}${qs}`,
   );
 }
 

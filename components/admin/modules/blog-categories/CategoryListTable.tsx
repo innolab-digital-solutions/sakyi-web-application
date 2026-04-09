@@ -35,14 +35,18 @@ import { deleteBlogCategory } from '@/domains/blog-categories/services';
 import type { BlogCategory } from '@/domains/blog-categories/types';
 import { useTable } from '@/lib/table';
 
-import BlogCategoryFilters from './CategoryFilters';
+import BlogCategoryFilters, {
+  type BlogCategoryListLocale,
+} from './CategoryFilters';
 import BlogCategorySheet from './CategorySheet';
 
-function getTranslationName(
-  category: BlogCategory,
-  locale: 'en' | 'my',
-): string {
-  return category.translations.find((t) => t.locale === locale)?.name ?? '—';
+const BLOG_CATEGORY_LIST_ENDPOINT =
+  ENDPOINTS.ADMIN.MODULES.BLOG_CATEGORIES.LIST;
+
+function listLocaleFromParams(
+  raw: string | undefined,
+): BlogCategoryListLocale {
+  return raw === 'my' ? 'my' : 'en';
 }
 
 export default function BlogCategoryListTable() {
@@ -62,7 +66,7 @@ export default function BlogCategoryListTable() {
     onSuccess: () => {
       toast.success('Category deleted successfully.');
       queryClient.invalidateQueries({
-        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.BLOG_CATEGORIES.LIST],
+        queryKey: ['table', BLOG_CATEGORY_LIST_ENDPOINT],
       });
       queryClient.invalidateQueries({
         queryKey: ['lookup', LOOKUP_ENDPOINTS.BLOG_CATEGORIES],
@@ -84,14 +88,24 @@ export default function BlogCategoryListTable() {
   };
 
   const { rows, controls } = useTable<BlogCategory>(
-    ENDPOINTS.ADMIN.MODULES.BLOG_CATEGORIES.LIST,
+    BLOG_CATEGORY_LIST_ENDPOINT,
     {
       params: {
         sync: true,
         writeInitialToUrl: true,
+        /** Ensures `locale` is present on first load (see docs/table-data-listing-guide.md — extra params). */
+        initial: { locale: 'en' },
+        extra: {
+          mode: 'allowlist',
+          allowlist: ['is_active', 'locale'],
+        },
       },
     },
   );
+
+  const listLocale = listLocaleFromParams(controls.params.values.locale);
+  const nameColumnLabel =
+    listLocale === 'en' ? 'Name (English)' : 'Name (Myanmar)';
 
   const statusFilter = useMemo(() => {
     const v = controls.params.values.is_active;
@@ -124,23 +138,26 @@ export default function BlogCategoryListTable() {
                 is_active: next === 'active' ? '1' : '0',
               });
             }}
+            locale={listLocale}
+            onLocaleChange={(next) => {
+              controls.params.set({ locale: next });
+            }}
           />
         }
       >
         <Table className='min-w-120 table-fixed'>
           <TableHeader className='bg-muted/50 [&_tr]:border-border'>
             <TableRow className='border-border hover:bg-transparent'>
-              <TableHead className='w-[30%]'>Name (EN)</TableHead>
-              <TableHead className='w-[30%]'>Name (MY)</TableHead>
-              <TableHead className='w-[20%]'>Status</TableHead>
-              <TableHead className='w-[20%] text-right'>Actions</TableHead>
+              <TableHead className='w-[46%]'>{nameColumnLabel}</TableHead>
+              <TableHead className='w-[27%]'>Status</TableHead>
+              <TableHead className='w-[27%] text-right'>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {showSkeleton &&
               Array.from({ length: 3 }).map((_, row) => (
                 <TableRow key={`skeleton-${row}`}>
-                  {Array.from({ length: 4 }).map((_, col) => (
+                  {Array.from({ length: 3 }).map((_, col) => (
                     <TableCell key={col} className='py-3'>
                       <Skeleton className='h-8 w-full' />
                     </TableCell>
@@ -151,7 +168,7 @@ export default function BlogCategoryListTable() {
             {!showSkeleton && query.isError && (
               <TableRow>
                 <TableCell
-                  colSpan={4}
+                  colSpan={3}
                   className='text-destructive py-8 text-center text-sm'
                 >
                   {errorMessage}
@@ -164,7 +181,7 @@ export default function BlogCategoryListTable() {
               query.data?.status === 'success' &&
               rows.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} className='py-14'>
+                  <TableCell colSpan={3} className='py-14'>
                     <div className='mx-auto flex max-w-md flex-col items-center justify-center text-center'>
                       <div className='bg-primary/10 text-primary mb-4 inline-flex size-12 items-center justify-center rounded-full'>
                         <NotebookPenIcon className='size-6' />
@@ -188,12 +205,7 @@ export default function BlogCategoryListTable() {
                 <TableRow key={category.id} className='border-border/80'>
                   <TableCell className='min-w-0 py-2.5 align-middle'>
                     <p className='text-foreground truncate text-sm font-medium'>
-                      {getTranslationName(category, 'en')}
-                    </p>
-                  </TableCell>
-                  <TableCell className='min-w-0 py-2.5 align-middle'>
-                    <p className='text-foreground truncate text-sm'>
-                      {getTranslationName(category, 'my')}
+                      {category.name || '—'}
                     </p>
                   </TableCell>
                   <TableCell className='py-2.5 align-middle'>
@@ -260,7 +272,7 @@ export default function BlogCategoryListTable() {
           <>
             Are you sure you want to delete{' '}
             <span className='text-foreground font-medium'>
-              {deleteCategory ? getTranslationName(deleteCategory, 'en') : ''}
+              {deleteCategory ? deleteCategory.name : ''}
             </span>
             ? This action cannot be undone.
           </>

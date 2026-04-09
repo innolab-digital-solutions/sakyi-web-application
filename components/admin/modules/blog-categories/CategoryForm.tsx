@@ -1,8 +1,12 @@
 'use client';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueries,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import SelectField, {
@@ -17,6 +21,7 @@ import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
 import { ROUTES } from '@/config/routes';
 import {
   createBlogCategory,
+  getBlogCategoryById,
   updateBlogCategory,
 } from '@/domains/blog-categories/services';
 import type { BlogCategory } from '@/domains/blog-categories/types';
@@ -92,14 +97,6 @@ function mapServerErrorsToFormErrors(
   return mapped;
 }
 
-function resolveTranslation(
-  category: BlogCategory,
-  locale: 'en' | 'my',
-): TranslationFields {
-  const t = category.translations.find((tr) => tr.locale === locale);
-  return { name: t?.name ?? '', description: t?.description ?? '' };
-}
-
 export default function BlogCategoryForm({ mode, category, onSuccess }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -109,8 +106,8 @@ export default function BlogCategoryForm({ mode, category, onSuccess }: Props) {
     if (isEdit && category) {
       return {
         is_active: category.is_active,
-        en: resolveTranslation(category, 'en'),
-        my: resolveTranslation(category, 'my'),
+        en: { name: '', description: '' },
+        my: { name: '', description: '' },
       };
     }
     return {
@@ -119,6 +116,77 @@ export default function BlogCategoryForm({ mode, category, onSuccess }: Props) {
       my: { name: '', description: '' },
     };
   });
+
+  const detailHydratedRef = useRef(false);
+
+  const [enDetailQuery, myDetailQuery] = useQueries({
+    queries: [
+      {
+        queryKey: ['blog-category-admin-detail', category?.id, 'en'] as const,
+        enabled: isEdit && category != null,
+        queryFn: async () => {
+          const res = await getBlogCategoryById(category!.id, {
+            locale: 'en',
+          });
+          if (res.status === 'error') {
+            throw new Error(
+              res.message ?? 'Failed to load English translation.',
+            );
+          }
+          return res;
+        },
+      },
+      {
+        queryKey: ['blog-category-admin-detail', category?.id, 'my'] as const,
+        enabled: isEdit && category != null,
+        queryFn: async () => {
+          const res = await getBlogCategoryById(category!.id, {
+            locale: 'my',
+          });
+          if (res.status === 'error') {
+            throw new Error(
+              res.message ?? 'Failed to load Myanmar translation.',
+            );
+          }
+          return res;
+        },
+      },
+    ],
+  });
+
+  useEffect(() => {
+    detailHydratedRef.current = false;
+  }, [category?.id]);
+
+  useEffect(() => {
+    if (!isEdit || !category) return;
+    if (
+      enDetailQuery.data?.status !== 'success' ||
+      myDetailQuery.data?.status !== 'success'
+    ) {
+      return;
+    }
+    if (detailHydratedRef.current) return;
+    detailHydratedRef.current = true;
+    const enCat = enDetailQuery.data.data;
+    const myCat = myDetailQuery.data.data;
+    setFields({
+      is_active: category.is_active,
+      en: {
+        name: enCat.name ?? '',
+        description: enCat.description ?? '',
+      },
+      my: {
+        name: myCat.name ?? '',
+        description: myCat.description ?? '',
+      },
+    });
+  }, [isEdit, category, enDetailQuery.data, myDetailQuery.data]);
+
+  const editDetailLoading =
+    isEdit && (enDetailQuery.isPending || myDetailQuery.isPending);
+  const editDetailError =
+    isEdit && (enDetailQuery.isError || myDetailQuery.isError);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -183,6 +251,9 @@ export default function BlogCategoryForm({ mode, category, onSuccess }: Props) {
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.BLOG_CATEGORIES.LIST],
       });
       queryClient.invalidateQueries({
+        queryKey: ['blog-category-admin-detail'],
+      });
+      queryClient.invalidateQueries({
         queryKey: ['lookup', LOOKUP_ENDPOINTS.BLOG_CATEGORIES],
       });
       toast.success(
@@ -207,6 +278,14 @@ export default function BlogCategoryForm({ mode, category, onSuccess }: Props) {
   return (
     <form onSubmit={handleSubmit} noValidate>
       <div className='space-y-6'>
+        {editDetailLoading && (
+          <p className='text-muted-foreground text-sm'>Loading translations…</p>
+        )}
+        {editDetailError && (
+          <p className='text-destructive text-sm'>
+            Could not load category translations. Close and try again.
+          </p>
+        )}
         {/* Translations — tabbed by locale */}
         <Tabs defaultValue='en'>
           <TabsList className='mb-4 w-full'>
@@ -287,7 +366,11 @@ export default function BlogCategoryForm({ mode, category, onSuccess }: Props) {
           >
             Cancel
           </Button>
-          <Button type='submit' className='cursor-pointer' disabled={isPending}>
+          <Button
+            type='submit'
+            className='cursor-pointer'
+            disabled={isPending || editDetailLoading || editDetailError}
+          >
             {isPending
               ? isEdit
                 ? 'Saving…'
