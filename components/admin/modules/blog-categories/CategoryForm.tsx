@@ -1,12 +1,8 @@
 'use client';
 
-import {
-  useMutation,
-  useQueries,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 import SelectField, {
@@ -56,6 +52,15 @@ type EditProps = {
 
 type Props = CreateProps | EditProps;
 
+type FormFieldsProps =
+  | { mode: 'create'; onSuccess?: () => void }
+  | {
+      mode: 'edit';
+      category: BlogCategory;
+      initialFields: FormState;
+      onSuccess?: () => void;
+    };
+
 function getErrorMessage(value: unknown): string | null {
   if (typeof value === 'string') return value;
   if (Array.isArray(value)) {
@@ -97,35 +102,19 @@ function mapServerErrorsToFormErrors(
   return mapped;
 }
 
-export default function BlogCategoryForm({ mode, category, onSuccess }: Props) {
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const isEdit = mode === 'edit';
-
-  const [fields, setFields] = useState<FormState>(() => {
-    if (isEdit && category) {
-      return {
-        is_active: category.is_active,
-        en: { name: '', description: '' },
-        my: { name: '', description: '' },
-      };
-    }
-    return {
-      is_active: true,
-      en: { name: '', description: '' },
-      my: { name: '', description: '' },
-    };
-  });
-
-  const detailHydratedRef = useRef(false);
-
+function BlogCategoryEditFormLoader({
+  category,
+  onSuccess,
+}: {
+  category: BlogCategory;
+  onSuccess?: () => void;
+}) {
   const [enDetailQuery, myDetailQuery] = useQueries({
     queries: [
       {
-        queryKey: ['blog-category-admin-detail', category?.id, 'en'] as const,
-        enabled: isEdit && category != null,
+        queryKey: ['blog-category-admin-detail', category.id, 'en'] as const,
         queryFn: async () => {
-          const res = await getBlogCategoryById(category!.id, {
+          const res = await getBlogCategoryById(category.id, {
             locale: 'en',
           });
           if (res.status === 'error') {
@@ -137,10 +126,9 @@ export default function BlogCategoryForm({ mode, category, onSuccess }: Props) {
         },
       },
       {
-        queryKey: ['blog-category-admin-detail', category?.id, 'my'] as const,
-        enabled: isEdit && category != null,
+        queryKey: ['blog-category-admin-detail', category.id, 'my'] as const,
         queryFn: async () => {
-          const res = await getBlogCategoryById(category!.id, {
+          const res = await getBlogCategoryById(category.id, {
             locale: 'my',
           });
           if (res.status === 'error') {
@@ -154,39 +142,66 @@ export default function BlogCategoryForm({ mode, category, onSuccess }: Props) {
     ],
   });
 
-  useEffect(() => {
-    detailHydratedRef.current = false;
-  }, [category?.id]);
+  if (enDetailQuery.isPending || myDetailQuery.isPending) {
+    return (
+      <p className='text-muted-foreground text-sm'>Loading translations…</p>
+    );
+  }
 
-  useEffect(() => {
-    if (!isEdit || !category) return;
-    if (
-      enDetailQuery.data?.status !== 'success' ||
-      myDetailQuery.data?.status !== 'success'
-    ) {
-      return;
-    }
-    if (detailHydratedRef.current) return;
-    detailHydratedRef.current = true;
-    const enCat = enDetailQuery.data.data;
-    const myCat = myDetailQuery.data.data;
-    setFields({
-      is_active: category.is_active,
-      en: {
-        name: enCat.name ?? '',
-        description: enCat.description ?? '',
-      },
-      my: {
-        name: myCat.name ?? '',
-        description: myCat.description ?? '',
-      },
-    });
-  }, [isEdit, category, enDetailQuery.data, myDetailQuery.data]);
+  if (enDetailQuery.isError || myDetailQuery.isError) {
+    return (
+      <p className='text-destructive text-sm'>
+        Could not load category translations. Close and try again.
+      </p>
+    );
+  }
 
-  const editDetailLoading =
-    isEdit && (enDetailQuery.isPending || myDetailQuery.isPending);
-  const editDetailError =
-    isEdit && (enDetailQuery.isError || myDetailQuery.isError);
+  if (
+    enDetailQuery.data?.status !== 'success' ||
+    myDetailQuery.data?.status !== 'success'
+  ) {
+    return null;
+  }
+
+  const enCat = enDetailQuery.data.data;
+  const myCat = myDetailQuery.data.data;
+  const initialFields: FormState = {
+    is_active: category.is_active,
+    en: {
+      name: enCat.name ?? '',
+      description: enCat.description ?? '',
+    },
+    my: {
+      name: myCat.name ?? '',
+      description: myCat.description ?? '',
+    },
+  };
+
+  return (
+    <BlogCategoryFormFields
+      mode='edit'
+      category={category}
+      initialFields={initialFields}
+      onSuccess={onSuccess}
+    />
+  );
+}
+
+function BlogCategoryFormFields(props: FormFieldsProps) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const isEdit = props.mode === 'edit';
+  const category = isEdit ? props.category : undefined;
+
+  const [fields, setFields] = useState<FormState>(() =>
+    props.mode === 'edit'
+      ? props.initialFields
+      : {
+          is_active: true,
+          en: { name: '', description: '' },
+          my: { name: '', description: '' },
+        },
+  );
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -233,9 +248,10 @@ export default function BlogCategoryForm({ mode, category, onSuccess }: Props) {
   const { mutateAsync, isPending } = useMutation({
     mutationFn: async () => {
       const payload = buildPayload();
-      const response = isEdit
-        ? await updateBlogCategory(category.id, payload)
-        : await createBlogCategory(payload);
+      const response =
+        isEdit && category
+          ? await updateBlogCategory(category.id, payload)
+          : await createBlogCategory(payload);
 
       if (response.status === 'error') {
         const serverErrors = mapServerErrorsToFormErrors(response.errors);
@@ -261,6 +277,7 @@ export default function BlogCategoryForm({ mode, category, onSuccess }: Props) {
           ? 'Category updated successfully.'
           : 'Category created successfully.',
       );
+      const onSuccess = props.onSuccess;
       if (onSuccess) onSuccess();
       else router.push(ROUTES.ADMIN.MODULES.BLOG_CATEGORIES.LIST);
     },
@@ -275,18 +292,11 @@ export default function BlogCategoryForm({ mode, category, onSuccess }: Props) {
     mutateAsync();
   };
 
+  const onSuccess = props.onSuccess;
+
   return (
     <form onSubmit={handleSubmit} noValidate>
       <div className='space-y-6'>
-        {editDetailLoading && (
-          <p className='text-muted-foreground text-sm'>Loading translations…</p>
-        )}
-        {editDetailError && (
-          <p className='text-destructive text-sm'>
-            Could not load category translations. Close and try again.
-          </p>
-        )}
-        {/* Translations — tabbed by locale */}
         <Tabs defaultValue='en'>
           <TabsList className='mb-4 w-full'>
             <TabsTrigger value='en' className='flex-1 cursor-pointer'>
@@ -366,11 +376,7 @@ export default function BlogCategoryForm({ mode, category, onSuccess }: Props) {
           >
             Cancel
           </Button>
-          <Button
-            type='submit'
-            className='cursor-pointer'
-            disabled={isPending || editDetailLoading || editDetailError}
-          >
+          <Button type='submit' className='cursor-pointer' disabled={isPending}>
             {isPending
               ? isEdit
                 ? 'Saving…'
@@ -383,4 +389,16 @@ export default function BlogCategoryForm({ mode, category, onSuccess }: Props) {
       </div>
     </form>
   );
+}
+
+export default function BlogCategoryForm(props: Props) {
+  if (props.mode === 'edit') {
+    return (
+      <BlogCategoryEditFormLoader
+        category={props.category}
+        onSuccess={props.onSuccess}
+      />
+    );
+  }
+  return <BlogCategoryFormFields mode='create' onSuccess={props.onSuccess} />;
 }

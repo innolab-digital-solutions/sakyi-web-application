@@ -43,9 +43,7 @@ import BlogCategorySheet from './CategorySheet';
 const BLOG_CATEGORY_LIST_ENDPOINT =
   ENDPOINTS.ADMIN.MODULES.BLOG_CATEGORIES.LIST;
 
-function listLocaleFromParams(
-  raw: string | undefined,
-): BlogCategoryListLocale {
+function listLocaleFromParams(raw: string | undefined): BlogCategoryListLocale {
   return raw === 'my' ? 'my' : 'en';
 }
 
