@@ -54,11 +54,27 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Divider and Copyright */}
-        <div className='border-border border-t pt-8'>
-          <div className='text-muted-foreground flex items-center space-x-2 font-sans text-sm font-medium'>
-            <Copyright className='h-4 w-4' />
-            <span>2026 SaKyi Health & Wellness. All rights reserved.</span>
+        {/* Divider, Legal Links and Copyright */}
+        <div className='border-border w-full border-t pt-8'>
+          <div className='flex flex-col items-center gap-4'>
+            <div className='flex items-center gap-6'>
+              <Link
+                href={ROUTES.MARKETING.PRIVACY_POLICY}
+                className='text-muted-foreground hover:text-foreground font-sans text-sm font-medium transition-colors'
+              >
+                Privacy Policy
+              </Link>
+              <Link
+                href={ROUTES.MARKETING.TERMS_OF_SERVICE}
+                className='text-muted-foreground hover:text-foreground font-sans text-sm font-medium transition-colors'
+              >
+                Terms of Service
+              </Link>
+            </div>
+            <div className='text-muted-foreground flex items-center space-x-2 font-sans text-sm font-medium'>
+              <Copyright className='h-4 w-4' />
+              <span>2026 SaKyi Health & Wellness. All rights reserved.</span>
+            </div>
           </div>
         </div>
       </div>

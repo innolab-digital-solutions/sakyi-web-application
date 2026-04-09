@@ -41,6 +41,12 @@ export const ADMIN_ROUTES = {
       EDIT: (id: string) => `${BASE}/nutrition-items/${id}/edit`,
       DETAIL: (id: string) => `${BASE}/nutrition-items/${id}`,
     },
+    BLOG_CATEGORIES: {
+      LIST: `${BASE}/blog-categories`,
+      CREATE: `${BASE}/blog-categories/create`,
+      EDIT: (id: string) => `${BASE}/blog-categories/${id}/edit`,
+      DETAIL: (id: string) => `${BASE}/blog-categories/${id}`,
+    },
     BLOG_POSTS: {
       LIST: `${BASE}/blog-posts`,
       CREATE: `${BASE}/blog-posts/create`,

@@ -7,6 +7,7 @@ import {
   FolderKanban,
   LayoutDashboard,
   ListChecks,
+  NotebookPen,
   Newspaper,
   Scale,
   UserCog,
@@ -122,6 +123,18 @@ export const ADMIN_NAVIGATION: NavItem[] = [
     subitems: [
       { name: 'Categories', path: '#' },
       { name: 'Exercises', path: '#' },
+    ],
+  },
+  {
+    name: 'Blog',
+    icon: NotebookPen,
+    path: '#',
+    subitems: [
+      {
+        name: 'Categories',
+        path: ADMIN_ROUTES.MODULES.BLOG_CATEGORIES.LIST,
+      },
+      { name: 'Posts', path: '#' },
     ],
   },
 ] as const;
