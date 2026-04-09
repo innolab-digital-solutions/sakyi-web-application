@@ -9,7 +9,7 @@ import {
   Trash2Icon,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useMemo, useState, useOptimistic, useTransition } from 'react';
+import { useMemo, useOptimistic, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';

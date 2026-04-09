@@ -40,14 +40,14 @@ import { LANGUAGES } from '@/config/languages';
 import { ROUTES } from '@/config/routes';
 import {
   BlogPostCreateSchema,
-  BlogPostUpdateSchema,
   type BlogPostTranslationInput,
+  BlogPostUpdateSchema,
 } from '@/domains/blogs/schemas';
-import type { AdminBlogPost } from '@/domains/blogs/types';
 import {
-  getBlogCategoriesLookup,
   type BlogCategoryLookup,
+  getBlogCategoriesLookup,
 } from '@/domains/blogs/services';
+import type { AdminBlogPost } from '@/domains/blogs/types';
 import { useForm } from '@/lib/form';
 
 const STATUS_OPTIONS: SelectFieldOption[] = [
@@ -195,7 +195,8 @@ export default function BlogPostForm({ mode, post }: Props) {
     const myTranslation = translations.find((t) => t.locale === 'my');
     if (!myTranslation?.title?.trim() || !myTranslation?.content?.trim()) {
       toast.error('Myanmar translation is required.', {
-        description: 'Please fill in the Myanmar title and content before saving.',
+        description:
+          'Please fill in the Myanmar title and content before saving.',
         duration: 5000,
       });
       return;
@@ -210,6 +211,7 @@ export default function BlogPostForm({ mode, post }: Props) {
           queryClient.invalidateQueries({
             queryKey: [
               ENDPOINTS.ADMIN.MODULES.BLOG_POSTS.DETAIL(String(post.id)),
+              post.id,
             ],
           });
         }

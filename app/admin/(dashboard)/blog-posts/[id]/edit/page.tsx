@@ -22,7 +22,7 @@ export default function BlogPostEditPage({ params }: BlogPostEditPageProps) {
   const id = Number.parseInt(idParam, 10);
 
   const { data, isPending, isError, error } = useQuery({
-    queryKey: [ENDPOINTS.ADMIN.MODULES.BLOG_POSTS.DETAIL(idParam)],
+    queryKey: [ENDPOINTS.ADMIN.MODULES.BLOG_POSTS.DETAIL(idParam), id],
     queryFn: async () => {
       const response = await getAdminBlogPostById(id);
       if (response.status === 'error') throw new Error(response.message);
