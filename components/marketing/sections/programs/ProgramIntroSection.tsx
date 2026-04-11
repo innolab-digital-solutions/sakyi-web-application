@@ -15,7 +15,10 @@ const ProgramIntroSection = () => {
 
   return (
     <SectionContainer id='program-intro-section' className='bg-background'>
-      <div className='flex min-w-0 flex-col items-center justify-center space-y-6 text-center'>
+      <div
+        className='flex min-w-0 flex-col items-center justify-center space-y-6 text-center'
+        data-aos='fade-up'
+      >
         <SectionBadge
           icon={<Sparkles className='h-4 w-4' />}
           text={translate('marketing.pages.programs.hero.badge')}

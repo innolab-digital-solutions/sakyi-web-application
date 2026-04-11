@@ -81,7 +81,10 @@ const FAQSection = () => {
       </div>
 
       {/* Header */}
-      <div className='flex min-w-0 flex-col items-center justify-center space-y-6 text-center'>
+      <div
+        className='flex min-w-0 flex-col items-center justify-center space-y-6 text-center'
+        data-aos='fade-up'
+      >
         <SectionBadge
           icon={<HelpCircle className='h-4 w-4' />}
           text={translate('marketing.pages.programs.faq.badge')}
@@ -107,12 +110,17 @@ const FAQSection = () => {
       {/* FAQ Items */}
       <div className='mx-auto mt-12 max-w-4xl space-y-4'>
         {FAQS.map((faq, index) => (
-          <FAQCard
+          <div
             key={index}
-            question={faq.question}
-            answer={faq.answer}
-            index={index}
-          />
+            data-aos='fade-up'
+            data-aos-delay={`${Math.min(index, 3) * 100}`}
+          >
+            <FAQCard
+              question={faq.question}
+              answer={faq.answer}
+              index={index}
+            />
+          </div>
         ))}
       </div>
     </SectionContainer>

@@ -52,7 +52,10 @@ const ConnectWithUsSection = () => {
   return (
     <SectionContainer id='connect-with-us-section' className='bg-white'>
       {/* Section Header: Badge, headline, supporting summary */}
-      <div className='flex min-w-0 flex-col items-center justify-center space-y-6'>
+      <div
+        className='flex min-w-0 flex-col items-center justify-center space-y-6'
+        data-aos='fade-up'
+      >
         {/* Social Channels Badge */}
         <SectionBadge
           icon={<MessageCircle className='h-4 w-4' />}
@@ -82,14 +85,15 @@ const ConnectWithUsSection = () => {
       {/* Social Channels Grid */}
       <div className='mt-12 grid min-w-0 gap-6 md:grid-cols-2 lg:mt-16 lg:grid-cols-4 lg:gap-8'>
         {socialChannels.map((channel, index) => (
-          <SocialChannelCard
-            key={index}
-            title={channel.title}
-            description={channel.description}
-            icon={channel.icon}
-            username={channel.username}
-            link={channel.link}
-          />
+          <div key={index} data-aos='fade-up' data-aos-delay={`${index * 100}`}>
+            <SocialChannelCard
+              title={channel.title}
+              description={channel.description}
+              icon={channel.icon}
+              username={channel.username}
+              link={channel.link}
+            />
+          </div>
         ))}
       </div>
     </SectionContainer>

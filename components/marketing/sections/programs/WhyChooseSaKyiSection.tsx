@@ -84,7 +84,10 @@ const WhyChooseSaKyiSection = () => {
   ];
   return (
     <SectionContainer id='why-choose-sakyi-section' className='bg-white'>
-      <div className='flex min-w-0 flex-col items-center justify-center space-y-6 text-center'>
+      <div
+        className='flex min-w-0 flex-col items-center justify-center space-y-6 text-center'
+        data-aos='fade-up'
+      >
         <SectionBadge
           icon={<CheckCircle className='h-4 w-4' />}
           text={translate('marketing.pages.programs.why-choose-sakyi.badge')}

@@ -18,7 +18,7 @@ const CallToActionSection = () => {
       id='home-cta-section'
       className='bg-linear-to-br from-[#35bec5] to-[#0c96c4]'
     >
-      <div className='mb-10 space-y-6 text-center'>
+      <div className='mb-10 space-y-6 text-center' data-aos='fade-up'>
         <Heading2 lang={language} className='text-white'>
           {translate('marketing.pages.home.call-to-action.title')}
         </Heading2>
@@ -28,7 +28,11 @@ const CallToActionSection = () => {
         </Body2>
       </div>
 
-      <div className='flex flex-col items-stretch justify-center gap-4 sm:flex-row sm:items-center sm:justify-center sm:gap-5'>
+      <div
+        className='flex flex-col items-stretch justify-center gap-4 sm:flex-row sm:items-center sm:justify-center sm:gap-5'
+        data-aos='fade-up'
+        data-aos-delay='100'
+      >
         <PrimaryCtaLink href={ROUTES.MARKETING.PROGRAMS}>
           <Heart className='mr-2 h-5 w-5' />
           <span className='relative z-10'>

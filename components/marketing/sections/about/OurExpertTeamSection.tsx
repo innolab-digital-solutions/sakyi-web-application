@@ -72,7 +72,10 @@ const OurExpertTeamSection = () => {
   return (
     <SectionContainer id='our-expert-team-section' className='bg-white'>
       <div className='min-w-0 space-y-16'>
-        <div className='mx-auto max-w-3xl min-w-0 space-y-6 text-center'>
+        <div
+          className='mx-auto max-w-3xl min-w-0 space-y-6 text-center'
+          data-aos='fade-up'
+        >
           <SectionBadge
             icon={<Zap className='h-4 w-4' />}
             text={translate('marketing.pages.about.our-team.badge')}
