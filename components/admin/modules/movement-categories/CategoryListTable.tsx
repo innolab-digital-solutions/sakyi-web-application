@@ -12,7 +12,6 @@ import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import DeleteAlertDialog from '@/components/shared/dialogs/DeleteAlertDialog';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -205,12 +204,14 @@ export default function MovementCategoryListTable() {
                     )}
                   </TableCell>
                   <TableCell className='py-2.5 align-middle'>
-                    <Badge
-                      variant={category.is_active ? 'default' : 'secondary'}
-                      className='font-normal'
+                    <span
+                      className={`inline-flex items-center gap-1.5 text-xs font-medium ${category.is_active ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}
                     >
+                      <span
+                        className={`size-1.5 rounded-full ${category.is_active ? 'bg-emerald-500' : 'bg-muted-foreground/40'}`}
+                      />
                       {category.is_active ? 'Active' : 'Inactive'}
-                    </Badge>
+                    </span>
                   </TableCell>
                   <TableCell className='py-2.5 pr-2 text-right align-middle'>
                     <DropdownMenu>

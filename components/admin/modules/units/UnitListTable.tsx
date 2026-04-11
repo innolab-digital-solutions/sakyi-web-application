@@ -206,12 +206,14 @@ export default function UnitListTable() {
                       </Badge>
                     </TableCell>
                     <TableCell className='py-2.5 align-middle'>
-                      <Badge
-                        variant={unit.is_active ? 'default' : 'secondary'}
-                        className='font-normal'
+                      <span
+                        className={`inline-flex items-center gap-1.5 text-xs font-medium ${unit.is_active ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}
                       >
+                        <span
+                          className={`size-1.5 rounded-full ${unit.is_active ? 'bg-emerald-500' : 'bg-muted-foreground/40'}`}
+                        />
                         {unit.is_active ? 'Active' : 'Inactive'}
-                      </Badge>
+                      </span>
                     </TableCell>
                     <TableCell className='py-2.5 pr-2 text-right align-middle'>
                       <DropdownMenu>

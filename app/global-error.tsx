@@ -6,17 +6,14 @@ import { reportClientError } from '@/lib/sentry/client';
 
 type GlobalErrorProps = {
   error: Error & { digest?: string };
-  unstable_retry: () => void;
+  reset: () => void;
 };
 
 /**
  * Catches errors in the root layout. Must include `html` and `body`.
  * @see https://nextjs.org/docs/app/api-reference/file-conventions/error
  */
-export default function GlobalError({
-  error,
-  unstable_retry,
-}: GlobalErrorProps) {
+export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
     reportClientError(error, { digest: error.digest, segment: 'global' });
   }, [error]);
@@ -29,7 +26,7 @@ export default function GlobalError({
           <button
             type='button'
             className='rounded-md border px-4 py-2 text-sm'
-            onClick={() => unstable_retry()}
+            onClick={() => reset()}
           >
             Try again
           </button>
