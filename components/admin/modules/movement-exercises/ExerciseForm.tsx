@@ -316,8 +316,8 @@ export default function ExerciseForm({ mode, exercise }: Props) {
               <CardContent>
                 {mediaItems.length === 0 ? (
                   <p className='text-muted-foreground py-4 text-center text-sm'>
-                    No media added. Click &quot;Add media&quot; to attach videos, images,
-                    or links.
+                    No media added. Click &quot;Add media&quot; to attach
+                    videos, images, or links.
                   </p>
                 ) : (
                   <div className='space-y-3'>
