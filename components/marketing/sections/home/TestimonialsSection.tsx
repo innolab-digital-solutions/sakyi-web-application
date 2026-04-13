@@ -11,7 +11,10 @@ const TestimonialsSection = () => {
 
   return (
     <SectionContainer id='testimonials-section' className='bg-background'>
-      <div className='mx-auto max-w-3xl min-w-0 space-y-6 text-center'>
+      <div
+        className='mx-auto max-w-3xl min-w-0 space-y-6 text-center'
+        data-aos='fade-up'
+      >
         <SectionBadge
           icon={null}
           text={translate('marketing.pages.home.testimonials.badge')}

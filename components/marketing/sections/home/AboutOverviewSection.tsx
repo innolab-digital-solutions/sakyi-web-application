@@ -51,7 +51,7 @@ const AboutOverviewSection = () => {
     <SectionContainer id='about-overview-section' className='bg-background'>
       <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
         {/* Left: Decorative image & floating cards */}
-        <div className='relative min-w-0'>
+        <div className='relative min-w-0' data-aos='fade-right'>
           <div className='relative'>
             <DecorativeImage
               src='/images/home-about.jpg'
@@ -81,7 +81,7 @@ const AboutOverviewSection = () => {
         </div>
 
         {/* Right: Textual content and features */}
-        <div className='min-w-0 space-y-8'>
+        <div className='min-w-0 space-y-8' data-aos='fade-left'>
           <div className='space-y-6'>
             {/* Section badge */}
             <SectionBadge

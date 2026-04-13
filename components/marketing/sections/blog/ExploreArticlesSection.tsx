@@ -32,8 +32,11 @@ const ExploreArticlesSection = () => {
 
   return (
     <SectionContainer id='explore-articles-section' className='bg-white'>
-      {/* Header — unchanged */}
-      <div className='flex min-w-0 flex-col items-center justify-center space-y-6 text-center'>
+      {/* Header */}
+      <div
+        className='flex min-w-0 flex-col items-center justify-center space-y-6 text-center'
+        data-aos='fade-up'
+      >
         <SectionBadge
           icon={<BookOpen className='h-4 w-4' />}
           text={translate('marketing.pages.blog.articles.badge')}

@@ -25,7 +25,7 @@ const ContactIntroSection = () => {
     <SectionContainer id='contact-intro-section' className='bg-white'>
       <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
         {/* Left side: Text and CTAs */}
-        <div className='min-w-0 space-y-8'>
+        <div className='min-w-0 space-y-8' data-aos='fade-right'>
           {/* Hero badge at the top */}
           <SectionBadge
             icon={<MessageCircle className='h-4 w-4' />}
@@ -70,7 +70,7 @@ const ContactIntroSection = () => {
         </div>
 
         {/* Right side: Hero image and floating cards */}
-        <div className='relative min-w-0'>
+        <div className='relative min-w-0' data-aos='fade-left'>
           {/* Hero decorative image */}
           <DecorativeImage
             src='/images/contact-hero.jpg'

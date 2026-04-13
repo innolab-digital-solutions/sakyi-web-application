@@ -38,7 +38,10 @@ const ExploreProgramsSection = () => {
   return (
     <SectionContainer id='explore-programs-section' className='bg-white'>
       {/* Header */}
-      <div className='flex min-w-0 flex-col items-center justify-center space-y-6 text-center'>
+      <div
+        className='flex min-w-0 flex-col items-center justify-center space-y-6 text-center'
+        data-aos='fade-up'
+      >
         <SectionBadge
           icon={<Grid3X3 className='h-4 w-4' />}
           text={translate('marketing.pages.programs.explore-programs.badge')}

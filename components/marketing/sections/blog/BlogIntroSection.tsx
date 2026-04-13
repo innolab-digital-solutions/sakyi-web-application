@@ -15,7 +15,10 @@ const BlogIntroSection = () => {
   const { language, translate } = useLanguage();
   return (
     <SectionContainer id='blog-intro-section' className='bg-background'>
-      <div className='flex min-w-0 flex-col items-center justify-center space-y-6 text-center'>
+      <div
+        className='flex min-w-0 flex-col items-center justify-center space-y-6 text-center'
+        data-aos='fade-up'
+      >
         <SectionBadge
           icon={<Sparkles className='h-4 w-4' />}
           text={translate('marketing.pages.blog.hero.badge')}

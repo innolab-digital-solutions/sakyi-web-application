@@ -64,7 +64,7 @@ const OurApproachSection = () => {
   return (
     <SectionContainer id='our-approach-section' className='bg-background'>
       <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
-        <div className='min-w-0 space-y-8'>
+        <div className='min-w-0 space-y-8' data-aos='fade-right'>
           <div className='space-y-6'>
             <SectionBadge
               icon={<Zap className='h-4 w-4' />}
@@ -99,7 +99,7 @@ const OurApproachSection = () => {
           </div>
         </div>
 
-        <div className='relative min-w-0'>
+        <div className='relative min-w-0' data-aos='fade-left'>
           <div className='relative'>
             <DecorativeImage
               src='/images/our-approach.jpg'

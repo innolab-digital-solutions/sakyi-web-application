@@ -42,7 +42,10 @@ const OurContactDetailSection = () => {
   return (
     <SectionContainer id='our-contact-detail-section' className='bg-background'>
       {/* Section Header: Badge, headline, supporting summary */}
-      <div className='flex min-w-0 flex-col items-center justify-center space-y-6'>
+      <div
+        className='flex min-w-0 flex-col items-center justify-center space-y-6'
+        data-aos='fade-up'
+      >
         {/* Contact Details Badge */}
         <SectionBadge
           icon={<MessageCircle className='h-4 w-4' />}
@@ -71,13 +74,14 @@ const OurContactDetailSection = () => {
 
       <div className='mt-12 grid min-w-0 gap-6 lg:mt-16 lg:grid-cols-2 lg:gap-8'>
         {contactDetails.map((detail, index) => (
-          <ContactCard
-            key={index}
-            title={detail.title}
-            description={detail.description}
-            icon={detail.icon}
-            value={detail.value}
-          />
+          <div key={index} data-aos='fade-up' data-aos-delay={`${index * 100}`}>
+            <ContactCard
+              title={detail.title}
+              description={detail.description}
+              icon={detail.icon}
+              value={detail.value}
+            />
+          </div>
         ))}
       </div>
     </SectionContainer>
