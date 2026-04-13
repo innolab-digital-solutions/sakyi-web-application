@@ -110,17 +110,12 @@ const FAQSection = () => {
       {/* FAQ Items */}
       <div className='mx-auto mt-12 max-w-4xl space-y-4'>
         {FAQS.map((faq, index) => (
-          <div
+          <FAQCard
             key={index}
-            data-aos='fade-up'
-            data-aos-delay={`${Math.min(index, 3) * 100}`}
-          >
-            <FAQCard
-              question={faq.question}
-              answer={faq.answer}
-              index={index}
-            />
-          </div>
+            question={faq.question}
+            answer={faq.answer}
+            delayMs={Math.min(index, 3) * 100}
+          />
         ))}
       </div>
     </SectionContainer>

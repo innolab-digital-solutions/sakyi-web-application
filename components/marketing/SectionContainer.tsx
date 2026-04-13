@@ -16,7 +16,7 @@ const SectionContainer = ({
     <section
       id={id}
       className={cn(
-        'relative w-full overflow-x-hidden py-16 sm:py-20 lg:py-24',
+        'relative w-full overflow-x-clip py-16 sm:py-20 lg:py-24',
         className,
       )}
     >
