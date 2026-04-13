@@ -280,13 +280,30 @@
     animation: none !important;
     transform: none !important;
   }
+
+  /* Route transitions are disabled here; AOS is also gated in JS to match. */
+  [data-aos] {
+    animation: none !important;
+    transition-duration: 0ms !important;
+    transition-delay: 0ms !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
 }
 
-/* Prevent horizontal overflow on mobile; site sections rely on this */
-html,
+/*
+ * Prevent horizontal bleed with a single vertical scrollport.
+ * Avoid `overflow-x` on both html and body — paired overflow often yields two
+ * `overflow-y: auto` boxes (double scrollbars) and desyncs `window` scroll from
+ * what the user drags, which breaks AOS trigger math.
+ */
+html {
+  overflow-x: clip;
+  max-width: 100%;
+}
+
 body {
-  overflow-x: hidden;
-  width: 100%;
+  max-width: 100%;
 }
 
 /* Myanmar: prevent text cut-off and reduce excess spacing (lang set by LanguageContext) */

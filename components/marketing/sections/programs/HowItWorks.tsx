@@ -67,7 +67,10 @@ const HowItWorks = () => {
 
   return (
     <SectionContainer id='program-process-section' className='bg-background'>
-      <div className='flex min-w-0 flex-col items-center justify-center space-y-6 text-center'>
+      <div
+        className='flex min-w-0 flex-col items-center justify-center space-y-6 text-center'
+        data-aos='fade-up'
+      >
         <SectionBadge
           icon={<Settings className='h-4 w-4' />}
           text={translate('marketing.pages.programs.how-it-works.badge')}
@@ -93,14 +96,19 @@ const HowItWorks = () => {
       </div>
 
       <div className='mt-12 grid gap-8 lg:grid-cols-2'>
-        {steps.map((step) => (
-          <HowItWorksStepCard
+        {steps.map((step, index) => (
+          <div
             key={step.number}
-            step={step.number}
-            title={step.title}
-            description={step.description}
-            icon={<step.icon className='h-7 w-7 text-white' />}
-          />
+            data-aos='fade-up'
+            data-aos-delay={`${index * 100}`}
+          >
+            <HowItWorksStepCard
+              step={step.number}
+              title={step.title}
+              description={step.description}
+              icon={<step.icon className='h-7 w-7 text-white' />}
+            />
+          </div>
         ))}
       </div>
     </SectionContainer>

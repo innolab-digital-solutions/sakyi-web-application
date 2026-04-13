@@ -48,7 +48,7 @@ const MissionAndPhilosophySection = () => {
     <SectionContainer id='mission-and-philosophy-section' className='bg-white'>
       <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
         {/* Left: Decorative Image with Floating Cards */}
-        <div className='relative min-w-0'>
+        <div className='relative min-w-0' data-aos='fade-right'>
           <div className='relative'>
             <DecorativeImage
               src='/images/about-mission.jpg'
@@ -84,7 +84,7 @@ const MissionAndPhilosophySection = () => {
         </div>
 
         {/* Right: Section Title, Description, and Feature List */}
-        <div className='min-w-0 space-y-8'>
+        <div className='min-w-0 space-y-8' data-aos='fade-left'>
           <div className='space-y-6'>
             <SectionBadge
               icon={<Compass className='h-4 w-4' />}

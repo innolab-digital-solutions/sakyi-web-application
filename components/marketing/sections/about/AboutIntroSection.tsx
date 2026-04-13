@@ -16,7 +16,7 @@ const AboutIntroSection = () => {
     <SectionContainer id='about-intro-section' className='bg-background'>
       <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
         {/* Left: Badge, Title, Description */}
-        <div className='min-w-0 space-y-6'>
+        <div className='min-w-0 space-y-6' data-aos='fade-right'>
           <SectionBadge
             icon={<Users className='h-4 w-4' />}
             text={translate('marketing.pages.about.hero.badge')}
@@ -39,7 +39,7 @@ const AboutIntroSection = () => {
         </div>
 
         {/* Right: Image Cards Grid */}
-        <div className='relative min-w-0'>
+        <div className='relative min-w-0' data-aos='fade-left'>
           <div className='grid grid-cols-2 gap-4'>
             <SectionImageCard
               src='/images/about-hero-2.jpg'

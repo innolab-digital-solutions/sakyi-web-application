@@ -11,16 +11,16 @@ import {
 type FAQCardProps = {
   question: string;
   answer: string;
-  index?: number;
+  delayMs?: number;
 };
 
-const FAQCard = ({ question, answer, index = 0 }: FAQCardProps) => {
+const FAQCard = ({ question, answer, delayMs = 0 }: FAQCardProps) => {
   return (
     <Collapsible className='group'>
       <div
         className='overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-md'
         data-aos='fade-up'
-        data-aos-delay={`${index * 100}`}
+        data-aos-delay={`${delayMs}`}
       >
         <CollapsibleTrigger className='flex w-full items-center justify-between bg-slate-50 p-6 text-left transition-colors duration-300'>
           <h3

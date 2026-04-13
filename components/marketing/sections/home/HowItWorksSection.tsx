@@ -57,7 +57,10 @@ const HowItWorksSection = () => {
   return (
     <SectionContainer id='how-it-works-section' className='bg-background'>
       {/* Section Header: Badge, headline, supporting summary */}
-      <div className='flex min-w-0 flex-col items-center justify-center space-y-6'>
+      <div
+        className='flex min-w-0 flex-col items-center justify-center space-y-6'
+        data-aos='fade-up'
+      >
         <SectionBadge
           icon={<Settings className='h-4 w-4' />}
           text={translate('marketing.pages.home.how-it-works.badge')}
@@ -80,13 +83,14 @@ const HowItWorksSection = () => {
       {/* Steps Grid: Visual guide for the 3-step process */}
       <div className='mt-12 grid min-w-0 gap-6 lg:mt-16 lg:grid-cols-3 lg:gap-8'>
         {steps.map((step, index) => (
-          <HowItWorksStepCard
-            key={index}
-            step={step.step}
-            title={step.title}
-            description={step.description}
-            icon={step.icon}
-          />
+          <div key={index} data-aos='fade-up' data-aos-delay={`${index * 100}`}>
+            <HowItWorksStepCard
+              step={step.step}
+              title={step.title}
+              description={step.description}
+              icon={step.icon}
+            />
+          </div>
         ))}
       </div>
 

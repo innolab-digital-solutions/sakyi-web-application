@@ -16,7 +16,10 @@ const LatestArticlesSection = () => {
 
   return (
     <SectionContainer id='latest-articles-section' className='bg-white'>
-      <div className='mx-auto max-w-3xl min-w-0 space-y-6 text-center'>
+      <div
+        className='mx-auto max-w-3xl min-w-0 space-y-6 text-center'
+        data-aos='fade-up'
+      >
         {/* Section badge for Latest Articles */}
         <SectionBadge
           icon={null}

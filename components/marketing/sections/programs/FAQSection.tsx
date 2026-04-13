@@ -81,7 +81,10 @@ const FAQSection = () => {
       </div>
 
       {/* Header */}
-      <div className='flex min-w-0 flex-col items-center justify-center space-y-6 text-center'>
+      <div
+        className='flex min-w-0 flex-col items-center justify-center space-y-6 text-center'
+        data-aos='fade-up'
+      >
         <SectionBadge
           icon={<HelpCircle className='h-4 w-4' />}
           text={translate('marketing.pages.programs.faq.badge')}
@@ -111,7 +114,7 @@ const FAQSection = () => {
             key={index}
             question={faq.question}
             answer={faq.answer}
-            index={index}
+            delayMs={Math.min(index, 3) * 100}
           />
         ))}
       </div>

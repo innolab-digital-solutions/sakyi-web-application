@@ -48,7 +48,10 @@ const SendUsMessageSection = () => {
   return (
     <SectionContainer id='send-us-message-section' className='bg-slate-50'>
       {/* Header */}
-      <div className='flex min-w-0 flex-col items-center justify-center space-y-6'>
+      <div
+        className='flex min-w-0 flex-col items-center justify-center space-y-6'
+        data-aos='fade-up'
+      >
         <SectionBadge
           icon={<MessageCircle className='h-4 w-4' />}
           text={translate('marketing.pages.contact.contact-form.badge')}
@@ -69,7 +72,11 @@ const SendUsMessageSection = () => {
       </div>
 
       {/* Form */}
-      <div className='mt-16 flex justify-center'>
+      <div
+        className='mt-16 flex justify-center'
+        data-aos='fade-up'
+        data-aos-delay='100'
+      >
         <div className='w-full max-w-2xl'>
           <form
             onSubmit={handleSubmit}
