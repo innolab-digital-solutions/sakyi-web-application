@@ -67,7 +67,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
   {
     name: 'Enrollments',
     icon: ClipboardCheck,
-    path: '#',
+    path: ADMIN_ROUTES.MODULES.ENROLLMENT_REQUESTS.LIST,
     subitems: [],
   },
   {

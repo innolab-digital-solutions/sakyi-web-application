@@ -60,6 +60,11 @@ export const ADMIN_ENDPOINTS = {
       DELETE: (id: string) => `${BASE}/blog-categories/${id}`,
       DETAIL: (id: string) => `${BASE}/blog-categories/${id}`,
     },
+    ENROLLMENT_REQUESTS: {
+      LIST: `${BASE}/enrollment-requests`,
+      UPDATE: (id: string) => `${BASE}/enrollment-requests/${id}`,
+      DETAIL: (id: string) => `${BASE}/enrollment-requests/${id}`,
+    },
     ONBOARDING: {
       TEMPLATE: (version: number) => `${BASE}/onboarding/templates/${version}`,
       INTAKES: {
