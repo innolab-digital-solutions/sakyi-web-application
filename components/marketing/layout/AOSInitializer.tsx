@@ -4,10 +4,16 @@ import 'aos/dist/aos.css';
 
 import { PropsWithChildren, useEffect } from 'react';
 
+type AosApi = {
+  init: (settings?: Record<string, unknown>) => unknown;
+  refresh: () => unknown;
+  refreshHard: () => unknown;
+};
+
 const AOSInitializer = ({ children }: PropsWithChildren) => {
   useEffect(() => {
     let mounted = true;
-    let aosModule: (typeof import('aos'))['default'] | null = null;
+    let aosModule: AosApi | null = null;
     let didInit = false;
     let initInFlight = false;
 
@@ -58,19 +64,16 @@ const AOSInitializer = ({ children }: PropsWithChildren) => {
     };
 
     const initAOS = async () => {
-      if (
-        !mounted ||
-        prefersReducedMotion.matches ||
-        didInit ||
-        initInFlight
-      ) {
+      if (!mounted || prefersReducedMotion.matches || didInit || initInFlight) {
         return;
       }
 
       initInFlight = true;
 
       try {
-        const AOS = (await import('aos')).default;
+        const imported = await import('aos');
+        const AOS = ((imported as unknown as { default?: AosApi }).default ??
+          (imported as unknown as AosApi)) as AosApi;
         if (!mounted || prefersReducedMotion.matches || didInit) {
           initInFlight = false;
           return;
@@ -126,7 +129,9 @@ const AOSInitializer = ({ children }: PropsWithChildren) => {
                 layoutResizeObserver.observe(document.body);
               }
 
-              window.addEventListener('scroll', onWindowScroll, { passive: true });
+              window.addEventListener('scroll', onWindowScroll, {
+                passive: true,
+              });
 
               for (const delayMs of [400, 1200, 2400]) {
                 window.setTimeout(() => {
