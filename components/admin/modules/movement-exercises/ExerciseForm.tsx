@@ -204,6 +204,11 @@ export default function ExerciseForm({ mode, exercise }: Props) {
             toast.success('Exercise updated successfully.');
             router.push(ROUTES.ADMIN.MODULES.MOVEMENT_EXERCISES.LIST);
           },
+          onError: () => {
+            toast.error(
+              'Please review the highlighted fields and try submitting again.',
+            );
+          },
           onFailure: (error) => {
             toast.error(error.message ?? 'Failed to update exercise.');
           },
@@ -219,6 +224,11 @@ export default function ExerciseForm({ mode, exercise }: Props) {
         });
         toast.success('Exercise created successfully.');
         router.push(ROUTES.ADMIN.MODULES.MOVEMENT_EXERCISES.LIST);
+      },
+      onError: () => {
+        toast.error(
+          'Please review the highlighted fields and try submitting again.',
+        );
       },
       onFailure: (error) => {
         toast.error(error.message ?? 'Failed to create exercise.');
@@ -347,6 +357,11 @@ export default function ExerciseForm({ mode, exercise }: Props) {
                               ))}
                             </SelectContent>
                           </Select>
+                          {form.errors[`media.${index}.type`] ? (
+                            <p className='text-destructive mt-1 text-xs'>
+                              {form.errors[`media.${index}.type`]}
+                            </p>
+                          ) : null}
                         </div>
                         <div className='flex-1'>
                           <Label className='text-muted-foreground mb-1.5 block text-xs'>
@@ -361,6 +376,11 @@ export default function ExerciseForm({ mode, exercise }: Props) {
                             }
                             className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-sm transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50'
                           />
+                          {form.errors[`media.${index}.url`] ? (
+                            <p className='text-destructive mt-1 text-xs'>
+                              {form.errors[`media.${index}.url`]}
+                            </p>
+                          ) : null}
                         </div>
                         <div className='pt-6'>
                           <Button
@@ -407,6 +427,7 @@ export default function ExerciseForm({ mode, exercise }: Props) {
                       (vals as string[]).map(Number),
                     )
                   }
+                  error={form.errors.equipment_ids}
                 />
               </CardContent>
             </Card>
