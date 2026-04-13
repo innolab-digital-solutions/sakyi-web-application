@@ -9,7 +9,7 @@ export const getPrograms = async (
   limit: number,
 ): Promise<ApiResponse<Program[]>> => {
   const response = await http.get<unknown>(
-    ENDPOINTS.MARKETING.PROGRAMS + `?limit=${limit}&locale=${language}`,
+    ENDPOINTS.MARKETING.PROGRAMS.LIST + `?limit=${limit}&locale=${language}`,
   );
 
   if (response.status !== 'success') {
@@ -27,7 +27,7 @@ export const getProgramBySlug = async (
   language: SupportedLanguage,
 ): Promise<ApiResponse<Program>> => {
   const response = await http.get<unknown>(
-    ENDPOINTS.MARKETING.PROGRAMS + `/${slug}?locale=${language}`,
+    ENDPOINTS.MARKETING.PROGRAMS.DETAIL(slug) + `?locale=${language}`,
   );
 
   if (response.status !== 'success') {
