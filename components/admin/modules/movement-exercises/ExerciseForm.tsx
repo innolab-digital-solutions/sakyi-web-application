@@ -336,7 +336,7 @@ export default function ExerciseForm({ mode, exercise }: Props) {
                         key={index}
                         className='border-border flex items-start gap-3 rounded-lg border p-3'
                       >
-                        <div className='min-w-[120px]'>
+                        <div className='min-w-30'>
                           <Label className='text-muted-foreground mb-1.5 block text-xs'>
                             Type
                           </Label>
