@@ -59,10 +59,17 @@ export default function ExerciseListTable() {
         throw new Error(response.message || 'Failed to delete exercise.');
       }
     },
-    onSuccess: () => {
+    onSuccess: (_data, deletedId) => {
       toast.success('Exercise deleted successfully.');
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.MOVEMENT_EXERCISES.LIST],
+      });
+
+      queryClient.removeQueries({
+        queryKey: [
+          ENDPOINTS.ADMIN.MODULES.MOVEMENT_EXERCISES.DETAIL(String(deletedId)),
+          deletedId,
+        ],
       });
     },
     onError: (error) => {
