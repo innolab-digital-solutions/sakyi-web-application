@@ -77,5 +77,10 @@ export const ADMIN_ENDPOINTS = {
         COMPLETE: (id: string) => `${BASE}/onboarding/intakes/${id}/complete`,
       },
     },
+    NOTIFICATIONS: {
+      LIST: `${BASE}/notifications`,
+      MARK_AS_READ: (id: string) => `${BASE}/notifications/${id}/read`,
+      MARK_ALL_AS_READ: `${BASE}/notifications/read-all`,
+    },
   },
 } as const;

@@ -6,6 +6,8 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useAuth } from '@/context/AuthContext';
 import { getInitials } from '@/lib/utils/string';
 
+import DashboardNotification from './DashboardNotification';
+
 const DashboardHeader = () => {
   const { user } = useAuth();
 
@@ -47,6 +49,7 @@ const DashboardHeader = () => {
 
         {/* Right section: User info and avatar */}
         <div className='flex items-center gap-8'>
+          <DashboardNotification />
           <div className='flex items-center gap-2'>
             {/* User name and role */}
             <div className='flex flex-col items-end gap-x-1'>
