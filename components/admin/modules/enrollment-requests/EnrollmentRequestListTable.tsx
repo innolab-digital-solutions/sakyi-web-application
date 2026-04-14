@@ -116,32 +116,35 @@ export default function EnrollmentRequestListTable() {
     return 'all';
   }, [controls.params.values.status]);
 
-  const { mutate: mutateStatus, variables, isPending: isUpdatingStatus } =
-    useMutation({
-      mutationFn: async ({
-        id,
-        payload,
-      }: {
-        id: number;
-        payload: UpdateEnrollmentRequestStatusPayload;
-      }) => {
-        const response = await updateEnrollmentRequestStatus(id, payload);
-        if (response.status === 'error') {
-          throw new Error(response.message || 'Failed to update status.');
-        }
-      },
-      onSuccess: () => {
-        toast.success('Enrollment request status updated.');
-        queryClient.invalidateQueries({
-          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.ENROLLMENT_REQUESTS.LIST],
-        });
-      },
-      onError: (error) => {
-        toast.error(error.message ?? 'Failed to update status.');
-      },
-    });
+  const {
+    mutate: mutateStatus,
+    variables,
+    isPending: isUpdatingStatus,
+  } = useMutation({
+    mutationFn: async ({
+      id,
+      payload,
+    }: {
+      id: number;
+      payload: UpdateEnrollmentRequestStatusPayload;
+    }) => {
+      const response = await updateEnrollmentRequestStatus(id, payload);
+      if (response.status === 'error') {
+        throw new Error(response.message || 'Failed to update status.');
+      }
+    },
+    onSuccess: () => {
+      toast.success('Enrollment request status updated.');
+      queryClient.invalidateQueries({
+        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.ENROLLMENT_REQUESTS.LIST],
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message ?? 'Failed to update status.');
+    },
+  });
 
-  const updatingId = isUpdatingStatus ? variables?.id ?? null : null;
+  const updatingId = isUpdatingStatus ? (variables?.id ?? null) : null;
   const { query } = controls;
   const showSkeleton = query.isPending && !query.data;
   const errorMessage =
@@ -157,7 +160,8 @@ export default function EnrollmentRequestListTable() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant='outline' size='sm' className='h-10 cursor-pointer'>
-              Status: {statusFilter === 'all' ? 'All' : STATUS_LABEL[statusFilter]}
+              Status:{' '}
+              {statusFilter === 'all' ? 'All' : STATUS_LABEL[statusFilter]}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end'>
@@ -252,8 +256,12 @@ export default function EnrollmentRequestListTable() {
                     </p>
                   </div>
                 </TableCell>
-                <TableCell className='text-sm'>{getProgramLabel(request)}</TableCell>
-                <TableCell className='text-sm'>{request.phone || '—'}</TableCell>
+                <TableCell className='text-sm'>
+                  {getProgramLabel(request)}
+                </TableCell>
+                <TableCell className='text-sm'>
+                  {request.phone || '—'}
+                </TableCell>
                 <TableCell className='text-sm tabular-nums'>
                   {formatRequestedAt(request.timestamps.created_at)}
                 </TableCell>
@@ -292,7 +300,12 @@ export default function EnrollmentRequestListTable() {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     ) : (
-                      <Button variant='outline' size='sm' className='h-8' disabled>
+                      <Button
+                        variant='outline'
+                        size='sm'
+                        className='h-8'
+                        disabled
+                      >
                         Final status
                       </Button>
                     )}

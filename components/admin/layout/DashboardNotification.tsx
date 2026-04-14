@@ -115,8 +115,9 @@ const DashboardNotification = () => {
 
       const channelName = `App.Models.User.${user.id}`;
       const channel = echo.private(channelName);
-      const connector = (echo as unknown as { connector?: { pusher?: unknown } })
-        .connector;
+      const connector = (
+        echo as unknown as { connector?: { pusher?: unknown } }
+      ).connector;
       const pusher = connector?.pusher as
         | {
             connection?: {
@@ -148,11 +149,17 @@ const DashboardNotification = () => {
 
       channel.notification((incoming: BackendNotification) => {
         if (shouldDebug) {
-          console.info('[notifications] Realtime notification received', incoming);
+          console.info(
+            '[notifications] Realtime notification received',
+            incoming,
+          );
         }
         setNotifications((current) => {
           const mapped = normalizeNotification(incoming);
-          const next = [mapped, ...current.filter((item) => item.id !== mapped.id)];
+          const next = [
+            mapped,
+            ...current.filter((item) => item.id !== mapped.id),
+          ];
           return next;
         });
       });
@@ -166,7 +173,10 @@ const DashboardNotification = () => {
       });
 
       channel.error((error: unknown) => {
-        console.error('[notifications] Private channel subscription error', error);
+        console.error(
+          '[notifications] Private channel subscription error',
+          error,
+        );
       });
 
       pusher?.connection?.bind('connected', handleConnected);

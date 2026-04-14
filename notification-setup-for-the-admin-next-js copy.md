@@ -123,17 +123,25 @@ await axios.get('/v1/web/admin/notifications', {
 ### Mark one as read
 
 ```ts
-await axios.patch(`/v1/web/admin/notifications/${notificationId}/read`, {}, {
-  headers: { Authorization: `Bearer ${token}` },
-});
+await axios.patch(
+  `/v1/web/admin/notifications/${notificationId}/read`,
+  {},
+  {
+    headers: { Authorization: `Bearer ${token}` },
+  },
+);
 ```
 
 ### Mark all as read
 
 ```ts
-await axios.patch('/v1/web/admin/notifications/read-all', {}, {
-  headers: { Authorization: `Bearer ${token}` },
-});
+await axios.patch(
+  '/v1/web/admin/notifications/read-all',
+  {},
+  {
+    headers: { Authorization: `Bearer ${token}` },
+  },
+);
 ```
 
 ## 7) Recommended UI Behavior

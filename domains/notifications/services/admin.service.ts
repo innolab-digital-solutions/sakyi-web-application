@@ -7,7 +7,9 @@ type NotificationListEnvelope = {
   data?: BackendNotification[];
 };
 
-type NotificationListResponse = BackendNotification[] | NotificationListEnvelope;
+type NotificationListResponse =
+  | BackendNotification[]
+  | NotificationListEnvelope;
 
 /**
  * Notification resource calls for the admin dashboard.
