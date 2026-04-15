@@ -17,12 +17,13 @@ import SectionContainer from '@/components/marketing/SectionContainer';
 import Body1 from '@/components/shared/typography/Body1';
 import Heading1 from '@/components/shared/typography/Heading1';
 import { useLanguage } from '@/context/LanguageContext';
+import { scrollToElement } from '@/lib/utils/scroll';
 
 const ContactIntroSection = () => {
   const { language, translate } = useLanguage();
 
   return (
-    <SectionContainer id='contact-intro-section' className='bg-white'>
+    <SectionContainer id='contact-intro-section' className='bg-background'>
       <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
         {/* Left side: Text and CTAs */}
         <div className='min-w-0 space-y-8' data-aos='fade-right'>
@@ -51,7 +52,10 @@ const ContactIntroSection = () => {
 
           {/* Primary and secondary CTAs */}
           <div className='flex min-w-0 flex-col gap-4 sm:flex-row'>
-            <PrimaryButton className='w-full min-w-0 sm:w-auto'>
+            <PrimaryButton
+              className='w-full min-w-0 sm:w-auto'
+              onClick={() => scrollToElement('send-us-message-section')}
+            >
               <Heart className='h-5 w-5' />
               <span>
                 {translate('marketing.pages.contact.hero.cta.primary')}
@@ -59,7 +63,10 @@ const ContactIntroSection = () => {
               <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
             </PrimaryButton>
 
-            <SecondaryButton className='w-full min-w-0 sm:w-auto'>
+            <SecondaryButton
+              className='w-full min-w-0 sm:w-auto'
+              onClick={() => scrollToElement('our-contact-detail-section')}
+            >
               <Brain className='h-5 w-5' />
               <span>
                 {translate('marketing.pages.contact.hero.cta.secondary')}

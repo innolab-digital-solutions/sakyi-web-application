@@ -15,13 +15,14 @@ import SectionBadge from '@/components/marketing/SectionBadge';
 import SectionContainer from '@/components/marketing/SectionContainer';
 import Body1 from '@/components/shared/typography/Body1';
 import Heading2 from '@/components/shared/typography/Heading2';
+import { ROUTES } from '@/config/routes';
 import { useLanguage } from '@/context/LanguageContext';
 
 const MobileAppSection = () => {
   const { language, translate } = useLanguage();
 
   return (
-    <SectionContainer id='mobile-app-section' className='bg-white'>
+    <SectionContainer id='mobile-app-section' className='bg-background'>
       <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
         {/* Left Column - Text Content */}
         <div className='min-w-0 space-y-8' data-aos='fade-right'>
@@ -54,7 +55,7 @@ const MobileAppSection = () => {
           {/* App Store Buttons */}
           <div className='flex flex-col gap-4 sm:flex-row sm:gap-6'>
             <Link
-              href='#'
+              href={ROUTES.MARKETING.CONTACT}
               className='group bg-brand-gradient inline-flex items-center justify-center rounded-full px-6 py-3 font-sans text-base font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl'
             >
               <span className='relative z-10'>

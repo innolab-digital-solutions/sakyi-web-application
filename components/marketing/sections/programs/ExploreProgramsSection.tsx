@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Grid3X3 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
+import ContentEmptyState from '@/components/marketing/cards/ContentEmptyState';
 import ProgramCard from '@/components/marketing/cards/ProgramCard';
 import SectionBadge from '@/components/marketing/SectionBadge';
 import SectionContainer from '@/components/marketing/SectionContainer';
@@ -96,6 +97,15 @@ const ExploreProgramsSection = () => {
               <ProgramCard key={program.id} program={program} index={index} />
             ))}
       </div>
+
+      {!isLoading && !isError && publishedPrograms.length === 0 && (
+        <div className='mt-12'>
+          <ContentEmptyState
+            title='Programs are being prepared'
+            description='We are currently preparing our wellness programs. Please check back soon.'
+          />
+        </div>
+      )}
 
       {/* Show More / Show Less */}
       {!isLoading && publishedPrograms.length > INITIAL_LIMIT && (

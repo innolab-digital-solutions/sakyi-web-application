@@ -50,7 +50,7 @@ const ConnectWithUsSection = () => {
   ];
 
   return (
-    <SectionContainer id='connect-with-us-section' className='bg-white'>
+    <SectionContainer id='connect-with-us-section' className='bg-background'>
       {/* Section Header: Badge, headline, supporting summary */}
       <div
         className='flex min-w-0 flex-col items-center justify-center space-y-6'

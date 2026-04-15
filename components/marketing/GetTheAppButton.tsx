@@ -1,11 +1,22 @@
 import { Smartphone } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 
+import { ROUTES } from '@/config/routes';
 import { scrollToElement } from '@/lib/utils/scroll';
 
 const GetTheAppButton = ({ onClick }: { onClick?: () => void }) => {
+  const pathname = usePathname();
+  const router = useRouter();
+
   const handleClick = () => {
     onClick?.();
-    scrollToElement('mobile-app-section');
+
+    if (pathname === ROUTES.MARKETING.HOME) {
+      scrollToElement('mobile-app-section');
+      return;
+    }
+
+    router.push(`${ROUTES.MARKETING.HOME}#mobile-app-section`);
   };
 
   return (

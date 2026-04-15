@@ -55,7 +55,7 @@ const HowItWorksSection = () => {
   ];
 
   return (
-    <SectionContainer id='how-it-works-section' className='bg-background'>
+    <SectionContainer id='how-it-works-section' className='bg-white'>
       {/* Section Header: Badge, headline, supporting summary */}
       <div
         className='flex min-w-0 flex-col items-center justify-center space-y-6'
