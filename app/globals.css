@@ -271,6 +271,28 @@
   }
 }
 
+@keyframes sidebar-collapsible-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes sidebar-collapsible-up {
+  from {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .route-transition,
   .route-transition--fade,
@@ -279,6 +301,10 @@
   .route-transition--zoom {
     animation: none !important;
     transform: none !important;
+  }
+
+  [data-slot='collapsible-content'] {
+    animation: none !important;
   }
 
   /* Route transitions are disabled here; AOS is also gated in JS to match. */

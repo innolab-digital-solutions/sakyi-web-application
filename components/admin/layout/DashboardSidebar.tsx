@@ -80,7 +80,7 @@ const DashboardSidebar = () => {
                         <SidebarMenuButton
                           isActive={isActive}
                           tooltip={item.name}
-                          className='data-[active=true]:text-sidebar-primary-foreground hover:text-sidebar-primary-foreground! px-3 py-5 hover:bg-white/15! data-[active=true]:bg-white/25'
+                          className='data-[active=true]:text-sidebar-primary-foreground! hover:text-sidebar-primary-foreground! px-3 py-5 hover:bg-white/15! data-[active=true]:bg-white/15!'
                         >
                           {Icon ? <Icon className='mr-1 h-4 w-4' /> : null}
                           <span className='text-[12.5px] font-semibold'>
@@ -102,7 +102,7 @@ const DashboardSidebar = () => {
                                 <SidebarMenuSubButton
                                   asChild
                                   isActive={isSubActive}
-                                  className='data-[active=true]:text-sidebar-primary-foreground hover:text-sidebar-primary-foreground px-3 py-5 hover:bg-white/15 data-[active=true]:bg-white/25'
+                                  className='data-[active=true]:text-sidebar-primary-foreground! hover:text-sidebar-primary-foreground! px-3 py-5 hover:bg-white/15! data-[active=true]:bg-white/15!'
                                 >
                                   <Link href={subitem.path}>
                                     <span className='text-[12.5px] font-semibold'>
@@ -127,7 +127,7 @@ const DashboardSidebar = () => {
                     asChild
                     isActive={isActive}
                     tooltip={item.name}
-                    className='data-[active=true]:text-sidebar-primary-foreground hover:text-sidebar-primary-foreground px-3 py-5 hover:bg-white/15 data-[active=true]:bg-white/25'
+                    className='data-[active=true]:text-sidebar-primary-foreground! hover:text-sidebar-primary-foreground! px-3 py-5 hover:bg-white/15! data-[active=true]:bg-white/15!'
                   >
                     <Link href={item.path}>
                       {Icon ? <Icon className='mr-1 h-4 w-4' /> : null}

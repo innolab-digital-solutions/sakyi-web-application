@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeftIcon } from 'lucide-react';
 import Link from 'next/link';
-import { use } from 'react';
+import { useParams } from 'next/navigation';
 
 import PageHeader from '@/components/admin/layout/PageHeader';
 import BlogPostForm from '@/components/admin/modules/blog-posts/PostForm';
@@ -13,12 +13,9 @@ import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
 import { getAdminBlogPostById } from '@/domains/blogs/services';
 
-type BlogPostEditPageProps = {
-  params: Promise<{ id: string }>;
-};
-
-export default function BlogPostEditPage({ params }: BlogPostEditPageProps) {
-  const { id: idParam } = use(params);
+export default function BlogPostEditPage() {
+  const params = useParams<{ id: string }>();
+  const idParam = params.id;
   const id = Number.parseInt(idParam, 10);
 
   const { data, isPending, isError, error } = useQuery({
