@@ -27,6 +27,18 @@ import { NAVIGATION } from '@/config/navigation';
 
 import LogoutConfirmationDialog from './LogoutConfirmationDialog';
 
+const isNavPathActive = (pathname: string, navPath: string): boolean => {
+  if (!navPath || navPath === '#') {
+    return false;
+  }
+
+  if (pathname === navPath) {
+    return true;
+  }
+
+  return pathname.startsWith(`${navPath}/`);
+};
+
 const DashboardSidebar = () => {
   const pathname = usePathname();
 
@@ -60,9 +72,11 @@ const DashboardSidebar = () => {
             {NAVIGATION.ADMIN.map((item, index) => {
               const hasSubitems = item.subitems && item.subitems.length > 0;
 
-              const isItemActive = pathname === item.path;
+              const isItemActive = isNavPathActive(pathname, item.path);
               const isAnySubActive = hasSubitems
-                ? item.subitems!.some((subitem) => pathname === subitem.path)
+                ? item.subitems!.some((subitem) =>
+                    isNavPathActive(pathname, subitem.path),
+                  )
                 : false;
               const isActive = isItemActive || isAnySubActive;
 
@@ -93,7 +107,10 @@ const DashboardSidebar = () => {
                         <SidebarMenuSub className='ml-4.5'>
                           {/* Subitems for this menu item */}
                           {item.subitems!.map((subitem, subIndex) => {
-                            const isSubActive = pathname === subitem.path;
+                            const isSubActive = isNavPathActive(
+                              pathname,
+                              subitem.path,
+                            );
 
                             return (
                               <SidebarMenuSubItem
