@@ -60,6 +60,13 @@ export const ADMIN_ENDPOINTS = {
       DELETE: (id: string) => `${BASE}/blog-categories/${id}`,
       DETAIL: (id: string) => `${BASE}/blog-categories/${id}`,
     },
+    BLOG_POSTS: {
+      LIST: `${BASE}/blog-posts`,
+      CREATE: `${BASE}/blog-posts`,
+      UPDATE: (id: string) => `${BASE}/blog-posts/${id}`,
+      DELETE: (id: string) => `${BASE}/blog-posts/${id}`,
+      DETAIL: (id: string) => `${BASE}/blog-posts/${id}`,
+    },
     ONBOARDING: {
       TEMPLATE: (version: number) => `${BASE}/onboarding/templates/${version}`,
       INTAKES: {
