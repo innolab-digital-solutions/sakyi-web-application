@@ -53,6 +53,13 @@ export const ADMIN_ENDPOINTS = {
       DELETE: (id: string) => `${BASE}/movement-categories/${id}`,
       DETAIL: (id: string) => `${BASE}/movement-categories/${id}`,
     },
+    MOVEMENT_EXERCISES: {
+      LIST: `${BASE}/movement-exercises`,
+      CREATE: `${BASE}/movement-exercises`,
+      UPDATE: (id: string) => `${BASE}/movement-exercises/${id}`,
+      DELETE: (id: string) => `${BASE}/movement-exercises/${id}`,
+      DETAIL: (id: string) => `${BASE}/movement-exercises/${id}`,
+    },
     BLOG_CATEGORIES: {
       LIST: `${BASE}/blog-categories`,
       CREATE: `${BASE}/blog-categories`,
@@ -64,6 +71,13 @@ export const ADMIN_ENDPOINTS = {
       LIST: `${BASE}/enrollment-requests`,
       UPDATE: (id: string) => `${BASE}/enrollment-requests/${id}`,
       DETAIL: (id: string) => `${BASE}/enrollment-requests/${id}`,
+    },
+    BLOG_POSTS: {
+      LIST: `${BASE}/blog-posts`,
+      CREATE: `${BASE}/blog-posts`,
+      UPDATE: (id: string) => `${BASE}/blog-posts/${id}`,
+      DELETE: (id: string) => `${BASE}/blog-posts/${id}`,
+      DETAIL: (id: string) => `${BASE}/blog-posts/${id}`,
     },
     ONBOARDING: {
       TEMPLATE: (version: number) => `${BASE}/onboarding/templates/${version}`,

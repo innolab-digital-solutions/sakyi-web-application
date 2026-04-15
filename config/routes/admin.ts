@@ -47,6 +47,12 @@ export const ADMIN_ROUTES = {
       EDIT: (id: string) => `${BASE}/movement-categories/${id}/edit`,
       DETAIL: (id: string) => `${BASE}/movement-categories/${id}`,
     },
+    MOVEMENT_EXERCISES: {
+      LIST: `${BASE}/movement-exercises`,
+      CREATE: `${BASE}/movement-exercises/create`,
+      EDIT: (id: string) => `${BASE}/movement-exercises/${id}/edit`,
+      DETAIL: (id: string) => `${BASE}/movement-exercises/${id}`,
+    },
     BLOG_CATEGORIES: {
       LIST: `${BASE}/blog-categories`,
       CREATE: `${BASE}/blog-categories/create`,
@@ -56,6 +62,12 @@ export const ADMIN_ROUTES = {
     ENROLLMENT_REQUESTS: {
       LIST: `${BASE}/enrollment-requests`,
       DETAIL: (id: string) => `${BASE}/enrollment-requests/${id}`,
+    },
+    BLOG_POSTS: {
+      LIST: `${BASE}/blog-posts`,
+      CREATE: `${BASE}/blog-posts/create`,
+      EDIT: (id: string) => `${BASE}/blog-posts/${id}/edit`,
+      DETAIL: (id: string) => `${BASE}/blog-posts/${id}`,
     },
     ONBOARDING: {
       INTAKES: {
