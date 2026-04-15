@@ -59,7 +59,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
       },
       {
         name: 'Contracts & E-Signatures',
-        path: '#',
+        path: ADMIN_ROUTES.MODULES.ENROLLMENT_CONTRACTS.LIST,
       },
       {
         name: 'Enrollment Records',

@@ -72,6 +72,10 @@ export const ADMIN_ENDPOINTS = {
       UPDATE: (id: string) => `${BASE}/enrollment-requests/${id}`,
       DETAIL: (id: string) => `${BASE}/enrollment-requests/${id}`,
     },
+    ENROLLMENT_CONTRACTS: {
+      LIST: `${BASE}/enrollment-contracts`,
+      DETAIL: (id: string) => `${BASE}/enrollment-contracts/${id}`,
+    },
     BLOG_POSTS: {
       LIST: `${BASE}/blog-posts`,
       CREATE: `${BASE}/blog-posts`,
