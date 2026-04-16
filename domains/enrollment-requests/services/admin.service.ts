@@ -12,6 +12,17 @@ export type UpdateEnrollmentRequestStatusPayload = {
 };
 
 /**
+ * Assigns an enrollment contract to a completed enrollment request.
+ */
+export async function assignEnrollmentRequestContract(
+  id: number,
+): Promise<ApiResponse<EnrollmentRequestResource>> {
+  return http.post<EnrollmentRequestResource>(
+    ENDPOINTS.ADMIN.MODULES.ENROLLMENT_REQUESTS.ASSIGN_CONTRACT(String(id)),
+  );
+}
+
+/**
  * Updates a single enrollment request status from the admin dashboard.
  */
 export async function updateEnrollmentRequestStatus(

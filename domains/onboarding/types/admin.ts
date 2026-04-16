@@ -92,6 +92,8 @@ export type OnboardingIntakeTemplate = {
 
 export type OnboardingIntakeData = {
   id: number;
+  code: string;
+  enrollment_request_id: number;
   status: OnboardingStatus;
   notes: string | null;
   user?: UserLite; // whenLoaded in resource => optional at type level
@@ -155,7 +157,7 @@ export type OnboardingListIntakesParams = {
 };
 
 export type CreateOnboardingIntakePayload = {
-  user_id: number;
+  enrollment_request_id: number;
   onboarding_template_id: number;
   notes?: string;
 };

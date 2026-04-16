@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ClipboardCheckIcon } from 'lucide-react';
+import Link from 'next/link';
 import { useMemo } from 'react';
 import { toast } from 'sonner';
 
@@ -24,6 +25,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ENDPOINTS } from '@/config/api/endpoints';
+import { ROUTES } from '@/config/routes';
 import {
   updateEnrollmentRequestStatus,
   type UpdateEnrollmentRequestStatusPayload,
@@ -95,6 +97,18 @@ function getTransitionLabel(status: EnrollmentRequestStatus): string {
   }
 }
 
+/**
+ * Intake should only start while the request is still actively being worked.
+ * In practice that means:
+ * - pending: newly submitted and still triageable
+ * - contacted: qualified and in active follow-up
+ * Finalized states (completed/cancelled) should not create new intake sessions.
+ */
+function canStartIntake(request: EnrollmentRequestResource): boolean {
+  if (!request.client?.id) return false;
+  return request.status === 'pending' || request.status === 'contacted';
+}
+
 export default function EnrollmentRequestListTable() {
   const queryClient = useQueryClient();
   const { rows, controls } = useTable<EnrollmentRequestResource>(
@@ -143,7 +157,6 @@ export default function EnrollmentRequestListTable() {
       toast.error(error.message ?? 'Failed to update status.');
     },
   });
-
   const updatingId = isUpdatingStatus ? (variables?.id ?? null) : null;
   const { query } = controls;
   const showSkeleton = query.isPending && !query.data;
@@ -243,7 +256,10 @@ export default function EnrollmentRequestListTable() {
           {!showSkeleton &&
             !query.isError &&
             query.data?.status === 'success' &&
-            rows.map((request) => (
+            rows.map((request) => {
+              const enrollmentRequestId = request.id;
+
+              return (
               <TableRow key={request.id}>
                 <TableCell>#{request.id}</TableCell>
                 <TableCell>
@@ -267,6 +283,15 @@ export default function EnrollmentRequestListTable() {
                 </TableCell>
                 <TableCell>
                   <div className='flex items-center gap-2'>
+                    {canStartIntake(request) && (
+                      <Button variant='outline' size='sm' asChild>
+                        <Link
+                          href={`${ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.CREATE}?request=${enrollmentRequestId}`}
+                        >
+                          Intake
+                        </Link>
+                      </Button>
+                    )}
                     <Badge variant={statusBadgeVariant(request.status)}>
                       {STATUS_LABEL[request.status]}
                     </Badge>
@@ -312,7 +337,8 @@ export default function EnrollmentRequestListTable() {
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+            );
+            })}
         </TableBody>
       </Table>
     </TableListShell>

@@ -8,6 +8,7 @@ export type EnrollmentContract = {
   signed_by_name: string | null;
   accepted_terms: boolean;
   enrollment_request_id: number;
+  onboarding_intake_id: number;
   client?: {
     id: number;
     name: string;

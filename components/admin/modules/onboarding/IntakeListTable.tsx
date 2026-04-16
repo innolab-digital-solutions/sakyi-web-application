@@ -1,8 +1,11 @@
 'use client';
 
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { EyeIcon, HeartPulseIcon, PencilIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +21,7 @@ import {
 } from '@/components/ui/table';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
+import { assignEnrollmentRequestContract } from '@/domains/enrollment-requests/services';
 import type { OnboardingIntakeData } from '@/domains/onboarding/types';
 import { useTable } from '@/lib/table';
 
@@ -47,6 +51,9 @@ function formatDate(iso: string | null): string {
 }
 
 export default function IntakeListTable() {
+  const queryClient = useQueryClient();
+  const [assigningEnrollmentRequestId, setAssigningEnrollmentRequestId] =
+    useState<number | null>(null);
   const { rows, controls } = useTable<OnboardingIntakeData>(
     ENDPOINTS.ADMIN.MODULES.ONBOARDING.INTAKES.LIST,
     {
@@ -63,6 +70,41 @@ export default function IntakeListTable() {
     query.isError && query.error instanceof Error
       ? query.error.message
       : 'Could not load onboarding intakes.';
+  const { mutate: mutateAssignContract, isPending: isAssigningContract } =
+    useMutation({
+      mutationFn: async (enrollmentRequestId: number) => {
+        const response =
+          await assignEnrollmentRequestContract(enrollmentRequestId);
+        if (response.status === 'error') {
+          throw new Error(response.message || 'Failed to assign contract.');
+        }
+      },
+      onSuccess: () => {
+        toast.success('Enrollment contract assigned.');
+        queryClient.invalidateQueries({
+          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.ONBOARDING.INTAKES.LIST],
+        });
+      },
+      onError: (error) => {
+        toast.error(error.message ?? 'Failed to assign contract.');
+      },
+    });
+
+  const handleAssignContract = (enrollmentRequestId: number) => {
+    if (
+      isAssigningContract ||
+      assigningEnrollmentRequestId === enrollmentRequestId
+    ) {
+      return;
+    }
+
+    setAssigningEnrollmentRequestId(enrollmentRequestId);
+    mutateAssignContract(enrollmentRequestId, {
+      onSettled: () => {
+        setAssigningEnrollmentRequestId(null);
+      },
+    });
+  };
 
   return (
     <TableListShell controls={controls} searchPlaceholder='Search by notes...'>
@@ -174,6 +216,23 @@ export default function IntakeListTable() {
                           </Link>
                         </Button>
                       )}
+                    {intake.status === 'completed' && (
+                      <Button
+                        variant='ghost'
+                        size='sm'
+                        className='cursor-pointer'
+                        disabled={
+                          isAssigningContract ||
+                          assigningEnrollmentRequestId ===
+                            intake.enrollment_request_id
+                        }
+                        onClick={() =>
+                          handleAssignContract(intake.enrollment_request_id)
+                        }
+                      >
+                        Assign contract
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
