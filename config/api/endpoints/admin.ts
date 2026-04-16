@@ -25,7 +25,8 @@ export const ADMIN_ENDPOINTS = {
       DETAIL: (id: string) => `${BASE}/programs/${id}`,
       STEPS: {
         OVERVIEW: (id: string) => `${BASE}/programs/${id}/steps/overview`,
-        TRANSLATIONS: (id: string) => `${BASE}/programs/${id}/steps/translations`,
+        TRANSLATIONS: (id: string) =>
+          `${BASE}/programs/${id}/steps/translations`,
       },
       PUBLISH: (id: string) => `${BASE}/programs/${id}/publish`,
     },

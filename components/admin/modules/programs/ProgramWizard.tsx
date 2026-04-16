@@ -41,7 +41,10 @@ import {
   saveProgramOverview,
   saveProgramTranslations,
 } from '@/domains/programs/services';
-import type { AdminProgram, ProgramTranslation } from '@/domains/programs/types';
+import type {
+  AdminProgram,
+  ProgramTranslation,
+} from '@/domains/programs/types';
 import { http } from '@/lib/api/client';
 
 import StringListField from './StringListField';
@@ -80,7 +83,8 @@ const STEPS = [
   {
     id: 'details',
     label: 'Details',
-    description: 'Features, ideals, expectations, and structure — in each language.',
+    description:
+      'Features, ideals, expectations, and structure — in each language.',
   },
   {
     id: 'review',
@@ -342,7 +346,9 @@ export default function ProgramWizard({
       if (!isEdit) {
         const draftRes = await createProgramDraft();
         if (draftRes.status === 'error') {
-          throw new Error(draftRes.message ?? 'Failed to create program draft.');
+          throw new Error(
+            draftRes.message ?? 'Failed to create program draft.',
+          );
         }
         programId = draftRes.data.id;
       }
@@ -360,7 +366,10 @@ export default function ProgramWizard({
       }
 
       // 3. Save translations step
-      const transRes = await saveProgramTranslations(programId, translationPayload);
+      const transRes = await saveProgramTranslations(
+        programId,
+        translationPayload,
+      );
       if (transRes.status === 'error') {
         throw new Error(transRes.message ?? 'Failed to save translations.');
       }
@@ -453,7 +462,11 @@ export default function ProgramWizard({
                   value={duration}
                   onChange={(e) => {
                     setDuration(e.target.value);
-                    setErrors((prev) => { const n = { ...prev }; delete n.duration; return n; });
+                    setErrors((prev) => {
+                      const n = { ...prev };
+                      delete n.duration;
+                      return n;
+                    });
                   }}
                   error={errors.duration}
                 />
@@ -465,7 +478,11 @@ export default function ProgramWizard({
                   value={String(price)}
                   onChange={(e) => {
                     setPrice(Number(e.target.value));
-                    setErrors((prev) => { const n = { ...prev }; delete n.price; return n; });
+                    setErrors((prev) => {
+                      const n = { ...prev };
+                      delete n.price;
+                      return n;
+                    });
                   }}
                   error={errors.price}
                 />
@@ -480,7 +497,9 @@ export default function ProgramWizard({
               emptyMessage='No goals found.'
               options={goalOptions}
               value={goalIds.map((id) => String(id))}
-              onChange={(vals) => setGoalIds((vals ?? []).map((v) => Number(v)))}
+              onChange={(vals) =>
+                setGoalIds((vals ?? []).map((v) => Number(v)))
+              }
             />
           </div>
         );
@@ -518,7 +537,11 @@ export default function ProgramWizard({
             {LANGUAGES.map((lang) => {
               const t = translations.find((tr) => tr.locale === lang.code);
               return (
-                <TabsContent key={lang.code} value={lang.code} className='space-y-5'>
+                <TabsContent
+                  key={lang.code}
+                  value={lang.code}
+                  className='space-y-5'
+                >
                   {lang.code === 'my' && isTranslationEmpty('my') && (
                     <div className='flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-400'>
                       <AlertTriangleIcon className='mt-0.5 size-3.5 shrink-0' />
@@ -538,7 +561,9 @@ export default function ProgramWizard({
                         : 'ကျန်းမာရေး ပရိုဂရမ်…'
                     }
                     value={t?.title ?? ''}
-                    onChange={(e) => updateTranslation(lang.code, 'title', e.target.value)}
+                    onChange={(e) =>
+                      updateTranslation(lang.code, 'title', e.target.value)
+                    }
                     error={getTranslationError(lang.code, 'title')}
                   />
 
@@ -551,7 +576,9 @@ export default function ProgramWizard({
                         : 'ကျန်းမာသောဘဝ…'
                     }
                     value={t?.tagline ?? ''}
-                    onChange={(e) => updateTranslation(lang.code, 'tagline', e.target.value)}
+                    onChange={(e) =>
+                      updateTranslation(lang.code, 'tagline', e.target.value)
+                    }
                     error={getTranslationError(lang.code, 'tagline')}
                   />
 
@@ -565,7 +592,9 @@ export default function ProgramWizard({
                     }
                     rows={4}
                     value={t?.excerpt ?? ''}
-                    onChange={(e) => updateTranslation(lang.code, 'excerpt', e.target.value)}
+                    onChange={(e) =>
+                      updateTranslation(lang.code, 'excerpt', e.target.value)
+                    }
                     error={getTranslationError(lang.code, 'excerpt')}
                   />
 
@@ -578,7 +607,9 @@ export default function ProgramWizard({
                         : 'Full description in Myanmar.'
                     }
                     value={t?.about ?? ''}
-                    onChange={(val) => updateTranslation(lang.code, 'about', val)}
+                    onChange={(val) =>
+                      updateTranslation(lang.code, 'about', val)
+                    }
                     error={getTranslationError(lang.code, 'about')}
                   />
                 </TabsContent>
@@ -625,38 +656,82 @@ export default function ProgramWizard({
             {LANGUAGES.map((lang) => {
               const t = translations.find((tr) => tr.locale === lang.code);
               return (
-                <TabsContent key={lang.code} value={lang.code} className='space-y-5'>
+                <TabsContent
+                  key={lang.code}
+                  value={lang.code}
+                  className='space-y-5'
+                >
                   <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
                     <StringListField
                       label={lang.code === 'en' ? 'Features *' : 'Features'}
-                      description={lang.code === 'en' ? 'What this program offers.' : undefined}
+                      description={
+                        lang.code === 'en'
+                          ? 'What this program offers.'
+                          : undefined
+                      }
                       value={t?.features ?? []}
-                      onChange={(val) => updateTranslation(lang.code, 'features', val)}
-                      placeholder={lang.code === 'en' ? 'Add a feature…' : 'Feature ထည့်ရန်…'}
+                      onChange={(val) =>
+                        updateTranslation(lang.code, 'features', val)
+                      }
+                      placeholder={
+                        lang.code === 'en'
+                          ? 'Add a feature…'
+                          : 'Feature ထည့်ရန်…'
+                      }
                       error={getTranslationError(lang.code, 'features')}
                     />
                     <StringListField
                       label={lang.code === 'en' ? 'Ideals *' : 'Ideals'}
-                      description={lang.code === 'en' ? 'Who this program is ideal for.' : undefined}
+                      description={
+                        lang.code === 'en'
+                          ? 'Who this program is ideal for.'
+                          : undefined
+                      }
                       value={t?.ideals ?? []}
-                      onChange={(val) => updateTranslation(lang.code, 'ideals', val)}
-                      placeholder={lang.code === 'en' ? 'Add an ideal…' : 'Ideal ထည့်ရန်…'}
+                      onChange={(val) =>
+                        updateTranslation(lang.code, 'ideals', val)
+                      }
+                      placeholder={
+                        lang.code === 'en' ? 'Add an ideal…' : 'Ideal ထည့်ရန်…'
+                      }
                       error={getTranslationError(lang.code, 'ideals')}
                     />
                     <StringListField
-                      label={lang.code === 'en' ? 'Expectations *' : 'Expectations'}
-                      description={lang.code === 'en' ? 'What clients can expect.' : undefined}
+                      label={
+                        lang.code === 'en' ? 'Expectations *' : 'Expectations'
+                      }
+                      description={
+                        lang.code === 'en'
+                          ? 'What clients can expect.'
+                          : undefined
+                      }
                       value={t?.expectations ?? []}
-                      onChange={(val) => updateTranslation(lang.code, 'expectations', val)}
-                      placeholder={lang.code === 'en' ? 'Add an expectation…' : 'မျှော်မှန်းချက် ထည့်ရန်…'}
+                      onChange={(val) =>
+                        updateTranslation(lang.code, 'expectations', val)
+                      }
+                      placeholder={
+                        lang.code === 'en'
+                          ? 'Add an expectation…'
+                          : 'မျှော်မှန်းချက် ထည့်ရန်…'
+                      }
                       error={getTranslationError(lang.code, 'expectations')}
                     />
                     <StringListField
                       label={lang.code === 'en' ? 'Structure *' : 'Structure'}
-                      description={lang.code === 'en' ? 'How the program is organized.' : undefined}
+                      description={
+                        lang.code === 'en'
+                          ? 'How the program is organized.'
+                          : undefined
+                      }
                       value={t?.structures ?? []}
-                      onChange={(val) => updateTranslation(lang.code, 'structures', val)}
-                      placeholder={lang.code === 'en' ? 'Add a structure item…' : 'ဖွဲ့စည်းပုံ ထည့်ရန်…'}
+                      onChange={(val) =>
+                        updateTranslation(lang.code, 'structures', val)
+                      }
+                      placeholder={
+                        lang.code === 'en'
+                          ? 'Add a structure item…'
+                          : 'ဖွဲ့စည်းပုံ ထည့်ရန်…'
+                      }
                       error={getTranslationError(lang.code, 'structures')}
                     />
                   </div>
@@ -688,7 +763,8 @@ export default function ProgramWizard({
           (enT?.expectations.length ?? 0) > 0 &&
           (enT?.structures.length ?? 0) > 0
         );
-        const canPublish = overviewReady && translationsReady && (!myStarted || myComplete);
+        const canPublish =
+          overviewReady && translationsReady && (!myStarted || myComplete);
 
         const CheckRow = ({
           label,
@@ -706,7 +782,9 @@ export default function ProgramWizard({
               <CircleIcon className='text-muted-foreground mt-0.5 size-4 shrink-0' />
             )}
             <div>
-              <span className={ok ? 'text-foreground' : 'text-muted-foreground'}>
+              <span
+                className={ok ? 'text-foreground' : 'text-muted-foreground'}
+              >
                 {label}
               </span>
               {note && (
@@ -780,7 +858,13 @@ export default function ProgramWizard({
                 variant='outline'
                 className='w-full'
               >
-                {isSubmitting ? (isEdit ? 'Saving…' : 'Creating…') : isEdit ? 'Save as Draft' : 'Save Program'}
+                {isSubmitting
+                  ? isEdit
+                    ? 'Saving…'
+                    : 'Creating…'
+                  : isEdit
+                    ? 'Save as Draft'
+                    : 'Save Program'}
               </Button>
 
               {canPublish && (
@@ -850,7 +934,7 @@ export default function ProgramWizard({
                 >
                   {index + 1}
                 </span>
-                <span className='whitespace-nowrap font-medium'>{s.label}</span>
+                <span className='font-medium whitespace-nowrap'>{s.label}</span>
               </button>
             );
           })}

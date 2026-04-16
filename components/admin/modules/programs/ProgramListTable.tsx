@@ -258,7 +258,11 @@ export default function ProgramListTable() {
                   <TableCell className='pr-2 text-right'>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant='ghost' size='sm' className='h-8 w-8 p-0'>
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          className='h-8 w-8 p-0'
+                        >
                           <MoreHorizontalIcon className='size-4' />
                           <span className='sr-only'>Open menu</span>
                         </Button>
@@ -300,9 +304,8 @@ export default function ProgramListTable() {
         description={
           deleteTarget ? (
             <>
-              This will permanently delete{' '}
-              <strong>{deleteTarget.title}</strong>. This action cannot be
-              undone.
+              This will permanently delete <strong>{deleteTarget.title}</strong>
+              . This action cannot be undone.
             </>
           ) : (
             'This action cannot be undone.'

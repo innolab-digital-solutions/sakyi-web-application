@@ -56,7 +56,7 @@ export default function StringListField({
   return (
     <div className='space-y-2'>
       {label && (
-        <Label className='font-medium text-xs md:text-sm'>{label}</Label>
+        <Label className='text-xs font-medium md:text-sm'>{label}</Label>
       )}
       {description && (
         <p className='text-muted-foreground text-xs'>{description}</p>
@@ -79,7 +79,7 @@ export default function StringListField({
                 onClick={() => handleRemove(index)}
                 className={cn(
                   'text-muted-foreground hover:text-destructive shrink-0 rounded-sm p-0.5 transition-colors',
-                  'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2',
+                  'focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none',
                   'disabled:pointer-events-none disabled:opacity-40',
                 )}
                 aria-label={`Remove item ${index + 1}`}
@@ -121,7 +121,7 @@ export default function StringListField({
 
       {error && (
         <p
-          className='text-destructive flex items-center gap-2 font-medium text-xs md:text-sm'
+          className='text-destructive flex items-center gap-2 text-xs font-medium md:text-sm'
           role='alert'
         >
           <AlertCircle className='size-4 shrink-0' />

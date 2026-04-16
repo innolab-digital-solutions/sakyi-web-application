@@ -22,9 +22,18 @@ export const ProgramTranslationSchema = z.object({
     .string()
     .min(1, 'Title is required.')
     .max(255, 'Title must be at most 255 characters.'),
-  tagline: z.string().max(500, 'Tagline must be at most 500 characters.').nullish(),
-  excerpt: z.string().max(20_000, 'Excerpt must be at most 20,000 characters.').nullish(),
-  about: z.string().max(200_000, 'About must be at most 200,000 characters.').nullish(),
+  tagline: z
+    .string()
+    .max(500, 'Tagline must be at most 500 characters.')
+    .nullish(),
+  excerpt: z
+    .string()
+    .max(20_000, 'Excerpt must be at most 20,000 characters.')
+    .nullish(),
+  about: z
+    .string()
+    .max(200_000, 'About must be at most 200,000 characters.')
+    .nullish(),
   features: z.array(z.string()).default([]),
   ideals: z.array(z.string()).default([]),
   expectations: z.array(z.string()).default([]),
