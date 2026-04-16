@@ -86,6 +86,20 @@ export async function publishProgram(
 }
 
 /**
+ * Update program status to draft, archived, or hidden.
+ * Use publishProgram() to transition to published — it validates step completeness.
+ */
+export async function updateProgramStatus(
+  id: number,
+  status: 'draft' | 'archived' | 'hidden',
+): Promise<ApiResponse<Program>> {
+  return http.patch<Program>(
+    ENDPOINTS.ADMIN.MODULES.PROGRAMS.UPDATE_STATUS(String(id)),
+    { status },
+  );
+}
+
+/**
  * Fetches a single program for admin edit/detail views.
  * Pass `locale` to get translated fields for that locale (`en` | `my`).
  */

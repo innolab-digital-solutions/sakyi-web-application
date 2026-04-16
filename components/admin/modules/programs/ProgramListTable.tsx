@@ -16,7 +16,6 @@ import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import DeleteAlertDialog from '@/components/shared/dialogs/DeleteAlertDialog';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -40,27 +39,46 @@ import { deleteProgram } from '@/domains/programs/services';
 import type { AdminProgram as Program } from '@/domains/programs/types';
 import { useTable } from '@/lib/table';
 
-const PROGRAM_STATUS_LABEL: Record<Program['status'], string> = {
-  [STATUS.DRAFT]: 'Draft',
-  [STATUS.PUBLISHED]: 'Published',
-  [STATUS.ARCHIVED]: 'Archived',
-  [STATUS.HIDDEN]: 'Hidden',
-};
+function ProgramStatusIndicator({ status }: { status: Program['status'] }) {
+  let dotClass: string;
+  let textClass: string;
+  let label: string;
 
-function programStatusBadgeVariant(
-  status: Program['status'],
-): 'default' | 'secondary' | 'outline' {
   switch (status) {
     case STATUS.PUBLISHED:
-      return 'default';
+      dotClass = 'bg-emerald-500';
+      textClass = 'text-emerald-600 dark:text-emerald-400';
+      label = 'Published';
+      break;
     case STATUS.DRAFT:
+      dotClass = 'bg-muted-foreground/40';
+      textClass = 'text-muted-foreground';
+      label = 'Draft';
+      break;
     case STATUS.HIDDEN:
-      return 'secondary';
+      dotClass = 'bg-amber-400';
+      textClass = 'text-amber-600 dark:text-amber-400';
+      label = 'Hidden';
+      break;
     case STATUS.ARCHIVED:
-      return 'outline';
+      dotClass = 'bg-muted-foreground/40';
+      textClass = 'text-muted-foreground';
+      label = 'Archived';
+      break;
     default:
-      return 'outline';
+      dotClass = 'bg-muted-foreground/40';
+      textClass = 'text-muted-foreground';
+      label = status;
   }
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 text-xs font-medium ${textClass}`}
+    >
+      <span className={`size-1.5 rounded-full ${dotClass}`} />
+      {label}
+    </span>
+  );
 }
 
 function formatCreatedAt(iso: string): string {
@@ -226,12 +244,7 @@ export default function ProgramListTable() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={programStatusBadgeVariant(program.status)}
-                      className='font-normal'
-                    >
-                      {PROGRAM_STATUS_LABEL[program.status] ?? program.status}
-                    </Badge>
+                    <ProgramStatusIndicator status={program.status} />
                   </TableCell>
                   <TableCell className='min-w-0'>
                     <p

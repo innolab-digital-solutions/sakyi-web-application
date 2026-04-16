@@ -7,6 +7,7 @@ export {
   publishProgram,
   saveProgramOverview,
   saveProgramTranslations,
+  updateProgramStatus,
 } from './admin.service';
 export {
   getPrograms as getMarketingPrograms,

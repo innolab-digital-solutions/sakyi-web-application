@@ -29,6 +29,7 @@ export const ADMIN_ENDPOINTS = {
           `${BASE}/programs/${id}/steps/translations`,
       },
       PUBLISH: (id: string) => `${BASE}/programs/${id}/publish`,
+      UPDATE_STATUS: (id: string) => `${BASE}/programs/${id}/status`,
     },
     UNITS: {
       LIST: `${BASE}/units`,

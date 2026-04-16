@@ -8,6 +8,7 @@ import {
   ChevronRightIcon,
   CircleIcon,
 } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
@@ -40,6 +41,7 @@ import {
   publishProgram,
   saveProgramOverview,
   saveProgramTranslations,
+  updateProgramStatus,
 } from '@/domains/programs/services';
 import type {
   AdminProgram,
@@ -374,19 +376,27 @@ export default function ProgramWizard({
         throw new Error(transRes.message ?? 'Failed to save translations.');
       }
 
-      // 4. Optionally publish
+      // 4. Publish or revert to draft
       if (shouldPublish) {
         const pubRes = await publishProgram(programId);
         if (pubRes.status === 'error') {
           throw new Error(pubRes.message ?? 'Failed to publish program.');
         }
+      } else if (isEdit && program?.status !== 'draft') {
+        const statusRes = await updateProgramStatus(programId, 'draft');
+        if (statusRes.status === 'error') {
+          throw new Error(statusRes.message ?? 'Failed to revert to draft.');
+        }
       }
 
       return { programId };
     },
-    onSuccess: (_, { shouldPublish }) => {
+    onSuccess: ({ programId }, { shouldPublish }) => {
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.PROGRAMS.LIST],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [ENDPOINTS.ADMIN.MODULES.PROGRAMS.DETAIL(String(programId))],
       });
       toast.success(
         shouldPublish
@@ -858,13 +868,7 @@ export default function ProgramWizard({
                 variant='outline'
                 className='w-full'
               >
-                {isSubmitting
-                  ? isEdit
-                    ? 'Saving…'
-                    : 'Creating…'
-                  : isEdit
-                    ? 'Save as Draft'
-                    : 'Save Program'}
+                {isSubmitting ? 'Saving…' : 'Save as Draft'}
               </Button>
 
               {canPublish && (
@@ -894,115 +898,133 @@ export default function ProgramWizard({
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <Card className='border-border/70 shadow-sm'>
-      {/* Step indicator */}
-      <CardHeader className='bg-muted/25 border-border space-y-4 border-b pb-5'>
-        <div>
-          <CardTitle className='text-base md:text-lg'>
-            {currentStep.label}
-          </CardTitle>
-          <CardDescription className='mt-0.5'>
-            {currentStep.description}
-          </CardDescription>
-        </div>
+    <div className='space-y-6'>
+      <Button
+        asChild
+        variant='ghost'
+        size='sm'
+        className='-ml-2 cursor-pointer'
+      >
+        <Link href={ROUTES.ADMIN.MODULES.PROGRAMS.LIST}>
+          <ArrowLeftIcon className='size-4' />
+          Back to Programs
+        </Link>
+      </Button>
 
-        <div className='flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'>
-          {STEPS.map((s, index) => {
-            const isActive = index === step;
-            const isPassed = index < step;
-            return (
-              <button
-                key={s.id}
-                type='button'
-                onClick={() => handleStepClick(index)}
-                className={`group flex min-w-fit items-center gap-2 rounded-md border px-3 py-2 text-xs transition md:text-sm ${
-                  isActive
-                    ? 'bg-primary/10 border-primary text-primary'
-                    : isPassed
-                      ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'
-                      : 'bg-background hover:bg-muted border-border text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <span
-                  className={`inline-flex size-5 items-center justify-center rounded-full border text-[10px] font-semibold ${
+      <Card className='border-border/70 shadow-sm'>
+        {/* Step indicator */}
+        <CardHeader className='bg-muted/25 border-border space-y-4 border-b pb-5'>
+          <div>
+            <CardTitle className='text-base md:text-lg'>
+              {currentStep.label}
+            </CardTitle>
+            <CardDescription className='mt-0.5'>
+              {currentStep.description}
+            </CardDescription>
+          </div>
+
+          <div className='flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'>
+            {STEPS.map((s, index) => {
+              const isActive = index === step;
+              const isPassed = index < step;
+              return (
+                <button
+                  key={s.id}
+                  type='button'
+                  onClick={() => handleStepClick(index)}
+                  className={`group flex min-w-fit items-center gap-2 rounded-md border px-3 py-2 text-xs transition md:text-sm ${
                     isActive
-                      ? 'border-primary bg-primary text-white'
+                      ? 'bg-primary/10 border-primary text-primary'
                       : isPassed
-                        ? 'border-emerald-500 bg-emerald-500 text-white'
-                        : 'border-border bg-muted text-muted-foreground'
+                        ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'
+                        : 'bg-background hover:bg-muted border-border text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  {index + 1}
-                </span>
-                <span className='font-medium whitespace-nowrap'>{s.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </CardHeader>
+                  <span
+                    className={`inline-flex size-5 items-center justify-center rounded-full border text-[10px] font-semibold ${
+                      isActive
+                        ? 'border-primary bg-primary text-white'
+                        : isPassed
+                          ? 'border-emerald-500 bg-emerald-500 text-white'
+                          : 'border-border bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    {index + 1}
+                  </span>
+                  <span className='font-medium whitespace-nowrap'>
+                    {s.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </CardHeader>
 
-      <CardContent className='space-y-6 p-4 md:p-6'>
-        <div>{renderStepContent()}</div>
+        <CardContent className='space-y-6 p-4 md:p-6'>
+          <div>{renderStepContent()}</div>
 
-        {/* Navigation — hidden on last step (buttons are inside step content) */}
-        {!isLastStep && (
-          <div className='border-border flex items-center justify-between border-t pt-4'>
-            <Button
-              type='button'
-              variant='outline'
-              disabled={step === 0}
-              onClick={handleBack}
-              className='min-w-24'
-            >
-              <ArrowLeftIcon className='size-4' />
-              Back
-            </Button>
+          {/* Navigation — hidden on last step (buttons are inside step content) */}
+          {!isLastStep && (
+            <div className='border-border flex items-center justify-between border-t pt-4'>
+              <Button
+                type='button'
+                variant='outline'
+                disabled={step === 0}
+                onClick={handleBack}
+                className='min-w-24'
+              >
+                <ArrowLeftIcon className='size-4' />
+                Back
+              </Button>
 
-            <div className='flex items-center gap-2'>
+              <div className='flex items-center gap-2'>
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='sm'
+                  className='text-muted-foreground hidden md:flex'
+                  onClick={() =>
+                    router.push(ROUTES.ADMIN.MODULES.PROGRAMS.LIST)
+                  }
+                >
+                  Cancel
+                </Button>
+
+                <Button type='button' onClick={handleNext} className='min-w-24'>
+                  Next
+                  <ChevronRightIcon className='size-4' />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Back button on last step */}
+          {isLastStep && (
+            <div className='border-border flex items-center justify-between border-t pt-4'>
+              <Button
+                type='button'
+                variant='outline'
+                disabled={isSubmitting}
+                onClick={handleBack}
+                className='min-w-24'
+              >
+                <ArrowLeftIcon className='size-4' />
+                Back
+              </Button>
               <Button
                 type='button'
                 variant='ghost'
                 size='sm'
-                className='text-muted-foreground hidden md:flex'
+                className='text-muted-foreground'
                 onClick={() => router.push(ROUTES.ADMIN.MODULES.PROGRAMS.LIST)}
+                disabled={isSubmitting}
               >
                 Cancel
               </Button>
-
-              <Button type='button' onClick={handleNext} className='min-w-24'>
-                Next
-                <ChevronRightIcon className='size-4' />
-              </Button>
             </div>
-          </div>
-        )}
-
-        {/* Back button on last step */}
-        {isLastStep && (
-          <div className='border-border flex items-center justify-between border-t pt-4'>
-            <Button
-              type='button'
-              variant='outline'
-              disabled={isSubmitting}
-              onClick={handleBack}
-              className='min-w-24'
-            >
-              <ArrowLeftIcon className='size-4' />
-              Back
-            </Button>
-            <Button
-              type='button'
-              variant='ghost'
-              size='sm'
-              className='text-muted-foreground'
-              onClick={() => router.push(ROUTES.ADMIN.MODULES.PROGRAMS.LIST)}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
