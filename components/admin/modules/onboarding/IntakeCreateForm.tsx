@@ -73,7 +73,9 @@ export default function IntakeCreateForm() {
     setFormError(null);
 
     if (!enrollmentRequestId) {
-      setFormError('Missing enrollment request. Start intake from the request list.');
+      setFormError(
+        'Missing enrollment request. Start intake from the request list.',
+      );
       return;
     }
 
@@ -122,7 +124,8 @@ export default function IntakeCreateForm() {
         <form onSubmit={handleSubmit} className='space-y-4'>
           {!enrollmentRequestId && (
             <p className='text-destructive text-sm'>
-              Invalid or missing enrollment request. Go back to Enrollment Requests and start intake from a specific request.
+              Invalid or missing enrollment request. Go back to Enrollment
+              Requests and start intake from a specific request.
             </p>
           )}
 
@@ -158,10 +161,7 @@ export default function IntakeCreateForm() {
           {formError && <p className='text-destructive text-sm'>{formError}</p>}
 
           <FormSubmitButton
-            isSubmitting={
-              form.isSubmitting ||
-              templateQuery.isFetching
-            }
+            isSubmitting={form.isSubmitting || templateQuery.isFetching}
             disabled={!enrollmentRequestId}
           >
             Create intake
