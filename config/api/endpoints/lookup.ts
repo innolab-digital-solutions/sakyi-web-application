@@ -18,5 +18,6 @@ export const LOOKUP_ENDPOINTS = {
   NUTRITION_CATEGORIES: `${BASE}/nutrition-categories`,
   UNITS: `${BASE}/units`,
   MOVEMENT_CATEGORIES: `${BASE}/movement-categories`,
+  MOVEMENT_EQUIPMENT: `${BASE}/movement-equipment`,
   BLOG_CATEGORIES: `${BASE}/blog-categories`,
 } as const;

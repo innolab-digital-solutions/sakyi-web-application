@@ -8,10 +8,10 @@ import { reportClientError } from '@/lib/sentry/client';
 
 type AppErrorProps = {
   error: Error & { digest?: string };
-  unstable_retry: () => void;
+  reset: () => void;
 };
 
-export default function AppError({ error, unstable_retry }: AppErrorProps) {
+export default function AppError({ error, reset }: AppErrorProps) {
   useEffect(() => {
     reportClientError(error, { digest: error.digest, segment: 'app' });
   }, [error]);
@@ -33,7 +33,7 @@ export default function AppError({ error, unstable_retry }: AppErrorProps) {
         ) : null}
       </div>
       <div className='flex flex-wrap items-center justify-center gap-3'>
-        <Button type='button' onClick={() => unstable_retry()}>
+        <Button type='button' onClick={() => reset()}>
           Try again
         </Button>
         <Button asChild variant='outline'>
