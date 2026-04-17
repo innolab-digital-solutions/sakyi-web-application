@@ -33,7 +33,7 @@ export default function EnrollmentIntakeConfirmation({
       <AlertDialogContent className='gap-0 overflow-hidden p-0 sm:max-w-md'>
         <AlertDialogHeader className='border-border border-b p-6'>
           <div className='flex items-start gap-3'>
-            <div className='bg-primary/10 border border-primary/20 text-primary mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-md'>
+            <div className='bg-primary/10 border-primary/20 text-primary mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-md border'>
               <CircleQuestionMark className='size-5' />
             </div>
             <div className='space-y-1.5'>

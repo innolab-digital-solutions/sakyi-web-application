@@ -620,7 +620,9 @@ export default function EnrollmentRequestListTable() {
                   ) : null}
                   {showColumn('contacted') ? (
                     <TableCell className='text-foreground/80 align-center tabular-nums'>
-                      {contactedAt ?? <TableCellEmpty label='Not Contact Yet' />}
+                      {contactedAt ?? (
+                        <TableCellEmpty label='Not Contact Yet' />
+                      )}
                     </TableCell>
                   ) : null}
                   {showColumn('status') ? (
