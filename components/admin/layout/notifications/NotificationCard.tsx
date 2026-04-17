@@ -2,6 +2,7 @@
 
 import {
   Bell,
+  ClipboardPlus,
   FileText,
   type LucideIcon,
   Package,
@@ -75,6 +76,19 @@ const TYPE_CONFIG: Record<
   },
 };
 
+const TYPE_EVENT_CONFIG: Partial<
+  Record<
+    Notification['type'],
+    { icon: LucideIcon; bgClass: string; iconClass: string }
+  >
+> = {
+  'enrollment.request.submitted': {
+    icon: ClipboardPlus,
+    bgClass: 'bg-[#0c96c4]/12',
+    iconClass: 'text-[#0c96c4]',
+  },
+};
+
 interface NotificationCardProps {
   notification: Notification;
   className?: string;
@@ -90,43 +104,48 @@ export function NotificationCard({
   className,
   onOpen,
 }: NotificationCardProps) {
-  const config = TYPE_CONFIG[notification.category];
+  const config =
+    TYPE_EVENT_CONFIG[notification.type] ?? TYPE_CONFIG[notification.category];
   const Icon = config.icon;
 
   const content = (
     <>
       <div
         className={cn(
-          'flex size-10 shrink-0 items-center justify-center rounded-lg',
+          'flex size-9 shrink-0 items-center justify-center rounded-md',
           config.bgClass,
           config.iconClass,
         )}
       >
-        <Icon className='size-5' />
+        <Icon className='size-4' />
       </div>
       <div className='min-w-0 flex-1'>
-        <p className='text-foreground text-sm leading-tight font-semibold'>
-          {notification.title}
-        </p>
+        <div className='flex items-start justify-between gap-3'>
+          <p className='text-foreground text-[13px] leading-tight font-semibold'>
+            {notification.title}
+          </p>
+          <div className='flex shrink-0 items-center gap-1.5'>
+            {!notification.read && (
+              <span
+                className='size-1.5 animate-pulse rounded-full bg-[#0c96c4] shadow-[0_0_0_4px_rgba(12,150,196,0.14)]'
+                aria-hidden
+              />
+            )}
+            <p className='text-foreground/70 font-medium text-[11px]'>
+              {formatTimeAgo(notification.createdAt)}
+            </p>
+          </div>
+        </div>
         <p className='text-muted-foreground mt-0.5 line-clamp-2 text-xs leading-snug'>
           {notification.message}
         </p>
-        <p className='text-muted-foreground mt-1.5 text-[11px]'>
-          {formatTimeAgo(notification.createdAt)}
-        </p>
       </div>
-      {!notification.read && (
-        <span
-          className='size-2 shrink-0 rounded-full bg-[#0c96c4]'
-          aria-hidden
-        />
-      )}
     </>
   );
 
   const cardClass = cn(
-    'border-border/80 bg-card flex gap-3 rounded-lg border p-3 text-left shadow-sm transition-colors hover:bg-muted/50',
-    !notification.read && 'bg-muted/30',
+    'border-border bg-card flex gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted/30',
+    !notification.read && 'border-[#0c96c4]/30 bg-[#0c96c4]/[0.04]',
     className,
   );
 

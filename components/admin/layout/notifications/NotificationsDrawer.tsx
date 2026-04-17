@@ -1,11 +1,12 @@
 'use client';
 
-import { Bell, CheckCheck } from 'lucide-react';
+import { Bell, CheckCheck, X } from 'lucide-react';
 import { useMemo } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
@@ -38,48 +39,63 @@ export function NotificationsDrawer({
     () => notifications.filter((notification) => !notification.read).length,
     [notifications],
   );
+  const orderedNotifications = useMemo(
+    () =>
+      [...notifications].sort((a, b) => {
+        if (a.read !== b.read) return a.read ? 1 : -1;
+        return b.createdAt.getTime() - a.createdAt.getTime();
+      }),
+    [notifications],
+  );
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side='right'
         className='border-border/80 bg-background flex w-full flex-col border-l p-0 sm:max-w-md'
-        showCloseButton={true}
+        showCloseButton={false}
       >
-        <SheetHeader className='border-border/80 bg-muted/30 border-b px-5 py-4'>
-          <div className='flex items-center justify-between gap-3 pr-8'>
-            <SheetTitle className='text-foreground flex items-center gap-2 text-lg font-semibold'>
+        <SheetHeader className='border-border/80 bg-background border-b px-5 py-4'>
+          <div className='flex items-center justify-between gap-3'>
+            <SheetTitle className='text-foreground text-md flex items-center gap-2 font-semibold capitalize'>
               <span className='flex size-9 items-center justify-center rounded-lg bg-[#0c96c4]/10 text-[#0c96c4]'>
                 <Bell className='size-5' />
               </span>
               Notifications
               {unreadCount > 0 && (
-                <span className='text-primary-foreground rounded-full bg-[#0c96c4] px-2 py-0.5 text-xs font-medium'>
+                <span className='text-primary-foreground rounded-full bg-[#0c96c4] px-1.5 py-0.5 text-xs font-medium'>
                   {unreadCount}
                 </span>
               )}
             </SheetTitle>
-            {unreadCount > 0 && (
-              <Button
-                variant='ghost'
-                size='sm'
-                className='text-muted-foreground hover:text-foreground shrink-0 gap-1.5 text-xs'
-                onClick={onMarkAllAsRead}
-              >
-                <CheckCheck className='size-3.5' />
-                Mark all as read
-              </Button>
-            )}
+            <div className='flex items-center gap-1.5'>
+              {unreadCount > 0 && (
+                <Button
+                  variant='outline'
+                  size='sm'
+                  className='bg-muted/35 border-border text-foreground hover:bg-muted hover:text-foreground h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-3 text-xs font-medium'
+                  onClick={onMarkAllAsRead}
+                >
+                  <CheckCheck className='size-3.5' />
+                  Mark all as read
+                </Button>
+              )}
+              <SheetClose asChild>
+                <Button variant='ghost' className='cursor-pointer bg-transparent!' aria-label='Close notifications'>
+                  <X className='size-4' />
+                </Button>
+              </SheetClose>
+            </div>
           </div>
         </SheetHeader>
 
         <div className='flex-1 overflow-y-auto'>
-          <div className='flex flex-col gap-2 p-4'>
+          <div className='flex flex-col gap-2 px-4'>
             {isLoading ? (
               <div className='text-muted-foreground py-12 text-center text-sm'>
                 Loading notifications...
               </div>
-            ) : notifications.length === 0 ? (
+            ) : orderedNotifications.length === 0 ? (
               <div className='text-muted-foreground flex flex-col items-center justify-center py-12 text-center text-sm'>
                 <Bell className='text-muted-foreground/50 mb-3 size-10' />
                 <p className='font-medium'>No notifications yet</p>
@@ -89,7 +105,7 @@ export function NotificationsDrawer({
                 </p>
               </div>
             ) : (
-              notifications.map((notification) => (
+              orderedNotifications.map((notification) => (
                 <NotificationCard
                   key={notification.id}
                   notification={notification}

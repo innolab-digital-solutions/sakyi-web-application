@@ -34,6 +34,7 @@ const normalizeNotification = (
   return {
     id: notification.id,
     category,
+    type: notification.data?.type ?? 'default',
     title: notification.data?.title ?? 'Notification',
     message: notification.data?.message ?? 'You have a new update.',
     createdAt: new Date(notification.created_at),

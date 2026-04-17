@@ -11,6 +11,7 @@ export type NotificationCategory =
 export interface Notification {
   id: string;
   category: NotificationCategory;
+  type: string;
   title: string;
   message: string;
   createdAt: Date;
