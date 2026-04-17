@@ -6,6 +6,7 @@ export type EnrollmentRequestStatus =
 
 export type EnrollmentRequestResource = {
   id: number;
+  code:string;
   phone: string;
   status: EnrollmentRequestStatus;
   notes: string | null;
@@ -19,6 +20,7 @@ export type EnrollmentRequestResource = {
     id: number;
     duration: number | string; // depends on backend cast
     price: number | string; // depends on backend cast
+    thumbnail_url: string;
     title?: string;
     slug?: string;
   };
