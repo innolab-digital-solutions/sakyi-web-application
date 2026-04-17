@@ -88,55 +88,55 @@ const ENROLLMENT_COLUMNS: readonly EnrollmentColumnDefinition[] = [
   {
     key: 'reference',
     label: 'Reference',
-    headerClassName: 'min-w-40',
+    headerClassName: '',
     skeletonWidth: 'w-24',
   },
   {
     key: 'applicant',
     label: 'Applicant',
-    headerClassName: 'min-w-48',
+    headerClassName: '',
     skeletonWidth: 'w-40',
   },
   {
     key: 'requestedProgram',
     label: 'Requested Program',
-    headerClassName: 'min-w-52',
+    headerClassName: '',
     skeletonWidth: 'w-44',
   },
   {
     key: 'contactPhone',
     label: 'Contact Phone',
-    headerClassName: 'min-w-30',
+    headerClassName: '',
     skeletonWidth: 'w-26',
   },
   {
     key: 'received',
     label: 'Received',
-    headerClassName: 'min-w-34',
+    headerClassName: '',
     skeletonWidth: 'w-28',
   },
   {
     key: 'handledBy',
     label: 'Handled By',
-    headerClassName: 'min-w-40',
+    headerClassName: '',
     skeletonWidth: 'w-36',
   },
   {
     key: 'contacted',
     label: 'Contacted',
-    headerClassName: 'min-w-34',
+    headerClassName: '',
     skeletonWidth: 'w-28',
   },
   {
     key: 'status',
     label: 'Status',
-    headerClassName: 'min-w-26',
+    headerClassName: '',
     skeletonWidth: 'w-24',
   },
   {
     key: 'actions',
     label: 'Actions',
-    headerClassName: 'min-w-52',
+    headerClassName: '',
     skeletonWidth: 'w-44',
   },
 ] as const;
@@ -156,27 +156,32 @@ const STATUS_STYLES: Record<
   {
     icon: React.ComponentType<{ className?: string }>;
     className: string;
+    actionTextClass: string;
   }
 > = {
   pending: {
     icon: TimerResetIcon,
     className:
       'border-amber-300/80 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200',
+    actionTextClass: 'text-amber-700 dark:text-amber-300',
   },
   contacted: {
     icon: PhoneCallIcon,
     className:
       'border-sky-300/80 bg-sky-50 text-sky-800 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-200',
+    actionTextClass: 'text-sky-700 dark:text-sky-300',
   },
   completed: {
     icon: CheckCircle2Icon,
     className:
       'border-emerald-300/80 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200',
+    actionTextClass: 'text-emerald-700 dark:text-emerald-300',
   },
   cancelled: {
     icon: XCircleIcon,
     className:
       'border-rose-300/80 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200',
+    actionTextClass: 'text-rose-700 dark:text-rose-300',
   },
 };
 
@@ -248,13 +253,13 @@ function ProgramThumbnail({
 function getTransitionLabel(status: EnrollmentRequestStatus): string {
   switch (status) {
     case 'contacted':
-      return 'Mark as contacted';
+      return 'Set as Contacted';
     case 'completed':
-      return 'Mark as completed';
+      return 'Set as Completed';
     case 'cancelled':
-      return 'Mark as cancelled';
+      return 'Set as Cancelled';
     case 'pending':
-      return 'Mark as pending';
+      return 'Set as Pending';
     default:
       return STATUS_LABEL[status];
   }
@@ -455,8 +460,8 @@ export default function EnrollmentRequestListTable() {
               <TableEmptyStateRow
                 colSpan={visibleColumnCount}
                 icon={ClipboardCheckIcon}
-                title='No enrollment requests yet'
-                description='When clients submit a program inquiry, it will show up here so your team can follow up and start intake when appropriate.'
+                title='No Enrollment Requests Available'
+                description='New enrollment requests will appear here for assignment, contact follow-up, and status tracking through intake.'
               />
             )}
 
@@ -617,11 +622,15 @@ export default function EnrollmentRequestListTable() {
                     <TableCell className='align-center whitespace-nowrap'>
                       <div className='flex flex-nowrap items-center justify-start gap-2'>
                         {canStartIntake(request) && (
-                          <Button size='sm' className='shrink-0' asChild>
+                          <Button
+                            className='h-10 text-[13px]! font-semibold shrink-0 gap-1.5 rounded-md px-2.5'
+                            asChild
+                          >
                             <Link
                               href={`${ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.CREATE}?request=${enrollmentRequestId}`}
                             >
-                              Intake
+                              <ClipboardCheckIcon className='size-3.5' />
+                              Start Intake
                             </Link>
                           </Button>
                         )}
@@ -631,10 +640,10 @@ export default function EnrollmentRequestListTable() {
                               <Button
                                 variant='outline'
                                 size='sm'
-                                className='shrink-0 gap-1.5'
+                                className='bg-background h-10 text-[13px]! font-semibold shrink-0 gap-1.5 hover:bg-muted cursor-pointer rounded-md border-neutral-300 px-2.5'
                                 disabled={updatingId === request.id}
                               >
-                                Status
+                                Set Status
                                 <ChevronDownIcon className='size-3.5 opacity-70' />
                               </Button>
                             </DropdownMenuTrigger>
@@ -646,7 +655,7 @@ export default function EnrollmentRequestListTable() {
                                 (status) => (
                                   <DropdownMenuItem
                                     key={status}
-                                    className='cursor-pointer'
+                                    className='cursor-pointer gap-2 font-medium'
                                     onClick={() => {
                                       mutateStatus({
                                         id: request.id,
@@ -654,6 +663,15 @@ export default function EnrollmentRequestListTable() {
                                       });
                                     }}
                                   >
+                                    {(() => {
+                                      const StatusIcon =
+                                        STATUS_STYLES[status].icon;
+                                      return (
+                                        <StatusIcon
+                                          className={`size-3.5 ${STATUS_STYLES[status].actionTextClass}`}
+                                        />
+                                      );
+                                    })()}
                                     {getTransitionLabel(status)}
                                   </DropdownMenuItem>
                                 ),
