@@ -50,7 +50,9 @@ export default function UnitListTable() {
       }
     },
     onSuccess: () => {
-      toast.success('Measurement removed.');
+      toast.success(
+        'The measurement was removed from the reference catalog.',
+      );
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.UNITS.LIST],
       });
@@ -93,7 +95,7 @@ export default function UnitListTable() {
     <>
       <TableListShell
         controls={controls}
-        searchPlaceholder='Search by name or abbreviation'
+        searchPlaceholder='Search name or abbreviation'
         filters={
           <UnitFilters
             typeFilter={typeFilterParam}

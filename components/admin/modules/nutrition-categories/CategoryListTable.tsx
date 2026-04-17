@@ -49,7 +49,9 @@ export default function NutritionCategoryListTable() {
       }
     },
     onSuccess: () => {
-      toast.success('Food category removed.');
+      toast.success(
+        'The food category was removed from your library.',
+      );
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST],
       });
@@ -96,7 +98,7 @@ export default function NutritionCategoryListTable() {
     <>
       <TableListShell
         controls={controls}
-        searchPlaceholder='Search by category name or description'
+        searchPlaceholder='Search category name or parent'
       >
         <Table className='w-full min-w-3xl'>
           <TableHeader className='bg-muted/50 [&_tr]:border-border'>

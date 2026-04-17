@@ -3,6 +3,7 @@
 import { PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
+import NutritionItemForm from '@/components/admin/modules/nutrition-items/ItemForm';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -13,8 +14,6 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import type { NutritionItem } from '@/domains/nutrition-items/types';
-
-import NutritionItemForm from './ItemForm';
 
 type CreateProps = {
   mode: 'create';
@@ -48,19 +47,24 @@ export default function NutritionItemSheet({
     <Sheet open={isOpen} onOpenChange={setOpen}>
       {!isEdit && (
         <SheetTrigger asChild>
-          <Button className='cursor-pointer' size='lg'>
-            <PlusIcon className='size-4' />
-            Create Item
+          <Button
+            type='button'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+          >
+            <PlusIcon className='size-3.5' />
+            Add Food Item
           </Button>
         </SheetTrigger>
       )}
       <SheetContent className='overflow-y-auto px-6 sm:max-w-md [&>button]:cursor-pointer'>
-        <SheetHeader className='mb-6'>
-          <SheetTitle>{isEdit ? 'Edit Item' : 'Create Item'}</SheetTitle>
-          <SheetDescription>
+        <SheetHeader className='px-0'>
+          <SheetTitle className='text-foreground text-md font-bold'>
+            {isEdit ? 'Edit Food Item' : 'Add Food Item'}
+          </SheetTitle>
+          <SheetDescription className='text-muted-foreground text-sm font-medium'>
             {isEdit
-              ? 'Update the details of this nutrition item.'
-              : 'Add a new item to the nutrition library.'}
+              ? 'Update name, description, category, and default measurement so this entry stays accurate across meal planning and nutrition data.'
+              : 'Add a food or ingredient to the library. Pick a category and an optional default measurement from the reference catalog for portions and labels.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (
