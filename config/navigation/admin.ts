@@ -105,11 +105,11 @@ export const ADMIN_NAVIGATION: NavItem[] = [
     path: '#',
     subitems: [
       {
-        name: 'Categories',
+        name: 'Food Categories',
         path: ADMIN_ROUTES.MODULES.NUTRITION_CATEGORIES.LIST,
       },
       {
-        name: 'Food Catalog',
+        name: 'Food Items',
         path: ADMIN_ROUTES.MODULES.NUTRITION_ITEMS.LIST,
       },
     ],
@@ -139,11 +139,11 @@ export const ADMIN_NAVIGATION: NavItem[] = [
     path: '#',
     subitems: [
       {
-        name: 'Categories',
+        name: 'Blog Categories',
         path: ADMIN_ROUTES.MODULES.BLOG_CATEGORIES.LIST,
       },
       {
-        name: 'Posts',
+        name: 'Blog Posts',
         path: ADMIN_ROUTES.MODULES.BLOG_POSTS.LIST,
       },
     ],

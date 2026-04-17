@@ -6,24 +6,24 @@ import NutritionCategoryListTable from '@/components/admin/modules/nutrition-cat
 import NutritionCategorySheet from '@/components/admin/modules/nutrition-categories/CategorySheet';
 
 export const metadata: Metadata = {
-  title: 'Nutrition Categories | SaKyi Admin',
+  title: 'Food Categories | SaKyi Admin',
   description:
-    'Manage nutrition categories used to organize food items and supplements across wellness programs.',
+    'Maintain food categories for the nutrition library: names, descriptions, and parent relationships for organizing food items.',
 };
 
 export default function NutritionCategoryListPage() {
   return (
     <div className='min-w-0 space-y-8'>
       <PageHeader
-        title='Nutrition Categories'
-        description='Organize and manage nutrition categories used to classify food items, supplements, and nutrients. Control category hierarchy, descriptions, and active status from one place.'
+        title='Food Categories'
+        description='Review this list, search by category or description, and add or edit categories so food items stay grouped consistently in the nutrition library.'
         actions={<NutritionCategorySheet mode='create' />}
       />
 
       <Suspense
         fallback={
           <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-            Loading categories…
+            Loading…
           </div>
         }
       >

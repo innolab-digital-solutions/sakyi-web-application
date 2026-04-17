@@ -9,9 +9,6 @@ import { toast } from 'sonner';
 import ComboboxField, {
   type ComboboxOption,
 } from '@/components/shared/form/ComboBoxField';
-import SelectField, {
-  type SelectFieldOption,
-} from '@/components/shared/form/SelectField';
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
 import { Button } from '@/components/ui/button';
@@ -22,14 +19,12 @@ import {
   NutritionCategoryCreateSchema,
   NutritionCategoryUpdateSchema,
 } from '@/domains/nutrition-categories/schemas';
-import { getNutritionCategoriesLookup } from '@/domains/nutrition-categories/services';
+import {
+  getNutritionCategoriesForParentPicker,
+  nutritionCategoryParentPickerQueryKey,
+} from '@/domains/nutrition-categories/services';
 import type { NutritionCategory } from '@/domains/nutrition-categories/types';
 import { useForm } from '@/lib/form';
-
-const STATUS_OPTIONS: SelectFieldOption[] = [
-  { value: 'true', label: 'Active' },
-  { value: 'false', label: 'Inactive' },
-];
 
 type CreateProps = {
   mode: 'create';
@@ -54,21 +49,17 @@ export default function NutritionCategoryForm({
   const queryClient = useQueryClient();
   const isEdit = mode === 'edit';
 
-  const { data: lookupData } = useQuery({
-    queryKey: ['lookup', LOOKUP_ENDPOINTS.NUTRITION_CATEGORIES],
-    queryFn: async () => {
-      const response = await getNutritionCategoriesLookup();
-      if (response.status !== 'success') return [];
-      return response.data;
-    },
+  const { data: categoriesForPicker } = useQuery({
+    queryKey: nutritionCategoryParentPickerQueryKey,
+    queryFn: getNutritionCategoriesForParentPicker,
   });
 
   const parentOptions = useMemo<ComboboxOption[]>(() => {
-    if (!lookupData) return [];
-    return lookupData
-      .filter((c) => c.id !== category?.id)
+    if (!categoriesForPicker?.length) return [];
+    return categoriesForPicker
+      .filter((c) => c.id !== category?.id && c.parent == null)
       .map((c) => ({ value: String(c.id), label: c.name }));
-  }, [lookupData, category?.id]);
+  }, [categoriesForPicker, category?.id]);
 
   const initialFields = useMemo(() => {
     if (mode === 'edit' && category) {
@@ -121,12 +112,15 @@ export default function NutritionCategoryForm({
             queryClient.invalidateQueries({
               queryKey: ['lookup', LOOKUP_ENDPOINTS.NUTRITION_CATEGORIES],
             });
-            toast.success('Category updated successfully.');
+            queryClient.invalidateQueries({
+              queryKey: nutritionCategoryParentPickerQueryKey,
+            });
+            toast.success('Food category updated successfully.');
             if (onSuccess) onSuccess();
             else router.push(ROUTES.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST);
           },
           onFailure: (error) => {
-            toast.error(error.message ?? 'Failed to update category.');
+            toast.error(error.message ?? 'Failed to update food category.');
           },
         },
       );
@@ -144,12 +138,15 @@ export default function NutritionCategoryForm({
         queryClient.invalidateQueries({
           queryKey: ['lookup', LOOKUP_ENDPOINTS.NUTRITION_CATEGORIES],
         });
-        toast.success('Category created successfully.');
+        queryClient.invalidateQueries({
+          queryKey: nutritionCategoryParentPickerQueryKey,
+        });
+        toast.success('Food category created successfully.');
         if (onSuccess) onSuccess();
         else router.push(ROUTES.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST);
       },
       onFailure: (error) => {
-        toast.error(error.message ?? 'Failed to create category.');
+        toast.error(error.message ?? 'Failed to create food category.');
       },
     });
   };
@@ -184,9 +181,9 @@ export default function NutritionCategoryForm({
         />
         <ComboboxField
           label='Parent Category'
-          placeholder='Select a parent category…'
-          searchPlaceholder='Search categories…'
-          emptyMessage='No categories found.'
+          placeholder='Select a top-level category…'
+          searchPlaceholder='Search top-level categories…'
+          emptyMessage='No top-level categories found.'
           options={parentOptions}
           value={form.fields.parent_id ? String(form.fields.parent_id) : null}
           onChange={(val) =>
@@ -194,23 +191,13 @@ export default function NutritionCategoryForm({
           }
           error={form.errors.parent_id}
         />
-        <SelectField
-          label='Status'
-          name='is_active'
-          required
-          placeholder='Select status…'
-          options={STATUS_OPTIONS}
-          value={String(form.fields.is_active ?? true)}
-          onChange={(val) => form.setData('is_active', val === 'true')}
-          error={form.errors.is_active}
-        />
 
-        <div className='flex items-center justify-end gap-3'>
+        <div className='flex flex-nowrap items-center justify-end gap-2'>
           <Button
             type='button'
             variant='outline'
             disabled={loading}
-            className='cursor-pointer'
+            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
             onClick={() =>
               onSuccess
                 ? onSuccess()
@@ -219,14 +206,18 @@ export default function NutritionCategoryForm({
           >
             Cancel
           </Button>
-          <Button type='submit' className='cursor-pointer' disabled={loading}>
+          <Button
+            type='submit'
+            disabled={loading}
+            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+          >
             {loading
               ? isEdit
-                ? 'Saving…'
+                ? 'Saving Changes…'
                 : 'Creating…'
               : isEdit
                 ? 'Save Changes'
-                : 'Create Category'}
+                : 'Create Food Category'}
           </Button>
         </div>
       </div>
