@@ -12,7 +12,7 @@ const DashboardHeader = () => {
   const { user } = useAuth();
 
   return (
-    <header className='border-border bg-background sticky top-0 z-10 w-full border-b px-2.5'>
+    <header className='border-border bg-background sticky top-0 z-10 w-full shrink-0 border-b px-2.5'>
       <div className='flex h-16 items-center justify-between px-5'>
         {/* Left section: Sidebar trigger and breadcrumbs */}
         <div className='flex h-5 items-center'>

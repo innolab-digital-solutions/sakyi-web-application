@@ -124,6 +124,7 @@ const INTAKE_COLUMNS: readonly IntakeColumnDefinition[] = [
   },
 ] as const;
 
+/** Aligned with enrollment request status badges for completed/cancelled; draft/in_progress are distinct “workflow” states. */
 const STATUS_STYLES: Record<
   IntakeStatus,
   {
@@ -134,12 +135,12 @@ const STATUS_STYLES: Record<
   draft: {
     icon: FileTextIcon,
     className:
-      'border-slate-300/80 bg-slate-50 text-slate-800 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-200',
+      'border-amber-300/80 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200',
   },
   in_progress: {
     icon: TimerResetIcon,
     className:
-      'border-sky-300/80 bg-sky-50 text-sky-800 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-200',
+      'border-indigo-300/80 bg-indigo-50 text-indigo-800 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200',
   },
   completed: {
     icon: CheckCircle2Icon,

@@ -33,6 +33,10 @@ export type EnrollmentRequestResource = {
     picture_url?: string;
     role: string;
   };
+  onboarding_intake?: {
+    id: number;
+    code: string;
+  } | null;
   timestamps: {
     created_at: string | null; // ISO 8601
     updated_at: string | null; // ISO 8601

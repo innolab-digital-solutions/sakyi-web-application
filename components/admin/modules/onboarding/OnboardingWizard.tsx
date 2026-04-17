@@ -13,17 +13,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-import TextAreaField from '@/components/shared/form/TextAreaField';
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ENDPOINTS } from '@/config/api/endpoints';
@@ -52,6 +41,7 @@ import { useForm } from '@/lib/form';
 import { getInitials } from '@/lib/utils/string';
 import type { ApiError } from '@/types/api';
 
+import IntakeCancelConfirmation from './IntakeCancelConfirmation';
 import OnboardingQuestionField from './OnboardingQuestionField';
 
 type OnboardingWizardProps = {
@@ -178,9 +168,6 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
   useEffect(() => {
     if (!isReadonly || hasRedirectedOnReadonly.current) return;
     hasRedirectedOnReadonly.current = true;
-    toast.info(
-      'This intake is no longer editable. Redirecting to detail view.',
-    );
     router.replace(
       ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(String(intakeId)),
     );
@@ -291,7 +278,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
       });
       await revalidateIntakeQueries();
       setCancelDialogOpen(false);
-      toast.success('Intake cancelled.');
+      toast.success('Intake assessment cancelled successfully.');
       router.push(
         ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(String(intakeId)),
       );
@@ -604,77 +591,47 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
 
         <div className='border-border/60 mt-8 flex flex-wrap items-center justify-end gap-3 border-t pt-6'>
           {!isReadonly && (
-            <AlertDialog
-              open={cancelDialogOpen}
-              onOpenChange={setCancelDialogOpen}
-            >
-              <AlertDialogTrigger asChild>
-                <Button
-                  type='button'
-                  variant='outline'
-                  className='border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px] font-semibold'
-                >
-                  <XCircleIcon className='size-3.5' />
-                  Cancel Intake
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Cancel intake?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cancels the current intake. You can add an
-                    optional note before confirming.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-
-                <div className='py-1'>
-                  <TextAreaField
-                    label='Cancellation note (optional)'
-                    value={
-                      typeof cancelForm.fields.cancellation_note === 'string'
-                        ? cancelForm.fields.cancellation_note
-                        : ''
+            <>
+              <Button
+                type='button'
+                variant='outline'
+                className='border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px] font-semibold'
+                onClick={() => setCancelDialogOpen(true)}
+              >
+                <XCircleIcon className='size-3.5' />
+                Cancel Intake
+              </Button>
+              <IntakeCancelConfirmation
+                open={cancelDialogOpen}
+                onOpenChange={setCancelDialogOpen}
+                isSubmitting={cancelMutation.isPending}
+                cancellationNote={
+                  typeof cancelForm.fields.cancellation_note === 'string'
+                    ? cancelForm.fields.cancellation_note
+                    : ''
+                }
+                onCancellationNoteChange={(value) =>
+                  cancelForm.setData('cancellation_note', value)
+                }
+                noteError={cancelForm.errors.cancellation_note}
+                onConfirmCancel={() => {
+                  const validation = OnboardingCancelIntakeSchema.safeParse(
+                    cancelForm.fields,
+                  );
+                  if (!validation.success) {
+                    const noteError =
+                      validation.error.flatten().fieldErrors
+                        .cancellation_note?.[0];
+                    if (noteError) {
+                      cancelForm.setError('cancellation_note', noteError);
                     }
-                    onChange={(event) =>
-                      cancelForm.setData(
-                        'cancellation_note',
-                        event.target.value,
-                      )
-                    }
-                    error={cancelForm.errors.cancellation_note}
-                  />
-                </div>
-
-                <AlertDialogFooter>
-                  <AlertDialogCancel disabled={cancelMutation.isPending}>
-                    Keep intake
-                  </AlertDialogCancel>
-                  <Button
-                    type='button'
-                    variant='destructive'
-                    disabled={cancelMutation.isPending}
-                    onClick={() => {
-                      const validation = OnboardingCancelIntakeSchema.safeParse(
-                        cancelForm.fields,
-                      );
-                      if (!validation.success) {
-                        const noteError =
-                          validation.error.flatten().fieldErrors
-                            .cancellation_note?.[0];
-                        if (noteError) {
-                          cancelForm.setError('cancellation_note', noteError);
-                        }
-                        return;
-                      }
-                      cancelForm.clearErrors('cancellation_note');
-                      cancelMutation.mutate();
-                    }}
-                  >
-                    Confirm cancel
-                  </Button>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                    return;
+                  }
+                  cancelForm.clearErrors('cancellation_note');
+                  cancelMutation.mutate();
+                }}
+              />
+            </>
           )}
 
           <Button

@@ -4,29 +4,23 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import {
   CheckCircle2Icon,
-  ChevronDownIcon,
   ClipboardCheckIcon,
   PhoneCallIcon,
   TimerResetIcon,
   XCircleIcon,
 } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
+import EnrollmentIntakeConfirmation from '@/components/admin/modules/enrollment-requests/EnrollmentIntakeConfirmation';
 import EnrollmentRequestFilters from '@/components/admin/modules/enrollment-requests/EnrollmentRequestFilters';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
   Table,
   TableBody,
@@ -46,6 +40,10 @@ import type {
   EnrollmentRequestResource,
   EnrollmentRequestStatus,
 } from '@/domains/enrollment-requests/types';
+import {
+  createOnboardingIntake,
+  getOnboardingTemplateByVersion,
+} from '@/domains/intake-assessments/services';
 import { useTable } from '@/lib/table';
 import { getInitials } from '@/lib/utils/string';
 
@@ -140,16 +138,6 @@ const ENROLLMENT_COLUMNS: readonly EnrollmentColumnDefinition[] = [
     skeletonWidth: 'w-44',
   },
 ] as const;
-
-const STATUS_TRANSITIONS: Record<
-  EnrollmentRequestStatus,
-  readonly EnrollmentRequestStatus[]
-> = {
-  pending: ['contacted', 'cancelled'],
-  contacted: ['completed', 'cancelled'],
-  completed: [],
-  cancelled: [],
-};
 
 const STATUS_STYLES: Record<
   EnrollmentRequestStatus,
@@ -250,35 +238,29 @@ function ProgramThumbnail({
   );
 }
 
-function getTransitionLabel(status: EnrollmentRequestStatus): string {
-  switch (status) {
-    case 'contacted':
-      return 'Set as Contacted';
-    case 'completed':
-      return 'Set as Completed';
-    case 'cancelled':
-      return 'Set as Cancelled';
-    case 'pending':
-      return 'Set as Pending';
-    default:
-      return STATUS_LABEL[status];
-  }
-}
-
 /**
  * Intake should only start while the request is still actively being worked.
  * In practice that means:
  * - pending: newly submitted and still triageable
  * - contacted: qualified and in active follow-up
  * Finalized states (completed/cancelled) should not create new intake sessions.
+ * If an intake is already linked (`onboarding_intake`), do not offer start again.
  */
 function canStartIntake(request: EnrollmentRequestResource): boolean {
   if (!request.client?.id) return false;
+  if (request.onboarding_intake) return false;
   return request.status === 'pending' || request.status === 'contacted';
 }
 
+function canMarkAsContacted(request: EnrollmentRequestResource): boolean {
+  return request.status === 'pending';
+}
+
 export default function EnrollmentRequestListTable() {
+  const router = useRouter();
   const queryClient = useQueryClient();
+  const [startIntakeRequest, setStartIntakeRequest] =
+    useState<EnrollmentRequestResource | null>(null);
   const [visibleColumnKeys, setVisibleColumnKeys] = useState<
     EnrollmentColumnKey[]
   >(() => {
@@ -350,6 +332,47 @@ export default function EnrollmentRequestListTable() {
     },
     onError: (error) => {
       toast.error(error.message ?? 'Failed to update status.');
+    },
+  });
+  const {
+    mutate: startIntake,
+    isPending: isStartingIntake,
+    variables: startingIntakeRequest,
+  } = useMutation({
+    mutationFn: async (request: EnrollmentRequestResource) => {
+      const templateResponse = await getOnboardingTemplateByVersion(1);
+      if (templateResponse.status === 'error') {
+        throw new Error(templateResponse.message || 'Could not load template.');
+      }
+
+      const createResponse = await createOnboardingIntake({
+        enrollment_request_id: request.id,
+        onboarding_template_id: templateResponse.data.id,
+      });
+
+      if (createResponse.status === 'error') {
+        throw new Error(createResponse.message || 'Could not create intake.');
+      }
+
+      return createResponse.data.id;
+    },
+    onSuccess: async (intakeId) => {
+      setStartIntakeRequest(null);
+      toast.success('Intake assessment created successfully.');
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.ENROLLMENT_REQUESTS.LIST],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST],
+        }),
+      ]);
+      router.push(
+        ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.INTERVIEW(String(intakeId)),
+      );
+    },
+    onError: (error) => {
+      toast.error(error.message ?? 'Could not create intake assessment.');
     },
   });
   const updatingId = isUpdatingStatus ? (variables?.id ?? null) : null;
@@ -469,7 +492,6 @@ export default function EnrollmentRequestListTable() {
             !query.isError &&
             query.data?.status === 'success' &&
             rows.map((request) => {
-              const enrollmentRequestId = request.id;
               const programLabel = getProgramLabel(request);
               const programCode = getProgramCode(request);
               const receivedAt = formatDateCell(request.timestamps.created_at);
@@ -598,7 +620,7 @@ export default function EnrollmentRequestListTable() {
                   ) : null}
                   {showColumn('contacted') ? (
                     <TableCell className='text-foreground/80 align-center tabular-nums'>
-                      {contactedAt ?? <TableCellEmpty label='Pending' />}
+                      {contactedAt ?? <TableCellEmpty label='Not Contact Yet' />}
                     </TableCell>
                   ) : null}
                   {showColumn('status') ? (
@@ -620,71 +642,52 @@ export default function EnrollmentRequestListTable() {
                   ) : null}
                   {showColumn('actions') ? (
                     <TableCell className='align-center whitespace-nowrap'>
-                      <div className='flex flex-nowrap items-center justify-start gap-2'>
-                        {canStartIntake(request) && (
-                          <Button
-                            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-                            asChild
-                          >
-                            <Link
-                              href={`${ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.CREATE}?request=${enrollmentRequestId}`}
-                            >
-                              <ClipboardCheckIcon className='size-3.5' />
-                              Start Intake
-                            </Link>
-                          </Button>
-                        )}
-                        {STATUS_TRANSITIONS[request.status].length > 0 ? (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
+                      {(() => {
+                        const showStartIntake = canStartIntake(request);
+                        const showMarkContacted = canMarkAsContacted(request);
+                        const hasActions = showStartIntake || showMarkContacted;
+
+                        return (
+                          <div className='flex flex-nowrap items-center justify-start gap-2'>
+                            {showStartIntake ? (
+                              <Button
+                                className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                                disabled={
+                                  isStartingIntake &&
+                                  startingIntakeRequest?.id === request.id
+                                }
+                                onClick={() => setStartIntakeRequest(request)}
+                              >
+                                <ClipboardCheckIcon className='size-3.5' />
+                                Start Intake
+                              </Button>
+                            ) : null}
+                            {showMarkContacted ? (
                               <Button
                                 variant='outline'
                                 size='sm'
-                                className='bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+                                className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
                                 disabled={updatingId === request.id}
+                                onClick={() => {
+                                  mutateStatus({
+                                    id: request.id,
+                                    payload: { status: 'contacted' },
+                                  });
+                                }}
                               >
-                                Set Status
-                                <ChevronDownIcon className='size-3.5 opacity-70' />
+                                <PhoneCallIcon className='size-3.5 text-sky-700 dark:text-sky-300' />
+                                Mark as Contacted
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              align='end'
-                              className='min-w-48'
-                            >
-                              {STATUS_TRANSITIONS[request.status].map(
-                                (status) => (
-                                  <DropdownMenuItem
-                                    key={status}
-                                    className='cursor-pointer gap-2 font-medium'
-                                    onClick={() => {
-                                      mutateStatus({
-                                        id: request.id,
-                                        payload: { status },
-                                      });
-                                    }}
-                                  >
-                                    {(() => {
-                                      const StatusIcon =
-                                        STATUS_STYLES[status].icon;
-                                      return (
-                                        <StatusIcon
-                                          className={`size-3.5 ${STATUS_STYLES[status].actionTextClass}`}
-                                        />
-                                      );
-                                    })()}
-                                    {getTransitionLabel(status)}
-                                  </DropdownMenuItem>
-                                ),
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        ) : (
-                          <TableCellEmpty
-                            label='Finalized'
-                            className='whitespace-nowrap'
-                          />
-                        )}
-                      </div>
+                            ) : null}
+                            {!hasActions ? (
+                              <TableCellEmpty
+                                label='Finalized'
+                                className='whitespace-nowrap'
+                              />
+                            ) : null}
+                          </div>
+                        );
+                      })()}
                     </TableCell>
                   ) : null}
                 </TableRow>
@@ -692,6 +695,22 @@ export default function EnrollmentRequestListTable() {
             })}
         </TableBody>
       </Table>
+      <EnrollmentIntakeConfirmation
+        open={startIntakeRequest != null}
+        isSubmitting={isStartingIntake}
+        requestReference={
+          startIntakeRequest
+            ? getRequestReference(startIntakeRequest)
+            : undefined
+        }
+        onOpenChange={(open) => {
+          if (!open && !isStartingIntake) setStartIntakeRequest(null);
+        }}
+        onConfirm={() => {
+          if (!startIntakeRequest) return;
+          startIntake(startIntakeRequest);
+        }}
+      />
     </TableListShell>
   );
 }
