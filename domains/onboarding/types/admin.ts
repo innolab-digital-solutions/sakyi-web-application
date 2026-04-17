@@ -107,6 +107,12 @@ export type OnboardingIntake = {
     email: string;
     picture_url: string | null;
   };
+  enrollment_contract?: {
+    id: number;
+    code: string;
+    sent_at: string | null;
+    signed_at: string | null;
+  } | null;
   handler?: {
     id: number;
     name: string;

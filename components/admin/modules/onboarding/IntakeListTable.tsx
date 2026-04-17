@@ -7,6 +7,7 @@ import {
   EyeIcon,
   FileTextIcon,
   PencilIcon,
+  SendHorizontal,
   TimerResetIcon,
   XCircleIcon,
 } from 'lucide-react';
@@ -17,6 +18,7 @@ import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import IntakeAssessmentFilters from '@/components/admin/modules/onboarding/IntakeAssessmentFilters';
+import SendContractConfirmation from '@/components/admin/modules/onboarding/SendContractConfirmation';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -238,6 +240,11 @@ export default function IntakeListTable() {
   );
   const [assigningEnrollmentRequestId, setAssigningEnrollmentRequestId] =
     useState<number | null>(null);
+  const [sendContractDialog, setSendContractDialog] = useState<{
+    enrollmentRequestId: number;
+    variant: 'first' | 'resend';
+    applicantName: string | null;
+  } | null>(null);
   const { rows, controls } = useTable<OnboardingIntakeData>(
     ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST,
     {
@@ -278,21 +285,31 @@ export default function IntakeListTable() {
         const response =
           await assignEnrollmentRequestContract(enrollmentRequestId);
         if (response.status === 'error') {
-          throw new Error(response.message || 'Failed to assign contract.');
+          throw new Error(
+            response.message ||
+              'The contract notification could not be sent. Please try again.',
+          );
         }
       },
       onSuccess: () => {
-        toast.success('Enrollment contract assigned.');
+        toast.success(
+          'The enrollment contract notification was sent. The applicant will receive it on their mobile device.',
+        );
         queryClient.invalidateQueries({
           queryKey: ['table', ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST],
         });
       },
       onError: (error) => {
-        toast.error(error.message ?? 'Failed to assign contract.');
+        toast.error(
+          error.message ??
+            'The contract notification could not be sent. Try again or contact support if the problem continues.',
+        );
       },
     });
 
-  const handleAssignContract = (enrollmentRequestId: number) => {
+  const confirmSendContract = () => {
+    if (!sendContractDialog) return;
+    const enrollmentRequestId = sendContractDialog.enrollmentRequestId;
     if (
       isAssigningContract ||
       assigningEnrollmentRequestId === enrollmentRequestId
@@ -302,6 +319,9 @@ export default function IntakeListTable() {
 
     setAssigningEnrollmentRequestId(enrollmentRequestId);
     mutateAssignContract(enrollmentRequestId, {
+      onSuccess: () => {
+        setSendContractDialog(null);
+      },
       onSettled: () => {
         setAssigningEnrollmentRequestId(null);
       },
@@ -462,7 +482,7 @@ export default function IntakeListTable() {
                   ) : null}
 
                   {showColumn('requestedProgram') ? (
-                    <TableCell className='align-center min-w-56 whitespace-normal'>
+                    <TableCell className='align-center min-w-75 whitespace-normal'>
                       <div className='flex items-start gap-3'>
                         <ProgramThumbnail
                           thumbnailUrl={intake.program?.thumbnail_url}
@@ -561,26 +581,10 @@ export default function IntakeListTable() {
                   {showColumn('actions') ? (
                     <TableCell className='align-center whitespace-nowrap'>
                       <div className='flex flex-nowrap items-center justify-start gap-2'>
-                        <Button
-                          className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-                          asChild
-                        >
-                          <Link
-                            href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(
-                              String(intake.id),
-                            )}
-                          >
-                            <EyeIcon className='size-3.5' />
-                            View Details
-                          </Link>
-                        </Button>
-
                         {intake.status !== 'completed' &&
                           intake.status !== 'cancelled' && (
                             <Button
-                              variant='outline'
-                              size='sm'
-                              className='bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+                              className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
                               asChild
                             >
                               <Link
@@ -594,27 +598,49 @@ export default function IntakeListTable() {
                             </Button>
                           )}
 
-                        {intake.status === 'completed' && (
-                          <Button
-                            variant='outline'
-                            size='sm'
-                            className='bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
-                            disabled={
-                              enrollmentRequestId == null ||
-                              isAssigningContract ||
-                              assigningEnrollmentRequestId ===
-                                enrollmentRequestId
-                            }
-                            onClick={() => {
-                              if (enrollmentRequestId != null) {
-                                handleAssignContract(enrollmentRequestId);
+                        {intake.status === 'completed' &&
+                          !intake.enrollment_contract?.signed_at && (
+                            <Button
+                              className='h-10 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                              disabled={
+                                enrollmentRequestId == null ||
+                                isAssigningContract ||
+                                assigningEnrollmentRequestId ===
+                                  enrollmentRequestId
                               }
-                            }}
+                              onClick={() => {
+                                if (enrollmentRequestId != null) {
+                                  setSendContractDialog({
+                                    enrollmentRequestId,
+                                    variant: intake.enrollment_contract?.sent_at
+                                      ? 'resend'
+                                      : 'first',
+                                    applicantName:
+                                      intake.client?.name?.trim() ?? null,
+                                  });
+                                }
+                              }}
+                            >
+                              <SendHorizontal className='size-3.5' />
+                              Send Contract
+                            </Button>
+                          )}
+
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          className='bg-background hover:bg-muted h-10 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+                          asChild
+                        >
+                          <Link
+                            href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(
+                              String(intake.id),
+                            )}
                           >
-                            <FileTextIcon className='size-3.5' />
-                            Assign Contract
-                          </Button>
-                        )}
+                            <EyeIcon className='size-3.5' />
+                            View Details
+                          </Link>
+                        </Button>
                       </div>
                     </TableCell>
                   ) : null}
@@ -623,6 +649,22 @@ export default function IntakeListTable() {
             })}
         </TableBody>
       </Table>
+
+      <SendContractConfirmation
+        open={sendContractDialog != null}
+        onOpenChange={(open) => {
+          if (!open) setSendContractDialog(null);
+        }}
+        isSubmitting={
+          sendContractDialog != null &&
+          isAssigningContract &&
+          assigningEnrollmentRequestId ===
+            sendContractDialog.enrollmentRequestId
+        }
+        variant={sendContractDialog?.variant ?? 'first'}
+        applicantName={sendContractDialog?.applicantName}
+        onConfirm={confirmSendContract}
+      />
     </TableListShell>
   );
 }
