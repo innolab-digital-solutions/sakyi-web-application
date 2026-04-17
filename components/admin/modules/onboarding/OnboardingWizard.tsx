@@ -24,10 +24,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ROUTES } from '@/config/routes';
-import { trackOnboardingEvent } from '@/domains/onboarding/analytics';
+import { trackOnboardingEvent } from '@/domains/intake-assessments/analytics';
 import {
   buildSaveSectionPayload,
   type DraftBySection,
@@ -35,19 +35,20 @@ import {
   getRequiredFieldErrorsForSection,
   hydrateDraftAnswersFromSections,
   mapSectionFieldErrorsFromApi,
-} from '@/domains/onboarding/mappers/admin';
-import { OnboardingCancelIntakeSchema } from '@/domains/onboarding/schemas';
+} from '@/domains/intake-assessments/mappers/admin';
+import { OnboardingCancelIntakeSchema } from '@/domains/intake-assessments/schemas';
 import {
   cancelOnboardingIntake,
   completeOnboardingIntake,
   getOnboardingIntakeById,
   saveOnboardingIntakeSection,
-} from '@/domains/onboarding/services';
+} from '@/domains/intake-assessments/services';
 import type {
   OnboardingIntakeResponse,
   OnboardingIntakeSection,
-} from '@/domains/onboarding/types';
+} from '@/domains/intake-assessments/types';
 import { useForm } from '@/lib/form';
+import { getInitials } from '@/lib/utils/string';
 import type { ApiError } from '@/types/api';
 
 import OnboardingQuestionField from './OnboardingQuestionField';
@@ -55,6 +56,30 @@ import OnboardingQuestionField from './OnboardingQuestionField';
 type OnboardingWizardProps = {
   intakeId: number;
 };
+
+function PersonAvatar({
+  name,
+  pictureUrl,
+}: {
+  name: string | null | undefined;
+  pictureUrl: string | null | undefined;
+}) {
+  const [useFallback, setUseFallback] = useState(() => !pictureUrl?.trim());
+  return (
+    <Avatar size='default' className='mt-0.5 shrink-0' aria-hidden>
+      {!useFallback && pictureUrl?.trim() ? (
+        <AvatarImage
+          src={pictureUrl.trim()}
+          alt=''
+          onError={() => setUseFallback(true)}
+        />
+      ) : null}
+      <AvatarFallback className='text-xs'>
+        {getInitials(name ?? '', 2) || '?'}
+      </AvatarFallback>
+    </Avatar>
+  );
+}
 
 export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
   const queryClient = useQueryClient();
@@ -151,7 +176,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
       'This intake is no longer editable. Redirecting to detail view.',
     );
     router.replace(
-      ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.DETAIL(String(intakeId)),
+      ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(String(intakeId)),
     );
   }, [intakeId, isReadonly, router]);
 
@@ -216,7 +241,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
       });
       toast.success('Intake completed.');
       router.push(
-        ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.DETAIL(String(intakeId)),
+        ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(String(intakeId)),
       );
     },
     onError: () => {
@@ -249,7 +274,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
       setCancelDialogOpen(false);
       toast.success('Intake cancelled.');
       router.push(
-        ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.DETAIL(String(intakeId)),
+        ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(String(intakeId)),
       );
     },
     onError: () => {
@@ -277,7 +302,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
 
   const progress = successIntake?.meta?.progress;
   const intakeRecord = successIntake?.data;
-  const clientUser = intakeRecord?.user;
+  const clientUser = intakeRecord?.client;
   const activeFieldErrors = fieldErrorsBySection[activeSection.id] ?? {};
   const canGoBack = sectionIndex > 0;
   const canGoNext = sectionIndex >= 0 && sectionIndex < sections.length - 1;
@@ -372,341 +397,343 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
   };
 
   return (
-    <div className='mx-auto w-full max-w-6xl space-y-6'>
-      <Card className='border-border/70 overflow-hidden shadow-sm'>
-        <CardHeader className='bg-muted/25 border-border space-y-4 border-b pb-5'>
-          <div className='flex flex-wrap items-start justify-between gap-3'>
-            <div className='space-y-1'>
-              <CardTitle className='text-base md:text-lg'>
-                {intakeQuery.data?.data.template?.title ?? 'Phone intake'}
-              </CardTitle>
-              <p className='text-muted-foreground text-sm'>
-                Phone intake: work through each section with the client. Answers
-                save when you move forward or tap Save draft.
-              </p>
-            </div>
-          </div>
-
-          {intakeRecord && (
-            <div className='bg-background/80 border-border/80 rounded-lg border px-4 py-3'>
-              <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-                <div className='min-w-0 space-y-0.5'>
-                  <p className='text-muted-foreground text-xs font-medium tracking-wide uppercase'>
-                    Client
-                  </p>
-                  {clientUser ? (
-                    <>
-                      <p className='text-foreground truncate font-semibold'>
+    <section className='border-border max-w-full min-w-0 space-y-5 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:p-6'>
+      <div className='border-border space-y-4 border-b pb-5'>
+        {intakeRecord && (
+          <div className='space-y-4'>
+            <div className='flex flex-wrap items-center justify-between gap-3'>
+              <div className='min-w-0 space-y-1.5'>
+                <p className='text-muted-foreground text-[10px]! font-semibold tracking-wide uppercase'>
+                  Applicant
+                </p>
+                {clientUser ? (
+                  <div className='flex items-start gap-3'>
+                    <PersonAvatar
+                      name={clientUser?.name}
+                      pictureUrl={clientUser?.picture_url}
+                    />
+                    <div className='min-w-0 flex-1 space-y-1'>
+                      <p className='text-foreground/90 text-[13px] font-semibold'>
                         {clientUser.name}
                       </p>
-                      <p className='text-muted-foreground truncate text-sm'>
+                      <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
                         {clientUser.email}
                       </p>
-                    </>
-                  ) : (
-                    <p className='text-muted-foreground text-sm'>
-                      Client information unavailable.
-                    </p>
-                  )}
-                </div>
-                <div className='flex flex-wrap items-center gap-3 sm:justify-end'>
-                  <div className='text-left sm:text-right'>
-                    <p className='text-muted-foreground text-xs'>Intake</p>
-                    <p className='text-foreground font-mono text-sm font-medium'>
-                      #{intakeRecord.id}
-                    </p>
+                    </div>
                   </div>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    asChild
-                    className='shrink-0'
-                  >
-                    <Link href={ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.LIST}>
-                      Intake queue
-                    </Link>
-                  </Button>
-                </div>
+                ) : (
+                  <p className='text-muted-foreground text-sm'>
+                    Client information unavailable.
+                  </p>
+                )}
               </div>
+              <Button
+                variant='outline'
+                size='sm'
+                asChild
+                className='bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+              >
+                <Link href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST}>
+                  <ArrowLeftIcon className='size-3.5' />
+                  Back to Intake Queue
+                </Link>
+              </Button>
             </div>
-          )}
 
-          <div className='grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto] md:items-center'>
-            <div className='space-y-2'>
-              <div className='bg-muted h-2 overflow-hidden rounded-full'>
-                <div
-                  className='bg-primary h-full transition-all'
-                  style={{
-                    width: `${Math.max(0, Math.min(completionRate, 100))}%`,
-                  }}
-                />
-              </div>
-              <div className='text-muted-foreground flex items-center justify-between text-xs'>
-                <span>
-                  Required answered: {progress?.answered_required ?? 0}/
-                  {progress?.total_required ?? 0}
-                </span>
-                <span>{Math.round(completionRate)}%</span>
+            <div className='border-border border-t pt-4'>
+              <div className='grid gap-4 md:grid-cols-2'>
+                <div className='min-w-0 space-y-1.5'>
+                  <p className='text-muted-foreground text-[10px]! font-semibold tracking-wide uppercase'>
+                    Linked Request Reference
+                  </p>
+                  <p className='text-foreground/90 text-[13px] leading-relaxed font-semibold'>
+                    {intakeRecord.enrollment_request?.code?.trim() || 'Not linked'}
+                  </p>
+                </div>
+
+                <div className='space-y-1.5 text-left md:text-right'>
+                  <p className='text-muted-foreground text-[10px]! font-semibold tracking-wide uppercase'>
+                    Assessment Reference
+                  </p>
+                  <p className='text-foreground/90 text-[13px] leading-relaxed font-semibold'>
+                    {intakeRecord.code?.trim() || `#${intakeRecord.id}`}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </CardHeader>
-        <CardContent className='space-y-5 p-4 md:p-6'>
-          {isReadonly && (
-            <div className='bg-muted border-border mb-4 rounded-md border p-3 text-sm'>
-              <p className='font-medium'>Read only</p>
-              <p className='text-muted-foreground'>
-                This intake is {status}. Editing is disabled.
-              </p>
-            </div>
-          )}
+        )}
 
-          <div className='space-y-4'>
-            <div className='flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'>
-              {sections.map((section, index) => {
-                const isActive = section.id === activeSection.id;
-                const isPassed = index < sectionIndex;
-                return (
-                  <button
-                    key={section.id}
-                    type='button'
-                    onClick={() => void handleStepClick(section, index)}
-                    className={`group flex min-w-fit items-center gap-2 rounded-md border px-3 py-2 text-xs transition md:text-sm ${
+        <div className='grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto] md:items-center'>
+          <div className='space-y-2'>
+            <div className='bg-muted h-2 overflow-hidden rounded-full'>
+              <div
+                className='bg-primary h-full transition-all'
+                style={{
+                  width: `${Math.max(0, Math.min(completionRate, 100))}%`,
+                }}
+              />
+            </div>
+            <div className='text-muted-foreground flex items-center justify-between text-[12px] font-medium'>
+              <span>
+                Required answered: {progress?.answered_required ?? 0}/
+                {progress?.total_required ?? 0}
+              </span>
+              <span>{Math.round(completionRate)}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className='space-y-5'>
+        {isReadonly && (
+          <div className='bg-muted border-border mb-4 rounded-md border p-3 text-sm'>
+            <p className='font-medium'>Read only</p>
+            <p className='text-muted-foreground'>
+              This intake is {status}. Editing is disabled.
+            </p>
+          </div>
+        )}
+
+        <div className='space-y-4'>
+          <div className='flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'>
+            {sections.map((section, index) => {
+              const isActive = section.id === activeSection.id;
+              const isPassed = index < sectionIndex;
+              return (
+                <button
+                  key={section.id}
+                  type='button'
+                  onClick={() => void handleStepClick(section, index)}
+                  className={`group flex min-w-fit cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium transition md:text-[13px] ${
+                    isActive
+                      ? 'bg-primary/10 border-primary text-primary'
+                      : isPassed
+                        ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'
+                        : 'bg-background hover:bg-muted border-border text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <span
+                    className={`inline-flex size-5 items-center justify-center rounded-full border text-[10px] font-semibold ${
                       isActive
-                        ? 'bg-primary/10 border-primary text-primary'
+                        ? 'border-primary bg-primary text-white'
                         : isPassed
-                          ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'
-                          : 'bg-background hover:bg-muted border-border text-muted-foreground hover:text-foreground'
+                          ? 'border-emerald-500 bg-emerald-500 text-white'
+                          : 'border-border bg-muted text-muted-foreground'
                     }`}
                   >
-                    <span
-                      className={`inline-flex size-5 items-center justify-center rounded-full border text-[10px] font-semibold ${
-                        isActive
-                          ? 'border-primary bg-primary text-white'
-                          : isPassed
-                            ? 'border-emerald-500 bg-emerald-500 text-white'
-                            : 'border-border bg-muted text-muted-foreground'
-                      }`}
-                    >
-                      {index + 1}
-                    </span>
-                    <span className='font-medium whitespace-nowrap'>
-                      {section.title}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className='border-border space-y-5 rounded-md border bg-white p-4 md:p-5'>
-              {activeSection.description && (
-                <p className='text-muted-foreground text-sm'>
-                  {activeSection.description}
-                </p>
-              )}
-
-              {sectionErrors[activeSection.id] && (
-                <div className='border-destructive/30 bg-destructive/10 space-y-2 rounded-md border p-3 text-sm'>
-                  <p className='text-destructive font-medium'>
-                    Could not save section
-                  </p>
-                  <div className='space-y-2'>
-                    <p>{sectionErrors[activeSection.id]}</p>
-                    <Button
-                      type='button'
-                      variant='outline'
-                      size='sm'
-                      onClick={() => saveMutation.mutate(activeSection)}
-                    >
-                      Retry save
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                {activeSection.questions.map((question) => (
-                  <div
-                    key={question.id}
-                    className={
-                      question.type === 'file' ||
-                      question.type === 'multiselect'
-                        ? 'lg:col-span-2'
-                        : 'lg:col-span-1'
-                    }
-                  >
-                    <OnboardingQuestionField
-                      question={question}
-                      disabled={
-                        isReadonly ||
-                        saveMutation.isPending ||
-                        completeMutation.isPending ||
-                        cancelMutation.isPending
-                      }
-                      value={
-                        draftBySection[activeSection.id]?.[question.id] ?? null
-                      }
-                      error={activeFieldErrors[question.id]}
-                      onChange={(value) =>
-                        handleQuestionValueChange(
-                          activeSection.id,
-                          question.id,
-                          value,
-                        )
-                      }
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
+                    {index + 1}
+                  </span>
+                  <span className='font-medium whitespace-nowrap'>
+                    {section.title}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
-          <div className='bg-background/95 sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t px-4 pt-4 pb-2 md:static md:mx-0 md:border-0 md:px-0 md:pt-2 md:pb-0'>
-            {!isReadonly && (
-              <AlertDialog
-                open={cancelDialogOpen}
-                onOpenChange={setCancelDialogOpen}
-              >
-                <AlertDialogTrigger asChild>
+          {activeSection.description && (
+            <p className='text-muted-foreground text-[13px] font-medium'>
+              {activeSection.description}
+            </p>
+          )}
+
+          <div className='border-border space-y-6 rounded-md border bg-white p-4 md:p-5'>
+            {sectionErrors[activeSection.id] && (
+              <div className='border-destructive/30 bg-destructive/10 space-y-2 rounded-md border p-3 text-sm'>
+                <p className='text-destructive font-medium'>
+                  Could not save section
+                </p>
+                <div className='space-y-2'>
+                  <p>{sectionErrors[activeSection.id]}</p>
                   <Button
                     type='button'
                     variant='outline'
-                    className='text-destructive border-destructive/35 hover:bg-destructive/10 hover:text-destructive min-w-28'
+                    size='sm'
+                    onClick={() => saveMutation.mutate(activeSection)}
                   >
-                    <XCircleIcon className='size-4' />
-                    Cancel
+                    Retry save
                   </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Cancel intake?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cancels the current intake. You can add an
-                      optional note before confirming.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-
-                  <div className='py-1'>
-                    <TextAreaField
-                      label='Cancellation note (optional)'
-                      value={
-                        typeof cancelForm.fields.cancellation_note === 'string'
-                          ? cancelForm.fields.cancellation_note
-                          : ''
-                      }
-                      onChange={(event) =>
-                        cancelForm.setData(
-                          'cancellation_note',
-                          event.target.value,
-                        )
-                      }
-                      error={cancelForm.errors.cancellation_note}
-                    />
-                  </div>
-
-                  <AlertDialogFooter>
-                    <AlertDialogCancel disabled={cancelMutation.isPending}>
-                      Keep intake
-                    </AlertDialogCancel>
-                    <Button
-                      type='button'
-                      variant='destructive'
-                      disabled={cancelMutation.isPending}
-                      onClick={() => {
-                        const validation =
-                          OnboardingCancelIntakeSchema.safeParse(
-                            cancelForm.fields,
-                          );
-                        if (!validation.success) {
-                          const noteError =
-                            validation.error.flatten().fieldErrors
-                              .cancellation_note?.[0];
-                          if (noteError) {
-                            cancelForm.setError('cancellation_note', noteError);
-                          }
-                          return;
-                        }
-                        cancelForm.clearErrors('cancellation_note');
-                        cancelMutation.mutate();
-                      }}
-                    >
-                      Confirm cancel
-                    </Button>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                </div>
+              </div>
             )}
 
-            <Button
-              type='button'
-              variant='secondary'
-              disabled={isReadonly || saveMutation.isPending}
-              className='min-w-32'
-              onClick={() => saveMutation.mutate(activeSection)}
-            >
-              <SaveIcon className='size-4' />
-              Save draft
-            </Button>
-
-            <Button
-              type='button'
-              variant='outline'
-              disabled={!canGoBack}
-              className='min-w-24'
-              onClick={() =>
-                setSelectedSectionId(sections[sectionIndex - 1].id)
-              }
-            >
-              <ArrowLeftIcon className='size-4' />
-              Back
-            </Button>
-
-            {!isLastSection ? (
-              <Button
-                type='button'
-                disabled={isReadonly || saveMutation.isPending || !canGoNext}
-                className='min-w-24'
-                onClick={async () => {
-                  const isValid = validateCurrentSectionRequired(activeSection);
-                  if (!isValid) return;
-
-                  const response =
-                    await saveMutation.mutateAsync(activeSection);
-                  if (response.status === 'error') return;
-                  setSelectedSectionId(sections[sectionIndex + 1].id);
-                }}
-              >
-                Next
-                <ChevronRightIcon className='size-4' />
-              </Button>
-            ) : (
-              <Button
-                type='button'
-                variant='default'
-                disabled={
-                  isReadonly ||
-                  saveMutation.isPending ||
-                  completeMutation.isPending
-                }
-                className='min-w-28'
-                onClick={async () => {
-                  const isValid = validateCurrentSectionRequired(activeSection);
-                  if (!isValid) return;
-
-                  const saveResponse =
-                    await saveMutation.mutateAsync(activeSection);
-                  if (saveResponse.status === 'error') return;
-
-                  completeMutation.mutate();
-                }}
-              >
-                <CheckCircle2Icon className='size-4' />
-                Complete
-              </Button>
-            )}
+            <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+              {activeSection.questions.map((question) => (
+                <div
+                  key={question.id}
+                  className={
+                    question.type === 'file' || question.type === 'multiselect'
+                      ? 'lg:col-span-2'
+                      : 'lg:col-span-1'
+                  }
+                >
+                  <OnboardingQuestionField
+                    question={question}
+                    disabled={
+                      isReadonly ||
+                      saveMutation.isPending ||
+                      completeMutation.isPending ||
+                      cancelMutation.isPending
+                    }
+                    value={
+                      draftBySection[activeSection.id]?.[question.id] ?? null
+                    }
+                    error={activeFieldErrors[question.id]}
+                    onChange={(value) =>
+                      handleQuestionValueChange(
+                        activeSection.id,
+                        question.id,
+                        value,
+                      )
+                    }
+                  />
+                </div>
+              ))}
+            </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+
+        <div className='bg-background/95 sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t px-4 pt-4 pb-2 md:static md:mx-0 md:border-0 md:px-0 md:pt-2 md:pb-0'>
+          {!isReadonly && (
+            <AlertDialog
+              open={cancelDialogOpen}
+              onOpenChange={setCancelDialogOpen}
+            >
+              <AlertDialogTrigger asChild>
+                <Button
+                  type='button'
+                  variant='outline'
+                  className='text-destructive border-destructive/35 hover:bg-destructive/10 hover:text-destructive min-w-28'
+                >
+                  <XCircleIcon className='size-4' />
+                  Cancel
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Cancel intake?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cancels the current intake. You can add an
+                    optional note before confirming.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+
+                <div className='py-1'>
+                  <TextAreaField
+                    label='Cancellation note (optional)'
+                    value={
+                      typeof cancelForm.fields.cancellation_note === 'string'
+                        ? cancelForm.fields.cancellation_note
+                        : ''
+                    }
+                    onChange={(event) =>
+                      cancelForm.setData(
+                        'cancellation_note',
+                        event.target.value,
+                      )
+                    }
+                    error={cancelForm.errors.cancellation_note}
+                  />
+                </div>
+
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={cancelMutation.isPending}>
+                    Keep intake
+                  </AlertDialogCancel>
+                  <Button
+                    type='button'
+                    variant='destructive'
+                    disabled={cancelMutation.isPending}
+                    onClick={() => {
+                      const validation = OnboardingCancelIntakeSchema.safeParse(
+                        cancelForm.fields,
+                      );
+                      if (!validation.success) {
+                        const noteError =
+                          validation.error.flatten().fieldErrors
+                            .cancellation_note?.[0];
+                        if (noteError) {
+                          cancelForm.setError('cancellation_note', noteError);
+                        }
+                        return;
+                      }
+                      cancelForm.clearErrors('cancellation_note');
+                      cancelMutation.mutate();
+                    }}
+                  >
+                    Confirm cancel
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+
+          <Button
+            type='button'
+            variant='secondary'
+            disabled={isReadonly || saveMutation.isPending}
+            className='min-w-32'
+            onClick={() => saveMutation.mutate(activeSection)}
+          >
+            <SaveIcon className='size-4' />
+            Save draft
+          </Button>
+
+          <Button
+            type='button'
+            variant='outline'
+            disabled={!canGoBack}
+            className='min-w-24'
+            onClick={() => setSelectedSectionId(sections[sectionIndex - 1].id)}
+          >
+            <ArrowLeftIcon className='size-4' />
+            Back
+          </Button>
+
+          {!isLastSection ? (
+            <Button
+              type='button'
+              disabled={isReadonly || saveMutation.isPending || !canGoNext}
+              className='min-w-24'
+              onClick={async () => {
+                const isValid = validateCurrentSectionRequired(activeSection);
+                if (!isValid) return;
+
+                const response = await saveMutation.mutateAsync(activeSection);
+                if (response.status === 'error') return;
+                setSelectedSectionId(sections[sectionIndex + 1].id);
+              }}
+            >
+              Next
+              <ChevronRightIcon className='size-4' />
+            </Button>
+          ) : (
+            <Button
+              type='button'
+              variant='default'
+              disabled={
+                isReadonly ||
+                saveMutation.isPending ||
+                completeMutation.isPending
+              }
+              className='min-w-28'
+              onClick={async () => {
+                const isValid = validateCurrentSectionRequired(activeSection);
+                if (!isValid) return;
+
+                const saveResponse =
+                  await saveMutation.mutateAsync(activeSection);
+                if (saveResponse.status === 'error') return;
+
+                completeMutation.mutate();
+              }}
+            >
+              <CheckCircle2Icon className='size-4' />
+              Complete
+            </Button>
+          )}
+        </div>
+      </div>
+    </section>
   );
 }

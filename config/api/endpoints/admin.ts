@@ -85,17 +85,15 @@ export const ADMIN_ENDPOINTS = {
       DELETE: (id: string) => `${BASE}/blog-posts/${id}`,
       DETAIL: (id: string) => `${BASE}/blog-posts/${id}`,
     },
-    ONBOARDING: {
+    INTAKE_ASSESSMENTS: {
       TEMPLATE: (version: number) => `${BASE}/onboarding/templates/${version}`,
-      INTAKES: {
-        LIST: `${BASE}/onboarding/intakes`,
-        CREATE: `${BASE}/onboarding/intakes`,
-        SAVE_SECTION_ANSWERS: (intakeId: string, sectionId: string) =>
-          `${BASE}/onboarding/intakes/${intakeId}/sections/${sectionId}`,
-        DETAIL: (id: string) => `${BASE}/onboarding/intakes/${id}`,
-        CANCEL: (id: string) => `${BASE}/onboarding/intakes/${id}/cancel`,
-        COMPLETE: (id: string) => `${BASE}/onboarding/intakes/${id}/complete`,
-      },
+      LIST: `${BASE}/onboarding/intakes`,
+      CREATE: `${BASE}/onboarding/intakes`,
+      SAVE_SECTION_ANSWERS: (intakeId: string, sectionId: string) =>
+        `${BASE}/onboarding/intakes/${intakeId}/sections/${sectionId}`,
+      DETAIL: (id: string) => `${BASE}/onboarding/intakes/${id}`,
+      CANCEL: (id: string) => `${BASE}/onboarding/intakes/${id}/cancel`,
+      COMPLETE: (id: string) => `${BASE}/onboarding/intakes/${id}/complete`,
     },
     NOTIFICATIONS: {
       LIST: `${BASE}/notifications`,

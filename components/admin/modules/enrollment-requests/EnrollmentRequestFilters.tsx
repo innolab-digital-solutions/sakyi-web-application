@@ -25,7 +25,7 @@ type EnrollmentColumnOption = {
   label: string;
 };
 
-type EnrollmentFiltersProps = {
+type EnrollmentRequestFiltersProps = {
   statusFilter: 'all' | EnrollmentRequestStatus;
   statuses: readonly EnrollmentRequestStatus[];
   labels: Record<EnrollmentRequestStatus, string>;
@@ -37,7 +37,7 @@ type EnrollmentFiltersProps = {
   onResetColumns: () => void;
 };
 
-export default function EnrollmentFilters({
+export default function EnrollmentRequestFilters({
   statusFilter,
   statuses,
   labels,
@@ -47,7 +47,7 @@ export default function EnrollmentFilters({
   visibleColumnKeys,
   onToggleColumn,
   onResetColumns,
-}: EnrollmentFiltersProps) {
+}: EnrollmentRequestFiltersProps) {
   const visibleColumnSet = new Set(visibleColumnKeys);
 
   return (

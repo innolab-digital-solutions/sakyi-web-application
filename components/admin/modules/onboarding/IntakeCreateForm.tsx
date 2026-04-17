@@ -16,8 +16,8 @@ import {
 } from '@/components/ui/card';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
-import { OnboardingIntakeCreateSchema } from '@/domains/onboarding/schemas';
-import { getOnboardingTemplateByVersion } from '@/domains/onboarding/services';
+import { OnboardingIntakeCreateSchema } from '@/domains/intake-assessments/schemas';
+import { getOnboardingTemplateByVersion } from '@/domains/intake-assessments/services';
 import { useForm } from '@/lib/form';
 
 export default function IntakeCreateForm() {
@@ -84,7 +84,7 @@ export default function IntakeCreateForm() {
       return;
     }
 
-    void form.post(ENDPOINTS.ADMIN.MODULES.ONBOARDING.INTAKES.CREATE, {
+    void form.post(ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.CREATE, {
       onSuccess: (response) => {
         const intakeId =
           response &&
@@ -98,11 +98,11 @@ export default function IntakeCreateForm() {
 
         toast.success('Intake created.');
         if (!intakeId) {
-          router.push(ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.LIST);
+          router.push(ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST);
           return;
         }
         router.push(
-          ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.INTERVIEW(intakeId),
+          ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.INTERVIEW(intakeId),
         );
       },
       onFailure: (error) => {

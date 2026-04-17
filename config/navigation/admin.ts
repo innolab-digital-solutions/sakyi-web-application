@@ -54,7 +54,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
       },
       {
         name: 'Intake Assessments',
-        path: ADMIN_ROUTES.MODULES.ONBOARDING.INTAKES.LIST,
+        path: ADMIN_ROUTES.MODULES.INTAKE_ASSESSMENTS.LIST,
       },
       {
         name: 'Contracts & E-Signatures',

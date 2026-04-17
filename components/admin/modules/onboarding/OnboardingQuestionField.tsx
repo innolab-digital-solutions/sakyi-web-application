@@ -6,7 +6,7 @@ import TextField from '@/components/shared/form/TextField';
 import type {
   OnboardingIntakeQuestion,
   OnboardingQuestionOption,
-} from '@/domains/onboarding/types';
+} from '@/domains/intake-assessments/types';
 
 type OnboardingQuestionFieldProps = {
   question: OnboardingIntakeQuestion;
@@ -19,8 +19,12 @@ type OnboardingQuestionFieldProps = {
 };
 
 function getSelectOptions(
-  options: OnboardingQuestionOption[] | null,
+  options: unknown,
 ): { label: string; value: string }[] {
+  const normalizedOptions = Array.isArray(options)
+    ? (options as OnboardingQuestionOption[])
+    : [];
+
   const prettifyOptionLabel = (raw: string): string => {
     return raw
       .replace(/[_-]+/g, ' ')
@@ -34,7 +38,7 @@ function getSelectOptions(
   const seen = new Set<string>();
   const uniqueOptions: { label: string; value: string }[] = [];
 
-  for (const option of options ?? []) {
+  for (const option of normalizedOptions) {
     const normalizedValue =
       typeof option === 'string' ? option.trim() : String(option.value).trim();
     const normalizedLabel =

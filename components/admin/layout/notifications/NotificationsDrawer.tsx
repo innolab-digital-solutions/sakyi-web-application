@@ -81,7 +81,11 @@ export function NotificationsDrawer({
                 </Button>
               )}
               <SheetClose asChild>
-                <Button variant='ghost' className='cursor-pointer bg-transparent!' aria-label='Close notifications'>
+                <Button
+                  variant='ghost'
+                  className='cursor-pointer bg-transparent!'
+                  aria-label='Close notifications'
+                >
                   <X className='size-4' />
                 </Button>
               </SheetClose>

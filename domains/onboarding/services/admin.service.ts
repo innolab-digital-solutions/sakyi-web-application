@@ -21,7 +21,7 @@ export async function getOnboardingTemplateByVersion(
   version: number,
 ): Promise<ApiResponse<OnboardingTemplateData>> {
   return http.get<OnboardingTemplateData>(
-    ENDPOINTS.ADMIN.MODULES.ONBOARDING.TEMPLATE(version),
+    ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.TEMPLATE(version),
   );
 }
 
@@ -39,8 +39,8 @@ export async function getOnboardingIntakes(
 
   const query = searchParams.toString();
   const endpoint = query
-    ? `${ENDPOINTS.ADMIN.MODULES.ONBOARDING.INTAKES.LIST}?${query}`
-    : ENDPOINTS.ADMIN.MODULES.ONBOARDING.INTAKES.LIST;
+    ? `${ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST}?${query}`
+    : ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST;
 
   return http.get<OnboardingIntakeData[]>(endpoint);
 }
@@ -52,7 +52,7 @@ export async function createOnboardingIntake(
   payload: CreateOnboardingIntakePayload,
 ): Promise<ApiResponse<OnboardingIntakeData>> {
   return http.post<OnboardingIntakeData>(
-    ENDPOINTS.ADMIN.MODULES.ONBOARDING.INTAKES.CREATE,
+    ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.CREATE,
     payload,
   );
 }
@@ -64,7 +64,7 @@ export async function getOnboardingIntakeById(
   intakeId: number,
 ): Promise<OnboardingIntakeResponse | ApiResponse<OnboardingIntakeData>> {
   return http.get<OnboardingIntakeData>(
-    ENDPOINTS.ADMIN.MODULES.ONBOARDING.INTAKES.DETAIL(String(intakeId)),
+    ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(String(intakeId)),
   );
 }
 
@@ -81,7 +81,7 @@ export async function saveOnboardingIntakeSection(
 ): Promise<OnboardingIntakeResponse | ApiResponse<OnboardingIntakeData>> {
   const body = buildSaveSectionFormData(payload);
   return http.put<OnboardingIntakeData>(
-    ENDPOINTS.ADMIN.MODULES.ONBOARDING.INTAKES.SAVE_SECTION_ANSWERS(
+    ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.SAVE_SECTION_ANSWERS(
       String(intakeId),
       String(sectionId),
     ),
@@ -96,7 +96,7 @@ export async function completeOnboardingIntake(
   intakeId: number,
 ): Promise<OnboardingIntakeResponse | ApiResponse<OnboardingIntakeData>> {
   return http.post<OnboardingIntakeData>(
-    ENDPOINTS.ADMIN.MODULES.ONBOARDING.INTAKES.COMPLETE(String(intakeId)),
+    ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.COMPLETE(String(intakeId)),
   );
 }
 
@@ -108,7 +108,7 @@ export async function cancelOnboardingIntake(
   payload: CancelOnboardingIntakePayload = {},
 ): Promise<OnboardingIntakeResponse | ApiResponse<OnboardingIntakeData>> {
   return http.post<OnboardingIntakeData>(
-    ENDPOINTS.ADMIN.MODULES.ONBOARDING.INTAKES.CANCEL(String(intakeId)),
+    ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.CANCEL(String(intakeId)),
     payload,
   );
 }

@@ -124,7 +124,7 @@ const TableListShell = <TItem,>({
                 <TextField
                   type='search'
                   placeholder={searchPlaceholder}
-                  className='bg-background h-11! w-full rounded-md border-neutral-200 pr-3 pl-10 md:pr-3 md:pl-10 text-[13px]! font-medium'
+                  className='bg-background h-11! w-full rounded-md border-neutral-200 pr-3 pl-10 text-[13px]! font-medium md:pr-3 md:pl-10'
                   value={searchValue}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   aria-busy={searchBusy}

@@ -16,7 +16,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
-import EnrollmentFilters from '@/components/admin/modules/enrollment-requests/EnrollmentFilters';
+import EnrollmentRequestFilters from '@/components/admin/modules/enrollment-requests/EnrollmentRequestFilters';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -410,7 +410,7 @@ export default function EnrollmentRequestListTable() {
       controls={controls}
       searchPlaceholder='Search applicant, contact, or reference'
       filters={
-        <EnrollmentFilters
+        <EnrollmentRequestFilters
           statusFilter={statusFilter}
           statuses={ENROLLMENT_STATUSES}
           labels={STATUS_LABEL}
@@ -623,11 +623,11 @@ export default function EnrollmentRequestListTable() {
                       <div className='flex flex-nowrap items-center justify-start gap-2'>
                         {canStartIntake(request) && (
                           <Button
-                            className='h-10 text-[13px]! font-semibold shrink-0 gap-1.5 rounded-md px-2.5'
+                            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
                             asChild
                           >
                             <Link
-                              href={`${ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.CREATE}?request=${enrollmentRequestId}`}
+                              href={`${ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.CREATE}?request=${enrollmentRequestId}`}
                             >
                               <ClipboardCheckIcon className='size-3.5' />
                               Start Intake
@@ -640,7 +640,7 @@ export default function EnrollmentRequestListTable() {
                               <Button
                                 variant='outline'
                                 size='sm'
-                                className='bg-background h-10 text-[13px]! font-semibold shrink-0 gap-1.5 hover:bg-muted cursor-pointer rounded-md border-neutral-300 px-2.5'
+                                className='bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
                                 disabled={updatingId === request.id}
                               >
                                 Set Status

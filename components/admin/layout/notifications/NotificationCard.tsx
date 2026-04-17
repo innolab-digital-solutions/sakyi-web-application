@@ -131,7 +131,7 @@ export function NotificationCard({
                 aria-hidden
               />
             )}
-            <p className='text-foreground/70 font-medium text-[11px]'>
+            <p className='text-foreground/70 text-[11px] font-medium'>
               {formatTimeAgo(notification.createdAt)}
             </p>
           </div>

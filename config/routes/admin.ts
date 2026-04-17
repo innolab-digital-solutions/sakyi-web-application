@@ -73,14 +73,12 @@ export const ADMIN_ROUTES = {
       EDIT: (id: string) => `${BASE}/blog-posts/${id}/edit`,
       DETAIL: (id: string) => `${BASE}/blog-posts/${id}`,
     },
-    ONBOARDING: {
-      INTAKES: {
-        LIST: `${BASE}/onboarding/intakes`,
-        CREATE: `${BASE}/onboarding/intakes/create`,
-        INTERVIEW: (id: string) =>
-          `${BASE}/onboarding/intakes/${id}?view=interview`,
-        DETAIL: (id: string) => `${BASE}/onboarding/intakes/${id}`,
-      },
+    INTAKE_ASSESSMENTS: {
+      LIST: `${BASE}/intake-assessments`,
+      CREATE: `${BASE}/intake-assessments/create`,
+      INTERVIEW: (id: string) =>
+        `${BASE}/intake-assessments/${id}?view=interview`,
+      DETAIL: (id: string) => `${BASE}/intake-assessments/${id}`,
     },
   },
 } as const;

@@ -32,7 +32,7 @@ test.describe('admin onboarding interview', () => {
   test('queue page is reachable for authenticated session route guard flow', async ({
     page,
   }) => {
-    await page.goto('/admin/onboarding/intakes');
-    await expect(page).toHaveURL(/\/admin\/(login|onboarding\/intakes)/);
+    await page.goto('/admin/intake-assessments');
+    await expect(page).toHaveURL(/\/admin\/(login|intake-assessments)/);
   });
 });
