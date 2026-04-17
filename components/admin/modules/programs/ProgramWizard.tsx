@@ -285,6 +285,9 @@ export default function ProgramWizard({
           errs[`translations.en.${String(issue.path[0])}`] = issue.message;
         }
         setErrors(errs);
+        toast.error(
+          'English content is required. Please fill in all English fields.',
+        );
         return false;
       }
       setErrors({});
@@ -305,6 +308,9 @@ export default function ProgramWizard({
           errs[`translations.en.${String(issue.path[0])}`] = issue.message;
         }
         setErrors(errs);
+        toast.error(
+          'English details are required. Please fill in all English fields.',
+        );
         return false;
       }
       setErrors({});
@@ -319,6 +325,31 @@ export default function ProgramWizard({
 
   const mutation = useMutation({
     mutationFn: async ({ shouldPublish }: { shouldPublish: boolean }) => {
+      const enT = translations.find((t) => t.locale === 'en');
+      const enContentValid = enContentSchema.safeParse({
+        title: enT?.title ?? '',
+        tagline: enT?.tagline ?? '',
+        excerpt: enT?.excerpt ?? '',
+        about: enT?.about ?? '',
+      });
+      if (!enContentValid.success) {
+        throw new Error(
+          'English content is required. Please complete the Content step.',
+        );
+      }
+
+      const enDetailsValid = enDetailsSchema.safeParse({
+        features: enT?.features ?? [],
+        ideals: enT?.ideals ?? [],
+        expectations: enT?.expectations ?? [],
+        structures: enT?.structures ?? [],
+      });
+      if (!enDetailsValid.success) {
+        throw new Error(
+          'English details are required. Please complete the Details step.',
+        );
+      }
+
       const myT = translations.find((t) => t.locale === 'my');
       const includesMy = myT ? isMyTranslationStarted(myT) : false;
 
@@ -454,6 +485,7 @@ export default function ProgramWizard({
               accept='image/*'
               maxFileSize={5 * 1024 * 1024}
               existingFiles={existingThumbnail}
+              initialFiles={thumbnailFile ? [thumbnailFile] : []}
               onExistingFilesChange={(files) => {
                 setExistingThumbnail(files);
                 if (files.length === 0) setThumbnailFile(null);
@@ -868,7 +900,9 @@ export default function ProgramWizard({
                 variant='outline'
                 className='w-full'
               >
-                {isSubmitting ? 'Saving…' : 'Save as Draft'}
+                {isSubmitting && mutation.variables?.shouldPublish === false
+                  ? 'Saving…'
+                  : 'Save as Draft'}
               </Button>
 
               {canPublish && (
@@ -882,7 +916,9 @@ export default function ProgramWizard({
                   className='w-full'
                 >
                   <CheckCircle2Icon className='size-4' />
-                  {isSubmitting ? 'Publishing…' : 'Save & Publish'}
+                  {isSubmitting && mutation.variables?.shouldPublish === true
+                    ? 'Publishing…'
+                    : 'Save & Publish'}
                 </Button>
               )}
             </div>
