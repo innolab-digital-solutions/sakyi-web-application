@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
@@ -63,17 +63,82 @@ const ENROLLMENT_STATUSES: readonly EnrollmentRequestStatus[] = [
   'cancelled',
 ];
 
-const ENROLLMENT_REQUEST_COLUMNS = 9;
-const ENROLLMENT_REQUEST_SKELETON_WIDTHS = [
-  'w-24',
-  'w-40',
-  'w-44',
-  'w-26',
-  'w-28',
-  'w-28',
-  'w-36',
-  'w-24',
-  'w-44',
+type EnrollmentColumnKey =
+  | 'reference'
+  | 'applicant'
+  | 'requestedProgram'
+  | 'contactPhone'
+  | 'received'
+  | 'handledBy'
+  | 'contacted'
+  | 'status'
+  | 'actions';
+
+type EnrollmentColumnDefinition = {
+  key: EnrollmentColumnKey;
+  label: string;
+  headerClassName: string;
+  skeletonWidth: string;
+};
+
+const ENROLLMENT_VISIBLE_COLUMNS_STORAGE_KEY =
+  'sakyi:admin:enrollment-requests:visible-columns';
+
+const ENROLLMENT_COLUMNS: readonly EnrollmentColumnDefinition[] = [
+  {
+    key: 'reference',
+    label: 'Reference',
+    headerClassName: 'min-w-40',
+    skeletonWidth: 'w-24',
+  },
+  {
+    key: 'applicant',
+    label: 'Applicant',
+    headerClassName: 'min-w-48',
+    skeletonWidth: 'w-40',
+  },
+  {
+    key: 'requestedProgram',
+    label: 'Requested Program',
+    headerClassName: 'min-w-52',
+    skeletonWidth: 'w-44',
+  },
+  {
+    key: 'contactPhone',
+    label: 'Contact Phone',
+    headerClassName: 'min-w-30',
+    skeletonWidth: 'w-26',
+  },
+  {
+    key: 'received',
+    label: 'Received',
+    headerClassName: 'min-w-34',
+    skeletonWidth: 'w-28',
+  },
+  {
+    key: 'handledBy',
+    label: 'Handled By',
+    headerClassName: 'min-w-40',
+    skeletonWidth: 'w-36',
+  },
+  {
+    key: 'contacted',
+    label: 'Contacted',
+    headerClassName: 'min-w-34',
+    skeletonWidth: 'w-28',
+  },
+  {
+    key: 'status',
+    label: 'Status',
+    headerClassName: 'min-w-26',
+    skeletonWidth: 'w-24',
+  },
+  {
+    key: 'actions',
+    label: 'Actions',
+    headerClassName: 'min-w-52',
+    skeletonWidth: 'w-44',
+  },
 ] as const;
 
 const STATUS_TRANSITIONS: Record<
@@ -209,6 +274,33 @@ function canStartIntake(request: EnrollmentRequestResource): boolean {
 
 export default function EnrollmentRequestListTable() {
   const queryClient = useQueryClient();
+  const [visibleColumnKeys, setVisibleColumnKeys] = useState<
+    EnrollmentColumnKey[]
+  >(() => {
+    const fallback = ENROLLMENT_COLUMNS.map((column) => column.key);
+    if (typeof window === 'undefined') return fallback;
+
+    const raw = window.localStorage.getItem(
+      ENROLLMENT_VISIBLE_COLUMNS_STORAGE_KEY,
+    );
+    if (!raw) return fallback;
+
+    try {
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return fallback;
+
+      const allowed = new Set(ENROLLMENT_COLUMNS.map((column) => column.key));
+      const next = parsed.filter(
+        (value): value is EnrollmentColumnKey =>
+          typeof value === 'string' &&
+          allowed.has(value as EnrollmentColumnKey),
+      );
+
+      return next.length > 0 ? next : fallback;
+    } catch {
+      return fallback;
+    }
+  });
   const { rows, controls } = useTable<EnrollmentRequestResource>(
     ENDPOINTS.ADMIN.MODULES.ENROLLMENT_REQUESTS.LIST,
     {
@@ -262,11 +354,56 @@ export default function EnrollmentRequestListTable() {
     query.isError && query.error instanceof Error
       ? query.error.message
       : 'Could not load enrollment requests.';
+  const visibleColumns = useMemo(
+    () =>
+      ENROLLMENT_COLUMNS.filter((column) =>
+        visibleColumnKeys.includes(column.key),
+      ),
+    [visibleColumnKeys],
+  );
+  const visibleColumnSet = useMemo(
+    () => new Set(visibleColumnKeys),
+    [visibleColumnKeys],
+  );
+  const visibleColumnCount = Math.max(1, visibleColumns.length);
+  const visibleSkeletonWidths = useMemo(
+    () => visibleColumns.map((column) => column.skeletonWidth),
+    [visibleColumns],
+  );
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      ENROLLMENT_VISIBLE_COLUMNS_STORAGE_KEY,
+      JSON.stringify(visibleColumnKeys),
+    );
+  }, [visibleColumnKeys]);
+
+  const toggleColumn = (columnKey: string) => {
+    setVisibleColumnKeys((current) => {
+      const nextColumnKey = ENROLLMENT_COLUMNS.find(
+        (column) => column.key === columnKey,
+      )?.key;
+      if (!nextColumnKey) return current;
+
+      if (current.includes(nextColumnKey)) {
+        if (current.length === 1) return current;
+        return current.filter((key) => key !== nextColumnKey);
+      }
+
+      return ENROLLMENT_COLUMNS.map((column) => column.key).filter(
+        (key) => key === nextColumnKey || current.includes(key),
+      );
+    });
+  };
+
+  const resetColumns = () => {
+    setVisibleColumnKeys(ENROLLMENT_COLUMNS.map((column) => column.key));
+  };
 
   return (
     <TableListShell
       controls={controls}
-      searchPlaceholder='Search applicant, email, or phone'
+      searchPlaceholder='Search applicant, contact, or reference'
       filters={
         <EnrollmentFilters
           statusFilter={statusFilter}
@@ -274,36 +411,36 @@ export default function EnrollmentRequestListTable() {
           labels={STATUS_LABEL}
           onClearStatus={() => controls.params.clear(['status'])}
           onSetStatus={(status) => controls.params.set({ status })}
+          columns={ENROLLMENT_COLUMNS}
+          visibleColumnKeys={visibleColumnKeys}
+          onToggleColumn={(columnKey) => toggleColumn(columnKey)}
+          onResetColumns={resetColumns}
         />
       }
     >
       <Table className='w-full min-w-7xl'>
         <TableHeader className='bg-muted/50 [&_tr]:border-border'>
           <TableRow className='border-border hover:bg-transparent'>
-            <TableHead className='min-w-40'>Reference</TableHead>
-            <TableHead className='min-w-48'>Applicant</TableHead>
-            <TableHead className='min-w-52'>Requested program</TableHead>
-            <TableHead className='min-w-30'>Contact Phone</TableHead>
-            <TableHead className='min-w-34'>Received</TableHead>
-            <TableHead className='min-w-40'>Handled by</TableHead>
-            <TableHead className='min-w-34'>Contacted</TableHead>
-            <TableHead className='min-w-26'>Status</TableHead>
-            <TableHead className='min-w-52'>Actions</TableHead>
+            {visibleColumns.map((column) => (
+              <TableHead key={column.key} className={column.headerClassName}>
+                {column.label}
+              </TableHead>
+            ))}
           </TableRow>
         </TableHeader>
         <TableBody>
           {showSkeleton && (
             <TableSkeletonRows
               rowCount={3}
-              columnCount={ENROLLMENT_REQUEST_COLUMNS}
-              cellWidths={ENROLLMENT_REQUEST_SKELETON_WIDTHS}
+              columnCount={visibleColumnCount}
+              cellWidths={visibleSkeletonWidths}
             />
           )}
 
           {!showSkeleton && query.isError && (
             <TableRow>
               <TableCell
-                colSpan={ENROLLMENT_REQUEST_COLUMNS}
+                colSpan={visibleColumnCount}
                 className='text-destructive py-8 text-center text-sm'
               >
                 {errorMessage}
@@ -316,7 +453,7 @@ export default function EnrollmentRequestListTable() {
             query.data?.status === 'success' &&
             rows.length === 0 && (
               <TableEmptyStateRow
-                colSpan={ENROLLMENT_REQUEST_COLUMNS}
+                colSpan={visibleColumnCount}
                 icon={ClipboardCheckIcon}
                 title='No enrollment requests yet'
                 description='When clients submit a program inquiry, it will show up here so your team can follow up and start intake when appropriate.'
@@ -332,182 +469,206 @@ export default function EnrollmentRequestListTable() {
               const programCode = getProgramCode(request);
               const receivedAt = formatDateCell(request.timestamps.created_at);
               const contactedAt = formatDateCell(request.contacted_at);
+              const showColumn = (columnKey: EnrollmentColumnKey) =>
+                visibleColumnSet.has(columnKey);
 
               return (
                 <TableRow key={request.id}>
-                  <TableCell className='align-center min-w-45 whitespace-normal'>
-                    <p className='text-foreground text-[13px] font-semibold'>
-                      {getRequestReference(request)}
-                    </p>
-                  </TableCell>
-                  <TableCell className='align-center whitespace-normal'>
-                    <div className='flex items-start gap-3'>
-                      <Avatar
-                        size='default'
-                        className='mt-0.5 shrink-0'
-                        aria-hidden
-                      >
-                        {request.client?.picture_url?.trim() ? (
-                          <AvatarImage
-                            src={request.client.picture_url}
-                            alt=''
-                          />
-                        ) : null}
-                        <AvatarFallback className='text-xs'>
-                          {getInitials(request.client?.name ?? '', 2) || '?'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className='min-w-0 flex-1 space-y-1'>
-                        <p className='text-foreground text-[13px] font-semibold'>
-                          {request.client?.name?.trim() ? (
-                            request.client.name.trim()
-                          ) : (
-                            <TableCellEmpty label='Name not provided' />
-                          )}
-                        </p>
-                        <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
-                          {request.client?.email ?? 'No email on file'}
-                        </p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className='align-center min-w-75 whitespace-normal'>
-                    <div className='flex items-start gap-3'>
-                      <ProgramThumbnail
-                        thumbnailUrl={request.program?.thumbnail_url}
-                      />
-                      <div className='min-w-0 flex-1 space-y-1'>
-                        <p className='text-foreground text-[13px] font-semibold'>
-                          {programLabel !== '—' ? (
-                            programLabel
-                          ) : (
-                            <TableCellEmpty label='No program linked' />
-                          )}
-                        </p>
-                        <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
-                          {programCode !== '—' ? (
-                            programCode
-                          ) : (
-                            <TableCellEmpty label='No program code' />
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className='text-foreground/80 align-center tabular-nums'>
-                    {request.phone?.trim() ? (
-                      request.phone.trim()
-                    ) : (
-                      <TableCellEmpty label='No phone' />
-                    )}
-                  </TableCell>
-                  <TableCell className='text-foreground/80 align-center tabular-nums'>
-                    {receivedAt ?? <TableCellEmpty label='Not set' />}
-                  </TableCell>
-                  <TableCell className='align-center min-w-52 whitespace-normal'>
-                    {request.handler ? (
+                  {showColumn('reference') ? (
+                    <TableCell className='align-center min-w-45 whitespace-normal'>
+                      <p className='text-foreground text-[13px] font-semibold'>
+                        {getRequestReference(request)}
+                      </p>
+                    </TableCell>
+                  ) : null}
+                  {showColumn('applicant') ? (
+                    <TableCell className='align-center whitespace-normal'>
                       <div className='flex items-start gap-3'>
                         <Avatar
                           size='default'
                           className='mt-0.5 shrink-0'
                           aria-hidden
                         >
-                          {request.handler.picture_url?.trim() ? (
+                          {request.client?.picture_url?.trim() ? (
                             <AvatarImage
-                              src={request.handler.picture_url}
+                              src={request.client.picture_url}
                               alt=''
                             />
                           ) : null}
                           <AvatarFallback className='text-xs'>
-                            {getInitials(request.handler.name ?? '', 2) || '?'}
+                            {getInitials(request.client?.name ?? '', 2) || '?'}
                           </AvatarFallback>
                         </Avatar>
                         <div className='min-w-0 flex-1 space-y-1'>
                           <p className='text-foreground text-[13px] font-semibold'>
-                            {request.handler.name}
-                          </p>
-                          <p className='text-muted-foreground text-xs leading-snug wrap-break-word'>
-                            {request.handler.role?.trim() ? (
-                              formatRoleLabel(request.handler.role)
+                            {request.client?.name?.trim() ? (
+                              request.client.name.trim()
                             ) : (
-                              <TableCellEmpty label='No role' />
+                              <TableCellEmpty label='Name not provided' />
+                            )}
+                          </p>
+                          <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
+                            {request.client?.email ?? 'No email on file'}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                  ) : null}
+                  {showColumn('requestedProgram') ? (
+                    <TableCell className='align-center min-w-75 whitespace-normal'>
+                      <div className='flex items-start gap-3'>
+                        <ProgramThumbnail
+                          thumbnailUrl={request.program?.thumbnail_url}
+                        />
+                        <div className='min-w-0 flex-1 space-y-1'>
+                          <p className='text-foreground text-[13px] font-semibold'>
+                            {programLabel !== '—' ? (
+                              programLabel
+                            ) : (
+                              <TableCellEmpty label='No program linked' />
+                            )}
+                          </p>
+                          <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
+                            {programCode !== '—' ? (
+                              programCode
+                            ) : (
+                              <TableCellEmpty label='No program code' />
                             )}
                           </p>
                         </div>
                       </div>
-                    ) : (
-                      <TableCellEmpty label='Not assigned' />
-                    )}
-                  </TableCell>
-                  <TableCell className='text-foreground/80 align-center tabular-nums'>
-                    {contactedAt ?? <TableCellEmpty label='Pending' />}
-                  </TableCell>
-                  <TableCell className='align-center'>
-                    {(() => {
-                      const statusStyle = STATUS_STYLES[request.status];
-                      const StatusIcon = statusStyle.icon;
-
-                      return (
-                        <span
-                          className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
-                        >
-                          <StatusIcon className='size-3.5 shrink-0' />
-                          {STATUS_LABEL[request.status]}
-                        </span>
-                      );
-                    })()}
-                  </TableCell>
-                  <TableCell className='align-center whitespace-nowrap'>
-                    <div className='flex flex-nowrap items-center justify-start gap-2'>
-                      {canStartIntake(request) && (
-                        <Button size='sm' className='shrink-0' asChild>
-                          <Link
-                            href={`${ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.CREATE}?request=${enrollmentRequestId}`}
-                          >
-                            Intake
-                          </Link>
-                        </Button>
-                      )}
-                      {STATUS_TRANSITIONS[request.status].length > 0 ? (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant='outline'
-                              size='sm'
-                              className='shrink-0 gap-1.5'
-                              disabled={updatingId === request.id}
-                            >
-                              Status
-                              <ChevronDownIcon className='size-3.5 opacity-70' />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align='end' className='min-w-48'>
-                            {STATUS_TRANSITIONS[request.status].map(
-                              (status) => (
-                                <DropdownMenuItem
-                                  key={status}
-                                  className='cursor-pointer'
-                                  onClick={() => {
-                                    mutateStatus({
-                                      id: request.id,
-                                      payload: { status },
-                                    });
-                                  }}
-                                >
-                                  {getTransitionLabel(status)}
-                                </DropdownMenuItem>
-                              ),
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                    </TableCell>
+                  ) : null}
+                  {showColumn('contactPhone') ? (
+                    <TableCell className='text-foreground/80 align-center tabular-nums'>
+                      {request.phone?.trim() ? (
+                        request.phone.trim()
                       ) : (
-                        <TableCellEmpty
-                          label='Finalized'
-                          className='whitespace-nowrap'
-                        />
+                        <TableCellEmpty label='No phone' />
                       )}
-                    </div>
-                  </TableCell>
+                    </TableCell>
+                  ) : null}
+                  {showColumn('received') ? (
+                    <TableCell className='text-foreground/80 align-center tabular-nums'>
+                      {receivedAt ?? <TableCellEmpty label='Not set' />}
+                    </TableCell>
+                  ) : null}
+                  {showColumn('handledBy') ? (
+                    <TableCell className='align-center min-w-52 whitespace-normal'>
+                      {request.handler ? (
+                        <div className='flex items-start gap-3'>
+                          <Avatar
+                            size='default'
+                            className='mt-0.5 shrink-0'
+                            aria-hidden
+                          >
+                            {request.handler.picture_url?.trim() ? (
+                              <AvatarImage
+                                src={request.handler.picture_url}
+                                alt=''
+                              />
+                            ) : null}
+                            <AvatarFallback className='text-xs'>
+                              {getInitials(request.handler.name ?? '', 2) ||
+                                '?'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className='min-w-0 flex-1 space-y-1'>
+                            <p className='text-foreground text-[13px] font-semibold'>
+                              {request.handler.name}
+                            </p>
+                            <p className='text-muted-foreground text-xs leading-snug wrap-break-word'>
+                              {request.handler.role?.trim() ? (
+                                formatRoleLabel(request.handler.role)
+                              ) : (
+                                <TableCellEmpty label='No role' />
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <TableCellEmpty label='Not assigned' />
+                      )}
+                    </TableCell>
+                  ) : null}
+                  {showColumn('contacted') ? (
+                    <TableCell className='text-foreground/80 align-center tabular-nums'>
+                      {contactedAt ?? <TableCellEmpty label='Pending' />}
+                    </TableCell>
+                  ) : null}
+                  {showColumn('status') ? (
+                    <TableCell className='align-center'>
+                      {(() => {
+                        const statusStyle = STATUS_STYLES[request.status];
+                        const StatusIcon = statusStyle.icon;
+
+                        return (
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
+                          >
+                            <StatusIcon className='size-3.5 shrink-0' />
+                            {STATUS_LABEL[request.status]}
+                          </span>
+                        );
+                      })()}
+                    </TableCell>
+                  ) : null}
+                  {showColumn('actions') ? (
+                    <TableCell className='align-center whitespace-nowrap'>
+                      <div className='flex flex-nowrap items-center justify-start gap-2'>
+                        {canStartIntake(request) && (
+                          <Button size='sm' className='shrink-0' asChild>
+                            <Link
+                              href={`${ROUTES.ADMIN.MODULES.ONBOARDING.INTAKES.CREATE}?request=${enrollmentRequestId}`}
+                            >
+                              Intake
+                            </Link>
+                          </Button>
+                        )}
+                        {STATUS_TRANSITIONS[request.status].length > 0 ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                className='shrink-0 gap-1.5'
+                                disabled={updatingId === request.id}
+                              >
+                                Status
+                                <ChevronDownIcon className='size-3.5 opacity-70' />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align='end'
+                              className='min-w-48'
+                            >
+                              {STATUS_TRANSITIONS[request.status].map(
+                                (status) => (
+                                  <DropdownMenuItem
+                                    key={status}
+                                    className='cursor-pointer'
+                                    onClick={() => {
+                                      mutateStatus({
+                                        id: request.id,
+                                        payload: { status },
+                                      });
+                                    }}
+                                  >
+                                    {getTransitionLabel(status)}
+                                  </DropdownMenuItem>
+                                ),
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          <TableCellEmpty
+                            label='Finalized'
+                            className='whitespace-nowrap'
+                          />
+                        )}
+                      </div>
+                    </TableCell>
+                  ) : null}
                 </TableRow>
               );
             })}

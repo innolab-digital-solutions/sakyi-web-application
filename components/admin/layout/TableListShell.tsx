@@ -1,5 +1,6 @@
 'use client';
 
+import { SearchIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import TextField from '@/components/shared/form/TextField';
@@ -118,14 +119,17 @@ const TableListShell = <TItem,>({
         <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
           {searchEnabled ? (
             <div className='w-full sm:flex-1'>
-              <TextField
-                type='search'
-                placeholder={searchPlaceholder}
-                className='bg-background h-11! w-full max-w-xs rounded-md text-[13px]! font-medium'
-                value={searchValue}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                aria-busy={searchBusy}
-              />
+              <div className='relative w-full max-w-xs'>
+                <SearchIcon className='text-muted-foreground pointer-events-none absolute top-1/2 left-3.5 z-10 size-4 -translate-y-1/2' />
+                <TextField
+                  type='search'
+                  placeholder={searchPlaceholder}
+                  className='bg-background h-11! w-full rounded-md border-neutral-200 pr-3 pl-10 md:pr-3 md:pl-10 text-[13px]! font-medium'
+                  value={searchValue}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  aria-busy={searchBusy}
+                />
+              </div>
             </div>
           ) : null}
           {filters ? (
