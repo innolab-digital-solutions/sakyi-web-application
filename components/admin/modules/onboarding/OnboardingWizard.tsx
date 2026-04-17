@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
 import { trackOnboardingEvent } from '@/domains/intake-assessments/analytics';
 import {
@@ -57,6 +58,11 @@ type OnboardingWizardProps = {
   intakeId: number;
 };
 
+type SaveSectionMutationInput = {
+  section: OnboardingIntakeSection;
+  silentSuccessToast?: boolean;
+};
+
 function PersonAvatar({
   name,
   pictureUrl,
@@ -85,7 +91,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [sectionErrors, setSectionErrors] = useState<Record<number, string>>(
+  const [_sectionErrors, setSectionErrors] = useState<Record<number, string>>(
     {},
   );
   const [fieldErrorsBySection, setFieldErrorsBySection] = useState<
@@ -180,14 +186,25 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
     );
   }, [intakeId, isReadonly, router]);
 
+  const revalidateIntakeQueries = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: ['onboarding', 'intake', intakeId],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST],
+      }),
+    ]);
+  };
+
   const saveMutation = useMutation({
-    mutationFn: async (section: OnboardingIntakeSection) => {
+    mutationFn: async ({ section }: SaveSectionMutationInput) => {
       const draft = draftBySection[section.id] ?? {};
       const payload = buildSaveSectionPayload(section, draft);
       saveForm.setData('answers', payload.answers);
       return saveOnboardingIntakeSection(intakeId, section.id, payload);
     },
-    onSuccess: (response, section) => {
+    onSuccess: async (response, { section, silentSuccessToast }) => {
       if (response.status === 'error') {
         trackOnboardingEvent('onboarding_section_save_error', {
           intakeId,
@@ -213,10 +230,10 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
         sectionId: section.id,
         status: response.status,
       });
-      void queryClient.invalidateQueries({
-        queryKey: ['onboarding', 'intake', intakeId],
-      });
-      toast.success('Section saved.');
+      await revalidateIntakeQueries();
+      if (!silentSuccessToast) {
+        toast.success('Section responses saved successfully.');
+      }
     },
     onError: () => {
       toast.error('Network error while saving section. Try again.');
@@ -225,7 +242,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
 
   const completeMutation = useMutation({
     mutationFn: () => completeOnboardingIntake(intakeId),
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
       if (response.status === 'error') {
         trackOnboardingEvent('onboarding_complete_error', {
           intakeId,
@@ -239,7 +256,8 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
         intakeId,
         status: response.status,
       });
-      toast.success('Intake completed.');
+      await revalidateIntakeQueries();
+      toast.success('Intake assessment completed successfully.');
       router.push(
         ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(String(intakeId)),
       );
@@ -257,7 +275,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
           : undefined;
       return cancelOnboardingIntake(intakeId, { cancellation_note });
     },
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
       if (response.status === 'error') {
         trackOnboardingEvent('onboarding_cancel_error', {
           intakeId,
@@ -271,6 +289,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
         intakeId,
         status: response.status,
       });
+      await revalidateIntakeQueries();
       setCancelDialogOpen(false);
       toast.success('Intake cancelled.');
       router.push(
@@ -307,6 +326,10 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
   const canGoBack = sectionIndex > 0;
   const canGoNext = sectionIndex >= 0 && sectionIndex < sections.length - 1;
   const isLastSection = !canGoNext;
+  const isLastSectionFileGrid =
+    isLastSection &&
+    activeSection.questions.length > 0 &&
+    activeSection.questions.every((question) => question.type === 'file');
   const completionRate = progress?.completion_rate ?? 0;
 
   const validateCurrentSectionRequired = (
@@ -328,7 +351,6 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
         [section.id]:
           'Please fill all required fields before moving to the next step.',
       }));
-      toast.error('Please complete required fields in this step.');
       return false;
     }
 
@@ -391,7 +413,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
     if (!isValid) return;
 
     // Keep save-per-step behavior when progressing to future steps.
-    const response = await saveMutation.mutateAsync(activeSection);
+    const response = await saveMutation.mutateAsync({ section: activeSection });
     if (response.status === 'error') return;
     setSelectedSectionId(targetSection.id);
   };
@@ -538,31 +560,18 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
           )}
 
           <div className='border-border space-y-6 rounded-md border bg-white p-4 md:p-5'>
-            {sectionErrors[activeSection.id] && (
-              <div className='border-destructive/30 bg-destructive/10 space-y-2 rounded-md border p-3 text-sm'>
-                <p className='text-destructive font-medium'>
-                  Could not save section
-                </p>
-                <div className='space-y-2'>
-                  <p>{sectionErrors[activeSection.id]}</p>
-                  <Button
-                    type='button'
-                    variant='outline'
-                    size='sm'
-                    onClick={() => saveMutation.mutate(activeSection)}
-                  >
-                    Retry save
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+            <div
+              className={
+                isLastSectionFileGrid
+                  ? 'grid grid-cols-1 gap-4 lg:grid-cols-3'
+                  : 'grid grid-cols-1 gap-4 lg:grid-cols-2'
+              }
+            >
               {activeSection.questions.map((question) => (
                 <div
                   key={question.id}
                   className={
-                    question.type === 'file' || question.type === 'multiselect'
+                    question.type === 'file' && !isLastSectionFileGrid
                       ? 'lg:col-span-2'
                       : 'lg:col-span-1'
                   }
@@ -593,7 +602,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
           </div>
         </div>
 
-        <div className='bg-background/95 sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t px-4 pt-4 pb-2 md:static md:mx-0 md:border-0 md:px-0 md:pt-2 md:pb-0'>
+        <div className='border-border/60 mt-8 flex flex-wrap items-center justify-end gap-3 border-t pt-6'>
           {!isReadonly && (
             <AlertDialog
               open={cancelDialogOpen}
@@ -603,10 +612,10 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
                 <Button
                   type='button'
                   variant='outline'
-                  className='text-destructive border-destructive/35 hover:bg-destructive/10 hover:text-destructive min-w-28'
+                  className='border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px] font-semibold'
                 >
-                  <XCircleIcon className='size-4' />
-                  Cancel
+                  <XCircleIcon className='size-3.5' />
+                  Cancel Intake
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -670,42 +679,44 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
 
           <Button
             type='button'
-            variant='secondary'
+            variant='outline'
             disabled={isReadonly || saveMutation.isPending}
-            className='min-w-32'
-            onClick={() => saveMutation.mutate(activeSection)}
+            className='bg-background hover:bg-muted h-10 shrink-0 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+            onClick={() => saveMutation.mutate({ section: activeSection })}
           >
-            <SaveIcon className='size-4' />
-            Save draft
+            <SaveIcon className='size-3.5' />
+            Save as In Progress
           </Button>
 
           <Button
             type='button'
             variant='outline'
             disabled={!canGoBack}
-            className='min-w-24'
+            className='bg-background hover:bg-muted h-10 shrink-0 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
             onClick={() => setSelectedSectionId(sections[sectionIndex - 1].id)}
           >
-            <ArrowLeftIcon className='size-4' />
-            Back
+            <ArrowLeftIcon className='size-3.5' />
+            Previous
           </Button>
 
           {!isLastSection ? (
             <Button
               type='button'
               disabled={isReadonly || saveMutation.isPending || !canGoNext}
-              className='min-w-24'
+              className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
               onClick={async () => {
                 const isValid = validateCurrentSectionRequired(activeSection);
                 if (!isValid) return;
 
-                const response = await saveMutation.mutateAsync(activeSection);
+                const response = await saveMutation.mutateAsync({
+                  section: activeSection,
+                });
                 if (response.status === 'error') return;
                 setSelectedSectionId(sections[sectionIndex + 1].id);
               }}
             >
-              Next
-              <ChevronRightIcon className='size-4' />
+              Continue
+              <ChevronRightIcon className='size-3.5' />
             </Button>
           ) : (
             <Button
@@ -716,20 +727,22 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
                 saveMutation.isPending ||
                 completeMutation.isPending
               }
-              className='min-w-28'
+              className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
               onClick={async () => {
                 const isValid = validateCurrentSectionRequired(activeSection);
                 if (!isValid) return;
 
-                const saveResponse =
-                  await saveMutation.mutateAsync(activeSection);
+                const saveResponse = await saveMutation.mutateAsync({
+                  section: activeSection,
+                  silentSuccessToast: true,
+                });
                 if (saveResponse.status === 'error') return;
 
                 completeMutation.mutate();
               }}
             >
-              <CheckCircle2Icon className='size-4' />
-              Complete
+              <CheckCircle2Icon className='size-3.5' />
+              Complete assessment
             </Button>
           )}
         </div>

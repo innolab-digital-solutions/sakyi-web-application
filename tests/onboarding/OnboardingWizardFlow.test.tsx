@@ -151,7 +151,7 @@ describe('OnboardingWizard flow', () => {
       target: { value: 'Alice' },
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
 
     await waitFor(() => {
       expect(saveSectionMock).toHaveBeenCalled();

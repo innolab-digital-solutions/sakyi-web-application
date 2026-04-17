@@ -18,6 +18,32 @@ type OnboardingQuestionFieldProps = {
   ) => void;
 };
 
+function buildPlaceholder(question: OnboardingIntakeQuestion): string {
+  const cleanedLabel = question.question
+    .replace(/[?*:]/g, '')
+    .trim()
+    .toLowerCase();
+  const target = cleanedLabel.length > 0 ? cleanedLabel : 'value';
+
+  if (question.type === 'select') {
+    return `Select ${target}`;
+  }
+
+  if (question.type === 'multiselect') {
+    return `Select one or more ${target}`;
+  }
+
+  if (question.type === 'date') {
+    return 'Select a date';
+  }
+
+  if (question.type === 'number') {
+    return `Enter ${target}`;
+  }
+
+  return `Enter ${target}`;
+}
+
 function getSelectOptions(
   options: unknown,
 ): { label: string; value: string }[] {
@@ -70,6 +96,7 @@ export default function OnboardingQuestionField({
     return (
       <TextField
         label={question.question}
+        placeholder={buildPlaceholder(question)}
         required={question.required}
         disabled={disabled}
         value={typeof value === 'string' ? value : ''}
@@ -83,6 +110,7 @@ export default function OnboardingQuestionField({
     return (
       <TextField
         label={question.question}
+        placeholder={buildPlaceholder(question)}
         required={question.required}
         type='number'
         disabled={disabled}
@@ -99,6 +127,7 @@ export default function OnboardingQuestionField({
     return (
       <TextField
         label={question.question}
+        placeholder={buildPlaceholder(question)}
         required={question.required}
         type='date'
         disabled={disabled}
@@ -113,6 +142,7 @@ export default function OnboardingQuestionField({
     return (
       <SelectField
         label={question.question}
+        placeholder={buildPlaceholder(question)}
         required={question.required}
         disabled={disabled}
         options={getSelectOptions(question.options)}
@@ -132,6 +162,7 @@ export default function OnboardingQuestionField({
       <SelectField
         multiple
         label={question.question}
+        placeholder={buildPlaceholder(question)}
         required={question.required}
         disabled={disabled}
         options={getSelectOptions(question.options)}

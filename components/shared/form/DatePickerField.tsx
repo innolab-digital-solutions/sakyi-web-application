@@ -197,7 +197,7 @@ function DatePickerField(props: DatePickerFieldProps) {
 
   const responsiveLabelClass = cn(
     'font-medium text-xs',
-    'md:text-sm',
+    'md:text-[13px]',
     required
       ? 'after:text-destructive after:ml-0.5 after:content-["*"]'
       : undefined,
@@ -205,7 +205,7 @@ function DatePickerField(props: DatePickerFieldProps) {
 
   const responsiveErrorClass = cn(
     'text-destructive flex items-center gap-2 font-medium text-xs',
-    'md:text-sm',
+    'md:text-[13px]',
   );
 
   const hasValue = isRange ? Boolean(rangeValue?.from) : Boolean(singleValue);

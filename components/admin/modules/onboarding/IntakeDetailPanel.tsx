@@ -42,6 +42,7 @@ function formatRoleLabel(role: string): string {
 }
 
 const PROGRAM_THUMBNAIL_FALLBACK = '/images/logo-gray.png';
+const FILE_PREVIEW_FALLBACK = '/images/logo-gray.png';
 
 function formatStatusLabel(status: string): string {
   return status
@@ -60,24 +61,42 @@ function getReadableAnswer(question: OnboardingIntakeQuestion): string {
   const answerRecord = answer as Record<string, unknown>;
 
   if (question.type === 'multiselect') {
-    const values = Array.isArray(answerRecord.values)
-      ? answerRecord.values.filter(
-          (value): value is string | number =>
-            typeof value === 'string' || typeof value === 'number',
+    const rawValues = Array.isArray(answerRecord.values)
+      ? answerRecord.values
+      : Array.isArray(answerRecord.value)
+        ? answerRecord.value
+        : [];
+    const values = rawValues.filter(
+      (value): value is string | number =>
+        typeof value === 'string' || typeof value === 'number',
+    );
+    const prettyValues = values.map((value) =>
+      String(value)
+        .replace(/[_-]+/g, ' ')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .map(
+          (part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase(),
         )
-      : [];
-    return values.length ? values.join(', ') : '-';
+        .join(' '),
+    );
+    return prettyValues.length ? prettyValues.join(', ') : '-';
   }
 
   if (question.type === 'file') {
+    const valueRecord =
+      typeof answerRecord.value === 'object' && answerRecord.value !== null
+        ? (answerRecord.value as Record<string, unknown>)
+        : answerRecord;
     const fileLabel =
-      (typeof answerRecord.original_name === 'string' &&
-        answerRecord.original_name.trim()) ||
-      (typeof answerRecord.filename === 'string' &&
-        answerRecord.filename.trim()) ||
-      (typeof answerRecord.name === 'string' && answerRecord.name.trim()) ||
-      (typeof answerRecord.url === 'string' && answerRecord.url.trim()) ||
-      (typeof answerRecord.path === 'string' && answerRecord.path.trim());
+      (typeof valueRecord.original_name === 'string' &&
+        valueRecord.original_name.trim()) ||
+      (typeof valueRecord.filename === 'string' &&
+        valueRecord.filename.trim()) ||
+      (typeof valueRecord.name === 'string' && valueRecord.name.trim()) ||
+      (typeof valueRecord.url === 'string' && valueRecord.url.trim()) ||
+      (typeof valueRecord.path === 'string' && valueRecord.path.trim());
     return fileLabel || '-';
   }
 
@@ -87,6 +106,73 @@ function getReadableAnswer(question: OnboardingIntakeQuestion): string {
   if (typeof value === 'boolean') return value ? 'Yes' : 'No';
 
   return '-';
+}
+
+function getFileAnswerMeta(question: OnboardingIntakeQuestion): {
+  url: string | null;
+  label: string;
+} {
+  const answer = question.answer;
+  if (!answer || typeof answer !== 'object') {
+    return { url: null, label: '-' };
+  }
+  const answerRecord = answer as Record<string, unknown>;
+  const valueRecord =
+    typeof answerRecord.value === 'object' && answerRecord.value !== null
+      ? (answerRecord.value as Record<string, unknown>)
+      : answerRecord;
+
+  const url =
+    (typeof valueRecord.url === 'string' && valueRecord.url.trim()) || null;
+  const label =
+    (typeof valueRecord.name === 'string' && valueRecord.name.trim()) ||
+    (typeof valueRecord.original_name === 'string' &&
+      valueRecord.original_name.trim()) ||
+    (typeof valueRecord.filename === 'string' && valueRecord.filename.trim()) ||
+    (typeof valueRecord.path === 'string' && valueRecord.path.trim()) ||
+    '-';
+
+  return { url, label };
+}
+
+function FileAnswerPreview({
+  question,
+}: {
+  question: OnboardingIntakeQuestion;
+}) {
+  const { url, label } = getFileAnswerMeta(question);
+  const [useFallback, setUseFallback] = useState(() => !url);
+  const imageSrc = !useFallback && url ? url : FILE_PREVIEW_FALLBACK;
+
+  return (
+    <div className='border-border/70 bg-muted/10 space-y-3 rounded-md border p-3'>
+      <p className='text-foreground/90 text-[13px] font-semibold'>
+        {question.question}
+      </p>
+      <Avatar className='border-border/70 h-56 w-full rounded-md border'>
+        {!useFallback && url ? (
+          <AvatarImage
+            src={imageSrc}
+            alt={question.question}
+            className='h-full w-full rounded-md object-cover'
+            onError={() => setUseFallback(true)}
+          />
+        ) : null}
+        <AvatarFallback className='bg-muted h-full w-full rounded-md'>
+          <Image
+            src={FILE_PREVIEW_FALLBACK}
+            alt='File placeholder'
+            width={88}
+            height={88}
+            className='h-20 w-20 object-contain opacity-70'
+          />
+        </AvatarFallback>
+      </Avatar>
+      <p className='text-muted-foreground text-xs leading-relaxed font-medium wrap-break-word'>
+        {label}
+      </p>
+    </div>
+  );
 }
 
 function ProgramThumbnail({
@@ -382,26 +468,39 @@ export default function IntakeDetailPanel({
                     {section.description.trim()}
                   </p>
                 ) : null}
-                <div className='border-border/70 rounded-md border p-3'>
+                <div>
                   {section.questions.length ? (
-                    <div className='grid gap-3 md:grid-cols-2'>
-                      {section.questions.map((question, index) => (
-                        <div
-                          key={question.id}
-                          className='border-border/70 bg-muted/10 space-y-1.5 rounded-md border p-3'
-                        >
-                          <p className='text-foreground/90 text-[13px] font-semibold'>
-                            <span className='mr-1 font-semibold'>
-                              Q{index + 1}.
-                            </span>
-                            {question.question}
-                          </p>
-                          <p className='text-muted-foreground ml-6 text-[13px] leading-relaxed font-medium wrap-break-word capitalize'>
-                            {getReadableAnswer(question)}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
+                    section.questions.every(
+                      (question) => question.type === 'file',
+                    ) ? (
+                      <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-3'>
+                        {section.questions.map((question) => (
+                          <FileAnswerPreview
+                            key={question.id}
+                            question={question}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className='grid gap-3 md:grid-cols-2'>
+                        {section.questions.map((question, index) => (
+                          <div
+                            key={question.id}
+                            className='border-border/70 bg-muted/10 space-y-1.5 rounded-md border p-3'
+                          >
+                            <p className='text-foreground/90 text-[13px] font-semibold'>
+                              <span className='mr-1 font-semibold'>
+                                Q{index + 1}.
+                              </span>
+                              {question.question}
+                            </p>
+                            <p className='text-muted-foreground ml-6 text-[13px] leading-relaxed font-medium wrap-break-word capitalize'>
+                              {getReadableAnswer(question)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )
                   ) : (
                     <p className='text-muted-foreground p-4 text-sm'>-</p>
                   )}

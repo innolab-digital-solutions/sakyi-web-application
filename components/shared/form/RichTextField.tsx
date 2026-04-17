@@ -204,7 +204,7 @@ export default function RichTextField({
 
   const responsiveLabelClass = cn(
     'font-medium text-xs',
-    'md:text-sm',
+    'md:text-[13px]',
     required
       ? 'after:text-destructive after:ml-0.5 after:content-["*"]'
       : undefined,
@@ -212,7 +212,7 @@ export default function RichTextField({
 
   const responsiveErrorClass = cn(
     'text-destructive flex items-center gap-2 font-medium text-xs',
-    'md:text-sm',
+    'md:text-[13px]',
   );
 
   return (
