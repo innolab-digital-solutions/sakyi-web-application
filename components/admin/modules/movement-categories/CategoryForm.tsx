@@ -98,9 +98,7 @@ export default function MovementCategoryForm({
   const submit = async () => {
     if (isEdit) {
       await form.patch(
-        ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.DETAIL(
-          String(category.id),
-        ),
+        ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.DETAIL(String(category.id)),
         {
           onSuccess: () => {
             queryClient.invalidateQueries({
@@ -130,10 +128,7 @@ export default function MovementCategoryForm({
     await form.post(ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.CREATE, {
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: [
-            'table',
-            ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST,
-          ],
+          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST],
         });
         queryClient.invalidateQueries({
           queryKey: ['lookup', LOOKUP_ENDPOINTS.MOVEMENT_CATEGORIES],
