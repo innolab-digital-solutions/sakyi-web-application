@@ -6,7 +6,7 @@ export type EnrollmentRequestStatus =
 
 export type EnrollmentRequestResource = {
   id: number;
-  code:string;
+  code: string;
   phone: string;
   status: EnrollmentRequestStatus;
   notes: string | null;
@@ -15,9 +15,11 @@ export type EnrollmentRequestResource = {
     id: number;
     name: string;
     email: string;
+    picture_url?: string;
   };
   program?: {
     id: number;
+    code?: string;
     duration: number | string; // depends on backend cast
     price: number | string; // depends on backend cast
     thumbnail_url: string;
@@ -28,6 +30,8 @@ export type EnrollmentRequestResource = {
     id: number;
     name: string;
     email: string;
+    picture_url?: string;
+    role: string;
   };
   timestamps: {
     created_at: string | null; // ISO 8601

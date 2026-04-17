@@ -191,7 +191,9 @@ export default function EnrollmentContractListTable() {
                   #{contract.enrollment_request_id}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={contract.accepted_terms ? 'default' : 'outline'}>
+                  <Badge
+                    variant={contract.accepted_terms ? 'default' : 'outline'}
+                  >
                     {contract.accepted_terms ? 'Accepted' : 'Pending'}
                   </Badge>
                 </TableCell>

@@ -77,7 +77,8 @@ export const ADMIN_ROUTES = {
       INTAKES: {
         LIST: `${BASE}/onboarding/intakes`,
         CREATE: `${BASE}/onboarding/intakes/create`,
-        INTERVIEW: (id: string) => `${BASE}/onboarding/intakes/${id}?view=interview`,
+        INTERVIEW: (id: string) =>
+          `${BASE}/onboarding/intakes/${id}?view=interview`,
         DETAIL: (id: string) => `${BASE}/onboarding/intakes/${id}`,
       },
     },

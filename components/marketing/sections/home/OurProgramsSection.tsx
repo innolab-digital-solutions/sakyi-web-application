@@ -125,7 +125,9 @@ const OurProgramsSection = () => {
           >
             <PrimaryButton className='w-full min-w-0 sm:w-auto'>
               <span>
-                {translate('marketing.pages.home.programs-overview.cta.primary')}
+                {translate(
+                  'marketing.pages.home.programs-overview.cta.primary',
+                )}
               </span>
               <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
             </PrimaryButton>

@@ -57,7 +57,6 @@ const LatestArticlesSection = () => {
         <Body1 lang={language} className='mx-auto text-center'>
           {translate('marketing.pages.home.latest-articles.description')}
         </Body1>
-
       </div>
 
       <div className='mt-12 grid gap-8 lg:grid-cols-2'>

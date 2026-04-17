@@ -110,7 +110,7 @@ const TableListShell = <TItem,>({
   return (
     <div
       className={cn(
-        'border-border bg-card max-w-full min-w-0 space-y-5 rounded-md border p-6 shadow',
+        'border-border max-w-full min-w-0 space-y-5 rounded-md border bg-white p-6 shadow-xs',
         className,
       )}
     >
@@ -121,7 +121,7 @@ const TableListShell = <TItem,>({
               <TextField
                 type='search'
                 placeholder={searchPlaceholder}
-                className='bg-background h-11! w-full max-w-xs rounded-md text-[13px]!'
+                className='bg-background h-11! w-full max-w-xs rounded-md text-[13px]! font-medium'
                 value={searchValue}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 aria-busy={searchBusy}
@@ -184,7 +184,8 @@ const TableListShell = <TItem,>({
                         <PaginationPrevious
                           href='#'
                           className={cn(
-                            !canPrev && 'pointer-events-none opacity-40',
+                            !canPrev &&
+                              'pointer-events-none text-[13px] font-medium opacity-40',
                           )}
                           onClick={(e) => {
                             e.preventDefault();
@@ -200,6 +201,7 @@ const TableListShell = <TItem,>({
                             href='#'
                             size='default'
                             isActive={n === currentPage}
+                            className='text-[13px] font-bold'
                             onClick={(e) => {
                               e.preventDefault();
                               pagination.onPageChange(n);
@@ -214,7 +216,8 @@ const TableListShell = <TItem,>({
                         <PaginationNext
                           href='#'
                           className={cn(
-                            !canNext && 'pointer-events-none opacity-40',
+                            !canNext &&
+                              'pointer-events-none text-[13px] font-medium opacity-40',
                           )}
                           onClick={(e) => {
                             e.preventDefault();

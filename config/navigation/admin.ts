@@ -9,7 +9,6 @@ import {
   Scale,
   UserCog,
   Users,
-  UserSquare2,
 } from 'lucide-react';
 
 import { ADMIN_ROUTES } from '@/config/routes/admin';

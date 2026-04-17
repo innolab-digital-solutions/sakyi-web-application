@@ -2,7 +2,7 @@ export type EnrollmentContractStatus = 'assigned' | 'signed';
 
 export type EnrollmentContract = {
   id: number;
-  code:string;
+  code: string;
   status: EnrollmentContractStatus;
   sent_at: string | null;
   signed_at: string | null;
