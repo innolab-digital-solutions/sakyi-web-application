@@ -42,19 +42,24 @@ export default function UnitSheet({ mode, unit, open, onOpenChange }: Props) {
     <Sheet open={isOpen} onOpenChange={setOpen}>
       {!isEdit && (
         <SheetTrigger asChild>
-          <Button className='cursor-pointer' size='lg'>
-            <PlusIcon className='size-4' />
-            Create Unit
+          <Button
+            type='button'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+          >
+            <PlusIcon className='size-3.5' />
+            Add Measurement
           </Button>
         </SheetTrigger>
       )}
       <SheetContent className='overflow-y-auto px-6 sm:max-w-md [&>button]:cursor-pointer'>
-        <SheetHeader className='mb-6'>
-          <SheetTitle>{isEdit ? 'Edit Unit' : 'Create Unit'}</SheetTitle>
-          <SheetDescription>
+        <SheetHeader className='px-0'>
+          <SheetTitle className='text-foreground text-md font-bold'>
+            {isEdit ? 'Edit Measurement' : 'Add Measurement'}
+          </SheetTitle>
+          <SheetDescription className='text-muted-foreground text-sm font-medium'>
             {isEdit
-              ? 'Update the details of this measurement unit.'
-              : 'Add a new measurement unit for use in nutrition profiles and items.'}
+              ? 'Update name, abbreviation, and type so labels stay consistent wherever this reference is used.'
+              : 'Provide a clear abbreviation and type so portions, doses, and labels stay consistent wherever this reference is used.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (

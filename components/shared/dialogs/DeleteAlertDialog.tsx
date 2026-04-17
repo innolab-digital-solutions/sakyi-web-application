@@ -17,6 +17,10 @@ type Props = {
   /** May be async; callers should catch rejections inside the handler. */
   onConfirm: () => void | Promise<void>;
   isDeleting?: boolean;
+  /** Primary action label (default: Delete). */
+  confirmLabel?: string;
+  /** Shown while `onConfirm` is in flight (default: Deleting…). */
+  confirmPendingLabel?: string;
 };
 
 export default function DeleteAlertDialog({
@@ -26,6 +30,8 @@ export default function DeleteAlertDialog({
   description,
   onConfirm,
   isDeleting,
+  confirmLabel = 'Delete',
+  confirmPendingLabel = 'Deleting…',
 }: Props) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -43,7 +49,7 @@ export default function DeleteAlertDialog({
             disabled={isDeleting}
             onClick={onConfirm}
           >
-            {isDeleting ? 'Deleting…' : 'Delete'}
+            {isDeleting ? confirmPendingLabel : confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

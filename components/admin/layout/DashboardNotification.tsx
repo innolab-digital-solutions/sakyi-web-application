@@ -145,7 +145,7 @@ const DashboardNotification = () => {
         if (shouldDebug) console.info('[notifications] Reverb state', states);
       };
       const handleConnectionError = (error: unknown) => {
-        console.error('[notifications] Reverb connection error', error);
+        console.warn('[notifications] Reverb connection error', error);
       };
 
       channel.notification((incoming: BackendNotification) => {

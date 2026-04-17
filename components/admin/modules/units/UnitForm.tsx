@@ -33,11 +33,6 @@ const UNIT_TYPE_OPTIONS: SelectFieldOption[] = [
   { value: UNIT_TYPE.ENERGY, label: 'Energy' },
 ];
 
-const STATUS_OPTIONS: SelectFieldOption[] = [
-  { value: 'true', label: 'Active' },
-  { value: 'false', label: 'Inactive' },
-];
-
 type CreateProps = {
   mode: 'create';
   unit?: never;
@@ -97,12 +92,12 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
           queryClient.invalidateQueries({
             queryKey: ['table', ENDPOINTS.ADMIN.MODULES.UNITS.LIST],
           });
-          toast.success('Unit updated successfully.');
+          toast.success('Measurement reference updated successfully.');
           if (onSuccess) onSuccess();
           else router.push(ROUTES.ADMIN.MODULES.UNITS.LIST);
         },
         onFailure: (error) => {
-          toast.error(error.message ?? 'Failed to update unit.');
+          toast.error(error.message ?? 'Failed to save changes.');
         },
       });
       return;
@@ -113,12 +108,12 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
         queryClient.invalidateQueries({
           queryKey: ['table', ENDPOINTS.ADMIN.MODULES.UNITS.LIST],
         });
-        toast.success('Unit created successfully.');
+        toast.success('Measurement reference added to the catalog.');
         if (onSuccess) onSuccess();
         else router.push(ROUTES.ADMIN.MODULES.UNITS.LIST);
       },
       onFailure: (error) => {
-        toast.error(error.message ?? 'Failed to create unit.');
+        toast.error(error.message ?? 'Failed to add measurement.');
       },
     });
   };
@@ -174,23 +169,13 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
           }
           error={form.errors.type}
         />
-        <SelectField
-          label='Status'
-          name='is_active'
-          required
-          placeholder='Select status…'
-          options={STATUS_OPTIONS}
-          value={String(form.fields.is_active ?? true)}
-          onChange={(val) => form.setData('is_active', val === 'true')}
-          error={form.errors.is_active}
-        />
 
-        <div className='flex items-center justify-end gap-3'>
+        <div className='flex flex-nowrap items-center justify-end gap-2'>
           <Button
             type='button'
             variant='outline'
             disabled={loading}
-            className='cursor-pointer'
+            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
             onClick={() =>
               onSuccess
                 ? onSuccess()
@@ -199,14 +184,18 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
           >
             Cancel
           </Button>
-          <Button type='submit' className='cursor-pointer' disabled={loading}>
+          <Button
+            type='submit'
+            disabled={loading}
+            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+          >
             {loading
               ? isEdit
-                ? 'Saving…'
-                : 'Creating…'
+                ? 'Saving Changes…'
+                : 'Creating Measurement…'
               : isEdit
                 ? 'Save Changes'
-                : 'Create Unit'}
+                : 'Create Measurement'}
           </Button>
         </div>
       </div>
