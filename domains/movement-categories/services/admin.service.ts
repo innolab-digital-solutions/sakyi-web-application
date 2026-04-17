@@ -1,6 +1,9 @@
 import { ENDPOINTS } from '@/config/api/endpoints';
 import type { ApiResponse } from '@/lib/api/client';
 import { http } from '@/lib/api/client';
+import { fetchTablePage } from '@/lib/table/fetch';
+import { normalizeTableResponse } from '@/lib/table/normalize';
+import type { TableQueryResponse } from '@/lib/table/types';
 
 import type {
   MovementCategoryCreateInput,
@@ -27,6 +30,30 @@ export async function getMovementCategories(): Promise<
     ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST,
     { throwOnError: false },
   );
+}
+
+/** React Query key for {@link getMovementCategoriesForParentPicker} results. */
+export const movementCategoryParentPickerQueryKey = [
+  'movement-categories',
+  'parent-picker',
+] as const;
+
+/**
+ * Loads categories (one large page) for forms that need `parent` on each row.
+ * Used to offer only **root** categories as parent options (no nested parents).
+ */
+export async function getMovementCategoriesForParentPicker(): Promise<
+  MovementCategory[]
+> {
+  const response = await fetchTablePage<MovementCategory>(
+    ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST,
+    { page: 1, per_page: 500 },
+  );
+  if (response.status !== 'success') return [];
+  const { rows } = normalizeTableResponse(
+    response as TableQueryResponse<MovementCategory>,
+  );
+  return rows;
 }
 
 export async function createMovementCategory(

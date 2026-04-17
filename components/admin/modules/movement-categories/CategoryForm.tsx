@@ -1,6 +1,7 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -8,9 +9,6 @@ import { toast } from 'sonner';
 import ComboboxField, {
   type ComboboxOption,
 } from '@/components/shared/form/ComboBoxField';
-import SelectField, {
-  type SelectFieldOption,
-} from '@/components/shared/form/SelectField';
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
 import { Button } from '@/components/ui/button';
@@ -21,14 +19,12 @@ import {
   MovementCategoryCreateSchema,
   MovementCategoryUpdateSchema,
 } from '@/domains/movement-categories/schemas';
-import { getMovementCategoriesLookup } from '@/domains/movement-categories/services';
+import {
+  getMovementCategoriesForParentPicker,
+  movementCategoryParentPickerQueryKey,
+} from '@/domains/movement-categories/services';
 import type { MovementCategory } from '@/domains/movement-categories/types';
 import { useForm } from '@/lib/form';
-
-const STATUS_OPTIONS: SelectFieldOption[] = [
-  { value: 'true', label: 'Active' },
-  { value: 'false', label: 'Inactive' },
-];
 
 type CreateProps = {
   mode: 'create';
@@ -53,28 +49,24 @@ export default function MovementCategoryForm({
   const queryClient = useQueryClient();
   const isEdit = mode === 'edit';
 
-  const { data: lookupData } = useQuery({
-    queryKey: ['lookup', LOOKUP_ENDPOINTS.MOVEMENT_CATEGORIES],
-    queryFn: async () => {
-      const response = await getMovementCategoriesLookup();
-      if (response.status !== 'success') return [];
-      return response.data;
-    },
+  const { data: categoriesForPicker } = useQuery({
+    queryKey: movementCategoryParentPickerQueryKey,
+    queryFn: getMovementCategoriesForParentPicker,
   });
 
   const parentOptions = useMemo<ComboboxOption[]>(() => {
-    if (!lookupData) return [];
-    return lookupData
-      .filter((c) => c.id !== category?.id)
+    if (!categoriesForPicker?.length) return [];
+    return categoriesForPicker
+      .filter((c) => c.id !== category?.id && c.parent == null)
       .map((c) => ({ value: String(c.id), label: c.name }));
-  }, [lookupData, category?.id]);
+  }, [categoriesForPicker, category?.id]);
 
   const initialFields = useMemo(() => {
     if (mode === 'edit' && category) {
       return {
         name: category.name ?? '',
         description: category.description ?? '',
-        parent_id: category.parent?.id ?? (null as number | null),
+        parent_id: category.parent?.id ?? null,
         is_active: category.is_active ?? true,
       };
     }
@@ -106,7 +98,9 @@ export default function MovementCategoryForm({
   const submit = async () => {
     if (isEdit) {
       await form.patch(
-        ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.DETAIL(String(category.id)),
+        ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.DETAIL(
+          String(category.id),
+        ),
         {
           onSuccess: () => {
             queryClient.invalidateQueries({
@@ -118,12 +112,15 @@ export default function MovementCategoryForm({
             queryClient.invalidateQueries({
               queryKey: ['lookup', LOOKUP_ENDPOINTS.MOVEMENT_CATEGORIES],
             });
-            toast.success('Category updated successfully.');
+            queryClient.invalidateQueries({
+              queryKey: movementCategoryParentPickerQueryKey,
+            });
+            toast.success('Movement category updated successfully.');
             if (onSuccess) onSuccess();
             else router.push(ROUTES.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST);
           },
           onFailure: (error) => {
-            toast.error(error.message ?? 'Failed to update category.');
+            toast.error(error.message ?? 'Failed to update movement category.');
           },
         },
       );
@@ -133,17 +130,23 @@ export default function MovementCategoryForm({
     await form.post(ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.CREATE, {
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST],
+          queryKey: [
+            'table',
+            ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST,
+          ],
         });
         queryClient.invalidateQueries({
           queryKey: ['lookup', LOOKUP_ENDPOINTS.MOVEMENT_CATEGORIES],
         });
-        toast.success('Category created successfully.');
+        queryClient.invalidateQueries({
+          queryKey: movementCategoryParentPickerQueryKey,
+        });
+        toast.success('Movement category created successfully.');
         if (onSuccess) onSuccess();
         else router.push(ROUTES.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST);
       },
       onFailure: (error) => {
-        toast.error(error.message ?? 'Failed to create category.');
+        toast.error(error.message ?? 'Failed to create movement category.');
       },
     });
   };
@@ -170,17 +173,17 @@ export default function MovementCategoryForm({
         <TextAreaField
           label='Description'
           name='description'
-          placeholder='Optional description for this category…'
+          placeholder='Optional description for this movement category…'
           rows={3}
           value={String(form.fields.description ?? '')}
           onChange={(e) => form.setData('description', e.target.value)}
           error={form.errors.description}
         />
         <ComboboxField
-          label='Parent Category'
-          placeholder='Select a parent category…'
-          searchPlaceholder='Search categories…'
-          emptyMessage='No categories found.'
+          label='Parent movement category'
+          placeholder='Select a top-level movement category…'
+          searchPlaceholder='Search top-level movement categories…'
+          emptyMessage='No top-level movement categories found.'
           options={parentOptions}
           value={form.fields.parent_id ? String(form.fields.parent_id) : null}
           onChange={(val) =>
@@ -188,22 +191,13 @@ export default function MovementCategoryForm({
           }
           error={form.errors.parent_id}
         />
-        <SelectField
-          label='Status'
-          name='is_active'
-          required
-          placeholder='Select status…'
-          options={STATUS_OPTIONS}
-          value={String(form.fields.is_active ?? true)}
-          onChange={(val) => form.setData('is_active', val === 'true')}
-          error={form.errors.is_active}
-        />
 
-        <div className='flex items-center justify-end gap-3'>
+        <div className='flex flex-nowrap items-center justify-end gap-2'>
           <Button
             type='button'
             variant='outline'
             disabled={loading}
+            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
             onClick={() =>
               onSuccess
                 ? onSuccess()
@@ -212,14 +206,18 @@ export default function MovementCategoryForm({
           >
             Cancel
           </Button>
-          <Button type='submit' disabled={loading}>
+          <Button
+            type='submit'
+            disabled={loading}
+            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+          >
             {loading
               ? isEdit
-                ? 'Saving…'
+                ? 'Saving Changes…'
                 : 'Creating…'
               : isEdit
                 ? 'Save Changes'
-                : 'Create Category'}
+                : 'Create Movement Category'}
           </Button>
         </div>
       </div>

@@ -120,7 +120,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
     path: '#',
     subitems: [
       {
-        name: 'Categories',
+        name: 'Movement Categories',
         path: ADMIN_ROUTES.MODULES.MOVEMENT_CATEGORIES.LIST,
       },
       {
