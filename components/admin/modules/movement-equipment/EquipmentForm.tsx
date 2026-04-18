@@ -5,9 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 
-import SelectField, {
-  type SelectFieldOption,
-} from '@/components/shared/form/SelectField';
 import TextField from '@/components/shared/form/TextField';
 import { Button } from '@/components/ui/button';
 import { ENDPOINTS } from '@/config/api/endpoints';
@@ -19,11 +16,6 @@ import {
 } from '@/domains/movement-equipment/schemas';
 import type { MovementEquipment } from '@/domains/movement-equipment/types';
 import { useForm } from '@/lib/form';
-
-const STATUS_OPTIONS: SelectFieldOption[] = [
-  { value: 'true', label: 'Active' },
-  { value: 'false', label: 'Inactive' },
-];
 
 type CreateProps = {
   mode: 'create';
@@ -135,27 +127,18 @@ export default function MovementEquipmentForm({
         <TextField
           label='Name'
           required
-          placeholder='e.g. Barbell'
+          placeholder='e.g. Kettlebell, Resistance band'
           value={String(form.fields.name ?? '')}
           onChange={(e) => form.setData('name', e.target.value)}
           error={form.errors.name}
         />
-        <SelectField
-          label='Status'
-          name='is_active'
-          required
-          placeholder='Select status…'
-          options={STATUS_OPTIONS}
-          value={String(form.fields.is_active ?? true)}
-          onChange={(val) => form.setData('is_active', val === 'true')}
-          error={form.errors.is_active}
-        />
 
-        <div className='flex items-center justify-end gap-3'>
+        <div className='flex flex-nowrap items-center justify-end gap-2'>
           <Button
             type='button'
             variant='outline'
             disabled={loading}
+            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
             onClick={() =>
               onSuccess
                 ? onSuccess()
@@ -164,14 +147,18 @@ export default function MovementEquipmentForm({
           >
             Cancel
           </Button>
-          <Button type='submit' disabled={loading}>
+          <Button
+            type='submit'
+            disabled={loading}
+            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+          >
             {loading
               ? isEdit
-                ? 'Saving…'
+                ? 'Saving Changes…'
                 : 'Creating…'
               : isEdit
                 ? 'Save Changes'
-                : 'Create Equipment'}
+                : 'Create equipment'}
           </Button>
         </div>
       </div>

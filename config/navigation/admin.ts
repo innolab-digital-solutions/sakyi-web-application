@@ -128,7 +128,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
         path: ADMIN_ROUTES.MODULES.MOVEMENT_EXERCISES.LIST,
       },
       {
-        name: 'Equipment',
+        name: 'Exercise equipment',
         path: ADMIN_ROUTES.MODULES.MOVEMENT_EQUIPMENT.LIST,
       },
     ],
