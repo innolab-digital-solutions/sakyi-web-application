@@ -21,9 +21,15 @@ export const ADMIN_ENDPOINTS = {
     PROGRAMS: {
       LIST: `${BASE}/programs`,
       CREATE: `${BASE}/programs`,
-      UPDATE: (id: string) => `${BASE}/programs/${id}`,
       DELETE: (id: string) => `${BASE}/programs/${id}`,
       DETAIL: (id: string) => `${BASE}/programs/${id}`,
+      STEPS: {
+        OVERVIEW: (id: string) => `${BASE}/programs/${id}/steps/overview`,
+        TRANSLATIONS: (id: string) =>
+          `${BASE}/programs/${id}/steps/translations`,
+      },
+      PUBLISH: (id: string) => `${BASE}/programs/${id}/publish`,
+      UPDATE_STATUS: (id: string) => `${BASE}/programs/${id}/status`,
     },
     UNITS: {
       LIST: `${BASE}/units`,
