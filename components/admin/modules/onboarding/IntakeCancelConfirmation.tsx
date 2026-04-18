@@ -47,9 +47,9 @@ export default function IntakeCancelConfirmation({
                 Cancel this intake assessment?
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
-                Cancelling stops this interview and marks the intake as cancelled.
-                A brief note is required so your team has context on the intake
-                record.
+                Cancelling stops this interview and marks the intake as
+                cancelled. A brief note is required so your team has context on
+                the intake record.
               </AlertDialogDescription>
             </div>
           </div>
@@ -60,9 +60,7 @@ export default function IntakeCancelConfirmation({
             label='Cancellation note'
             required
             value={cancellationNote}
-            onChange={(event) =>
-              onCancellationNoteChange(event.target.value)
-            }
+            onChange={(event) => onCancellationNoteChange(event.target.value)}
             error={noteError}
             disabled={isSubmitting}
             placeholder='Reason for cancellation (visible on the intake record)'
@@ -72,7 +70,7 @@ export default function IntakeCancelConfirmation({
         <AlertDialogFooter className='bg-muted/30 border-border gap-2 border-t p-4 sm:justify-end'>
           <AlertDialogCancel
             disabled={isSubmitting}
-            className='text-foreground cursor-pointer bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+            className='text-foreground bg-background hover:bg-muted h-10 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
           >
             Continue Interview
           </AlertDialogCancel>
@@ -80,7 +78,7 @@ export default function IntakeCancelConfirmation({
             type='button'
             variant='destructive'
             disabled={isSubmitting}
-            className='border-destructive/45 cursor-pointer h-10 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
+            className='border-destructive/45 h-10 cursor-pointer gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
             onClick={onConfirmCancel}
           >
             <Ban className='size-3.5' />

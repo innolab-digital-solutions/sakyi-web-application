@@ -50,9 +50,7 @@ export default function UnitListTable() {
       }
     },
     onSuccess: () => {
-      toast.success(
-        'The measurement was removed from the reference catalog.',
-      );
+      toast.success('The measurement was removed from the reference catalog.');
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.UNITS.LIST],
       });

@@ -3,7 +3,7 @@ import type { ApiResponse } from '@/lib/api/client';
 import { http } from '@/lib/api/client';
 import { fetchTablePage } from '@/lib/table/fetch';
 import { normalizeTableResponse } from '@/lib/table/normalize';
-import type { TableQueryResponse } from '@/lib/table/types';
+import type { TableListPayload } from '@/lib/table/types';
 
 import type {
   NutritionCategoryCreateInput,
@@ -43,14 +43,12 @@ export const nutritionCategoryParentPickerQueryKey = [
 export async function getNutritionCategoriesForParentPicker(): Promise<
   NutritionCategory[]
 > {
-  const response = await fetchTablePage<NutritionCategory>(
+  const response = await fetchTablePage<TableListPayload<NutritionCategory>>(
     ENDPOINTS.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST,
     { page: 1, per_page: 500 },
   );
   if (response.status !== 'success') return [];
-  const { rows } = normalizeTableResponse(
-    response as TableQueryResponse<NutritionCategory>,
-  );
+  const { rows } = normalizeTableResponse(response);
   return rows;
 }
 

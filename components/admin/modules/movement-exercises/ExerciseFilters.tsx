@@ -51,7 +51,10 @@ export default function ExerciseFilters({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end'>
-        <DropdownMenuItem className='cursor-pointer' onClick={onClearDifficulty}>
+        <DropdownMenuItem
+          className='cursor-pointer'
+          onClick={onClearDifficulty}
+        >
           All levels
         </DropdownMenuItem>
         <DropdownMenuSeparator />

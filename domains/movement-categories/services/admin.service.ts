@@ -3,7 +3,7 @@ import type { ApiResponse } from '@/lib/api/client';
 import { http } from '@/lib/api/client';
 import { fetchTablePage } from '@/lib/table/fetch';
 import { normalizeTableResponse } from '@/lib/table/normalize';
-import type { TableQueryResponse } from '@/lib/table/types';
+import type { TableListPayload } from '@/lib/table/types';
 
 import type {
   MovementCategoryCreateInput,
@@ -45,14 +45,12 @@ export const movementCategoryParentPickerQueryKey = [
 export async function getMovementCategoriesForParentPicker(): Promise<
   MovementCategory[]
 > {
-  const response = await fetchTablePage<MovementCategory>(
+  const response = await fetchTablePage<TableListPayload<MovementCategory>>(
     ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST,
     { page: 1, per_page: 500 },
   );
   if (response.status !== 'success') return [];
-  const { rows } = normalizeTableResponse(
-    response as TableQueryResponse<MovementCategory>,
-  );
+  const { rows } = normalizeTableResponse(response);
   return rows;
 }
 

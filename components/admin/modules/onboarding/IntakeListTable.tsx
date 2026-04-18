@@ -438,13 +438,13 @@ export default function IntakeListTable() {
                 visibleColumnSet.has(columnKey);
 
               return (
-              <TableRow key={intake.id}>
+                <TableRow key={intake.id}>
                   {showColumn('reference') ? (
                     <TableCell className='align-center min-w-45 whitespace-normal'>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {intake.code?.trim()}
                       </p>
-                </TableCell>
+                    </TableCell>
                   ) : null}
 
                   {showColumn('applicant') ? (
@@ -477,8 +477,8 @@ export default function IntakeListTable() {
                             {intake.client?.email ?? 'No email on file'}
                           </p>
                         </div>
-                  </div>
-                </TableCell>
+                      </div>
+                    </TableCell>
                   ) : null}
 
                   {showColumn('requestedProgram') ? (
@@ -504,7 +504,7 @@ export default function IntakeListTable() {
                           </p>
                         </div>
                       </div>
-                </TableCell>
+                    </TableCell>
                   ) : null}
 
                   {showColumn('linkedRequest') ? (
@@ -594,8 +594,8 @@ export default function IntakeListTable() {
                               >
                                 <PencilIcon className='size-3.5' />
                                 Continue Interview
-                      </Link>
-                    </Button>
+                              </Link>
+                            </Button>
                           )}
 
                         {intake.status === 'completed' &&
@@ -641,10 +641,10 @@ export default function IntakeListTable() {
                             View Details
                           </Link>
                         </Button>
-                  </div>
-                </TableCell>
+                      </div>
+                    </TableCell>
                   ) : null}
-              </TableRow>
+                </TableRow>
               );
             })}
         </TableBody>

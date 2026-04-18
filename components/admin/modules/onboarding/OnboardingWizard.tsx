@@ -456,7 +456,8 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
                     Linked Request Reference
                   </p>
                   <p className='text-foreground/90 text-[13px] leading-relaxed font-semibold'>
-                    {intakeRecord.enrollment_request?.code?.trim() || 'Not linked'}
+                    {intakeRecord.enrollment_request?.code?.trim() ||
+                      'Not linked'}
                   </p>
                 </div>
 

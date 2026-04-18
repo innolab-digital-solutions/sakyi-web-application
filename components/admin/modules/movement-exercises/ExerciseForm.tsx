@@ -56,7 +56,9 @@ function mediaFromYoutubeInput(raw: string): MediaItemInput[] {
   return [{ type: 'video', url: trimmed }];
 }
 
-function firstMediaItem(media: MediaItemInput[] | null | undefined): MediaItemInput | null {
+function firstMediaItem(
+  media: MediaItemInput[] | null | undefined,
+): MediaItemInput | null {
   const list = media ?? [];
   return list.length > 0 ? list[0] : null;
 }
@@ -265,10 +267,7 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
                     : null
                 }
                 onChange={(val) =>
-                  form.setData(
-                    'movement_category_id',
-                    val ? Number(val) : null,
-                  )
+                  form.setData('movement_category_id', val ? Number(val) : null)
                 }
                 error={form.errors.movement_category_id}
               />
@@ -295,9 +294,7 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
             onChange={(e) =>
               form.setData('media', mediaFromYoutubeInput(e.target.value))
             }
-            error={
-              form.errors['media.0.url'] || form.errors['media.0.type']
-            }
+            error={form.errors['media.0.url'] || form.errors['media.0.type']}
           />
           <ComboboxField
             label='Equipment'
@@ -309,9 +306,9 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
               value: String(e.id),
               label: e.name,
             }))}
-            value={(
-              (form.fields.equipment_ids as number[] | null) ?? []
-            ).map(String)}
+            value={((form.fields.equipment_ids as number[] | null) ?? []).map(
+              String,
+            )}
             onChange={(vals) =>
               form.setData('equipment_ids', (vals as string[]).map(Number))
             }

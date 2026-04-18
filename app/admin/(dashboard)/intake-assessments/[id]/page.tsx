@@ -26,7 +26,9 @@ export default async function IntakeAssessmentDetailPage({
     <div className='space-y-8'>
       <PageHeader
         title={
-          isInterview ? 'Intake Assessment Interview' : 'Intake Assessment Details'
+          isInterview
+            ? 'Intake Assessment Interview'
+            : 'Intake Assessment Details'
         }
         description={
           isInterview

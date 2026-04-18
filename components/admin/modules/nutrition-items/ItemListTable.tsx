@@ -42,9 +42,7 @@ export default function NutritionItemListTable() {
       }
     },
     onSuccess: () => {
-      toast.success(
-        'The food item was removed from your library.',
-      );
+      toast.success('The food item was removed from your library.');
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.NUTRITION_ITEMS.LIST],
       });

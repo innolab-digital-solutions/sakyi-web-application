@@ -49,9 +49,7 @@ export default function NutritionCategoryListTable() {
       }
     },
     onSuccess: () => {
-      toast.success(
-        'The food category was removed from your library.',
-      );
+      toast.success('The food category was removed from your library.');
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST],
       });
