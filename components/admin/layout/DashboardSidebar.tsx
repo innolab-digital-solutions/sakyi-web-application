@@ -4,6 +4,7 @@ import { ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { startTransition, useEffect, useRef, useState } from 'react';
 
 import {
   Collapsible,
@@ -24,6 +25,7 @@ import {
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import { NAVIGATION } from '@/config/navigation';
+import type { NavItem } from '@/config/navigation/types';
 
 import LogoutConfirmationDialog from './LogoutConfirmationDialog';
 
@@ -38,6 +40,92 @@ const isNavPathActive = (pathname: string, navPath: string): boolean => {
 
   return pathname.startsWith(`${navPath}/`);
 };
+
+type NavItemWithSubitems = NavItem & {
+  subitems: NonNullable<NavItem['subitems']>;
+};
+
+function AdminNavCollapsibleSection({
+  item,
+  pathname,
+}: {
+  item: NavItemWithSubitems;
+  pathname: string;
+}) {
+  const isItemActive = isNavPathActive(pathname, item.path);
+  const isAnySubActive = item.subitems.some((subitem) =>
+    isNavPathActive(pathname, subitem.path),
+  );
+  const isActive = isItemActive || isAnySubActive;
+
+  const [open, setOpen] = useState(isActive);
+  const prevIsActiveRef = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    const prev = prevIsActiveRef.current;
+    if (prev === null) {
+      prevIsActiveRef.current = isActive;
+      return;
+    }
+    prevIsActiveRef.current = isActive;
+    if (isActive && !prev) {
+      startTransition(() => setOpen(true));
+    }
+    if (!isActive && prev) {
+      startTransition(() => setOpen(false));
+    }
+  }, [isActive]);
+
+  const Icon = item.icon;
+
+  return (
+    <SidebarMenuItem>
+      <Collapsible
+        open={open}
+        onOpenChange={setOpen}
+        className='data-[state=open]:[&_.nav-collapsible-chevron]:rotate-180'
+      >
+        <CollapsibleTrigger asChild>
+          <SidebarMenuButton
+            type='button'
+            isActive={isActive}
+            title={item.name}
+            className='data-[active=true]:text-sidebar-primary-foreground! hover:text-sidebar-primary-foreground! px-3 py-5 hover:bg-white/15! data-[active=true]:bg-white/15!'
+          >
+            {Icon ? <Icon className='mr-1 h-4 w-4' /> : null}
+            <span className='text-[12.5px] font-semibold'>{item.name}</span>
+            <ChevronDown className='nav-collapsible-chevron ml-auto size-4 shrink-0 transition-transform duration-200 ease-out motion-reduce:transition-none' />
+          </SidebarMenuButton>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SidebarMenuSub className='ml-4.5'>
+            {item.subitems.map((subitem, subIndex) => {
+              const isSubActive = isNavPathActive(pathname, subitem.path);
+
+              return (
+                <SidebarMenuSubItem
+                  key={`${item.name}-${subitem.name}-${subitem.path}-${subIndex}`}
+                >
+                  <SidebarMenuSubButton
+                    asChild
+                    isActive={isSubActive}
+                    className='data-[active=true]:text-sidebar-primary-foreground! hover:text-sidebar-primary-foreground! px-3 py-5 hover:bg-white/15! data-[active=true]:bg-white/15!'
+                  >
+                    <Link href={subitem.path}>
+                      <span className='text-[12.5px] font-semibold'>
+                        {subitem.name}
+                      </span>
+                    </Link>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+              );
+            })}
+          </SidebarMenuSub>
+        </CollapsibleContent>
+      </Collapsible>
+    </SidebarMenuItem>
+  );
+}
 
 const DashboardSidebar = () => {
   const pathname = usePathname();
@@ -82,62 +170,16 @@ const DashboardSidebar = () => {
 
               const Icon = item.icon;
 
-              // If item has subitems, render collapsible group
               if (hasSubitems) {
                 return (
-                  <SidebarMenuItem key={`${item.name}-${item.path}-${index}`}>
-                    <Collapsible
-                      defaultOpen={isActive}
-                      className='group/collapsible'
-                    >
-                      <CollapsibleTrigger asChild className='cursor-pointer!'>
-                        <SidebarMenuButton
-                          isActive={isActive}
-                          tooltip={item.name}
-                          className='data-[active=true]:text-sidebar-primary-foreground! hover:text-sidebar-primary-foreground! px-3 py-5 hover:bg-white/15! data-[active=true]:bg-white/15!'
-                        >
-                          {Icon ? <Icon className='mr-1 h-4 w-4' /> : null}
-                          <span className='text-[12.5px] font-semibold'>
-                            {item.name}
-                          </span>
-                          <ChevronDown className='ml-auto size-4 transition-transform group-data-[state=open]/collapsible:rotate-180' />
-                        </SidebarMenuButton>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <SidebarMenuSub className='ml-4.5'>
-                          {/* Subitems for this menu item */}
-                          {item.subitems!.map((subitem, subIndex) => {
-                            const isSubActive = isNavPathActive(
-                              pathname,
-                              subitem.path,
-                            );
-
-                            return (
-                              <SidebarMenuSubItem
-                                key={`${item.name}-${subitem.name}-${subitem.path}-${subIndex}`}
-                              >
-                                <SidebarMenuSubButton
-                                  asChild
-                                  isActive={isSubActive}
-                                  className='data-[active=true]:text-sidebar-primary-foreground! hover:text-sidebar-primary-foreground! px-3 py-5 hover:bg-white/15! data-[active=true]:bg-white/15!'
-                                >
-                                  <Link href={subitem.path}>
-                                    <span className='text-[12.5px] font-semibold'>
-                                      {subitem.name}
-                                    </span>
-                                  </Link>
-                                </SidebarMenuSubButton>
-                              </SidebarMenuSubItem>
-                            );
-                          })}
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  </SidebarMenuItem>
+                  <AdminNavCollapsibleSection
+                    key={`${item.name}-${item.path}-${index}`}
+                    item={item as NavItemWithSubitems}
+                    pathname={pathname}
+                  />
                 );
               }
 
-              // Regular single link menu item
               return (
                 <SidebarMenuItem key={`${item.name}-${item.path}-${index}`}>
                   <SidebarMenuButton
