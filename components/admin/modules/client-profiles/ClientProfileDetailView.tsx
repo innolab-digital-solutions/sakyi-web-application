@@ -134,7 +134,7 @@ export default function ClientProfileDetailView({
               <dt className='text-muted-foreground text-xs font-semibold'>
                 Enrollments
               </dt>
-              <dd className='text-foreground mt-0.5 text-[13px] tabular-nums font-medium'>
+              <dd className='text-foreground mt-0.5 text-[13px] font-medium tabular-nums'>
                 {data.enrollments_count ?? enrollments.length}
               </dd>
             </div>
@@ -264,12 +264,12 @@ export default function ClientProfileDetailView({
                         {formatStatusLabel(e.status || 'unknown')}
                       </span>
                     </TableCell>
-                    <TableCell className='text-foreground/80 tabular-nums text-[13px]'>
+                    <TableCell className='text-foreground/80 text-[13px] tabular-nums'>
                       {formatDateCell(e.starts_at) ?? (
                         <TableCellEmpty label='—' />
                       )}
                     </TableCell>
-                    <TableCell className='text-foreground/80 tabular-nums text-[13px]'>
+                    <TableCell className='text-foreground/80 text-[13px] tabular-nums'>
                       {formatDateCell(e.ends_at) ?? (
                         <TableCellEmpty label='—' />
                       )}

@@ -266,13 +266,13 @@ export default function EnrollmentRecordListTable() {
                       {formatStatusLabel(row.status || 'unknown')}
                     </span>
                   </TableCell>
-                  <TableCell className='text-foreground/80 align-center tabular-nums text-[13px]'>
+                  <TableCell className='text-foreground/80 align-center text-[13px] tabular-nums'>
                     {startsAt ?? <TableCellEmpty label='—' />}
                   </TableCell>
-                  <TableCell className='text-foreground/80 align-center tabular-nums text-[13px]'>
+                  <TableCell className='text-foreground/80 align-center text-[13px] tabular-nums'>
                     {endsAt ?? <TableCellEmpty label='—' />}
                   </TableCell>
-                  <TableCell className='text-foreground/80 align-center tabular-nums text-[13px]'>
+                  <TableCell className='text-foreground/80 align-center text-[13px] tabular-nums'>
                     {updatedAt ?? <TableCellEmpty label='—' />}
                   </TableCell>
                   <TableCell className='align-center text-end'>

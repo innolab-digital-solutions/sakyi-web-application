@@ -159,7 +159,9 @@ export default function EnrollmentRecordDetailView({
                     String(data.client.id),
                   )}
                 >
-                  {data.client.name?.trim() || data.client.client_code || 'View profile'}
+                  {data.client.name?.trim() ||
+                    data.client.client_code ||
+                    'View profile'}
                 </Link>
               </Button>
             ) : (
