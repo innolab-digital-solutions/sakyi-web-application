@@ -84,5 +84,9 @@ export const ADMIN_ROUTES = {
         `${BASE}/intake-assessments/${id}?view=interview`,
       DETAIL: (id: string) => `${BASE}/intake-assessments/${id}`,
     },
+    CLIENT_PROFILES: {
+      LIST: `${BASE}/client-profiles`,
+      DETAIL: (id: string) => `${BASE}/client-profiles/${id}`,
+    },
   },
 } as const;

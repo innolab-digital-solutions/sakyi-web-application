@@ -94,6 +94,10 @@ export const ADMIN_ENDPOINTS = {
       DELETE: (id: string) => `${BASE}/blog-posts/${id}`,
       DETAIL: (id: string) => `${BASE}/blog-posts/${id}`,
     },
+    CLIENT_PROFILES: {
+      LIST: `${BASE}/client-profiles`,
+      DETAIL: (id: string) => `${BASE}/client-profiles/${id}`,
+    },
     INTAKE_ASSESSMENTS: {
       TEMPLATE: (version: number) => `${BASE}/onboarding/templates/${version}`,
       LIST: `${BASE}/onboarding/intakes`,

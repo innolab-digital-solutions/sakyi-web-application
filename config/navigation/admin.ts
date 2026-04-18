@@ -73,7 +73,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
     subitems: [
       {
         name: 'Client Profiles',
-        path: '#',
+        path: ADMIN_ROUTES.MODULES.CLIENT_PROFILES.LIST,
       },
       {
         name: 'Care Plans',
