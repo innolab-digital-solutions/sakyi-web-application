@@ -60,6 +60,13 @@ export const ADMIN_ENDPOINTS = {
       DELETE: (id: string) => `${BASE}/movement-exercises/${id}`,
       DETAIL: (id: string) => `${BASE}/movement-exercises/${id}`,
     },
+    MOVEMENT_EQUIPMENT: {
+      LIST: `${BASE}/movement-equipment`,
+      CREATE: `${BASE}/movement-equipment`,
+      UPDATE: (id: string) => `${BASE}/movement-equipment/${id}`,
+      DELETE: (id: string) => `${BASE}/movement-equipment/${id}`,
+      DETAIL: (id: string) => `${BASE}/movement-equipment/${id}`,
+    },
     BLOG_CATEGORIES: {
       LIST: `${BASE}/blog-categories`,
       CREATE: `${BASE}/blog-categories`,
