@@ -53,6 +53,12 @@ export const ADMIN_ROUTES = {
       EDIT: (id: string) => `${BASE}/movement-exercises/${id}/edit`,
       DETAIL: (id: string) => `${BASE}/movement-exercises/${id}`,
     },
+    MOVEMENT_EQUIPMENT: {
+      LIST: `${BASE}/movement-equipment`,
+      CREATE: `${BASE}/movement-equipment/create`,
+      EDIT: (id: string) => `${BASE}/movement-equipment/${id}/edit`,
+      DETAIL: (id: string) => `${BASE}/movement-equipment/${id}`,
+    },
     BLOG_CATEGORIES: {
       LIST: `${BASE}/blog-categories`,
       CREATE: `${BASE}/blog-categories/create`,
