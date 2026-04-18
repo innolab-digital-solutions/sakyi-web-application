@@ -312,7 +312,10 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
           value={activeLocale}
           onValueChange={(v) => setActiveLocale(v as 'en' | 'my')}
         >
-          <TabsList variant='line' className='mb-4 bg-muted! border border-border'>
+          <TabsList
+            variant='line'
+            className='bg-muted! border-border mb-4 border'
+          >
             <TabsTrigger
               value='en'
               className='relative flex-1 cursor-pointer gap-1.5 text-[13px] font-semibold'

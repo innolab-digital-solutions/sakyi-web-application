@@ -253,8 +253,8 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
   const hasLocaleFieldErrors = (locale: string) =>
     Boolean(
       getTranslationError(locale, 'title') ||
-        getTranslationError(locale, 'content') ||
-        getTranslationError(locale, 'excerpt'),
+      getTranslationError(locale, 'content') ||
+      getTranslationError(locale, 'excerpt'),
     );
 
   const submit = async () => {
@@ -335,7 +335,7 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
       <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5'>
         <div className='space-y-6'>
           <div>
-            <h3 className='text-foreground capitalize text-sm font-semibold'>
+            <h3 className='text-foreground text-sm font-semibold capitalize'>
               Post content
             </h3>
             <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
@@ -350,7 +350,7 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
               >
                 <TabsList
                   variant='line'
-                  className='mb-4 w-full bg-muted! border border-border'
+                  className='bg-muted! border-border mb-4 w-full border'
                 >
                   <TabsTrigger
                     value='en'

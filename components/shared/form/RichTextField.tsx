@@ -489,7 +489,9 @@ export default function RichTextField({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <EditorToolbarIconButton
-                        active={editor?.isActive({ textAlign: 'left' }) ?? false}
+                        active={
+                          editor?.isActive({ textAlign: 'left' }) ?? false
+                        }
                         onClick={() =>
                           editor?.chain().focus().setTextAlign('left').run()
                         }

@@ -5,8 +5,8 @@ import { AlertCircle, PlusIcon, Trash2Icon } from 'lucide-react';
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils/styles';
 import type { ProgramStructureItem } from '@/domains/programs/types/admin';
+import { cn } from '@/lib/utils/styles';
 
 type Props = {
   label: string;
@@ -110,9 +110,7 @@ export default function StructureRepeaterField({
                   disabled={disabled}
                   placeholder='e.g. Week 1–2'
                   value={row.period}
-                  onChange={(e) =>
-                    updateRow(index, 'period', e.target.value)
-                  }
+                  onChange={(e) => updateRow(index, 'period', e.target.value)}
                 />
                 <div className='sm:col-span-2'>
                   <TextField
@@ -120,9 +118,7 @@ export default function StructureRepeaterField({
                     disabled={disabled}
                     placeholder='Phase title'
                     value={row.title}
-                    onChange={(e) =>
-                      updateRow(index, 'title', e.target.value)
-                    }
+                    onChange={(e) => updateRow(index, 'title', e.target.value)}
                   />
                 </div>
                 <div className='sm:col-span-3'>
@@ -150,10 +146,10 @@ export default function StructureRepeaterField({
         disabled={disabled}
         onClick={addRow}
         className={cn(
-          'h-10 w-full gap-1.5 rounded-md px-3 text-[13px]! font-semibold md:h-12 sm:w-auto',
+          'h-10 w-full gap-1.5 rounded-md px-3 text-[13px]! font-semibold sm:w-auto md:h-12',
           error
             ? 'border-destructive/60 bg-destructive/4 text-destructive hover:bg-destructive/10'
-            : 'text-foreground border-neutral-300 bg-background hover:bg-muted',
+            : 'text-foreground bg-background hover:bg-muted border-neutral-300',
         )}
       >
         <PlusIcon className='size-3.5' />

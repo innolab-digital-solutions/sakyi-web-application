@@ -134,10 +134,10 @@ export default function StringListField({
           disabled={disabled || !inputValue.trim()}
           onClick={handleAdd}
           className={cn(
-            'h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold md:h-12 sm:w-auto',
+            'h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold sm:w-auto md:h-12',
             error
               ? 'border-destructive/60 bg-destructive/4 text-destructive hover:bg-destructive/8'
-              : 'text-foreground border-neutral-300 bg-background hover:bg-muted',
+              : 'text-foreground bg-background hover:bg-muted border-neutral-300',
           )}
         >
           <PlusIcon className='size-3.5' />

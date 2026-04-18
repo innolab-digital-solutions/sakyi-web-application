@@ -97,8 +97,7 @@ function mapProgramApiErrorsToFieldErrors(
       continue;
     }
     if (key === 'translations') {
-      out['translations.en.title'] =
-        out['translations.en.title'] ?? msg;
+      out['translations.en.title'] = out['translations.en.title'] ?? msg;
       continue;
     }
     if (key.startsWith('goal_ids.')) {
@@ -337,8 +336,8 @@ export default function ProgramWizard({
       LANGUAGES.map((lang) => {
         const src = lang.code === 'en' ? enTranslation : myTranslation;
         if (src) {
-        return {
-          locale: lang.code,
+          return {
+            locale: lang.code,
             title: src.title ?? '',
             tagline: src.tagline ?? '',
             excerpt: src.excerpt ?? '',
@@ -400,8 +399,7 @@ export default function ProgramWizard({
 
   const showCatalogVisibilitySwitch =
     isEdit &&
-    (program?.status === STATUS.PUBLISHED ||
-      program?.status === STATUS.HIDDEN);
+    (program?.status === STATUS.PUBLISHED || program?.status === STATUS.HIDDEN);
 
   const showPublishOnSaveSwitch =
     !isEdit ||
@@ -411,7 +409,7 @@ export default function ProgramWizard({
   const mutation = useMutation({
     mutationFn: async () => {
       setErrors({});
-        const errs: FieldErrors = {};
+      const errs: FieldErrors = {};
 
       const overviewResult = overviewSchema.safeParse({ duration, price });
       if (!overviewResult.success) {
@@ -479,10 +477,7 @@ export default function ProgramWizard({
         ),
       };
 
-      const saveRes = await saveProgram(
-        saveBody,
-        thumbnailFile,
-      );
+      const saveRes = await saveProgram(saveBody, thumbnailFile);
       if (saveRes.status === 'error') {
         const flat = flattenApiErrors(saveRes.errors);
         const mapped = mapProgramApiErrorsToFieldErrors(
@@ -491,7 +486,9 @@ export default function ProgramWizard({
         );
         if (Object.keys(mapped).length > 0) {
           setErrors(mapped);
-          if (Object.keys(mapped).some((k) => k.startsWith('translations.en.'))) {
+          if (
+            Object.keys(mapped).some((k) => k.startsWith('translations.en.'))
+          ) {
             setActiveLocale('en');
           } else if (
             Object.keys(mapped).some((k) => k.startsWith('translations.my.'))
@@ -515,9 +512,7 @@ export default function ProgramWizard({
       queryClient.invalidateQueries({
         queryKey: [ENDPOINTS.ADMIN.MODULES.PROGRAMS.DETAIL(String(programId))],
       });
-      toast.success(
-        isEdit ? 'Program saved.' : 'Program created.',
-      );
+      toast.success(isEdit ? 'Program saved.' : 'Program created.');
       router.push(ROUTES.ADMIN.MODULES.PROGRAMS.LIST);
     },
     onError: (error: Error) => {
@@ -531,7 +526,7 @@ export default function ProgramWizard({
     mutation.mutate();
   };
 
-        return (
+  return (
     <div className='space-y-6'>
       <form onSubmit={handleSubmit} className='space-y-6' noValidate>
         <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5'>
@@ -584,41 +579,41 @@ export default function ProgramWizard({
               error={errors.thumbnail}
             />
 
-              <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-                <TextField
-                  label='Duration'
-                  required
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+              <TextField
+                label='Duration'
+                required
                 placeholder='e.g. 8 weeks'
-                  value={duration}
-                  onChange={(e) => {
-                    setDuration(e.target.value);
-                    setErrors((prev) => {
-                      const n = { ...prev };
-                      delete n.duration;
-                      return n;
-                    });
-                  }}
-                  error={errors.duration}
-                />
-                <TextField
+                value={duration}
+                onChange={(e) => {
+                  setDuration(e.target.value);
+                  setErrors((prev) => {
+                    const n = { ...prev };
+                    delete n.duration;
+                    return n;
+                  });
+                }}
+                error={errors.duration}
+              />
+              <TextField
                 label='Price'
-                  required
-                  type='number'
+                required
+                type='number'
                 min={0}
                 step={1}
-                  placeholder='0'
+                placeholder='0'
                 value={Number.isNaN(price) ? '' : String(price)}
-                  onChange={(e) => {
+                onChange={(e) => {
                   const v = e.target.value;
                   setPrice(v === '' ? 0 : Number.parseInt(v, 10) || 0);
-                    setErrors((prev) => {
-                      const n = { ...prev };
-                      delete n.price;
-                      return n;
-                    });
-                  }}
-                  error={errors.price}
-                />
+                  setErrors((prev) => {
+                    const n = { ...prev };
+                    delete n.price;
+                    return n;
+                  });
+                }}
+                error={errors.price}
+              />
             </div>
 
             <ComboboxField
@@ -735,9 +730,9 @@ export default function ProgramWizard({
                 >
                   <TabsList
                     variant='line'
-                    className='mb-4 w-full bg-muted! border border-border'
+                    className='bg-muted! border-border mb-4 w-full border'
                   >
-                  <TabsTrigger
+                    <TabsTrigger
                       value='en'
                       className='relative flex-1 cursor-pointer gap-1.5 text-[13px] font-semibold'
                     >
@@ -748,7 +743,7 @@ export default function ProgramWizard({
                           aria-hidden
                         />
                       ) : null}
-                  </TabsTrigger>
+                    </TabsTrigger>
                     <TabsTrigger
                       value='my'
                       className='relative flex-1 cursor-pointer gap-1.5 text-[13px] font-semibold'
@@ -761,84 +756,84 @@ export default function ProgramWizard({
                         />
                       ) : null}
                     </TabsTrigger>
-            </TabsList>
+                  </TabsList>
 
-            {LANGUAGES.map((lang) => {
+                  {LANGUAGES.map((lang) => {
                     const t = translations.find(
                       (tr) => tr.locale === lang.code,
                     )!;
-              return (
-                <TabsContent
-                  key={lang.code}
-                  value={lang.code}
+                    return (
+                      <TabsContent
+                        key={lang.code}
+                        value={lang.code}
                         className='space-y-4'
-                >
+                      >
                         {lang.code === 'my' && !isMyTranslationStarted(t) ? (
-                    <div className='flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-400'>
-                      <AlertTriangleIcon className='mt-0.5 size-3.5 shrink-0' />
-                      <span>
+                          <div className='flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-400'>
+                            <AlertTriangleIcon className='mt-0.5 size-3.5 shrink-0' />
+                            <span>
                               Myanmar is optional until you start filling
                               it—then all fields and lists must be complete.
-                      </span>
-                    </div>
+                            </span>
+                          </div>
                         ) : null}
 
-                  <TextField
-                    label='Title'
-                    required={lang.code === 'en'}
-                    placeholder={
-                      lang.code === 'en'
-                        ? 'e.g. Weight Loss & Wellness'
+                        <TextField
+                          label='Title'
+                          required={lang.code === 'en'}
+                          placeholder={
+                            lang.code === 'en'
+                              ? 'e.g. Weight Loss & Wellness'
                               : 'ခေါင်းစဉ်…'
-                    }
+                          }
                           value={t.title}
-                    onChange={(e) =>
+                          onChange={(e) =>
                             updateTranslation(
                               lang.code,
                               'title',
                               e.target.value,
                             )
-                    }
-                    error={getTranslationError(lang.code, 'title')}
-                  />
-                  <TextField
-                    label='Tagline'
-                    required={lang.code === 'en'}
+                          }
+                          error={getTranslationError(lang.code, 'title')}
+                        />
+                        <TextField
+                          label='Tagline'
+                          required={lang.code === 'en'}
                           placeholder='Short phrase for cards'
                           value={t.tagline}
-                    onChange={(e) =>
+                          onChange={(e) =>
                             updateTranslation(
                               lang.code,
                               'tagline',
                               e.target.value,
                             )
-                    }
-                    error={getTranslationError(lang.code, 'tagline')}
-                  />
-                  <TextAreaField
-                    label='Excerpt'
-                    required={lang.code === 'en'}
+                          }
+                          error={getTranslationError(lang.code, 'tagline')}
+                        />
+                        <TextAreaField
+                          label='Excerpt'
+                          required={lang.code === 'en'}
                           placeholder='Summary for listings'
-                    rows={4}
+                          rows={4}
                           value={t.excerpt}
-                    onChange={(e) =>
+                          onChange={(e) =>
                             updateTranslation(
                               lang.code,
                               'excerpt',
                               e.target.value,
                             )
-                    }
-                    error={getTranslationError(lang.code, 'excerpt')}
-                  />
-                  <RichTextField
-                    label='About'
-                    required={lang.code === 'en'}
+                          }
+                          error={getTranslationError(lang.code, 'excerpt')}
+                        />
+                        <RichTextField
+                          label='About'
+                          required={lang.code === 'en'}
                           value={t.about}
-                    onChange={(val) =>
-                      updateTranslation(lang.code, 'about', val)
-                    }
-                    error={getTranslationError(lang.code, 'about')}
-                  />
+                          onChange={(val) =>
+                            updateTranslation(lang.code, 'about', val)
+                          }
+                          error={getTranslationError(lang.code, 'about')}
+                        />
 
                         <div className='border-border space-y-4 border-t pt-6'>
                           <div>
@@ -852,50 +847,43 @@ export default function ProgramWizard({
                             </p>
                           </div>
                           <div className='grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start'>
-                    <StringListField
+                            <StringListField
                               label='Features'
-                      description={
-                        lang.code === 'en'
-                          ? 'What this program offers.'
+                              description={
+                                lang.code === 'en'
+                                  ? 'What this program offers.'
                                   : 'ဤပရိုဂရမ်က ပေးသမျှ။'
-                      }
+                              }
                               value={t.features}
-                      onChange={(val) =>
-                        updateTranslation(lang.code, 'features', val)
-                      }
-                              error={getTranslationError(
-                                lang.code,
-                                'features',
-                              )}
-                    />
-                    <StringListField
+                              onChange={(val) =>
+                                updateTranslation(lang.code, 'features', val)
+                              }
+                              error={getTranslationError(lang.code, 'features')}
+                            />
+                            <StringListField
                               label='Ideals'
-                      description={
-                        lang.code === 'en'
-                          ? 'Who this program is ideal for.'
+                              description={
+                                lang.code === 'en'
+                                  ? 'Who this program is ideal for.'
                                   : 'ဤပရိုဂရမ်သည် ဘယ်သူ့အတွက် သင့်တော်သည်။'
-                      }
+                              }
                               value={t.ideals}
-                      onChange={(val) =>
-                        updateTranslation(lang.code, 'ideals', val)
-                      }
-                      error={getTranslationError(lang.code, 'ideals')}
-                    />
+                              onChange={(val) =>
+                                updateTranslation(lang.code, 'ideals', val)
+                              }
+                              error={getTranslationError(lang.code, 'ideals')}
+                            />
                           </div>
-                    <StringListField
+                          <StringListField
                             label='Expectations'
-                      description={
-                        lang.code === 'en'
-                          ? 'What clients can expect.'
+                            description={
+                              lang.code === 'en'
+                                ? 'What clients can expect.'
                                 : 'ဖောက်သည်များ မျှော်လင့်နိုင်သည်များ။'
-                      }
+                            }
                             value={t.expectations}
-                      onChange={(val) =>
-                              updateTranslation(
-                                lang.code,
-                                'expectations',
-                                val,
-                              )
+                            onChange={(val) =>
+                              updateTranslation(lang.code, 'expectations', val)
                             }
                             error={getTranslationError(
                               lang.code,
@@ -904,27 +892,24 @@ export default function ProgramWizard({
                           />
                           <StructureRepeaterField
                             label='Program structure'
-                      description={
-                        lang.code === 'en'
+                            description={
+                              lang.code === 'en'
                                 ? 'Each block is a phase: period label, title, and description.'
                                 : 'အဆင့်တစ်ခုစီ — ကာလ၊ ခေါင်းစဉ်၊ ဖော်ပြချက်။'
-                      }
+                            }
                             value={t.structures}
-                      onChange={(val) =>
-                        updateTranslation(lang.code, 'structures', val)
-                      }
-                            error={getTranslationError(
-                              lang.code,
-                              'structures',
-                            )}
-                    />
-                  </div>
-                </TabsContent>
-              );
-            })}
-          </Tabs>
+                            onChange={(val) =>
+                              updateTranslation(lang.code, 'structures', val)
+                            }
+                            error={getTranslationError(lang.code, 'structures')}
+                          />
+                        </div>
+                      </TabsContent>
+                    );
+                  })}
+                </Tabs>
+              </div>
             </div>
-          </div>
 
             <div className='border-border flex flex-nowrap items-center justify-end gap-2 border-t pt-6'>
               <Button
@@ -936,17 +921,17 @@ export default function ProgramWizard({
               >
                 Cancel
               </Button>
-                <Button
+              <Button
                 type='submit'
                 disabled={mutation.isPending}
                 className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
               >
                 {mutation.isPending ? 'Saving…' : 'Save program'}
-                </Button>
+              </Button>
             </div>
           </div>
         </section>
       </form>
-          </div>
+    </div>
   );
 }

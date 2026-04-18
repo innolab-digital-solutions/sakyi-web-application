@@ -3,7 +3,10 @@
 import { useQueries } from '@tanstack/react-query';
 
 import { getProgramById } from '@/domains/programs/services';
-import type { Program, ProgramTranslation } from '@/domains/programs/types/admin';
+import type {
+  Program,
+  ProgramTranslation,
+} from '@/domains/programs/types/admin';
 
 import ProgramWizard from './ProgramWizard';
 

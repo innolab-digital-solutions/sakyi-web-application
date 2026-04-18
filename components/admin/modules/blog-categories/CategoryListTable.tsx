@@ -166,7 +166,9 @@ export default function BlogCategoryListTable() {
                         {category.name?.trim() ? (
                           category.name.trim()
                         ) : (
-                          <TableCellEmpty label={`No ${listLocale === 'en' ? 'English' : 'Myanmar'} name`} />
+                          <TableCellEmpty
+                            label={`No ${listLocale === 'en' ? 'English' : 'Myanmar'} name`}
+                          />
                         )}
                       </p>
                       <p className='text-muted-foreground line-clamp-2 text-xs leading-relaxed font-medium wrap-break-word'>

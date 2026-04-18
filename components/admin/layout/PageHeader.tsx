@@ -40,7 +40,9 @@ export default function PageHeader({
       <div
         className={cn('flex flex-col space-y-1.5', hasActions && 'max-w-2xl')}
       >
-        <h1 className='text-foreground text-md font-bold capitalize'>{title}</h1>
+        <h1 className='text-foreground text-md font-bold capitalize'>
+          {title}
+        </h1>
         {description != null && description !== '' && (
           <div className='text-muted-foreground text-sm font-medium'>
             {description}

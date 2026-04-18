@@ -22,10 +22,7 @@ const LOCALE_OPTIONS: { value: BlogCategoryListLocale; label: string }[] = [
   { value: 'my', label: 'Myanmar' },
 ];
 
-export default function BlogCategoryFilters({
-  locale,
-  onLocaleChange,
-}: Props) {
+export default function BlogCategoryFilters({ locale, onLocaleChange }: Props) {
   const currentLabel =
     LOCALE_OPTIONS.find((o) => o.value === locale)?.label ?? 'English';
 

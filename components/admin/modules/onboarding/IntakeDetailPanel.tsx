@@ -295,20 +295,20 @@ export default function IntakeDetailPanel({
           </div>
 
           <div className='flex w-full flex-wrap items-center justify-start gap-2 sm:w-auto sm:justify-end'>
-          {isEditable ? (
+            {isEditable ? (
               <Button
                 className='h-10 w-full gap-1.5 rounded-md px-3 text-[13px]! font-semibold sm:w-auto'
                 asChild
               >
-              <Link
+                <Link
                   href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.INTERVIEW(
-                  String(intake.id),
-                )}
-              >
+                    String(intake.id),
+                  )}
+                >
                   <PencilIcon className='size-3.5' />
                   Continue Interview
-              </Link>
-            </Button>
+                </Link>
+              </Button>
             ) : null}
             <Button
               variant='outline'
