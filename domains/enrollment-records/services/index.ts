@@ -1,2 +1,6 @@
 export type { AdminEnrollment } from '../types/admin';
-export { getEnrollmentRecordById } from './admin.service';
+export {
+  createEnrollment,
+  getEnrollmentRecordById,
+  type CreateEnrollmentPayload,
+} from './admin.service';

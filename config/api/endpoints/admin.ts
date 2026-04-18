@@ -89,6 +89,7 @@ export const ADMIN_ENDPOINTS = {
     },
     ENROLLMENT_RECORDS: {
       LIST: `${BASE}/enrollments`,
+      CREATE: `${BASE}/enrollments`,
       DETAIL: (id: string) => `${BASE}/enrollments/${id}`,
     },
     BLOG_POSTS: {

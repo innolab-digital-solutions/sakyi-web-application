@@ -34,6 +34,8 @@ export interface EnrollmentContract {
   signed_by_name: string | null;
   signature_url: string | null;
   accepted_terms: boolean;
+  /** When present, an enrollment already exists for this contract (unique `enrollment_contract_id`). */
+  enrollment_id?: number | null;
   onboarding_intake?: EnrollmentContractOnboardingIntake | null;
   timestamps: EnrollmentContractTimestamps;
 }

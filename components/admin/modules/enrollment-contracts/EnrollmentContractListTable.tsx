@@ -3,10 +3,12 @@
 import { format, parseISO } from 'date-fns';
 import { CheckCircle2Icon, FileSignatureIcon } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import EnrollmentContractFilters from '@/components/admin/modules/enrollment-contracts/EnrollmentContractFilters';
+import EnrollmentFromContractSheet from '@/components/admin/modules/enrollment-contracts/EnrollmentFromContractSheet';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -18,8 +20,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { ENDPOINTS } from '@/config/api/endpoints';
+import { ROUTES } from '@/config/routes';
 import type {
   EnrollmentContract,
   EnrollmentContractStatus,
@@ -46,7 +50,8 @@ type ContractColumnKey =
   | 'signature'
   | 'sentAt'
   | 'signedAt'
-  | 'status';
+  | 'status'
+  | 'actions';
 
 type ContractColumnDefinition = {
   key: ContractColumnKey;
@@ -56,7 +61,7 @@ type ContractColumnDefinition = {
 };
 
 const CONTRACT_VISIBLE_COLUMNS_STORAGE_KEY =
-  'sakyi:admin:enrollment-contracts:visible-columns';
+  'sakyi:admin:enrollment-contracts:visible-columns:v2';
 
 const CONTRACT_COLUMNS: readonly ContractColumnDefinition[] = [
   {
@@ -113,6 +118,12 @@ const CONTRACT_COLUMNS: readonly ContractColumnDefinition[] = [
     headerClassName: 'min-w-32',
     skeletonWidth: 'w-28',
   },
+  {
+    key: 'actions',
+    label: 'Actions',
+    headerClassName: 'min-w-36 text-end',
+    skeletonWidth: 'w-28',
+  },
 ] as const;
 
 const STATUS_STYLES: Record<
@@ -161,6 +172,8 @@ function SignaturePreview({ url }: { url: string }) {
 }
 
 export default function EnrollmentContractListTable() {
+  const [enrollmentContract, setEnrollmentContract] =
+    useState<EnrollmentContract | null>(null);
   const [visibleColumnKeys, setVisibleColumnKeys] = useState<
     ContractColumnKey[]
   >(() => {
@@ -259,6 +272,14 @@ export default function EnrollmentContractListTable() {
   };
 
   return (
+    <>
+      <EnrollmentFromContractSheet
+        contract={enrollmentContract}
+        open={enrollmentContract !== null}
+        onOpenChange={(next) => {
+          if (!next) setEnrollmentContract(null);
+        }}
+      />
     <TableListShell
       controls={controls}
       searchPlaceholder='Search applicant, contact, or reference'
@@ -450,11 +471,49 @@ export default function EnrollmentContractListTable() {
                       </span>
                     </TableCell>
                   ) : null}
+
+                  {showColumn('actions') ? (
+                    <TableCell className='align-center text-end'>
+                      {contract.status === 'signed' ? (
+                        contract.enrollment_id != null ? (
+                          <Button
+                            variant='outline'
+                            size='sm'
+                            className='h-9 rounded-md text-[13px] font-semibold'
+                            asChild
+                          >
+                            <Link
+                              href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(
+                                String(contract.enrollment_id),
+                              )}
+                            >
+                              View enrollment
+                            </Link>
+                          </Button>
+                        ) : (
+                          <Button
+                            type='button'
+                            variant='outline'
+                            size='sm'
+                            className='h-9 rounded-md text-[13px] font-semibold'
+                            onClick={() => setEnrollmentContract(contract)}
+                          >
+                            Enrollment
+                          </Button>
+                        )
+                      ) : (
+                        <span className='text-muted-foreground text-xs font-medium'>
+                          —
+                        </span>
+                      )}
+                    </TableCell>
+                  ) : null}
                 </TableRow>
               );
             })}
         </TableBody>
       </Table>
     </TableListShell>
+    </>
   );
 }
