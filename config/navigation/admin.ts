@@ -62,7 +62,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
       },
       {
         name: 'Enrollment Records',
-        path: '#',
+        path: ADMIN_ROUTES.MODULES.ENROLLMENT_RECORDS.LIST,
       },
     ],
   },
