@@ -74,6 +74,16 @@ export const ADMIN_ENDPOINTS = {
       DELETE: (id: string) => `${BASE}/blog-posts/${id}`,
       DETAIL: (id: string) => `${BASE}/blog-posts/${id}`,
     },
+    TEAMS: {
+      LIST: `${BASE}/teams`,
+      CREATE: `${BASE}/teams`,
+      UPDATE: (id: string) => `${BASE}/teams/${id}`,
+      DELETE: (id: string) => `${BASE}/teams/${id}`,
+      DETAIL: (id: string) => `${BASE}/teams/${id}`,
+      ASSIGN_MEMBER: (teamId: string) => `${BASE}/teams/${teamId}/members`,
+      REMOVE_MEMBER: (teamId: string, userId: string) =>
+        `${BASE}/teams/${teamId}/members/${userId}`,
+    },
     ONBOARDING: {
       TEMPLATE: (version: number) => `${BASE}/onboarding/templates/${version}`,
       INTAKES: {

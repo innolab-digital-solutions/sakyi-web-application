@@ -50,7 +50,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
   {
     name: 'Teams',
     icon: Users,
-    path: '#',
+    path: ADMIN_ROUTES.MODULES.TEAMS.LIST,
     subitems: [],
   },
   {
