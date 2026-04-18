@@ -127,7 +127,11 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
       movement_category_id: null as number | null,
       name: '',
       description: '',
-      difficulty: 'beginner' as const,
+      difficulty: undefined as
+        | undefined
+        | 'beginner'
+        | 'intermediate'
+        | 'advanced',
       is_active: true,
       media: [] as MediaItemInput[],
       equipment_ids: [] as number[],
@@ -279,7 +283,11 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
                 required
                 placeholder='Select difficulty…'
                 options={DIFFICULTY_OPTIONS}
-                value={String(form.fields.difficulty ?? 'beginner')}
+                value={
+                  form.fields.difficulty != null
+                    ? String(form.fields.difficulty)
+                    : undefined
+                }
                 onChange={(val) => form.setData('difficulty', val)}
                 error={form.errors.difficulty}
               />
