@@ -267,7 +267,10 @@ export default function BlogPostForm({ mode, post }: Props) {
             </CardHeader>
             <CardContent className='pt-5'>
               <Tabs defaultValue='en'>
-                <TabsList className='mb-5 h-9 w-full justify-start rounded-lg p-1'>
+                <TabsList
+                  variant='line'
+                  className='mb-5 flex min-h-0 w-full flex-nowrap gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+                >
                   {LANGUAGES.map((lang) => {
                     const isEmpty = isTranslationEmpty(lang.code);
                     const hasErrors =
@@ -277,7 +280,7 @@ export default function BlogPostForm({ mode, post }: Props) {
                       <TabsTrigger
                         key={lang.code}
                         value={lang.code}
-                        className='relative cursor-pointer gap-1.5 text-xs'
+                        className='relative shrink-0 cursor-pointer gap-1.5 text-[13px] font-semibold'
                       >
                         {lang.name}
                         {(isEmpty || hasErrors) && lang.code !== 'en' && (

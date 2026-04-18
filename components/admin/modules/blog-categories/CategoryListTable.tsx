@@ -1,25 +1,19 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  MoreHorizontalIcon,
-  NotebookPenIcon,
-  PencilIcon,
-  Trash2Icon,
-} from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { NotebookPenIcon, PencilIcon, Trash2Icon } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
-import DeleteAlertDialog from '@/components/shared/dialogs/DeleteAlertDialog';
+import BlogCategoryFilters, {
+  type BlogCategoryListLocale,
+} from '@/components/admin/modules/blog-categories/CategoryFilters';
+import BlogCategorySheet from '@/components/admin/modules/blog-categories/CategorySheet';
+import RemoveBlogCategoryConfirmation from '@/components/admin/modules/blog-categories/RemoveBlogCategoryConfirmation';
+import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
+import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -28,19 +22,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
 import { deleteBlogCategory } from '@/domains/blog-categories/services';
 import type { BlogCategory } from '@/domains/blog-categories/types';
 import { useTable } from '@/lib/table';
 
-import BlogCategoryFilters, {
-  type BlogCategoryListLocale,
-} from './CategoryFilters';
-import BlogCategorySheet from './CategorySheet';
-
 const BLOG_CATEGORY_LIST_ENDPOINT =
   ENDPOINTS.ADMIN.MODULES.BLOG_CATEGORIES.LIST;
+
+const COLUMN_COUNT = 2;
+
+const SKELETON_WIDTHS = ['w-72', 'w-44'] as const;
 
 function listLocaleFromParams(raw: string | undefined): BlogCategoryListLocale {
   return raw === 'my' ? 'my' : 'en';
@@ -57,11 +51,11 @@ export default function BlogCategoryListTable() {
     mutationFn: async (id: number) => {
       const response = await deleteBlogCategory(id);
       if (response.status === 'error') {
-        throw new Error(response.message || 'Failed to delete category.');
+        throw new Error(response.message || 'Failed to remove category.');
       }
     },
     onSuccess: () => {
-      toast.success('Category deleted successfully.');
+      toast.success('The blog category was removed from your library.');
       queryClient.invalidateQueries({
         queryKey: ['table', BLOG_CATEGORY_LIST_ENDPOINT],
       });
@@ -70,7 +64,7 @@ export default function BlogCategoryListTable() {
       });
     },
     onError: (error) => {
-      toast.error(error.message ?? 'Failed to delete category.');
+      toast.error(error.message ?? 'Failed to remove category.');
     },
   });
 
@@ -80,7 +74,7 @@ export default function BlogCategoryListTable() {
       await confirmDelete(deleteCategory.id);
       setDeleteCategory(null);
     } catch {
-      // onError already toasts; swallow rejection so the click handler does not surface an unhandled promise
+      // onError already toasts
     }
   };
 
@@ -90,51 +84,31 @@ export default function BlogCategoryListTable() {
       params: {
         sync: true,
         writeInitialToUrl: true,
-        /** Ensures `locale` is present on first load (see docs/table-data-listing-guide.md — extra params). */
         initial: { locale: 'en' },
         extra: {
           mode: 'allowlist',
-          allowlist: ['is_active', 'locale'],
+          allowlist: ['locale'],
         },
       },
     },
   );
 
   const listLocale = listLocaleFromParams(controls.params.values.locale);
-  const nameColumnLabel =
-    listLocale === 'en' ? 'Name (English)' : 'Name (Myanmar)';
-
-  const statusFilter = useMemo(() => {
-    const v = controls.params.values.is_active;
-    if (v === '1') return 'active' as const;
-    if (v === '0') return 'inactive' as const;
-    return 'all' as const;
-  }, [controls.params.values.is_active]);
 
   const { query } = controls;
   const showSkeleton = query.isPending && !query.data;
   const errorMessage =
     query.isError && query.error instanceof Error
       ? query.error.message
-      : 'Could not load categories.';
+      : 'Could not load blog categories.';
 
   return (
     <>
       <TableListShell
         controls={controls}
-        searchPlaceholder='Search categories…'
+        searchPlaceholder='Search category name or description'
         filters={
           <BlogCategoryFilters
-            status={statusFilter}
-            onStatusChange={(next) => {
-              if (next === 'all') {
-                controls.params.clear(['is_active']);
-                return;
-              }
-              controls.params.set({
-                is_active: next === 'active' ? '1' : '0',
-              });
-            }}
             locale={listLocale}
             onLocaleChange={(next) => {
               controls.params.set({ locale: next });
@@ -142,30 +116,26 @@ export default function BlogCategoryListTable() {
           />
         }
       >
-        <Table className='min-w-120 table-fixed'>
+        <Table className='w-full min-w-3xl'>
           <TableHeader className='bg-muted/50 [&_tr]:border-border'>
             <TableRow className='border-border hover:bg-transparent'>
-              <TableHead className='w-[46%]'>{nameColumnLabel}</TableHead>
-              <TableHead className='w-[27%]'>Status</TableHead>
-              <TableHead className='w-[27%] text-right'>Actions</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {showSkeleton &&
-              Array.from({ length: 3 }).map((_, row) => (
-                <TableRow key={`skeleton-${row}`}>
-                  {Array.from({ length: 3 }).map((_, col) => (
-                    <TableCell key={col} className='py-3'>
-                      <Skeleton className='h-8 w-full' />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
+            {showSkeleton && (
+              <TableSkeletonRows
+                rowCount={3}
+                columnCount={COLUMN_COUNT}
+                cellWidths={[...SKELETON_WIDTHS]}
+              />
+            )}
 
             {!showSkeleton && query.isError && (
               <TableRow>
                 <TableCell
-                  colSpan={3}
+                  colSpan={COLUMN_COUNT}
                   className='text-destructive py-8 text-center text-sm'
                 >
                   {errorMessage}
@@ -177,72 +147,55 @@ export default function BlogCategoryListTable() {
               !query.isError &&
               query.data?.status === 'success' &&
               rows.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={3} className='py-14'>
-                    <div className='mx-auto flex max-w-md flex-col items-center justify-center text-center'>
-                      <div className='bg-primary/10 text-primary mb-4 inline-flex size-12 items-center justify-center rounded-full'>
-                        <NotebookPenIcon className='size-6' />
-                      </div>
-                      <p className='text-foreground text-base font-semibold'>
-                        No blog categories yet
-                      </p>
-                      <p className='text-muted-foreground mt-1 text-sm leading-relaxed'>
-                        Categories will appear here once you start organising
-                        your blog content.
-                      </p>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                <TableEmptyStateRow
+                  colSpan={COLUMN_COUNT}
+                  icon={NotebookPenIcon}
+                  title='No blog categories yet'
+                  description='Add categories to group posts for readers and editors. Each category has English and Myanmar names in the form.'
+                />
               )}
 
             {!showSkeleton &&
               !query.isError &&
               query.data?.status === 'success' &&
               rows.map((category) => (
-                <TableRow key={category.id} className='border-border/80'>
-                  <TableCell className='min-w-0 py-2.5 align-middle'>
-                    <p className='text-foreground truncate text-sm font-medium'>
-                      {category.name || '—'}
-                    </p>
+                <TableRow key={category.id} className='border-border'>
+                  <TableCell className='align-center whitespace-normal'>
+                    <div className='flex min-w-0 flex-col gap-0.5'>
+                      <p className='text-foreground text-[13px] font-semibold'>
+                        {category.name?.trim() ? (
+                          category.name.trim()
+                        ) : (
+                          <TableCellEmpty label={`No ${listLocale === 'en' ? 'English' : 'Myanmar'} name`} />
+                        )}
+                      </p>
+                      <p className='text-muted-foreground line-clamp-2 text-xs leading-relaxed font-medium wrap-break-word'>
+                        {category.description?.trim()
+                          ? category.description.trim()
+                          : '-'}
+                      </p>
+                    </div>
                   </TableCell>
-                  <TableCell className='py-2.5 align-middle'>
-                    <span
-                      className={`inline-flex items-center gap-1.5 text-xs font-medium ${category.is_active ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}
-                    >
-                      <span
-                        className={`size-1.5 rounded-full ${category.is_active ? 'bg-emerald-500' : 'bg-muted-foreground/40'}`}
-                      />
-                      {category.is_active ? 'Active' : 'Inactive'}
-                    </span>
-                  </TableCell>
-                  <TableCell className='py-2.5 pr-2 text-right align-middle'>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant='ghost'
-                          size='icon'
-                          className='size-8 cursor-pointer'
-                        >
-                          <MoreHorizontalIcon className='size-4' />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align='end'>
-                        <DropdownMenuItem
-                          className='flex cursor-pointer items-center gap-2'
-                          onClick={() => setEditCategory(category)}
-                        >
-                          <PencilIcon className='size-3.5' />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className='text-destructive focus:text-destructive flex cursor-pointer items-center gap-2'
-                          onClick={() => setDeleteCategory(category)}
-                        >
-                          <Trash2Icon className='size-3.5' />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                  <TableCell className='align-center whitespace-nowrap'>
+                    <div className='flex flex-nowrap items-center justify-start gap-2'>
+                      <Button
+                        type='button'
+                        className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                        onClick={() => setEditCategory(category)}
+                      >
+                        <PencilIcon className='size-3.5' />
+                        Edit
+                      </Button>
+                      <Button
+                        type='button'
+                        variant='outline'
+                        className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-10 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                        onClick={() => setDeleteCategory(category)}
+                      >
+                        <Trash2Icon className='size-3.5' />
+                        Remove
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -261,23 +214,14 @@ export default function BlogCategoryListTable() {
         />
       )}
 
-      <DeleteAlertDialog
+      <RemoveBlogCategoryConfirmation
         open={!!deleteCategory}
         onOpenChange={(o) => {
           if (!o) setDeleteCategory(null);
         }}
-        title='Delete Category'
-        description={
-          <>
-            Are you sure you want to delete{' '}
-            <span className='text-foreground font-medium'>
-              {deleteCategory ? deleteCategory.name : ''}
-            </span>
-            ? This action cannot be undone.
-          </>
-        }
+        categoryName={deleteCategory?.name}
+        isRemoving={isDeleting}
         onConfirm={handleDelete}
-        isDeleting={isDeleting}
       />
     </>
   );

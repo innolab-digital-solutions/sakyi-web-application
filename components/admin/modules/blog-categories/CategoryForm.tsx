@@ -5,9 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import SelectField, {
-  type SelectFieldOption,
-} from '@/components/shared/form/SelectField';
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
 import { Button } from '@/components/ui/button';
@@ -22,18 +19,12 @@ import {
 } from '@/domains/blog-categories/services';
 import type { BlogCategory } from '@/domains/blog-categories/types';
 
-const STATUS_OPTIONS: SelectFieldOption[] = [
-  { value: 'true', label: 'Active' },
-  { value: 'false', label: 'Inactive' },
-];
-
 type TranslationFields = {
   name: string;
   description: string;
 };
 
 type FormState = {
-  is_active: boolean;
   en: TranslationFields;
   my: TranslationFields;
 };
@@ -86,6 +77,17 @@ function mapServerFieldKey(key: string): string {
     return 'my_name';
   }
   return key;
+}
+
+function firstLocaleTabForErrors(
+  fieldErrors: Record<string, string>,
+): 'en' | 'my' {
+  if (fieldErrors.en_name) return 'en';
+  if (fieldErrors.my_name) return 'my';
+  const keys = Object.keys(fieldErrors);
+  if (keys.some((k) => k.startsWith('en_'))) return 'en';
+  if (keys.some((k) => k.startsWith('my_'))) return 'my';
+  return 'en';
 }
 
 function mapServerErrorsToFormErrors(
@@ -166,7 +168,6 @@ function BlogCategoryEditFormLoader({
   const enCat = enDetailQuery.data.data;
   const myCat = myDetailQuery.data.data;
   const initialFields: FormState = {
-    is_active: category.is_active,
     en: {
       name: enCat.name ?? '',
       description: enCat.description ?? '',
@@ -197,13 +198,13 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
     props.mode === 'edit'
       ? props.initialFields
       : {
-          is_active: true,
           en: { name: '', description: '' },
           my: { name: '', description: '' },
         },
   );
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [activeLocale, setActiveLocale] = useState<'en' | 'my'>('en');
 
   const setTranslation = (
     locale: 'en' | 'my',
@@ -226,11 +227,19 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
     if (!fields.en.name.trim()) next['en_name'] = 'English name is required.';
     if (!fields.my.name.trim()) next['my_name'] = 'Myanmar name is required.';
     setErrors(next);
-    return Object.keys(next).length === 0;
+    const ok = Object.keys(next).length === 0;
+    if (!ok) {
+      setActiveLocale(firstLocaleTabForErrors(next));
+      toast.error('Required fields are missing', {
+        description:
+          'Each language needs a category name. The tab with missing information is opened below.',
+      });
+    }
+    return ok;
   };
 
   const buildPayload = () => ({
-    is_active: fields.is_active,
+    is_active: isEdit && category ? category.is_active : true,
     translations: [
       {
         locale: 'en' as const,
@@ -257,6 +266,7 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
         const serverErrors = mapServerErrorsToFormErrors(response.errors);
         if (Object.keys(serverErrors).length > 0) {
           setErrors((prev) => ({ ...prev, ...serverErrors }));
+          setActiveLocale(firstLocaleTabForErrors(serverErrors));
         }
         throw new Error(response.message || 'Request failed.');
       }
@@ -274,8 +284,8 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
       });
       toast.success(
         isEdit
-          ? 'Category updated successfully.'
-          : 'Category created successfully.',
+          ? 'Blog category updated successfully.'
+          : 'Blog category created successfully.',
       );
       const onSuccess = props.onSuccess;
       if (onSuccess) onSuccess();
@@ -297,13 +307,34 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
   return (
     <form onSubmit={handleSubmit} noValidate>
       <div className='space-y-6'>
-        <Tabs defaultValue='en'>
-          <TabsList className='mb-4 w-full'>
-            <TabsTrigger value='en' className='flex-1 cursor-pointer'>
+        <Tabs
+          value={activeLocale}
+          onValueChange={(v) => setActiveLocale(v as 'en' | 'my')}
+        >
+          <TabsList variant='line' className='mb-4 bg-muted! border border-border'>
+            <TabsTrigger
+              value='en'
+              className='relative flex-1 cursor-pointer gap-1.5 text-[13px] font-semibold'
+            >
               English
+              {errors.en_name ? (
+                <span
+                  className='bg-destructive size-1.5 shrink-0 rounded-full'
+                  aria-hidden
+                />
+              ) : null}
             </TabsTrigger>
-            <TabsTrigger value='my' className='flex-1 cursor-pointer'>
+            <TabsTrigger
+              value='my'
+              className='relative flex-1 cursor-pointer gap-1.5 text-[13px] font-semibold'
+            >
               Myanmar
+              {errors.my_name ? (
+                <span
+                  className='bg-destructive size-1.5 shrink-0 rounded-full'
+                  aria-hidden
+                />
+              ) : null}
             </TabsTrigger>
           </TabsList>
 
@@ -350,24 +381,12 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
           </TabsContent>
         </Tabs>
 
-        <SelectField
-          label='Status'
-          name='is_active'
-          required
-          placeholder='Select status…'
-          options={STATUS_OPTIONS}
-          value={String(fields.is_active)}
-          onChange={(val) =>
-            setFields((prev) => ({ ...prev, is_active: val === 'true' }))
-          }
-        />
-
-        <div className='flex items-center justify-end gap-3'>
+        <div className='flex flex-nowrap items-center justify-end gap-2'>
           <Button
             type='button'
             variant='outline'
             disabled={isPending}
-            className='cursor-pointer'
+            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
             onClick={() =>
               onSuccess
                 ? onSuccess()
@@ -376,14 +395,18 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
           >
             Cancel
           </Button>
-          <Button type='submit' className='cursor-pointer' disabled={isPending}>
+          <Button
+            type='submit'
+            disabled={isPending}
+            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+          >
             {isPending
               ? isEdit
-                ? 'Saving…'
+                ? 'Saving Changes…'
                 : 'Creating…'
               : isEdit
                 ? 'Save Changes'
-                : 'Create Category'}
+                : 'Create category'}
           </Button>
         </div>
       </div>
