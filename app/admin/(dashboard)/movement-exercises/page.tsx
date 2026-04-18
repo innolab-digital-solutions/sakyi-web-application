@@ -1,16 +1,14 @@
-import { PlusIcon } from 'lucide-react';
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { Suspense } from 'react';
 
 import PageHeader from '@/components/admin/layout/PageHeader';
 import ExerciseListTable from '@/components/admin/modules/movement-exercises/ExerciseListTable';
-import { Button } from '@/components/ui/button';
-import { ROUTES } from '@/config/routes';
+import ExerciseSheet from '@/components/admin/modules/movement-exercises/ExerciseSheet';
 
 export const metadata: Metadata = {
   title: 'Exercises | SaKyi Admin',
-  description: 'Browse and manage movement exercises across all categories.',
+  description:
+    'Browse and maintain exercises for the movement library: categories, difficulty, equipment, and optional media.',
 };
 
 export default function MovementExerciseListPage() {
@@ -18,21 +16,14 @@ export default function MovementExerciseListPage() {
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Exercises'
-        description='Manage movement exercises across all categories. Filter by difficulty, category, or status to quickly find what you need.'
-        actions={
-          <Button asChild size='lg'>
-            <Link href={ROUTES.ADMIN.MODULES.MOVEMENT_EXERCISES.CREATE}>
-              <PlusIcon className='size-4' />
-              Create exercise
-            </Link>
-          </Button>
-        }
+        description='Review this list, search by name or description, filter by difficulty, and add or edit exercises so the movement library stays accurate for programming and care workflows.'
+        actions={<ExerciseSheet mode='create' />}
       />
 
       <Suspense
         fallback={
           <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-            Loading exercises…
+            Loading…
           </div>
         }
       >

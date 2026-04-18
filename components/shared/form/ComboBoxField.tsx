@@ -195,7 +195,7 @@ function ComboboxField(props: ComboboxFieldProps) {
    * and focus ring match text inputs. `variant="ghost"` avoids outline button defaults; we apply Input-like classes.
    */
   const responsiveTriggerClass = cn(
-    'inline-flex w-full min-w-0 cursor-pointer items-center justify-between rounded-md font-medium outline-none',
+    'flex w-full max-w-full min-w-0 cursor-pointer items-center justify-between rounded-md font-medium outline-none',
     'border border-neutral-200 bg-transparent shadow-xs transition-[color,box-shadow]',
     'dark:bg-input/30',
     isMulti
@@ -294,7 +294,12 @@ function ComboboxField(props: ComboboxFieldProps) {
               }
             }}
           >
-            <div className='flex min-h-5 min-w-0 flex-1 flex-wrap items-center gap-1.5 text-left'>
+            <div
+              className={cn(
+                'flex min-h-5 min-w-0 flex-1 items-center gap-1.5 text-left',
+                isMulti ? 'flex-wrap' : 'min-w-0 flex-nowrap overflow-hidden',
+              )}
+            >
               {isMulti ? (
                 hasSelection ? (
                   (value as string[]).map((v) => {
@@ -328,23 +333,23 @@ function ComboboxField(props: ComboboxFieldProps) {
                     );
                   })
                 ) : (
-                  <span className='text-muted-foreground px-1'>
+                  <span className='text-muted-foreground min-w-0 flex-1 truncate px-1'>
                     {placeholder}
                   </span>
                 )
               ) : hasSelection ? (
                 selectedSingleOption ? (
-                  <span className='text-foreground flex min-w-0 flex-1 items-center gap-1.5 text-left'>
+                  <span className='text-foreground flex min-w-0 flex-1 items-center gap-1.5 truncate text-left'>
                     {selectedSingleOption.selectedDisplay ??
                       selectedSingleOption.label}
                   </span>
                 ) : (
-                  <span className='text-foreground truncate px-0'>
+                  <span className='text-foreground min-w-0 flex-1 truncate px-0'>
                     {String(value)}
                   </span>
                 )
               ) : (
-                <span className='text-muted-foreground px-1'>
+                <span className='text-muted-foreground min-w-0 flex-1 truncate px-1 text-left'>
                   {placeholder}
                 </span>
               )}

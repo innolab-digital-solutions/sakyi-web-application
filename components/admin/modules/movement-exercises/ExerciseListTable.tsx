@@ -2,25 +2,24 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
+  CheckCircle2Icon,
   DumbbellIcon,
-  MoreHorizontalIcon,
+  FlameIcon,
+  GaugeIcon,
   PencilIcon,
   Trash2Icon,
 } from 'lucide-react';
-import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import type { ComponentType } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
-import DeleteAlertDialog from '@/components/shared/dialogs/DeleteAlertDialog';
+import ExerciseFilters from '@/components/admin/modules/movement-exercises/ExerciseFilters';
+import ExerciseSheet from '@/components/admin/modules/movement-exercises/ExerciseSheet';
+import RemoveExerciseConfirmation from '@/components/admin/modules/movement-exercises/RemoveExerciseConfirmation';
+import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
+import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -29,25 +28,68 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { ENDPOINTS } from '@/config/api/endpoints';
-import { ROUTES } from '@/config/routes';
 import { deleteMovementExercise } from '@/domains/movement-exercises/services';
-import type { MovementExercise } from '@/domains/movement-exercises/types';
+import type {
+  MovementDifficulty,
+  MovementExercise,
+} from '@/domains/movement-exercises/types';
 import { useTable } from '@/lib/table';
 
-import ExerciseFilters from './ExerciseFilters';
+const COLUMN_COUNT = 5;
 
-const DIFFICULTY_COLORS = {
-  beginner:
-    'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800/50',
-  intermediate:
-    'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/50',
-  advanced:
-    'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-800/50',
-} as const;
+const SKELETON_WIDTHS = ['w-56', 'w-28', 'w-24', 'w-40', 'w-44'] as const;
+
+/** Aligned with intake / enrollment request status badge chrome (icon + border + semantic colors). */
+const DIFFICULTY_LABEL: Record<MovementDifficulty, string> = {
+  beginner: 'Beginner',
+  intermediate: 'Intermediate',
+  advanced: 'Advanced',
+};
+
+const DIFFICULTY_STYLES: Record<
+  MovementDifficulty,
+  {
+    icon: ComponentType<{ className?: string }>;
+    className: string;
+  }
+> = {
+  beginner: {
+    icon: CheckCircle2Icon,
+    className:
+      'border-sky-300/80 bg-sky-50 text-sky-800 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-200',
+  },
+  intermediate: {
+    icon: GaugeIcon,
+    className:
+      'border-amber-300/80 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200',
+  },
+  advanced: {
+    icon: FlameIcon,
+    className:
+      'border-rose-300/80 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200',
+  },
+};
+
+function asMovementDifficulty(
+  value: string | undefined,
+): MovementDifficulty | null {
+  if (
+    value === 'beginner' ||
+    value === 'intermediate' ||
+    value === 'advanced'
+  ) {
+    return value;
+  }
+  return null;
+}
 
 export default function ExerciseListTable() {
   const queryClient = useQueryClient();
+  const [editExercise, setEditExercise] = useState<MovementExercise | null>(
+    null,
+  );
   const [deleteExercise, setDeleteExercise] = useState<MovementExercise | null>(
     null,
   );
@@ -56,15 +98,14 @@ export default function ExerciseListTable() {
     mutationFn: async (id: number) => {
       const response = await deleteMovementExercise(id);
       if (response.status === 'error') {
-        throw new Error(response.message || 'Failed to delete exercise.');
+        throw new Error(response.message || 'Failed to remove exercise.');
       }
     },
     onSuccess: (_data, deletedId) => {
-      toast.success('Exercise deleted successfully.');
+      toast.success('The exercise was removed from the movement library.');
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.MOVEMENT_EXERCISES.LIST],
       });
-
       queryClient.removeQueries({
         queryKey: [
           ENDPOINTS.ADMIN.MODULES.MOVEMENT_EXERCISES.DETAIL(String(deletedId)),
@@ -73,7 +114,7 @@ export default function ExerciseListTable() {
       });
     },
     onError: (error) => {
-      toast.error(error.message ?? 'Failed to delete exercise.');
+      toast.error(error.message ?? 'Failed to remove exercise.');
     },
   });
 
@@ -95,25 +136,14 @@ export default function ExerciseListTable() {
         writeInitialToUrl: true,
         extra: {
           mode: 'allowlist',
-          allowlist: ['difficulty', 'movement_category_id', 'is_active'],
+          allowlist: ['difficulty'],
           resetPageOnChange: true,
         },
       },
     },
   );
 
-  const statusFilter = useMemo(() => {
-    const v = controls.params.values.is_active;
-    if (v === '1') return 'active' as const;
-    if (v === '0') return 'inactive' as const;
-    return 'all' as const;
-  }, [controls.params.values.is_active]);
-
-  const difficultyFilter = useMemo(() => {
-    const v = controls.params.values.difficulty;
-    if (v === 'beginner' || v === 'intermediate' || v === 'advanced') return v;
-    return 'all' as const;
-  }, [controls.params.values.difficulty]);
+  const difficultyParam = controls.params.values.difficulty;
 
   const { query } = controls;
   const showSkeleton = query.isPending && !query.data;
@@ -126,54 +156,40 @@ export default function ExerciseListTable() {
     <>
       <TableListShell
         controls={controls}
+        searchPlaceholder='Search exercise or category'
         filters={
           <ExerciseFilters
-            status={statusFilter}
-            difficulty={difficultyFilter}
-            onStatusChange={(next) => {
-              if (next === 'all') {
-                controls.params.clear(['is_active']);
-                return;
-              }
-              controls.params.set({ is_active: next === 'active' ? '1' : '0' });
-            }}
-            onDifficultyChange={(next) => {
-              if (next === 'all') {
-                controls.params.clear(['difficulty']);
-                return;
-              }
-              controls.params.set({ difficulty: next });
-            }}
+            difficultyFilter={difficultyParam}
+            onClearDifficulty={() => controls.params.clear(['difficulty'])}
+            onSetDifficulty={(difficulty) =>
+              controls.params.set({ difficulty })
+            }
           />
         }
       >
-        <Table className='min-w-120 table-fixed'>
+        <Table className='w-full min-w-5xl'>
           <TableHeader className='bg-muted/50 [&_tr]:border-border'>
             <TableRow className='border-border hover:bg-transparent'>
-              <TableHead className='w-[24%]'>Name</TableHead>
-              <TableHead className='w-[18%]'>Category</TableHead>
-              <TableHead className='w-[14%]'>Difficulty</TableHead>
-              <TableHead className='w-[30%]'>Equipment</TableHead>
-              <TableHead className='w-[9%]'>Status</TableHead>
-              <TableHead className='w-[5%] text-right'>Actions</TableHead>
+              <TableHead>Exercise</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Difficulty</TableHead>
+              <TableHead>Equipment</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {showSkeleton &&
-              Array.from({ length: 5 }).map((_, row) => (
-                <TableRow key={`skeleton-${row}`}>
-                  {Array.from({ length: 6 }).map((_, col) => (
-                    <TableCell key={col} className='py-3'>
-                      <Skeleton className='h-8 w-full' />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
+            {showSkeleton && (
+              <TableSkeletonRows
+                rowCount={5}
+                columnCount={COLUMN_COUNT}
+                cellWidths={[...SKELETON_WIDTHS]}
+              />
+            )}
 
             {!showSkeleton && query.isError && (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={COLUMN_COUNT}
                   className='text-destructive py-8 text-center text-sm'
                 >
                   {errorMessage}
@@ -185,122 +201,94 @@ export default function ExerciseListTable() {
               !query.isError &&
               query.data?.status === 'success' &&
               rows.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className='py-14'>
-                    <div className='mx-auto flex max-w-md flex-col items-center justify-center text-center'>
-                      <div className='bg-primary/10 text-primary mb-4 inline-flex size-12 items-center justify-center rounded-full'>
-                        <DumbbellIcon className='size-6' />
-                      </div>
-                      <p className='text-foreground text-base font-semibold'>
-                        No exercises yet
-                      </p>
-                      <p className='text-muted-foreground mt-1 text-sm leading-relaxed'>
-                        Add exercises to build out your movement library.
-                      </p>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                <TableEmptyStateRow
+                  colSpan={COLUMN_COUNT}
+                  icon={DumbbellIcon}
+                  title='No Exercises Yet'
+                  description='Exercises you add will appear here for the movement library. Use Add in the header to define movements with category, difficulty, equipment, and optional media.'
+                />
               )}
 
             {!showSkeleton &&
               !query.isError &&
               query.data?.status === 'success' &&
               rows.map((exercise) => (
-                <TableRow key={exercise.id} className='border-border/80'>
-                  <TableCell className='min-w-0 py-2.5 align-middle'>
-                    <p className='text-foreground truncate text-sm font-medium'>
-                      {exercise.name}
-                    </p>
-                    {exercise.media.length > 0 && (
-                      <p className='text-muted-foreground mt-0.5 text-xs'>
-                        {exercise.media.length} media file
-                        {exercise.media.length > 1 ? 's' : ''}
-                      </p>
-                    )}
-                  </TableCell>
-                  <TableCell className='py-2.5 align-middle'>
-                    {exercise.movement_category ? (
-                      <span className='text-sm'>
-                        {exercise.movement_category.name}
-                      </span>
-                    ) : (
-                      <span className='text-muted-foreground/50 text-sm'>
-                        —
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className='py-2.5 align-middle'>
-                    <span
-                      className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium capitalize ${DIFFICULTY_COLORS[exercise.difficulty]}`}
-                    >
-                      {exercise.difficulty}
-                    </span>
-                  </TableCell>
-                  <TableCell className='py-2.5 align-middle'>
-                    {exercise.equipments.length === 0 ? (
-                      <span className='text-muted-foreground/50 text-xs'>
-                        —
-                      </span>
-                    ) : (
-                      <div className='flex flex-wrap items-center gap-1'>
-                        {exercise.equipments.slice(0, 3).map((eq) => (
-                          <span
-                            key={eq.id}
-                            className='bg-muted text-foreground border-border inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium'
-                          >
-                            {eq.name}
-                          </span>
-                        ))}
-                        {exercise.equipments.length > 3 && (
-                          <span className='text-muted-foreground text-xs'>
-                            +{exercise.equipments.length - 3} more
-                          </span>
+                <TableRow key={exercise.id}>
+                  <TableCell className='align-center whitespace-normal'>
+                    <div className='flex min-w-0 flex-col gap-0.5'>
+                      <p className='text-foreground text-[13px] font-semibold'>
+                        {exercise.name?.trim() ? (
+                          exercise.name.trim()
+                        ) : (
+                          <TableCellEmpty label='Name not set' />
                         )}
-                      </div>
+                      </p>
+                      <p className='text-muted-foreground line-clamp-2 text-xs leading-relaxed font-medium wrap-break-word'>
+                        {exercise.description?.trim()
+                          ? exercise.description.trim()
+                          : '-'}
+                      </p>
+                    </div>
+                  </TableCell>
+
+                  <TableCell className='text-foreground/80 align-center'>
+                    {exercise.movement_category?.name?.trim() ? (
+                      <span>{exercise.movement_category.name.trim()}</span>
+                    ) : (
+                      <TableCellEmpty label='No category' />
                     )}
                   </TableCell>
-                  <TableCell className='py-2.5 align-middle'>
-                    <span
-                      className={`inline-flex items-center gap-1.5 text-xs font-medium ${exercise.is_active ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}
-                    >
-                      <span
-                        className={`size-1.5 rounded-full ${exercise.is_active ? 'bg-emerald-500' : 'bg-muted-foreground/40'}`}
-                      />
-                      {exercise.is_active ? 'Active' : 'Inactive'}
-                    </span>
+
+                  <TableCell className='align-center'>
+                    {(() => {
+                      const difficulty =
+                        asMovementDifficulty(exercise.difficulty) ?? 'beginner';
+                      const style = DIFFICULTY_STYLES[difficulty];
+                      const DifficultyIcon = style.icon;
+
+                      return (
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${style.className}`}
+                        >
+                          <DifficultyIcon className='size-3.5 shrink-0' />
+                          {DIFFICULTY_LABEL[difficulty]}
+                        </span>
+                      );
+                    })()}
                   </TableCell>
-                  <TableCell className='py-2.5 pr-2 text-right align-middle'>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant='ghost'
-                          size='icon'
-                          className='size-8 cursor-pointer'
-                        >
-                          <MoreHorizontalIcon className='size-4' />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align='end'>
-                        <DropdownMenuItem asChild className='cursor-pointer'>
-                          <Link
-                            href={ROUTES.ADMIN.MODULES.MOVEMENT_EXERCISES.EDIT(
-                              String(exercise.id),
-                            )}
-                            className='flex items-center gap-2'
-                          >
-                            <PencilIcon className='size-3.5' />
-                            Edit
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className='text-destructive focus:text-destructive flex cursor-pointer items-center gap-2'
-                          onClick={() => setDeleteExercise(exercise)}
-                        >
-                          <Trash2Icon className='size-3.5' />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+
+                  <TableCell className='text-foreground/80 align-center whitespace-normal'>
+                    {exercise.equipments.length === 0 ? (
+                      <TableCellEmpty label='No equipment' />
+                    ) : (
+                      <span className='wrap-break-word'>
+                        {exercise.equipments
+                          .map((eq) => eq.name.trim())
+                          .join(', ')}
+                      </span>
+                    )}
+                  </TableCell>
+
+                  <TableCell className='align-center whitespace-nowrap'>
+                    <div className='flex flex-nowrap items-center justify-start gap-2'>
+                      <Button
+                        type='button'
+                        className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                        onClick={() => setEditExercise(exercise)}
+                      >
+                        <PencilIcon className='size-3.5' />
+                        Edit
+                      </Button>
+                      <Button
+                        type='button'
+                        variant='outline'
+                        className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-10 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                        onClick={() => setDeleteExercise(exercise)}
+                      >
+                        <Trash2Icon className='size-3.5' />
+                        Remove
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -308,23 +296,25 @@ export default function ExerciseListTable() {
         </Table>
       </TableListShell>
 
-      <DeleteAlertDialog
+      {editExercise && (
+        <ExerciseSheet
+          mode='edit'
+          exercise={editExercise}
+          open={!!editExercise}
+          onOpenChange={(o) => {
+            if (!o) setEditExercise(null);
+          }}
+        />
+      )}
+
+      <RemoveExerciseConfirmation
         open={!!deleteExercise}
         onOpenChange={(o) => {
           if (!o) setDeleteExercise(null);
         }}
-        title='Delete Exercise'
-        description={
-          <>
-            Are you sure you want to delete{' '}
-            <span className='text-foreground font-medium'>
-              {deleteExercise?.name}
-            </span>
-            ? This action cannot be undone.
-          </>
-        }
+        exerciseName={deleteExercise?.name}
+        isRemoving={isDeleting}
         onConfirm={handleDelete}
-        isDeleting={isDeleting}
       />
     </>
   );

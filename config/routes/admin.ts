@@ -49,8 +49,6 @@ export const ADMIN_ROUTES = {
     },
     MOVEMENT_EXERCISES: {
       LIST: `${BASE}/movement-exercises`,
-      CREATE: `${BASE}/movement-exercises/create`,
-      EDIT: (id: string) => `${BASE}/movement-exercises/${id}/edit`,
       DETAIL: (id: string) => `${BASE}/movement-exercises/${id}`,
     },
     BLOG_CATEGORIES: {
