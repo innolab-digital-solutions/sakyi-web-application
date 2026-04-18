@@ -233,6 +233,7 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
       toast.error('Required fields are missing', {
         description:
           'Each language needs a category name. The tab with missing information is opened below.',
+        duration: 5000,
       });
     }
     return ok;
