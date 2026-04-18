@@ -1,29 +1,43 @@
 import { STATUS } from '../constants';
 
-/**
- * Per-locale translation data returned by the detail endpoint inside `translations[]`.
- */
+/** One timeline / phase block within a program translation. */
+export type ProgramStructureItem = {
+  period: string;
+  title: string;
+  description: string;
+};
+
+/** Per-locale content for admin forms and translation save step. */
 export type ProgramTranslation = {
   locale: 'en' | 'my';
   title: string;
-  tagline: string | null;
-  excerpt: string | null;
-  about: string | null;
+  /** Present when loaded from API; generated server-side — not sent on save. */
+  slug?: string | null;
+  tagline: string;
+  excerpt: string;
+  about: string;
   features: string[];
   ideals: string[];
   expectations: string[];
-  structures: string[];
+  structures: ProgramStructureItem[];
 };
 
 export type Program = {
   id: number;
-  /**
-   * Flat localized fields — merged at the top level by the list endpoint
-   * (loads `translation` singular). Absent on the detail endpoint.
-   */
-  slug?: string | null;
+  code: string;
   title?: string | null;
+  slug?: string | null;
   tagline?: string | null;
+  excerpt: string;
+  about: string;
+  features: string[];
+  ideals: string[];
+  expectations: string[];
+  structures: {
+    period: string;
+    title: string;
+    description: string;
+  }[];
   thumbnail_url?: string | null;
   duration?: string | null;
   price: {
@@ -38,10 +52,5 @@ export type Program = {
     updated_at: string;
   };
   goals?: { id: string; name: string; slug: string }[];
-  /**
-   * All locales — returned by the detail endpoint (loads `translations` plural).
-   * Use this to pre-populate the wizard in edit mode.
-   */
-  translations?: ProgramTranslation[];
   enrolled_count?: number;
 };

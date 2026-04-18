@@ -9,21 +9,24 @@ import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/config/routes';
 
 export const metadata: Metadata = {
-  title: 'Programs | SaKyi Admin',
+  title: 'Care Programs | SaKyi Admin',
   description:
-    'Browse and manage wellness programs with bilingual English and Myanmar content.',
+    'Review wellness program catalog entries: reference codes, bilingual titles, duration and price, publish dates, enrollment counts, and status—filter by language and visibility before opening a program to edit.',
 };
 
 export default function ProgramListsPage() {
   return (
     <div className='min-w-0 space-y-8'>
       <PageHeader
-        title='Programs'
-        description='People-centered health and wellness tracks. Review bilingual names, status, and enrollment at a glance—then open a program to edit details or translations.'
+        title='Care Programs'
+        description='Maintain the program catalog your clients and enrollment flows rely on. Scan codes, pricing, and publication state at a glance; switch list language to verify copy, then open a row to edit overview, translations, or goals.'
         actions={
-          <Button asChild size='lg'>
+          <Button
+            asChild
+            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+          >
             <Link href={ROUTES.ADMIN.MODULES.PROGRAMS.CREATE}>
-              <PlusIcon className='size-4' />
+              <PlusIcon className='size-3.5' />
               Create program
             </Link>
           </Button>

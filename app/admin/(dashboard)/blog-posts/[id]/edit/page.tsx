@@ -13,7 +13,7 @@ export default function BlogPostEditPage() {
     <div className='space-y-8'>
       <PageHeader
         title='Edit blog post'
-        description='Adjust English and Myanmar titles, excerpts, and body copy; update category, thumbnail, and publish status. Save your changes when the post should reflect the latest content and settings in the library.'
+        description='Updates both language versions of this post. Revise titles, excerpts, and rich text; change category, thumbnail, or published switch as needed. Save when the library and public blog should show the latest content and visibility.'
       />
 
       {Number.isNaN(id) ? (

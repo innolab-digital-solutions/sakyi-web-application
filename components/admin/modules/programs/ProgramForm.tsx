@@ -1,9 +1,9 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQueries } from '@tanstack/react-query';
 
-import { ENDPOINTS } from '@/config/api/endpoints';
 import { getProgramById } from '@/domains/programs/services';
+import type { Program, ProgramTranslation } from '@/domains/programs/types/admin';
 
 import ProgramWizard from './ProgramWizard';
 
@@ -11,10 +11,30 @@ type ProgramFormProps =
   | { mode: 'create' }
   | { mode: 'edit'; programId: number };
 
+function programLocaleToTranslation(
+  p: Program,
+  locale: 'en' | 'my',
+): ProgramTranslation {
+  return {
+    locale,
+    title: p.title ?? '',
+    tagline: p.tagline ?? '',
+    excerpt: p.excerpt ?? '',
+    about: p.about ?? '',
+    features: p.features ?? [],
+    ideals: p.ideals ?? [],
+    expectations: p.expectations ?? [],
+    structures: (p.structures ?? []).map((s) => ({
+      period: s.period ?? '',
+      title: s.title ?? '',
+      description: s.description ?? '',
+    })),
+  };
+}
+
 /**
- * For create mode: renders the wizard directly.
- * For edit mode: fetches program data (including all translations) client-side
- * to avoid Sanctum cookie auth issues in server components.
+ * Create: opens the unified program form.
+ * Edit: loads English and Myanmar `Program` payloads and merges into one form.
  */
 export default function ProgramForm(props: ProgramFormProps) {
   if (props.mode === 'create') {
@@ -24,22 +44,41 @@ export default function ProgramForm(props: ProgramFormProps) {
 }
 
 function ProgramEditLoader({ programId }: { programId: number }) {
-  const { data, isPending, isError } = useQuery({
-    queryKey: [ENDPOINTS.ADMIN.MODULES.PROGRAMS.DETAIL(String(programId))],
-    queryFn: async () => {
-      const res = await getProgramById(programId);
-      if (res.status === 'error') {
-        throw new Error(res.message ?? 'Failed to load program.');
-      }
-      return res.data;
-    },
+  const [enQuery, myQuery] = useQueries({
+    queries: [
+      {
+        queryKey: ['program-admin-detail', programId, 'en'] as const,
+        queryFn: async () => {
+          const res = await getProgramById(programId, { locale: 'en' });
+          if (res.status === 'error') {
+            throw new Error(res.message ?? 'Failed to load program.');
+          }
+          return res.data;
+        },
+      },
+      {
+        queryKey: ['program-admin-detail', programId, 'my'] as const,
+        queryFn: async () => {
+          const res = await getProgramById(programId, { locale: 'my' });
+          if (res.status === 'error') {
+            throw new Error(res.message ?? 'Failed to load program.');
+          }
+          return res.data;
+        },
+      },
+    ],
   });
 
-  if (isPending) {
+  if (enQuery.isPending || myQuery.isPending) {
     return <p className='text-muted-foreground text-sm'>Loading program…</p>;
   }
 
-  if (isError || !data) {
+  if (
+    enQuery.isError ||
+    myQuery.isError ||
+    enQuery.data == null ||
+    myQuery.data == null
+  ) {
     return (
       <p className='text-destructive text-sm'>
         Could not load program data. Refresh the page and try again.
@@ -47,13 +86,17 @@ function ProgramEditLoader({ programId }: { programId: number }) {
     );
   }
 
-  const enTranslation = data.translations?.find((t) => t.locale === 'en');
-  const myTranslation = data.translations?.find((t) => t.locale === 'my');
+  const enProgram = enQuery.data;
+  const myProgram = myQuery.data;
+
+  const enTranslation = programLocaleToTranslation(enProgram, 'en');
+  const myTranslation = programLocaleToTranslation(myProgram, 'my');
 
   return (
     <ProgramWizard
+      key={programId}
       mode='edit'
-      program={data}
+      program={enProgram}
       enTranslation={enTranslation}
       myTranslation={myTranslation}
     />

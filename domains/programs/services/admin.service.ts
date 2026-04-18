@@ -1,8 +1,9 @@
+import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import type { ApiResponse } from '@/lib/api/client';
 import { http } from '@/lib/api/client';
 
-import type { Program } from '../types/admin';
+import type { Program, ProgramStructureItem } from '../types/admin';
 
 export type ProgramTranslationPayload = {
   locale: 'en' | 'my';
@@ -13,96 +14,111 @@ export type ProgramTranslationPayload = {
   features: string[];
   ideals: string[];
   expectations: string[];
-  structures: string[];
+  structures: ProgramStructureItem[];
 };
 
 /**
- * Create an empty program draft.
- * The backend ignores any payload — it returns the bare draft record.
+ * Program save fields (JSON or multipart). Thumbnail is sent as a **file** when uploading
+ * (Laravel `image` rule), not as a JSON string.
  */
-export async function createProgramDraft(): Promise<ApiResponse<Program>> {
-  return http.post<Program>(ENDPOINTS.ADMIN.MODULES.PROGRAMS.CREATE, {});
+export type ProgramSavePayload = {
+  id?: number;
+  duration: string;
+  price: number;
+  goal_ids: number[];
+  translations: ProgramTranslationPayload[];
+  status: 'draft' | 'published' | 'hidden';
+};
+
+type ProgramSaveFormFields = Omit<ProgramSavePayload, 'id'>;
+
+function stripId(body: ProgramSavePayload): ProgramSaveFormFields {
+  const { id: _omit, ...fields } = body;
+  return fields;
 }
 
 /**
- * Save the overview step (thumbnail, duration, price, goal_ids).
- * `price` is a flat integer (no currency).
- * When `thumbnail` is provided it is sent as multipart/form-data automatically.
+ * Laravel-friendly multipart shape (matches typical PHP array parsing).
  */
-export async function saveProgramOverview(
-  id: number,
-  data: { duration?: string; price?: number; goal_ids?: number[] },
-  thumbnail?: File | null,
+function appendProgramSaveToFormData(
+  form: FormData,
+  body: ProgramSaveFormFields,
+): void {
+  form.append('duration', body.duration);
+  form.append('price', String(body.price));
+  form.append('status', body.status);
+  for (const gid of body.goal_ids) {
+    form.append('goal_ids[]', String(gid));
+  }
+  body.translations.forEach((t, i) => {
+    form.append(`translations[${i}][locale]`, t.locale);
+    form.append(`translations[${i}][title]`, t.title);
+    form.append(`translations[${i}][tagline]`, t.tagline);
+    form.append(`translations[${i}][excerpt]`, t.excerpt);
+    form.append(`translations[${i}][about]`, t.about);
+    t.features.forEach((f, j) => {
+      form.append(`translations[${i}][features][${j}]`, f);
+    });
+    t.ideals.forEach((f, j) => {
+      form.append(`translations[${i}][ideals][${j}]`, f);
+    });
+    t.expectations.forEach((f, j) => {
+      form.append(`translations[${i}][expectations][${j}]`, f);
+    });
+    t.structures.forEach((s, k) => {
+      form.append(`translations[${i}][structures][${k}][period]`, s.period);
+      form.append(`translations[${i}][structures][${k}][title]`, s.title);
+      form.append(
+        `translations[${i}][structures][${k}][description]`,
+        s.description,
+      );
+    });
+  });
+}
+
+/**
+ * - **Create:** `POST` multipart with `thumbnail` file + form fields (Laravel `required|image`).
+ * - **Update + new image:** `PUT` multipart with file + fields.
+ * - **Update, keep image:** `PUT` JSON (no `thumbnail` part).
+ */
+export async function saveProgram(
+  body: ProgramSavePayload,
+  thumbnailFile: File | null,
 ): Promise<ApiResponse<Program>> {
-  if (thumbnail) {
-    const form = new FormData();
-    form.append('thumbnail', thumbnail);
-    if (data.duration) form.append('duration', data.duration);
-    if (data.price != null) form.append('price', String(data.price));
-    if (data.goal_ids?.length) {
-      data.goal_ids.forEach((id) => form.append('goal_ids[]', String(id)));
+  const programId = body.id;
+
+  if (programId != null) {
+    const fields = stripId(body);
+    if (thumbnailFile) {
+      const form = new FormData();
+      form.append('thumbnail', thumbnailFile);
+      appendProgramSaveToFormData(form, fields);
+      return http.put<Program>(
+        ENDPOINTS.ADMIN.MODULES.PROGRAMS.UPDATE(String(programId)),
+        form,
+      );
     }
     return http.put<Program>(
-      ENDPOINTS.ADMIN.MODULES.PROGRAMS.STEPS.OVERVIEW(String(id)),
-      form,
+      ENDPOINTS.ADMIN.MODULES.PROGRAMS.UPDATE(String(programId)),
+      fields,
     );
   }
 
-  return http.put<Program>(
-    ENDPOINTS.ADMIN.MODULES.PROGRAMS.STEPS.OVERVIEW(String(id)),
-    {
-      ...(data.duration ? { duration: data.duration } : {}),
-      ...(data.price != null ? { price: data.price } : {}),
-      ...(data.goal_ids?.length ? { goal_ids: data.goal_ids } : {}),
-    },
-  );
+  if (!thumbnailFile) {
+    return {
+      status: 'error',
+      message: 'Thumbnail is required.',
+      errors: { thumbnail: 'Thumbnail is required.' },
+      meta: { version: base.apiVersion },
+    };
+  }
+
+  const form = new FormData();
+  form.append('thumbnail', thumbnailFile);
+  appendProgramSaveToFormData(form, stripId(body));
+  return http.post<Program>(ENDPOINTS.ADMIN.MODULES.PROGRAMS.CREATE, form);
 }
 
-/**
- * Save the translations step.
- * Only locales with a non-empty title are included; all included locales must
- * have every field filled (backend validates as required).
- */
-export async function saveProgramTranslations(
-  id: number,
-  translations: ProgramTranslationPayload[],
-): Promise<ApiResponse<Program>> {
-  return http.put<Program>(
-    ENDPOINTS.ADMIN.MODULES.PROGRAMS.STEPS.TRANSLATIONS(String(id)),
-    { translations },
-  );
-}
-
-/**
- * Publish the program (requires overview + translations steps to be complete).
- */
-export async function publishProgram(
-  id: number,
-): Promise<ApiResponse<Program>> {
-  return http.post<Program>(
-    ENDPOINTS.ADMIN.MODULES.PROGRAMS.PUBLISH(String(id)),
-    {},
-  );
-}
-
-/**
- * Update program status to draft, archived, or hidden.
- * Use publishProgram() to transition to published — it validates step completeness.
- */
-export async function updateProgramStatus(
-  id: number,
-  status: 'draft' | 'archived' | 'hidden',
-): Promise<ApiResponse<Program>> {
-  return http.patch<Program>(
-    ENDPOINTS.ADMIN.MODULES.PROGRAMS.UPDATE_STATUS(String(id)),
-    { status },
-  );
-}
-
-/**
- * Fetches a single program for admin edit/detail views.
- * Pass `locale` to get translated fields for that locale (`en` | `my`).
- */
 export async function getProgramById(
   id: number,
   options?: { locale?: 'en' | 'my' },

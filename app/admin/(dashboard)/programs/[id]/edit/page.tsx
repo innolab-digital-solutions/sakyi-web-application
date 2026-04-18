@@ -1,5 +1,13 @@
-import AdminPageHeader from '@/components/admin/layout/PageHeader';
+import type { Metadata } from 'next';
+
+import PageHeader from '@/components/admin/layout/PageHeader';
 import ProgramForm from '@/components/admin/modules/programs/ProgramForm';
+
+export const metadata: Metadata = {
+  title: 'Edit program | SaKyi Admin',
+  description:
+    'Update an existing care program: adjust overview, bilingual copy, pricing, and goals; save or publish so the catalog and linked enrollments reflect your changes.',
+};
 
 type ProgramEditPageProps = {
   params: Promise<{
@@ -19,9 +27,9 @@ export default async function ProgramEditPage({
 
   return (
     <div className='space-y-8'>
-      <AdminPageHeader
-        title='Edit Program'
-        description='Update program details, status, and translations.'
+      <PageHeader
+        title='Edit program'
+        description='Use the wizard to change overview settings (thumbnail, duration, price, goals) and all bilingual content. Save your work as a draft or publish when the catalog and any linked enrollment flows should show the updated program.'
       />
 
       <ProgramForm mode='edit' programId={id} />

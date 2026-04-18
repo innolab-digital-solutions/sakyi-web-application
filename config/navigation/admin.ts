@@ -93,6 +93,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
       },
     ],
   },
+  /** Primary entry to the admin program catalog (`/programs` list + create/edit flows). */
   {
     name: 'Care Programs',
     icon: FolderKanban,
