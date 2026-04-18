@@ -1,18 +1,31 @@
 import { STATUS } from '../constants';
 
-export type Program = {
-  id: number;
+/**
+ * Per-locale translation data returned by the detail endpoint inside `translations[]`.
+ */
+export type ProgramTranslation = {
+  locale: 'en' | 'my';
   title: string;
-  slug: string;
-  tagline: string;
-  excerpt: string;
-  about: string;
+  tagline: string | null;
+  excerpt: string | null;
+  about: string | null;
   features: string[];
   ideals: string[];
   expectations: string[];
   structures: string[];
-  thumbnail_url: string;
-  duration: string;
+};
+
+export type Program = {
+  id: number;
+  /**
+   * Flat localized fields — merged at the top level by the list endpoint
+   * (loads `translation` singular). Absent on the detail endpoint.
+   */
+  slug?: string | null;
+  title?: string | null;
+  tagline?: string | null;
+  thumbnail_url?: string | null;
+  duration?: string | null;
   price: {
     amount: number;
     currency: string;
@@ -26,8 +39,9 @@ export type Program = {
   };
   goals?: { id: string; name: string; slug: string }[];
   /**
-   * Enrollment count when the list API includes aggregate stats (Laravel often
-   * exposes this as `enrolled_count`).
+   * All locales — returned by the detail endpoint (loads `translations` plural).
+   * Use this to pre-populate the wizard in edit mode.
    */
+  translations?: ProgramTranslation[];
   enrolled_count?: number;
 };

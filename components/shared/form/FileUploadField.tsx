@@ -58,6 +58,11 @@ type FileUploadFieldSharedProps = {
   existingFiles?: FileUploadFieldRemoteFile[];
   /** Called when the user removes a remote attachment (update your form state / mark for deletion on save). */
   onExistingFilesChange?: (files: FileUploadFieldRemoteFile[]) => void;
+  /**
+   * Pre-populate the local file list on mount (e.g. to restore a picked file after navigating
+   * between wizard steps). Only used as the initial value — subsequent changes are driven by the user.
+   */
+  initialFiles?: File[];
 };
 
 export type FileUploadFieldDefaultProps = FileUploadFieldSharedProps & {
@@ -342,6 +347,7 @@ function FileUploadField(props: FileUploadFieldProps) {
     'existingFiles' in props ? props.existingFiles : undefined;
   const onExistingFilesChange =
     'onExistingFilesChange' in props ? props.onExistingFilesChange : undefined;
+  const initialFiles = props.initialFiles;
 
   const isAvatar = props.variant === 'avatar';
   const multiple =
@@ -377,7 +383,7 @@ function FileUploadField(props: FileUploadFieldProps) {
   const errorId = errorProp ? `${id}-error` : undefined;
 
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const [files, setFiles] = React.useState<File[]>([]);
+  const [files, setFiles] = React.useState<File[]>(() => initialFiles ?? []);
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
   const [localError, setLocalError] = React.useState<string | null>(null);
 
