@@ -69,6 +69,7 @@ export default function IntakeAssessmentFilters<TStatus extends string>({
           <DropdownMenuItem className='cursor-pointer' onClick={onClearStatus}>
             All statuses
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
           {statuses.map((status) => (
             <DropdownMenuItem
               key={status}
@@ -94,7 +95,7 @@ export default function IntakeAssessmentFilters<TStatus extends string>({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end' className='min-w-56'>
-          <DropdownMenuLabel className='text-foreground/80 px-2 py-1 text-xs font-semibold tracking-wide'>
+          <DropdownMenuLabel className='text-foreground/80 px-2 py-1 text-[13px] font-semibold tracking-wide'>
             Column Visibility
           </DropdownMenuLabel>
           <DropdownMenuSeparator />

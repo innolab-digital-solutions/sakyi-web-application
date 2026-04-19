@@ -4,25 +4,21 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import {
   CheckCircle2Icon,
-  EyeIcon,
   FileTextIcon,
-  PencilIcon,
-  SendHorizontal,
   TimerResetIcon,
   XCircleIcon,
 } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import IntakeAssessmentFilters from '@/components/admin/modules/onboarding/IntakeAssessmentFilters';
+import IntakeRowActions from '@/components/admin/modules/onboarding/IntakeRowActions';
 import SendContractConfirmation from '@/components/admin/modules/onboarding/SendContractConfirmation';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -33,7 +29,6 @@ import {
 } from '@/components/ui/table';
 import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { ENDPOINTS } from '@/config/api/endpoints';
-import { ROUTES } from '@/config/routes';
 import { assignEnrollmentRequestContract } from '@/domains/enrollment-requests/services';
 import type { OnboardingIntakeData } from '@/domains/intake-assessments/types';
 import { useTable } from '@/lib/table';
@@ -62,7 +57,7 @@ type IntakeColumnKey =
   | 'linkedRequest'
   | 'handledBy'
   | 'status'
-  | 'lastUpdated'
+  | 'lastUpdatedAt'
   | 'actions';
 
 type IntakeColumnDefinition = {
@@ -72,57 +67,68 @@ type IntakeColumnDefinition = {
   skeletonWidth: string;
 };
 
+/** Bumped when default visibility changes so prior auto-saved “all columns” does not stick forever. */
 const INTAKE_VISIBLE_COLUMNS_STORAGE_KEY =
-  'sakyi:admin:intake-assessments:visible-columns';
+  'sakyi:admin:intake-assessments:visible-columns:v2';
+
+/** First-load defaults; staff can show linked request & handler from Columns. */
+const DEFAULT_VISIBLE_COLUMN_KEYS: readonly IntakeColumnKey[] = [
+  'applicant',
+  'requestedProgram',
+  'linkedRequest',
+  'status',
+  'lastUpdatedAt',
+  'actions',
+];
 
 const INTAKE_COLUMNS: readonly IntakeColumnDefinition[] = [
   {
     key: 'reference',
     label: 'Reference',
-    headerClassName: 'min-w-40',
+    headerClassName: '',
     skeletonWidth: 'w-24',
   },
   {
     key: 'applicant',
     label: 'Applicant',
-    headerClassName: 'min-w-48',
+    headerClassName: '',
     skeletonWidth: 'w-40',
   },
   {
     key: 'requestedProgram',
     label: 'Requested Program',
-    headerClassName: 'min-w-56',
+    headerClassName: '',
     skeletonWidth: 'w-44',
   },
   {
     key: 'linkedRequest',
     label: 'Linked Request',
-    headerClassName: 'min-w-36',
+    headerClassName: '',
     skeletonWidth: 'w-28',
   },
   {
     key: 'handledBy',
     label: 'Handled By',
-    headerClassName: 'min-w-44',
+    headerClassName: '',
     skeletonWidth: 'w-36',
   },
   {
     key: 'status',
     label: 'Status',
-    headerClassName: 'min-w-30',
+    headerClassName: '',
     skeletonWidth: 'w-30',
   },
   {
-    key: 'lastUpdated',
-    label: 'Last Updated',
-    headerClassName: 'min-w-34',
+    key: 'lastUpdatedAt',
+    label: 'Last Updated At',
+    headerClassName: '',
     skeletonWidth: 'w-26',
   },
   {
     key: 'actions',
     label: 'Actions',
-    headerClassName: 'min-w-52',
-    skeletonWidth: 'w-44',
+    headerClassName: '',
+    skeletonWidth: 'w-32',
   },
 ] as const;
 
@@ -214,7 +220,7 @@ export default function IntakeListTable() {
   const queryClient = useQueryClient();
   const [visibleColumnKeys, setVisibleColumnKeys] = useState<IntakeColumnKey[]>(
     () => {
-      const fallback = INTAKE_COLUMNS.map((column) => column.key);
+      const fallback = [...DEFAULT_VISIBLE_COLUMN_KEYS];
       if (typeof window === 'undefined') return fallback;
 
       const raw = window.localStorage.getItem(
@@ -354,13 +360,13 @@ export default function IntakeListTable() {
   };
 
   const resetColumns = () => {
-    setVisibleColumnKeys(INTAKE_COLUMNS.map((column) => column.key));
+    setVisibleColumnKeys([...DEFAULT_VISIBLE_COLUMN_KEYS]);
   };
 
   return (
     <TableListShell
       controls={controls}
-      searchPlaceholder='Search applicant, contact, or reference'
+      searchPlaceholder='Search ...'
       filters={
         <IntakeAssessmentFilters
           statusFilter={statusFilter}
@@ -411,9 +417,9 @@ export default function IntakeListTable() {
             rows.length === 0 && (
               <TableEmptyStateRow
                 colSpan={visibleColumnCount}
-                icon={FileTextIcon}
-                title='No Intake Assessments Found'
-                description='Intake assessments created from approved enrollment requests will appear here for assignment, review, and follow-up.'
+                title='No intake assessments found'
+                description="No intake assessments found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later."
+           
               />
             )}
 
@@ -440,7 +446,7 @@ export default function IntakeListTable() {
               return (
                 <TableRow key={intake.id}>
                   {showColumn('reference') ? (
-                    <TableCell className='align-center min-w-45 whitespace-normal'>
+                    <TableCell>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {intake.code?.trim()}
                       </p>
@@ -448,7 +454,7 @@ export default function IntakeListTable() {
                   ) : null}
 
                   {showColumn('applicant') ? (
-                    <TableCell className='align-center whitespace-normal'>
+                    <TableCell>
                       <div className='flex items-start gap-3'>
                         <Avatar
                           size='default'
@@ -473,7 +479,7 @@ export default function IntakeListTable() {
                               <TableCellEmpty label='Name not provided' />
                             )}
                           </p>
-                          <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
+                          <p className='text-muted-foreground text-xs font-medium'>
                             {intake.client?.email ?? 'No email on file'}
                           </p>
                         </div>
@@ -482,7 +488,7 @@ export default function IntakeListTable() {
                   ) : null}
 
                   {showColumn('requestedProgram') ? (
-                    <TableCell className='align-center min-w-75 whitespace-normal'>
+                    <TableCell>
                       <div className='flex items-start gap-3'>
                         <ProgramThumbnail
                           thumbnailUrl={intake.program?.thumbnail_url}
@@ -508,7 +514,7 @@ export default function IntakeListTable() {
                   ) : null}
 
                   {showColumn('linkedRequest') ? (
-                    <TableCell className='align-center min-w-45 whitespace-normal'>
+                    <TableCell>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {intake.enrollment_request?.code?.trim() || (
                           <TableCellEmpty label='Not linked' />
@@ -518,7 +524,7 @@ export default function IntakeListTable() {
                   ) : null}
 
                   {showColumn('handledBy') ? (
-                    <TableCell className='align-center min-w-52 whitespace-normal'>
+                    <TableCell>
                       {intake.handler ? (
                         <div className='flex items-start gap-3'>
                           <Avatar
@@ -556,7 +562,7 @@ export default function IntakeListTable() {
                   ) : null}
 
                   {showColumn('status') ? (
-                    <TableCell className='align-center'>
+                    <TableCell>
                       <span
                         className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
                       >
@@ -568,8 +574,8 @@ export default function IntakeListTable() {
                     </TableCell>
                   ) : null}
 
-                  {showColumn('lastUpdated') ? (
-                    <TableCell className='text-foreground/80 align-center tabular-nums'>
+                  {showColumn('lastUpdatedAt') ? (
+                    <TableCell>
                       {updatedAt || createdAt ? (
                         updatedAt || createdAt
                       ) : (
@@ -579,69 +585,25 @@ export default function IntakeListTable() {
                   ) : null}
 
                   {showColumn('actions') ? (
-                    <TableCell className='align-center whitespace-nowrap'>
-                      <div className='flex flex-nowrap items-center justify-start gap-2'>
-                        {intake.status !== 'completed' &&
-                          intake.status !== 'cancelled' && (
-                            <Button
-                              className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-                              asChild
-                            >
-                              <Link
-                                href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.INTERVIEW(
-                                  String(intake.id),
-                                )}
-                              >
-                                <PencilIcon className='size-3.5' />
-                                Continue Interview
-                              </Link>
-                            </Button>
-                          )}
-
-                        {intake.status === 'completed' &&
-                          !intake.enrollment_contract?.signed_at && (
-                            <Button
-                              className='h-10 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-                              disabled={
-                                enrollmentRequestId == null ||
-                                isAssigningContract ||
-                                assigningEnrollmentRequestId ===
-                                  enrollmentRequestId
-                              }
-                              onClick={() => {
-                                if (enrollmentRequestId != null) {
-                                  setSendContractDialog({
-                                    enrollmentRequestId,
-                                    variant: intake.enrollment_contract?.sent_at
-                                      ? 'resend'
-                                      : 'first',
-                                    applicantName:
-                                      intake.client?.name?.trim() ?? null,
-                                  });
-                                }
-                              }}
-                            >
-                              <SendHorizontal className='size-3.5' />
-                              Send Contract
-                            </Button>
-                          )}
-
-                        <Button
-                          variant='outline'
-                          size='sm'
-                          className='bg-background hover:bg-muted h-10 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
-                          asChild
-                        >
-                          <Link
-                            href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(
-                              String(intake.id),
-                            )}
-                          >
-                            <EyeIcon className='size-3.5' />
-                            View Details
-                          </Link>
-                        </Button>
-                      </div>
+                    <TableCell>
+                      <IntakeRowActions
+                        intake={intake}
+                        onSendContract={() => {
+                          if (enrollmentRequestId == null) return;
+                          setSendContractDialog({
+                            enrollmentRequestId,
+                            variant: intake.enrollment_contract?.sent_at
+                              ? 'resend'
+                              : 'first',
+                            applicantName: intake.client?.name?.trim() ?? null,
+                          });
+                        }}
+                        isSendingContract={
+                          isAssigningContract &&
+                          enrollmentRequestId != null &&
+                          assigningEnrollmentRequestId === enrollmentRequestId
+                        }
+                      />
                     </TableCell>
                   ) : null}
                 </TableRow>

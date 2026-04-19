@@ -1,11 +1,45 @@
+import { ArrowLeftIcon } from 'lucide-react';
+import { Metadata } from 'next';
+import Link from 'next/link';
+
 import PageHeader from '@/components/admin/layout/PageHeader';
 import IntakeAssessmentWizard from '@/components/admin/modules/intake-assessments/IntakeAssessmentWizard';
 import IntakeDetailPanel from '@/components/admin/modules/intake-assessments/IntakeDetailPanel';
+import { Button } from '@/components/ui/button';
+import { ROUTES } from '@/config/routes';
 
 type IntakeAssessmentDetailPageProps = {
   params: Promise<{ id: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: IntakeAssessmentDetailPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const query = await searchParams;
+  const intakeId = Number.parseInt(id, 10);
+
+  if (Number.isNaN(intakeId)) {
+    return {
+      title: 'Invalid Intake Assessment',
+      description: 'Invalid intake assessment id provided.',
+    };
+  }
+
+  const view = Array.isArray(query.view) ? query.view[0] : query.view;
+  const isInterview = view === 'interview';
+
+  return {
+    title: isInterview
+      ? 'Intake Interview Session'
+      : 'Intake Assessment Overview',
+    description: isInterview
+      ? 'Conduct and record the intake interview, ensuring all client information is accurately captured and responses are validated throughout the process.'
+      : 'Access a comprehensive overview of this intake assessment, including client details, interview responses, processing status, and next recommended actions.',
+  };
+}
 
 export default async function IntakeAssessmentDetailPage({
   params,
@@ -27,13 +61,25 @@ export default async function IntakeAssessmentDetailPage({
       <PageHeader
         title={
           isInterview
-            ? 'Intake Assessment Interview'
-            : 'Intake Assessment Details'
+            ? 'Intake Interview Session'
+            : 'Intake Assessment Overview'
         }
         description={
           isInterview
-            ? 'Complete the intake interview section by section, validate client responses, and save progress continuously before final review and completion.'
-            : 'Review the full intake record, verify submitted responses, track handling progress, and identify the next action needed to move the case forward.'
+            ? 'Conduct and record the intake interview, ensuring all client information is accurately captured and responses are validated throughout the process.'
+            : 'Access a comprehensive overview of this intake assessment, including client details, interview responses, processing status, and next recommended actions.'
+        }
+        actions={
+          <Button
+            asChild
+            variant='outline'
+            className='bg-background hover:bg-muted h-10 shrink-0 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+          >
+            <Link href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST}>
+              <ArrowLeftIcon className='size-3.5' />
+              Back to intake assessments
+            </Link>
+          </Button>
         }
       />
       {isInterview ? (

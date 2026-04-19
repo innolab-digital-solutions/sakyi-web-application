@@ -6,7 +6,8 @@ import IntakeListTable from '@/components/admin/modules/intake-assessments/Intak
 
 export const metadata: Metadata = {
   title: 'Intake Assessments | SaKyi Admin',
-  description: 'Admin queue for intake assessments and progress tracking.',
+  description:
+    'Review all client intake assessments in one place: search and filter by status, view and manage assignments, continue active interviews, and track completion progress through final outcome.',
 };
 
 export default function IntakeAssessmentsPage() {
@@ -14,7 +15,7 @@ export default function IntakeAssessmentsPage() {
     <div className='space-y-8'>
       <PageHeader
         title='Intake Assessments'
-        description='Review all client intake assessments in one place, see assignment and completion progress, continue active interviews, and move each case through to final outcome.'
+        description='Review all client intake assessments in one place: search and filter by status, view and manage assignments, continue active interviews, and track completion progress through final outcome.'
       />
 
       <Suspense

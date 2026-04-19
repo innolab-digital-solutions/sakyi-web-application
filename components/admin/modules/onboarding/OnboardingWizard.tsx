@@ -8,12 +8,10 @@ import {
   SaveIcon,
   XCircleIcon,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
@@ -38,7 +36,6 @@ import type {
   OnboardingIntakeSection,
 } from '@/domains/intake-assessments/types';
 import { useForm } from '@/lib/form';
-import { getInitials } from '@/lib/utils/string';
 import type { ApiError } from '@/types/api';
 
 import IntakeCancelConfirmation from './IntakeCancelConfirmation';
@@ -52,30 +49,6 @@ type SaveSectionMutationInput = {
   section: OnboardingIntakeSection;
   silentSuccessToast?: boolean;
 };
-
-function PersonAvatar({
-  name,
-  pictureUrl,
-}: {
-  name: string | null | undefined;
-  pictureUrl: string | null | undefined;
-}) {
-  const [useFallback, setUseFallback] = useState(() => !pictureUrl?.trim());
-  return (
-    <Avatar size='default' className='mt-0.5 shrink-0' aria-hidden>
-      {!useFallback && pictureUrl?.trim() ? (
-        <AvatarImage
-          src={pictureUrl.trim()}
-          alt=''
-          onError={() => setUseFallback(true)}
-        />
-      ) : null}
-      <AvatarFallback className='text-xs'>
-        {getInitials(name ?? '', 2) || '?'}
-      </AvatarFallback>
-    </Avatar>
-  );
-}
 
 export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
   const queryClient = useQueryClient();
@@ -308,7 +281,6 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
 
   const progress = successIntake?.meta?.progress;
   const intakeRecord = successIntake?.data;
-  const clientUser = intakeRecord?.client;
   const activeFieldErrors = fieldErrorsBySection[activeSection.id] ?? {};
   const canGoBack = sectionIndex > 0;
   const canGoNext = sectionIndex >= 0 && sectionIndex < sections.length - 1;
@@ -411,64 +383,23 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
         {intakeRecord && (
           <div className='space-y-4'>
             <div className='flex flex-wrap items-center justify-between gap-3'>
-              <div className='min-w-0 space-y-1.5'>
+              <div className='space-y-1.5'>
                 <p className='text-muted-foreground text-[10px]! font-semibold tracking-wide uppercase'>
-                  Applicant
+                  Assessment Template
                 </p>
-                {clientUser ? (
-                  <div className='flex items-start gap-3'>
-                    <PersonAvatar
-                      name={clientUser?.name}
-                      pictureUrl={clientUser?.picture_url}
-                    />
-                    <div className='min-w-0 flex-1 space-y-1'>
-                      <p className='text-foreground/90 text-[13px] font-semibold'>
-                        {clientUser.name}
-                      </p>
-                      <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
-                        {clientUser.email}
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <p className='text-muted-foreground text-sm'>
-                    Client information unavailable.
-                  </p>
-                )}
+                <h3 className='text-sm font-semibold tracking-normal'>
+                  {intakeRecord.template?.title?.trim() || 'Unknown template'}{' '}
+                  (v{intakeRecord.template?.version ?? '—'})
+                </h3>
               </div>
-              <Button
-                variant='outline'
-                size='sm'
-                asChild
-                className='bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
-              >
-                <Link href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST}>
-                  <ArrowLeftIcon className='size-3.5' />
-                  Back to Intake Queue
-                </Link>
-              </Button>
-            </div>
 
-            <div className='border-border border-t pt-4'>
-              <div className='grid gap-4 md:grid-cols-2'>
-                <div className='min-w-0 space-y-1.5'>
-                  <p className='text-muted-foreground text-[10px]! font-semibold tracking-wide uppercase'>
-                    Linked Request Reference
-                  </p>
-                  <p className='text-foreground/90 text-[13px] leading-relaxed font-semibold'>
-                    {intakeRecord.enrollment_request?.code?.trim() ||
-                      'Not linked'}
-                  </p>
-                </div>
-
-                <div className='space-y-1.5 text-left md:text-right'>
-                  <p className='text-muted-foreground text-[10px]! font-semibold tracking-wide uppercase'>
-                    Assessment Reference
-                  </p>
-                  <p className='text-foreground/90 text-[13px] leading-relaxed font-semibold'>
-                    {intakeRecord.code?.trim() || `#${intakeRecord.id}`}
-                  </p>
-                </div>
+              <div className='space-y-1.5 text-left md:text-right'>
+                <p className='text-muted-foreground text-[10px]! font-semibold tracking-wide uppercase'>
+                  Intake Assessment Reference
+                </p>
+                <p className='text-foreground/90 text-[13px] leading-relaxed font-semibold'>
+                  {intakeRecord.code?.trim() || `#${intakeRecord.id}`}
+                </p>
               </div>
             </div>
           </div>
@@ -484,9 +415,9 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
                 }}
               />
             </div>
-            <div className='text-muted-foreground flex items-center justify-between text-[12px] font-medium'>
+            <div className='text-muted-foreground flex items-center justify-between text-[12px] font-semibold'>
               <span>
-                Required answered: {progress?.answered_required ?? 0}/
+                Required Answered: {progress?.answered_required ?? 0}/
                 {progress?.total_required ?? 0}
               </span>
               <span>{Math.round(completionRate)}%</span>

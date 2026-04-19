@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
-import { ArrowLeftIcon, PencilIcon } from 'lucide-react';
+import { PencilIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -310,16 +310,6 @@ export default function IntakeDetailPanel({
                 </Link>
               </Button>
             ) : null}
-            <Button
-              variant='outline'
-              className='bg-background hover:bg-muted h-10 w-full gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold sm:w-auto'
-              asChild
-            >
-              <Link href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST}>
-                <ArrowLeftIcon className='size-3.5' />
-                Back to Intake Queue
-              </Link>
-            </Button>
           </div>
         </div>
 

@@ -320,7 +320,7 @@ export default function EnrollmentRequestListTable() {
     },
     onSuccess: () => {
       toast.success('Enrollment request marked as contacted successfully.');
- 
+
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.ENROLLMENT_REQUESTS.LIST],
       });
@@ -478,8 +478,7 @@ export default function EnrollmentRequestListTable() {
               <TableEmptyStateRow
                 colSpan={visibleColumnCount}
                 title='No Enrollment Requests Found'
-                description='There are currently no enrollment requests in the table. When prospective clients request program enrollment, their requests will appear here for your review and action.'
-           
+                description='No enrollment requests found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
               />
             )}
 
@@ -562,7 +561,7 @@ export default function EnrollmentRequestListTable() {
                     </TableCell>
                   ) : null}
                   {showColumn('contactPhone') ? (
-                    <TableCell className='text-foreground/80 align-center tabular-nums'>
+                    <TableCell>
                       {request.phone?.trim() ? (
                         request.phone.trim()
                       ) : (
@@ -571,12 +570,12 @@ export default function EnrollmentRequestListTable() {
                     </TableCell>
                   ) : null}
                   {showColumn('requestedAt') ? (
-                    <TableCell className='text-foreground/80 align-center tabular-nums'>
+                    <TableCell>
                       {requestedAt ?? <TableCellEmpty label='Not set' />}
                     </TableCell>
                   ) : null}
                   {showColumn('status') ? (
-                    <TableCell className='align-center'>
+                    <TableCell>
                       {(() => {
                         const statusStyle = STATUS_STYLES[request.status];
                         const StatusIcon = statusStyle.icon;
@@ -593,7 +592,7 @@ export default function EnrollmentRequestListTable() {
                     </TableCell>
                   ) : null}
                   {showColumn('handledBy') ? (
-                    <TableCell className='align-center min-w-52 whitespace-normal'>
+                    <TableCell>
                       {request.handler ? (
                         <div className='flex items-start gap-3'>
                           <Avatar
@@ -631,7 +630,7 @@ export default function EnrollmentRequestListTable() {
                     </TableCell>
                   ) : null}
                   {showColumn('contactedAt') ? (
-                    <TableCell className='text-foreground/80 align-center tabular-nums'>
+                    <TableCell>
                       {contactedAt ?? (
                         <TableCellEmpty label='Not Contact Yet' />
                       )}
