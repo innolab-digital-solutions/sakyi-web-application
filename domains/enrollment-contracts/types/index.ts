@@ -27,6 +27,12 @@ export interface EnrollmentContractOnboardingIntake {
   client?: EnrollmentContractClient | null;
 }
 
+/** Linked program enrollment when one already exists for this contract. */
+export interface EnrollmentContractEnrollment {
+  id: number;
+  code: string;
+}
+
 export interface EnrollmentContract {
   id: number;
   code: string;
@@ -34,8 +40,15 @@ export interface EnrollmentContract {
   signed_by_name: string | null;
   signature_url: string | null;
   accepted_terms: boolean;
-  /** When present, an enrollment already exists for this contract (unique `enrollment_contract_id`). */
-  enrollment_id?: number | null;
+  enrollment?: EnrollmentContractEnrollment | null;
   onboarding_intake?: EnrollmentContractOnboardingIntake | null;
   timestamps: EnrollmentContractTimestamps;
+}
+
+/** Whether a program enrollment is already linked (hides “Create enrollment” in admin). */
+export function contractHasLinkedEnrollment(
+  contract: EnrollmentContract,
+): boolean {
+  const e = contract.enrollment;
+  return e != null && Number.isFinite(e.id) && e.id > 0;
 }

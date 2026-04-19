@@ -6,13 +6,13 @@ export type {
 export { ENROLLMENT_LIFECYCLE_STATUSES } from '../types/admin';
 export {
   createEnrollment,
+  type CreateEnrollmentPayload,
   getEnrollmentRecordById,
   patchEnrollmentCareTeam,
   patchEnrollmentNotes,
   patchEnrollmentSchedule,
+  type PatchEnrollmentSchedulePayload,
   postEnrollmentActivate,
   postEnrollmentCancel,
   postEnrollmentComplete,
-  type CreateEnrollmentPayload,
-  type PatchEnrollmentSchedulePayload,
 } from './admin.service';

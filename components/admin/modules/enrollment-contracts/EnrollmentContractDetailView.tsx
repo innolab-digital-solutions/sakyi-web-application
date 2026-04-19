@@ -15,9 +15,10 @@ import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { base } from '@/config/api/base';
 import { ROUTES } from '@/config/routes';
 import { getEnrollmentContractById } from '@/domains/enrollment-contracts/services';
-import type {
-  EnrollmentContract,
-  EnrollmentContractStatus,
+import {
+  type EnrollmentContract,
+  type EnrollmentContractStatus,
+  contractHasLinkedEnrollment,
 } from '@/domains/enrollment-contracts/types';
 import { getInitials } from '@/lib/utils/string';
 
@@ -116,10 +117,8 @@ export default function EnrollmentContractDetailView({
     ? resolveMediaUrl(data.signature_url) ?? data.signature_url.trim()
     : null;
 
-  const hasEnrollmentId =
-    data.enrollment_id != null &&
-    Number.isFinite(data.enrollment_id) &&
-    data.enrollment_id > 0;
+  const hasLinkedEnrollment = contractHasLinkedEnrollment(data);
+  const linkedEnrollmentId = data.enrollment?.id;
 
   return (
     <div className='space-y-6'>
@@ -310,18 +309,20 @@ export default function EnrollmentContractDetailView({
               Awaiting client signature on the mobile app.
             </p>
           ) : null}
-          {data.status === 'signed' && hasEnrollmentId ? (
+          {data.status === 'signed' &&
+          hasLinkedEnrollment &&
+          linkedEnrollmentId != null ? (
             <Button className='h-9' asChild>
               <Link
                 href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(
-                  String(data.enrollment_id),
+                  String(linkedEnrollmentId),
                 )}
               >
                 View enrollment
               </Link>
             </Button>
           ) : null}
-          {data.status === 'signed' && !hasEnrollmentId ? (
+          {data.status === 'signed' && !hasLinkedEnrollment ? (
             <Button
               type='button'
               className='h-9'

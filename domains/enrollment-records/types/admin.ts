@@ -11,8 +11,14 @@ export type EnrollmentLifecycleStatus =
 
 /** Care team row as returned on show / accepted on PATCH care-team. */
 export type EnrollmentTeamMemberPayload = {
-  user_id: number;
+  id: number;
   position: string;
+  user:{
+    id: number;
+    name: string;
+    email: string;
+    picture_url: string | null;
+  }
 };
 
 export interface AdminEnrollment {
@@ -52,6 +58,5 @@ export interface AdminEnrollment {
     created_at: string | null;
     updated_at: string | null;
   };
-  /** Present on detail; used for care-team PATCH (full roster). */
   team_members?: EnrollmentTeamMemberPayload[];
 }

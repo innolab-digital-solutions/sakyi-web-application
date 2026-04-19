@@ -20,7 +20,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ROUTES } from '@/config/routes';
-import type { EnrollmentContract } from '@/domains/enrollment-contracts/types';
+import {
+  type EnrollmentContract,
+  contractHasLinkedEnrollment,
+} from '@/domains/enrollment-contracts/types';
 
 function getContractReference(contract: EnrollmentContract): string {
   const code = contract.code?.trim();
@@ -42,16 +45,12 @@ export type EnrollmentContractRowActionsProps = {
   onOpenCreateEnrollment: (contractId: number) => void;
 };
 
-type PrimaryAction = 'createEnrollment' | 'viewEnrollment' | 'viewDetail';
+type PrimaryAction = 'createEnrollment' | 'viewDetail';
 
 function getPrimaryAction(contract: EnrollmentContract): PrimaryAction {
   const isSigned = contract.status === 'signed';
-  const hasEnrollment =
-    contract.enrollment_id != null &&
-    Number.isFinite(contract.enrollment_id) &&
-    contract.enrollment_id > 0;
+  const hasEnrollment = contractHasLinkedEnrollment(contract);
   if (isSigned && !hasEnrollment) return 'createEnrollment';
-  if (isSigned && hasEnrollment) return 'viewEnrollment';
   return 'viewDetail';
 }
 
@@ -63,11 +62,9 @@ export default function EnrollmentContractRowActions({
   const referenceText = getContractReference(contract);
   const primary = getPrimaryAction(contract);
   const isSigned = contract.status === 'signed';
-  const hasEnrollment =
-    contract.enrollment_id != null &&
-    Number.isFinite(contract.enrollment_id) &&
-    contract.enrollment_id > 0;
+  const hasEnrollment = contractHasLinkedEnrollment(contract);
   const showViewEnrollment = isSigned && hasEnrollment;
+  const enrollmentRecordId = contract.enrollment?.id;
   const showCreateEnrollment = isSigned && !hasEnrollment;
 
   const handleCopyReference = () => {
@@ -84,8 +81,8 @@ export default function EnrollmentContractRowActions({
   const showDetailInMenu = primary !== 'viewDetail';
   const showCreateInMenu =
     primary !== 'createEnrollment' && showCreateEnrollment;
-  const showEnrollmentInMenu =
-    primary !== 'viewEnrollment' && showViewEnrollment;
+  /** Enrollment record stays under ⋯; primary is always contract “View detail” once not “Create enrollment”. */
+  const showEnrollmentInMenu = showViewEnrollment;
   const hasMenuAfterCopy =
     showDetailInMenu || showCreateInMenu || showEnrollmentInMenu;
 
@@ -119,24 +116,6 @@ export default function EnrollmentContractRowActions({
         >
           <FileSignatureIcon className='size-3.5 shrink-0' />
           Create enrollment
-        </Button>
-      ) : null}
-      {primary === 'viewEnrollment' ? (
-        <Button
-          variant='outline'
-          size='sm'
-          className={viewDetailButtonClass}
-          asChild
-        >
-          <Link
-            href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(
-              String(contract.enrollment_id),
-            )}
-            className='inline-flex items-center gap-1.5'
-          >
-            <UserRoundIcon className='size-3.5 shrink-0' />
-            View enrollment
-          </Link>
         </Button>
       ) : null}
 
@@ -180,12 +159,12 @@ export default function EnrollmentContractRowActions({
                   </Link>
                 </DropdownMenuItem>
               ) : null}
-              {showEnrollmentInMenu ? (
+              {showEnrollmentInMenu && enrollmentRecordId != null ? (
                 <DropdownMenuItem asChild className='cursor-pointer'>
                   <Link
                     className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
                     href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(
-                      String(contract.enrollment_id),
+                      String(enrollmentRecordId),
                     )}
                   >
                     <UserRoundIcon className='size-3.5 shrink-0' />

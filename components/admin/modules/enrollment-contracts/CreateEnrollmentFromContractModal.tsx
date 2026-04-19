@@ -36,7 +36,10 @@ import { ENDPOINTS } from '@/config/api/endpoints';
 import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
 import { ROUTES } from '@/config/routes';
 import { getEnrollmentContractById } from '@/domains/enrollment-contracts/services';
-import type { EnrollmentContract } from '@/domains/enrollment-contracts/types';
+import {
+  contractHasLinkedEnrollment,
+  type EnrollmentContract,
+} from '@/domains/enrollment-contracts/types';
 import { createEnrollment } from '@/domains/enrollment-records/services';
 import type { TeamMember } from '@/domains/lookup/types/team-members';
 import { http } from '@/lib/api/client';
@@ -194,9 +197,7 @@ export default function CreateEnrollmentFromContractModal({
       contractId != null &&
       Boolean(contract) &&
       contract?.status === 'signed' &&
-      (contract?.enrollment_id == null ||
-        !Number.isFinite(contract.enrollment_id) ||
-        contract.enrollment_id <= 0),
+      !contractHasLinkedEnrollment(contract),
     queryFn: async () => {
       const res = await http.get<TeamMember[]>(LOOKUP_ENDPOINTS.TEAM_MEMBERS);
       return res.status === 'success' ? res.data : [];
@@ -442,9 +443,7 @@ export default function CreateEnrollmentFromContractModal({
   const eligible =
     contract &&
     contract.status === 'signed' &&
-    (contract.enrollment_id == null ||
-      !Number.isFinite(contract.enrollment_id) ||
-      contract.enrollment_id <= 0);
+    !contractHasLinkedEnrollment(contract);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
