@@ -5,6 +5,7 @@ import { format, parseISO } from 'date-fns';
 import {
   CalendarIcon,
   CheckCircle2Icon,
+  EyeIcon,
   MoreHorizontalIcon,
   PlayIcon,
   StickyNoteIcon,
@@ -21,7 +22,6 @@ import ComboboxField, {
 } from '@/components/shared/form/ComboBoxField';
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -31,6 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -44,6 +45,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -52,7 +54,6 @@ import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
 import { ROUTES } from '@/config/routes';
-import type { AdminEnrollment } from '@/domains/enrollment-records/types/admin';
 import {
   getEnrollmentRecordById,
   patchEnrollmentCareTeam,
@@ -62,6 +63,7 @@ import {
   postEnrollmentCancel,
   postEnrollmentComplete,
 } from '@/domains/enrollment-records/services';
+import type { AdminEnrollment } from '@/domains/enrollment-records/types/admin';
 import type { TeamMember } from '@/domains/lookup/types/team-members';
 import { http } from '@/lib/api/client';
 import { getInitials } from '@/lib/utils/string';
@@ -70,6 +72,12 @@ const LIST_QUERY_KEY = [
   'table',
   ENDPOINTS.ADMIN.MODULES.ENROLLMENT_RECORDS.LIST,
 ] as const;
+
+const viewDetailButtonClass =
+  'normal-case bg-background hover:bg-muted text-foreground h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold';
+
+const moreTriggerClass =
+  'bg-background hover:bg-muted text-foreground/80 size-9 shrink-0 rounded-md border-neutral-300';
 
 function normalizeStatus(status: string | undefined): string {
   return (status ?? '').trim().toLowerCase();
@@ -509,87 +517,92 @@ export default function EnrollmentRecordRowActions({
 
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            type='button'
-            variant='outline'
-            size='sm'
-            className='h-9 gap-1 rounded-md px-2 text-[13px] font-semibold'
-            aria-label='Row actions'
+      <div className='flex items-center justify-end gap-1.5'>
+        <Button variant='outline' size='sm' className={viewDetailButtonClass} asChild>
+          <Link
+            href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(String(row.id))}
+            className='inline-flex items-center gap-1.5'
           >
-            <MoreHorizontalIcon className='size-4' />
-            Actions
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align='end' className='min-w-48'>
-          <DropdownMenuItem asChild className='cursor-pointer'>
-            <Link
-              href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(
-                String(row.id),
-              )}
+            <EyeIcon className='size-3.5 shrink-0' />
+            View detail
+          </Link>
+        </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type='button'
+              variant='outline'
+              size='icon'
+              className={moreTriggerClass}
+              aria-label='More actions'
             >
-              View detail
-            </Link>
-          </DropdownMenuItem>
-          {mutable ? (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className='flex cursor-pointer items-center gap-2'
-                onClick={() => setScheduleOpen(true)}
-              >
-                <CalendarIcon className='size-3.5 shrink-0' />
-                Edit schedule
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className='flex cursor-pointer items-center gap-2'
-                onClick={() => setNotesOpen(true)}
-              >
-                <StickyNoteIcon className='size-3.5 shrink-0' />
-                Edit notes
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className='flex cursor-pointer items-center gap-2'
-                onClick={() => setCareTeamOpen(true)}
-              >
-                <UserCogIcon className='size-3.5 shrink-0' />
-                Edit care team
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              {isScheduled ? (
+              <MoreHorizontalIcon className='size-4' />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align='end' className='min-w-48'>
+            <DropdownMenuLabel className='text-foreground/70 space-y-1 px-2 py-1.5 text-[11px]! font-bold tracking-wide uppercase'>
+              More Options
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {mutable ? (
+              <>
                 <DropdownMenuItem
-                  className='flex cursor-pointer items-center gap-2'
-                  onClick={() =>
-                    setConfirm({ kind: 'activate', row })
-                  }
+                  className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                  onClick={() => setScheduleOpen(true)}
                 >
-                  <PlayIcon className='size-3.5 shrink-0' />
-                  Activate
+                  <CalendarIcon className='size-3.5 shrink-0' />
+                  Edit schedule
                 </DropdownMenuItem>
-              ) : null}
-              {isActive ? (
                 <DropdownMenuItem
-                  className='flex cursor-pointer items-center gap-2'
-                  onClick={() =>
-                    setConfirm({ kind: 'complete', row })
-                  }
+                  className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                  onClick={() => setNotesOpen(true)}
                 >
-                  <CheckCircle2Icon className='size-3.5 shrink-0' />
-                  Mark complete
+                  <StickyNoteIcon className='size-3.5 shrink-0' />
+                  Edit notes
                 </DropdownMenuItem>
-              ) : null}
-              <DropdownMenuItem
-                className='text-destructive focus:text-destructive flex cursor-pointer items-center gap-2'
-                onClick={() => setConfirm({ kind: 'cancel', row })}
-              >
-                <XCircleIcon className='size-3.5 shrink-0' />
-                Cancel enrollment
+                <DropdownMenuItem
+                  className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                  onClick={() => setCareTeamOpen(true)}
+                >
+                  <UserCogIcon className='size-3.5 shrink-0' />
+                  Edit care team
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {isScheduled ? (
+                  <DropdownMenuItem
+                    className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                    onClick={() => setConfirm({ kind: 'activate', row })}
+                  >
+                    <PlayIcon className='size-3.5 shrink-0' />
+                    Activate
+                  </DropdownMenuItem>
+                ) : null}
+                {isActive ? (
+                  <DropdownMenuItem
+                    className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                    onClick={() => setConfirm({ kind: 'complete', row })}
+                  >
+                    <CheckCircle2Icon className='size-3.5 shrink-0' />
+                    Mark complete
+                  </DropdownMenuItem>
+                ) : null}
+                <DropdownMenuItem
+                  className='text-destructive focus:text-destructive flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                  onClick={() => setConfirm({ kind: 'cancel', row })}
+                >
+                  <XCircleIcon className='size-3.5 shrink-0' />
+                  Cancel enrollment
+                </DropdownMenuItem>
+              </>
+            ) : (
+              <DropdownMenuItem disabled className='text-[13px]! font-medium'>
+                No additional actions
               </DropdownMenuItem>
-            </>
-          ) : null}
-        </DropdownMenuContent>
-      </DropdownMenu>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       <Dialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
         <DialogContent className='max-w-md'>

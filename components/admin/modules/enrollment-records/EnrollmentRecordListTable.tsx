@@ -4,12 +4,11 @@ import { format, parseISO } from 'date-fns';
 import {
   CalendarIcon,
   CheckCircle2Icon,
-  ClipboardListIcon,
   PlayIcon,
   XCircleIcon,
 } from 'lucide-react';
 import Image from 'next/image';
-import { type ComponentType, useMemo, useState } from 'react';
+import { type ComponentType, useEffect, useMemo, useState } from 'react';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import EnrollmentRecordFilters from '@/components/admin/modules/enrollment-records/EnrollmentRecordFilters';
@@ -37,17 +36,108 @@ import { getInitials } from '@/lib/utils/string';
 
 const LIST_ENDPOINT = ENDPOINTS.ADMIN.MODULES.ENROLLMENT_RECORDS.LIST;
 
-const COLUMN_COUNT = 8;
+type EnrollmentRecordColumnKey =
+  | 'reference'
+  | 'client'
+  | 'program'
+  | 'status'
+  | 'startsAt'
+  | 'endsAt'
+  | 'updatedAt'
+  | 'intakeReference'
+  | 'contract'
+  | 'createdAt'
+  | 'actions';
 
-const SKELETON_WIDTHS = [
-  'w-24',
-  'w-44',
-  'w-48',
-  'w-24',
-  'w-28',
-  'w-28',
-  'w-28',
-  'w-32',
+type EnrollmentRecordColumnDefinition = {
+  key: EnrollmentRecordColumnKey;
+  label: string;
+  headerClassName: string;
+  skeletonWidth: string;
+};
+
+/** Bumped when default visibility changes. */
+const ENROLLMENT_RECORD_VISIBLE_COLUMNS_STORAGE_KEY =
+  'sakyi:admin:enrollment-records:visible-columns:v1';
+
+/** Default triage set; staff can surface intake, contract, and created from Columns. */
+const DEFAULT_VISIBLE_COLUMN_KEYS: readonly EnrollmentRecordColumnKey[] = [
+  'reference',
+  'client',
+  'program',
+  'status',
+  'startsAt',
+  'endsAt',
+  'actions',
+];
+
+const ENROLLMENT_RECORD_COLUMNS: readonly EnrollmentRecordColumnDefinition[] = [
+  {
+    key: 'reference',
+    label: 'Reference',
+    headerClassName: '',
+    skeletonWidth: 'w-28',
+  },
+  {
+    key: 'client',
+    label: 'Client',
+    headerClassName: '',
+    skeletonWidth: 'w-44',
+  },
+  {
+    key: 'program',
+    label: 'Program',
+    headerClassName: '',
+    skeletonWidth: 'w-48',
+  },
+  {
+    key: 'status',
+    label: 'Status',
+    headerClassName: '',
+    skeletonWidth: 'w-28',
+  },
+  {
+    key: 'startsAt',
+    label: 'Starts At',
+    headerClassName: '',
+    skeletonWidth: 'w-28',
+  },
+  {
+    key: 'endsAt',
+    label: 'Ends At',
+    headerClassName: '',
+    skeletonWidth: 'w-28',
+  },
+  {
+    key: 'updatedAt',
+    label: 'Updated At',
+    headerClassName: '',
+    skeletonWidth: 'w-28',
+  },
+  {
+    key: 'intakeReference',
+    label: 'Intake reference',
+    headerClassName: '',
+    skeletonWidth: 'w-32',
+  },
+  {
+    key: 'contract',
+    label: 'Contract',
+    headerClassName: '',
+    skeletonWidth: 'w-32',
+  },
+  {
+    key: 'createdAt',
+    label: 'Created At',
+    headerClassName: '',
+    skeletonWidth: 'w-28',
+  },
+  {
+    key: 'actions',
+    label: 'Actions',
+    headerClassName: 'text-end',
+    skeletonWidth: 'w-32',
+  },
 ] as const;
 
 const STATUS_LABEL: Record<EnrollmentLifecycleStatus, string> = {
@@ -175,6 +265,36 @@ function getProgramCode(row: AdminEnrollment): string {
 }
 
 export default function EnrollmentRecordListTable() {
+  const [visibleColumnKeys, setVisibleColumnKeys] = useState<
+    EnrollmentRecordColumnKey[]
+  >(() => {
+    const fallback = [...DEFAULT_VISIBLE_COLUMN_KEYS];
+    if (typeof window === 'undefined') return fallback;
+
+    const raw = window.localStorage.getItem(
+      ENROLLMENT_RECORD_VISIBLE_COLUMNS_STORAGE_KEY,
+    );
+    if (!raw) return fallback;
+
+    try {
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return fallback;
+
+      const allowed = new Set(
+        ENROLLMENT_RECORD_COLUMNS.map((column) => column.key),
+      );
+      const next = parsed.filter(
+        (value): value is EnrollmentRecordColumnKey =>
+          typeof value === 'string' &&
+          allowed.has(value as EnrollmentRecordColumnKey),
+      );
+
+      return next.length > 0 ? next : fallback;
+    } catch {
+      return fallback;
+    }
+  });
+
   const { rows, controls } = useTable<AdminEnrollment>(LIST_ENDPOINT, {
     params: {
       sync: true,
@@ -199,6 +319,23 @@ export default function EnrollmentRecordListTable() {
     return 'all' as const;
   }, [controls.params.values.status]);
 
+  const visibleColumns = useMemo(
+    () =>
+      ENROLLMENT_RECORD_COLUMNS.filter((column) =>
+        visibleColumnKeys.includes(column.key),
+      ),
+    [visibleColumnKeys],
+  );
+  const visibleColumnSet = useMemo(
+    () => new Set(visibleColumnKeys),
+    [visibleColumnKeys],
+  );
+  const visibleColumnCount = Math.max(1, visibleColumns.length);
+  const visibleSkeletonWidths = useMemo(
+    () => visibleColumns.map((column) => column.skeletonWidth),
+    [visibleColumns],
+  );
+
   const { query } = controls;
   const showSkeleton = query.isPending && !query.data;
   const errorMessage =
@@ -206,44 +343,77 @@ export default function EnrollmentRecordListTable() {
       ? query.error.message
       : 'Could not load enrollment records.';
 
+  useEffect(() => {
+    window.localStorage.setItem(
+      ENROLLMENT_RECORD_VISIBLE_COLUMNS_STORAGE_KEY,
+      JSON.stringify(visibleColumnKeys),
+    );
+  }, [visibleColumnKeys]);
+
+  const toggleColumn = (columnKey: string) => {
+    setVisibleColumnKeys((current) => {
+      const nextColumnKey = ENROLLMENT_RECORD_COLUMNS.find(
+        (column) => column.key === columnKey,
+      )?.key;
+      if (!nextColumnKey) return current;
+
+      if (current.includes(nextColumnKey)) {
+        if (current.length === 1) return current;
+        return current.filter((key) => key !== nextColumnKey);
+      }
+
+      return ENROLLMENT_RECORD_COLUMNS.map((column) => column.key).filter(
+        (key) => key === nextColumnKey || current.includes(key),
+      );
+    });
+  };
+
+  const resetColumns = () => {
+    setVisibleColumnKeys([...DEFAULT_VISIBLE_COLUMN_KEYS]);
+  };
+
+  const showColumn = (columnKey: EnrollmentRecordColumnKey) =>
+    visibleColumnSet.has(columnKey);
+
   return (
     <TableListShell
       controls={controls}
-      searchPlaceholder='Search reference, client, program, or contract code'
+      searchPlaceholder='Search ...'
       filters={
         <EnrollmentRecordFilters
           statusFilter={statusFilter}
           onClearStatus={() => controls.params.clear(['status'])}
           onSetStatus={(status) => controls.params.set({ status })}
+          columns={ENROLLMENT_RECORD_COLUMNS}
+          visibleColumnKeys={visibleColumnKeys}
+          onToggleColumn={toggleColumn}
+          onResetColumns={resetColumns}
         />
       }
     >
       <Table className='w-full min-w-7xl'>
         <TableHeader className='bg-muted/50 [&_tr]:border-border'>
           <TableRow className='border-border hover:bg-transparent'>
-            <TableHead>Reference</TableHead>
-            <TableHead>Client</TableHead>
-            <TableHead>Program</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className='tabular-nums'>Starts</TableHead>
-            <TableHead className='tabular-nums'>Ends</TableHead>
-            <TableHead className='tabular-nums'>Updated</TableHead>
-            <TableHead className='text-end'>Actions</TableHead>
+            {visibleColumns.map((column) => (
+              <TableHead key={column.key} className={column.headerClassName}>
+                {column.label}
+              </TableHead>
+            ))}
           </TableRow>
         </TableHeader>
         <TableBody>
           {showSkeleton && (
             <TableSkeletonRows
               rowCount={3}
-              columnCount={COLUMN_COUNT}
-              cellWidths={[...SKELETON_WIDTHS]}
+              columnCount={visibleColumnCount}
+              cellWidths={[...visibleSkeletonWidths]}
             />
           )}
 
           {!showSkeleton && query.isError && (
             <TableRow>
               <TableCell
-                colSpan={COLUMN_COUNT}
+                colSpan={visibleColumnCount}
                 className='text-destructive py-8 text-center text-sm'
               >
                 {errorMessage}
@@ -256,10 +426,9 @@ export default function EnrollmentRecordListTable() {
             query.data?.status === 'success' &&
             rows.length === 0 && (
               <TableEmptyStateRow
-                colSpan={COLUMN_COUNT}
-                icon={ClipboardListIcon}
-                title='No enrollment records'
-                description='Active and historical program enrollments appear here once clients complete intake and contracts.'
+                colSpan={visibleColumnCount}
+                title='No Enrollment Records Found'
+                description='No enrollment records found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
               />
             )}
 
@@ -273,6 +442,7 @@ export default function EnrollmentRecordListTable() {
               const programLabel = getProgramLabel(row);
               const programCode = getProgramCode(row);
               const updatedAt = formatDateCell(row.timestamps?.updated_at);
+              const createdAt = formatDateCell(row.timestamps?.created_at);
               const startsAt = formatDateCell(row.starts_at);
               const endsAt = formatDateCell(row.ends_at);
               const lifecycle = normalizeEnrollmentStatus(row.status);
@@ -283,88 +453,131 @@ export default function EnrollmentRecordListTable() {
 
               return (
                 <TableRow key={row.id}>
-                  <TableCell className='align-center min-w-36 whitespace-normal'>
-                    <p className='text-foreground text-[13px] font-semibold'>
-                      {getEnrollmentReference(row)}
-                    </p>
-                  </TableCell>
-                  <TableCell className='align-center whitespace-normal'>
-                    <div className='flex items-start gap-3'>
-                      <Avatar
-                        size='default'
-                        className='mt-0.5 shrink-0'
-                        aria-hidden
-                      >
-                        {pictureSrc ? (
-                          <AvatarImage src={pictureSrc} alt='' />
-                        ) : null}
-                        <AvatarFallback className='text-xs'>
-                          {getInitials(row.client?.name ?? '', 2) || '?'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className='min-w-0 flex-1 space-y-1'>
-                        <p className='text-foreground text-[13px] font-semibold'>
-                          {row.client?.name?.trim() ? (
-                            row.client.name.trim()
-                          ) : (
-                            <TableCellEmpty label='Name not provided' />
-                          )}
-                        </p>
-                        <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
-                          {row.client?.email?.trim() ?? 'No email on file'}
-                        </p>
+                  {showColumn('reference') ? (
+                    <TableCell>
+                      <p className='text-foreground text-[13px] font-semibold'>
+                        {getEnrollmentReference(row)}
+                      </p>
+                    </TableCell>
+                  ) : null}
+                  {showColumn('client') ? (
+                    <TableCell>
+                      <div className='flex items-start gap-3'>
+                        <Avatar
+                          size='default'
+                          className='mt-0.5 shrink-0'
+                          aria-hidden
+                        >
+                          {pictureSrc ? (
+                            <AvatarImage src={pictureSrc} alt='' />
+                          ) : null}
+                          <AvatarFallback className='text-xs'>
+                            {getInitials(row.client?.name ?? '', 2) || '?'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className='min-w-0 flex-1 space-y-1'>
+                          <p className='text-foreground text-[13px] font-semibold'>
+                            {row.client?.name?.trim() ? (
+                              row.client.name.trim()
+                            ) : (
+                              <TableCellEmpty label='Name not provided' />
+                            )}
+                          </p>
+                          <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
+                            {row.client?.email?.trim() ?? 'No email on file'}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className='align-center min-w-72 whitespace-normal'>
-                    <div className='flex items-start gap-3'>
-                      <ProgramThumbnail
-                        thumbnailUrl={row.program?.thumbnail_url}
-                      />
-                      <div className='min-w-0 flex-1 space-y-1'>
-                        <p className='text-foreground text-[13px] font-semibold'>
-                          {programLabel !== '—' ? (
-                            programLabel
-                          ) : (
-                            <TableCellEmpty label='No program linked' />
-                          )}
-                        </p>
-                        <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
-                          {programCode !== '—' ? (
-                            programCode
-                          ) : (
-                            <TableCellEmpty label='No program code' />
-                          )}
-                        </p>
+                    </TableCell>
+                  ) : null}
+                  {showColumn('program') ? (
+                    <TableCell>
+                      <div className='flex items-start gap-3'>
+                        <ProgramThumbnail
+                          thumbnailUrl={row.program?.thumbnail_url}
+                        />
+                        <div className='min-w-0 flex-1 space-y-1'>
+                          <p className='text-foreground text-[13px] font-semibold'>
+                            {programLabel !== '—' ? (
+                              programLabel
+                            ) : (
+                              <TableCellEmpty label='No program linked' />
+                            )}
+                          </p>
+                          <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
+                            {programCode !== '—' ? (
+                              programCode
+                            ) : (
+                              <TableCellEmpty label='No program code' />
+                            )}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className='align-center'>
-                    {lifecycle && statusStyle && StatusIcon ? (
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
-                      >
-                        <StatusIcon className='size-3.5 shrink-0' />
-                        {STATUS_LABEL[lifecycle]}
-                      </span>
-                    ) : (
-                      <span className='border-border bg-muted/60 text-foreground inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold'>
-                        {(row.status ?? 'unknown').trim() || '—'}
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className='text-foreground/80 align-center text-[13px] tabular-nums'>
-                    {startsAt ?? <TableCellEmpty label='—' />}
-                  </TableCell>
-                  <TableCell className='text-foreground/80 align-center text-[13px] tabular-nums'>
-                    {endsAt ?? <TableCellEmpty label='—' />}
-                  </TableCell>
-                  <TableCell className='text-foreground/80 align-center text-[13px] tabular-nums'>
-                    {updatedAt ?? <TableCellEmpty label='—' />}
-                  </TableCell>
-                  <TableCell className='align-center text-end'>
-                    <EnrollmentRecordRowActions row={row} />
-                  </TableCell>
+                    </TableCell>
+                  ) : null}
+                  {showColumn('status') ? (
+                    <TableCell>
+                      {lifecycle && statusStyle && StatusIcon ? (
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
+                        >
+                          <StatusIcon className='size-3.5 shrink-0' />
+                          {STATUS_LABEL[lifecycle]}
+                        </span>
+                      ) : (
+                        <span className='border-border bg-muted/60 text-foreground inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold'>
+                          {(row.status ?? 'unknown').trim() || '—'}
+                        </span>
+                      )}
+                    </TableCell>
+                  ) : null}
+                  {showColumn('startsAt') ? (
+                    <TableCell>
+                      {startsAt ?? <TableCellEmpty label='No start date' />}
+                    </TableCell>
+                  ) : null}
+                  {showColumn('endsAt') ? (
+                    <TableCell>
+                      {endsAt ?? <TableCellEmpty label='No end date' />}
+                    </TableCell>
+                  ) : null}
+                  {showColumn('updatedAt') ? (
+                    <TableCell>
+                      {updatedAt ?? <TableCellEmpty label='No update date' />}
+                    </TableCell>
+                  ) : null}
+                  {showColumn('intakeReference') ? (
+                    <TableCell>
+                      <p className='text-foreground text-[13px] font-semibold'>
+                        {row.onboarding_intake?.code?.trim() ? (
+                          row.onboarding_intake.code.trim()
+                        ) : (
+                          <TableCellEmpty label='Not linked' />
+                        )}
+                      </p>
+                    </TableCell>
+                  ) : null}
+                  {showColumn('contract') ? (
+                    <TableCell>
+                      <p className='text-foreground text-[13px] font-semibold'>
+                        {row.enrollment_contract?.code?.trim() ? (
+                          row.enrollment_contract.code.trim()
+                        ) : (
+                          <TableCellEmpty label='Not linked' />
+                        )}
+                      </p>
+                    </TableCell>
+                  ) : null}
+                  {showColumn('createdAt') ? (
+                    <TableCell>
+                      {createdAt ?? <TableCellEmpty label='—' />}
+                    </TableCell>
+                  ) : null}
+                  {showColumn('actions') ? (
+                    <TableCell className='align-center text-end whitespace-nowrap'>
+                      <EnrollmentRecordRowActions row={row} />
+                    </TableCell>
+                  ) : null}
                 </TableRow>
               );
             })}

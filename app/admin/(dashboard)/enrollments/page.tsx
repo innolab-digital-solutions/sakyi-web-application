@@ -7,7 +7,7 @@ import EnrollmentRecordListTable from '@/components/admin/modules/enrollment-rec
 export const metadata: Metadata = {
   title: 'Enrollment Records | SaKyi Admin',
   description:
-    'Browse program enrollments: client and program context, status, key dates, and links to related intake and contract records.',
+    'Browse, search, and manage all program enrollment records. Track each client’s enrollment status and key dates. Quickly find specific enrollments and monitor client progress from intake through completion with flexible filters and customizable columns.',
 };
 
 export default function EnrollmentRecordsPage() {
@@ -15,7 +15,7 @@ export default function EnrollmentRecordsPage() {
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Enrollment Records'
-        description='Track every program enrollment after intake and contract: who is enrolled, in which program, current status, and start and end dates. Search by reference, client, or program details.'
+        description='Browse, search, and manage all program enrollment records. Track each client’s enrollment status and key dates. Quickly find specific enrollments and monitor client progress from intake through completion with flexible filters and customizable columns.'
       />
 
       <Suspense
