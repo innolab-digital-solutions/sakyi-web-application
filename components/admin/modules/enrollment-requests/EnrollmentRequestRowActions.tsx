@@ -46,6 +46,15 @@ function getRequestReference(request: EnrollmentRequestResource): string {
   return `#${request.id}`;
 }
 
+const viewDetailButtonClass =
+  'normal-case bg-background hover:bg-muted text-foreground h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold';
+
+const startIntakePrimaryClass =
+  'normal-case h-9 shrink-0 gap-1.5 px-2.5 text-[13px]! font-semibold';
+
+const moreTriggerClass =
+  'bg-background hover:bg-muted text-foreground/80 size-9 shrink-0 rounded-md border-neutral-300';
+
 export type EnrollmentRequestRowActionsProps = {
   request: EnrollmentRequestResource;
   onStartIntake: () => void;
@@ -54,7 +63,9 @@ export type EnrollmentRequestRowActionsProps = {
   isUpdatingStatus: boolean;
 };
 
-/** Matches {@link EnrollmentRecordRowActions} trigger + menu pattern. */
+type PrimaryAction = 'startIntake' | 'viewDetail';
+
+/** Primary mirrors intake/contracts: start intake when available (solid primary); otherwise outline View detail. */
 export default function EnrollmentRequestRowActions({
   request,
   onStartIntake,
@@ -64,8 +75,11 @@ export default function EnrollmentRequestRowActions({
 }: EnrollmentRequestRowActionsProps) {
   const showStartIntake = canStartIntake(request);
   const showMarkContacted = canMarkAsContacted(request);
-  const hasSecondary = showStartIntake || showMarkContacted;
+  const primary: PrimaryAction = showStartIntake ? 'startIntake' : 'viewDetail';
   const referenceText = getRequestReference(request);
+
+  const showViewDetailInMenu = primary === 'startIntake';
+  const hasMenuAfterCopy = showViewDetailInMenu || showMarkContacted;
 
   const handleCopyReference = () => {
     void (async () => {
@@ -79,72 +93,87 @@ export default function EnrollmentRequestRowActions({
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <div className='flex items-center justify-end gap-1.5'>
+      {primary === 'startIntake' ? (
         <Button
           type='button'
-          variant='outline'
+          variant='default'
           size='sm'
-          className='bg-background hover:bg-muted text-foreground/80 h-9 w-full gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold sm:w-auto'
-          aria-label='Row actions'
+          className={startIntakePrimaryClass}
+          disabled={isStartingIntake}
+          onClick={() => onStartIntake()}
         >
-          <MoreHorizontalIcon className='size-4' />
+          <ClipboardListIcon className='size-3.5 shrink-0' />
+          Start intake
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align='end' className='min-w-52'>
-        <DropdownMenuLabel className='text-foreground/90 space-y-1 px-2 py-1.5 text-xs font-semibold tracking-wide'>
-          <span className='text-muted-foreground block font-medium tracking-normal capitalize'>
-            Enrollment Request Code
-          </span>
-          <span className='text-foreground/80 text-xs tracking-tight'>
-            {referenceText}
-          </span>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild className='cursor-pointer'>
+      ) : (
+        <Button variant='outline' size='sm' className={viewDetailButtonClass} asChild>
           <Link
-            className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
             href={ROUTES.ADMIN.MODULES.ENROLLMENT_REQUESTS.DETAIL(
               String(request.id),
             )}
+            className='inline-flex items-center gap-1.5'
           >
             <EyeIcon className='size-3.5 shrink-0' />
             View detail
           </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-          onClick={handleCopyReference}
-        >
-          <ClipboardCopyIcon className='size-3.5 shrink-0' />
-          Copy reference
-        </DropdownMenuItem>
-        {hasSecondary ? (
-          <>
-            <DropdownMenuSeparator />
-            {showStartIntake ? (
-              <DropdownMenuItem
-                className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-                disabled={isStartingIntake}
-                onClick={() => onStartIntake()}
-              >
-                <ClipboardListIcon className='size-3.5 shrink-0' />
-                Start intake
-              </DropdownMenuItem>
-            ) : null}
-            {showMarkContacted ? (
-              <DropdownMenuItem
-                className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-                disabled={isUpdatingStatus}
-                onClick={() => onMarkContacted()}
-              >
-                <PhoneCallIcon className='size-3.5 shrink-0' />
-                Mark as contacted
-              </DropdownMenuItem>
-            ) : null}
-          </>
-        ) : null}
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </Button>
+      )}
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type='button'
+            variant='outline'
+            size='icon'
+            className={moreTriggerClass}
+            aria-label='More actions'
+          >
+            <MoreHorizontalIcon className='size-4' />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align='end' className='min-w-52'>
+        <DropdownMenuLabel className='text-foreground/70 space-y-1 px-2 py-1.5 text-[11px]! font-bold tracking-wide uppercase'>
+More Options
+</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+            onClick={handleCopyReference}
+          >
+            <ClipboardCopyIcon className='size-3.5 shrink-0' />
+            Copy reference
+          </DropdownMenuItem>
+          {hasMenuAfterCopy ? (
+            <>
+              <DropdownMenuSeparator />
+              {showViewDetailInMenu ? (
+                <DropdownMenuItem asChild className='cursor-pointer'>
+                  <Link
+                    className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                    href={ROUTES.ADMIN.MODULES.ENROLLMENT_REQUESTS.DETAIL(
+                      String(request.id),
+                    )}
+                  >
+                    <EyeIcon className='size-3.5 shrink-0' />
+                    View detail
+                  </Link>
+                </DropdownMenuItem>
+              ) : null}
+              {showMarkContacted ? (
+                <DropdownMenuItem
+                  className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                  disabled={isUpdatingStatus}
+                  onClick={() => onMarkContacted()}
+                >
+                  <PhoneCallIcon className='size-3.5 shrink-0' />
+                  Mark as contacted
+                </DropdownMenuItem>
+              ) : null}
+            </>
+          ) : null}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }

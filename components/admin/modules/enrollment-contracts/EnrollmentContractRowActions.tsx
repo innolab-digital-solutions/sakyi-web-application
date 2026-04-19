@@ -3,9 +3,9 @@
 import {
   ClipboardCopyIcon,
   EyeIcon,
+  FileSignatureIcon,
   MoreHorizontalIcon,
-  SendHorizontal,
-  SquarePenIcon,
+  UserRoundIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -20,22 +20,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ROUTES } from '@/config/routes';
-import type { OnboardingIntakeData } from '@/domains/intake-assessments/types';
+import type { EnrollmentContract } from '@/domains/enrollment-contracts/types';
 
-function getIntakeReference(intake: OnboardingIntakeData): string {
-  const code = intake.code?.trim();
+function getContractReference(contract: EnrollmentContract): string {
+  const code = contract.code?.trim();
   if (code) return code;
-  return `#${intake.id}`;
-}
-
-function canContinueInterview(intake: OnboardingIntakeData): boolean {
-  return intake.status !== 'completed' && intake.status !== 'cancelled';
-}
-
-function canSendContract(intake: OnboardingIntakeData): boolean {
-  return (
-    intake.status === 'completed' && !intake.enrollment_contract?.signed_at
-  );
+  return `#${contract.id}`;
 }
 
 const viewDetailButtonClass =
@@ -47,32 +37,36 @@ const mainActionButtonClass =
 const moreTriggerClass =
   'bg-background hover:bg-muted text-foreground/80 size-9 shrink-0 rounded-md border-neutral-300';
 
-export type IntakeRowActionsProps = {
-  intake: OnboardingIntakeData;
-  onSendContract: () => void;
-  isSendingContract: boolean;
+export type EnrollmentContractRowActionsProps = {
+  contract: EnrollmentContract;
 };
 
-type PrimaryAction = 'continue' | 'send' | 'view';
+type PrimaryAction = 'createEnrollment' | 'viewEnrollment' | 'viewDetail';
 
-function getPrimaryAction(intake: OnboardingIntakeData): PrimaryAction {
-  if (canContinueInterview(intake)) return 'continue';
-  if (canSendContract(intake)) return 'send';
-  return 'view';
+function getPrimaryAction(contract: EnrollmentContract): PrimaryAction {
+  const isSigned = contract.status === 'signed';
+  const hasEnrollment =
+    contract.enrollment_id != null &&
+    Number.isFinite(contract.enrollment_id) &&
+    contract.enrollment_id > 0;
+  if (isSigned && !hasEnrollment) return 'createEnrollment';
+  if (isSigned && hasEnrollment) return 'viewEnrollment';
+  return 'viewDetail';
 }
 
-/** Exposes the top workflow action (continue → send → view); everything else under ⋯. */
-export default function IntakeRowActions({
-  intake,
-  onSendContract,
-  isSendingContract,
-}: IntakeRowActionsProps) {
-  const referenceText = getIntakeReference(intake);
-  const primary = getPrimaryAction(intake);
-  const showContinue = canContinueInterview(intake);
-  const showSend = canSendContract(intake);
-  const enrollmentRequestId = intake.enrollment_request?.id ?? null;
-  const sendDisabled = enrollmentRequestId == null || isSendingContract;
+/** Surfaces the strongest next step when signed; otherwise “View detail” + ⋯. */
+export default function EnrollmentContractRowActions({
+  contract,
+}: EnrollmentContractRowActionsProps) {
+  const referenceText = getContractReference(contract);
+  const primary = getPrimaryAction(contract);
+  const isSigned = contract.status === 'signed';
+  const hasEnrollment =
+    contract.enrollment_id != null &&
+    Number.isFinite(contract.enrollment_id) &&
+    contract.enrollment_id > 0;
+  const showViewEnrollment = isSigned && hasEnrollment;
+  const showCreateEnrollment = isSigned && !hasEnrollment;
 
   const handleCopyReference = () => {
     void (async () => {
@@ -85,48 +79,17 @@ export default function IntakeRowActions({
     })();
   };
 
-  const showViewInMenu = primary !== 'view';
-  const showContinueInMenu = primary !== 'continue' && showContinue;
-  const showSendInMenu = primary !== 'send' && showSend;
+  const showDetailInMenu = primary !== 'viewDetail';
+  const showCreateInMenu =
+    primary !== 'createEnrollment' && showCreateEnrollment;
+  const showEnrollmentInMenu =
+    primary !== 'viewEnrollment' && showViewEnrollment;
   const hasMenuAfterCopy =
-    showViewInMenu || showContinueInMenu || showSendInMenu;
+    showDetailInMenu || showCreateInMenu || showEnrollmentInMenu;
 
   return (
     <div className='flex items-center justify-end gap-1.5'>
-      {primary === 'continue' ? (
-        <Button
-          variant='default'
-          size='sm'
-          className={mainActionButtonClass}
-          asChild
-        >
-          <Link
-            href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.INTERVIEW(
-              String(intake.id),
-            )}
-            className='inline-flex items-center gap-1.5'
-          >
-            <SquarePenIcon className='size-3.5 shrink-0' />
-            Continue interview
-          </Link>
-        </Button>
-      ) : null}
-      {primary === 'send' ? (
-        <Button
-          type='button'
-          variant='default'
-          size='sm'
-          className={mainActionButtonClass}
-          disabled={sendDisabled}
-          onClick={() => {
-            if (!sendDisabled) onSendContract();
-          }}
-        >
-          <SendHorizontal className='size-3.5 shrink-0' />
-          Send contract
-        </Button>
-      ) : null}
-      {primary === 'view' ? (
+      {primary === 'viewDetail' ? (
         <Button
           variant='outline'
           size='sm'
@@ -134,13 +97,49 @@ export default function IntakeRowActions({
           asChild
         >
           <Link
-            href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(
-              String(intake.id),
+            href={ROUTES.ADMIN.MODULES.ENROLLMENT_CONTRACTS.DETAIL(
+              String(contract.id),
             )}
             className='inline-flex items-center gap-1.5'
           >
             <EyeIcon className='size-3.5 shrink-0' />
             View detail
+          </Link>
+        </Button>
+      ) : null}
+      {primary === 'createEnrollment' ? (
+        <Button
+          variant='default'
+          size='sm'
+          className={mainActionButtonClass}
+          asChild
+        >
+          <Link
+            href={ROUTES.ADMIN.MODULES.ENROLLMENT_CONTRACTS.ENROLL(
+              String(contract.id),
+            )}
+            className='inline-flex items-center gap-1.5'
+          >
+            <FileSignatureIcon className='size-3.5 shrink-0' />
+            Create enrollment
+          </Link>
+        </Button>
+      ) : null}
+      {primary === 'viewEnrollment' ? (
+        <Button
+          variant='outline'
+          size='sm'
+          className={viewDetailButtonClass}
+          asChild
+        >
+          <Link
+            href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(
+              String(contract.enrollment_id),
+            )}
+            className='inline-flex items-center gap-1.5'
+          >
+            <UserRoundIcon className='size-3.5 shrink-0' />
+            View enrollment
           </Link>
         </Button>
       ) : null}
@@ -172,12 +171,12 @@ export default function IntakeRowActions({
           {hasMenuAfterCopy ? (
             <>
               <DropdownMenuSeparator />
-              {showViewInMenu ? (
+              {showDetailInMenu ? (
                 <DropdownMenuItem asChild className='cursor-pointer'>
                   <Link
                     className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
-                    href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(
-                      String(intake.id),
+                    href={ROUTES.ADMIN.MODULES.ENROLLMENT_CONTRACTS.DETAIL(
+                      String(contract.id),
                     )}
                   >
                     <EyeIcon className='size-3.5 shrink-0' />
@@ -185,29 +184,30 @@ export default function IntakeRowActions({
                   </Link>
                 </DropdownMenuItem>
               ) : null}
-              {showContinueInMenu ? (
+              {showEnrollmentInMenu ? (
                 <DropdownMenuItem asChild className='cursor-pointer'>
                   <Link
                     className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
-                    href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.INTERVIEW(
-                      String(intake.id),
+                    href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(
+                      String(contract.enrollment_id),
                     )}
                   >
-                    <SquarePenIcon className='size-3.5 shrink-0' />
-                    Continue interview
+                    <UserRoundIcon className='size-3.5 shrink-0' />
+                    View enrollment
                   </Link>
                 </DropdownMenuItem>
               ) : null}
-              {showSendInMenu ? (
-                <DropdownMenuItem
-                  className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-                  disabled={sendDisabled}
-                  onClick={() => {
-                    if (!sendDisabled) onSendContract();
-                  }}
-                >
-                  <SendHorizontal className='size-3.5 shrink-0' />
-                  Send contract
+              {showCreateInMenu ? (
+                <DropdownMenuItem asChild className='cursor-pointer'>
+                  <Link
+                    className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                    href={ROUTES.ADMIN.MODULES.ENROLLMENT_CONTRACTS.ENROLL(
+                      String(contract.id),
+                    )}
+                  >
+                    <FileSignatureIcon className='size-3.5 shrink-0' />
+                    Create enrollment
+                  </Link>
                 </DropdownMenuItem>
               ) : null}
             </>

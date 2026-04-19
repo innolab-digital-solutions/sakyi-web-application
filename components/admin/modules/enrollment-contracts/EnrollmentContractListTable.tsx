@@ -3,11 +3,11 @@
 import { format, parseISO } from 'date-fns';
 import { CheckCircle2Icon, FileSignatureIcon } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import EnrollmentContractFilters from '@/components/admin/modules/enrollment-contracts/EnrollmentContractFilters';
+import EnrollmentContractRowActions from '@/components/admin/modules/enrollment-contracts/EnrollmentContractRowActions';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,10 +19,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
 import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { ENDPOINTS } from '@/config/api/endpoints';
-import { ROUTES } from '@/config/routes';
 import type {
   EnrollmentContract,
   EnrollmentContractStatus,
@@ -43,8 +41,8 @@ const CONTRACT_STATUSES: readonly EnrollmentContractStatus[] = [
 type ContractColumnKey =
   | 'reference'
   | 'applicant'
-  | 'intake'
-  | 'enrollmentRequest'
+  | 'intakeReference'
+  | 'linkedRequest'
   | 'signer'
   | 'signature'
   | 'sentAt'
@@ -59,69 +57,81 @@ type ContractColumnDefinition = {
   skeletonWidth: string;
 };
 
+/** Bumped when default visibility changes. */
 const CONTRACT_VISIBLE_COLUMNS_STORAGE_KEY =
-  'sakyi:admin:enrollment-contracts:visible-columns:v2';
+  'sakyi:admin:enrollment-contracts:visible-columns:v3';
+
+/** Default columns mirror enrollment / intake list triage; staff can show signer & signature from Columns. */
+const DEFAULT_VISIBLE_COLUMN_KEYS: readonly ContractColumnKey[] = [
+  'reference',
+  'applicant',
+  'intakeReference',
+  'linkedRequest',
+  'status',
+  'sentAt',
+  'actions',
+];
 
 const CONTRACT_COLUMNS: readonly ContractColumnDefinition[] = [
   {
     key: 'reference',
     label: 'Reference',
-    headerClassName: 'min-w-40',
+    headerClassName: '',
     skeletonWidth: 'w-28',
   },
   {
     key: 'applicant',
     label: 'Applicant',
-    headerClassName: 'min-w-48',
+    headerClassName: '',
     skeletonWidth: 'w-40',
   },
   {
-    key: 'intake',
+    key: 'intakeReference',
     label: 'Intake reference',
-    headerClassName: 'min-w-40',
+    headerClassName: '',
     skeletonWidth: 'w-30',
   },
   {
-    key: 'enrollmentRequest',
+    key: 'linkedRequest',
     label: 'Linked Request',
-    headerClassName: 'min-w-44',
+    headerClassName: '',
     skeletonWidth: 'w-32',
   },
   {
-    key: 'signer',
-    label: 'Signed By',
-    headerClassName: 'min-w-44',
-    skeletonWidth: 'w-36',
-  },
-  {
-    key: 'signature',
-    label: 'Captured signature',
-    headerClassName: 'min-w-56',
-    skeletonWidth: 'w-44',
+    key: 'status',
+    label: 'Status',
+    headerClassName: '',
+    skeletonWidth: 'w-28',
   },
   {
     key: 'sentAt',
     label: 'Notification sent',
-    headerClassName: 'min-w-40',
+    headerClassName: '',
     skeletonWidth: 'w-30',
   },
   {
     key: 'signedAt',
     label: 'Signature recorded',
-    headerClassName: 'min-w-40',
+    headerClassName: '',
     skeletonWidth: 'w-30',
   },
   {
-    key: 'status',
-    label: 'Status',
-    headerClassName: 'min-w-32',
-    skeletonWidth: 'w-28',
+    key: 'signer',
+    label: 'Signed By',
+    headerClassName: '',
+    skeletonWidth: 'w-36',
+  },
+  {
+    key: 'signature',
+    label: 'Captured signature',
+    headerClassName: '',
+    skeletonWidth: 'w-44',
   },
   {
     key: 'actions',
     label: 'Actions',
-    headerClassName: 'min-w-36 text-end',
-    skeletonWidth: 'w-28',
+    headerClassName: '',
+    skeletonWidth: 'w-32',
   },
 ] as const;
 
@@ -174,7 +184,7 @@ export default function EnrollmentContractListTable() {
   const [visibleColumnKeys, setVisibleColumnKeys] = useState<
     ContractColumnKey[]
   >(() => {
-    const fallback = CONTRACT_COLUMNS.map((column) => column.key);
+    const fallback = [...DEFAULT_VISIBLE_COLUMN_KEYS];
     if (typeof window === 'undefined') return fallback;
 
     const raw = window.localStorage.getItem(
@@ -265,13 +275,13 @@ export default function EnrollmentContractListTable() {
   };
 
   const resetColumns = () => {
-    setVisibleColumnKeys(CONTRACT_COLUMNS.map((column) => column.key));
+    setVisibleColumnKeys([...DEFAULT_VISIBLE_COLUMN_KEYS]);
   };
 
   return (
     <TableListShell
       controls={controls}
-      searchPlaceholder='Search applicant, contact, or reference'
+      searchPlaceholder='Search ...'
       filters={
         <EnrollmentContractFilters
           statusFilter={statusFilter}
@@ -322,9 +332,8 @@ export default function EnrollmentContractListTable() {
             rows.length === 0 && (
               <TableEmptyStateRow
                 colSpan={visibleColumnCount}
-                icon={FileSignatureIcon}
-                title='No Enrollment Contracts Available'
-                description='Enrollment contracts issued after intake completion will appear here for notification timing, captured signatures, and status tracking alongside linked intakes and enrollment requests.'
+                title='No Enrollment Contracts Found'
+                description='No enrollment contracts found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
               />
             )}
 
@@ -344,7 +353,7 @@ export default function EnrollmentContractListTable() {
               return (
                 <TableRow key={contract.id}>
                   {showColumn('reference') ? (
-                    <TableCell className='align-center min-w-45 whitespace-normal'>
+                    <TableCell>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {contract.code?.trim() ? (
                           contract.code.trim()
@@ -356,7 +365,7 @@ export default function EnrollmentContractListTable() {
                   ) : null}
 
                   {showColumn('applicant') ? (
-                    <TableCell className='align-center whitespace-normal'>
+                    <TableCell>
                       {client ? (
                         <div className='flex items-start gap-3'>
                           <Avatar
@@ -392,8 +401,8 @@ export default function EnrollmentContractListTable() {
                     </TableCell>
                   ) : null}
 
-                  {showColumn('intake') ? (
-                    <TableCell className='align-center min-w-45 whitespace-normal'>
+                  {showColumn('intakeReference') ? (
+                    <TableCell>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {intake?.code?.trim() ? (
                           intake.code.trim()
@@ -404,8 +413,8 @@ export default function EnrollmentContractListTable() {
                     </TableCell>
                   ) : null}
 
-                  {showColumn('enrollmentRequest') ? (
-                    <TableCell className='align-center min-w-45 whitespace-normal'>
+                  {showColumn('linkedRequest') ? (
+                    <TableCell>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {intake?.enrollment_request?.code?.trim() ? (
                           intake.enrollment_request.code.trim()
@@ -416,8 +425,31 @@ export default function EnrollmentContractListTable() {
                     </TableCell>
                   ) : null}
 
+                  {showColumn('status') ? (
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
+                      >
+                        <StatusIcon className='size-3.5 shrink-0' />
+                        {STATUS_LABEL[contract.status]}
+                      </span>
+                    </TableCell>
+                  ) : null}
+
+                  {showColumn('sentAt') ? (
+                    <TableCell>
+                      {sentAt ?? <TableCellEmpty label='Not sent yet' />}
+                    </TableCell>
+                  ) : null}
+
+                  {showColumn('signedAt') ? (
+                    <TableCell>
+                      {signedAt ?? <TableCellEmpty label='Not recorded' />}
+                    </TableCell>
+                  ) : null}
+
                   {showColumn('signer') ? (
-                    <TableCell className='align-center whitespace-normal'>
+                    <TableCell>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {contract.signed_by_name?.trim() ? (
                           contract.signed_by_name.trim()
@@ -429,7 +461,7 @@ export default function EnrollmentContractListTable() {
                   ) : null}
 
                   {showColumn('signature') ? (
-                    <TableCell className='align-center whitespace-normal'>
+                    <TableCell>
                       {contract.signature_url?.trim() ? (
                         <SignaturePreview url={contract.signature_url} />
                       ) : (
@@ -438,68 +470,9 @@ export default function EnrollmentContractListTable() {
                     </TableCell>
                   ) : null}
 
-                  {showColumn('sentAt') ? (
-                    <TableCell className='text-foreground/80 align-center tabular-nums'>
-                      {sentAt ?? <TableCellEmpty label='Not sent yet' />}
-                    </TableCell>
-                  ) : null}
-
-                  {showColumn('signedAt') ? (
-                    <TableCell className='text-foreground/80 align-center tabular-nums'>
-                      {signedAt ?? <TableCellEmpty label='Not recorded' />}
-                    </TableCell>
-                  ) : null}
-
-                  {showColumn('status') ? (
-                    <TableCell className='align-center'>
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
-                      >
-                        <StatusIcon className='size-3.5 shrink-0' />
-                        {STATUS_LABEL[contract.status]}
-                      </span>
-                    </TableCell>
-                  ) : null}
-
                   {showColumn('actions') ? (
-                    <TableCell className='align-center text-end'>
-                      {contract.status === 'signed' ? (
-                        contract.enrollment_id != null ? (
-                          <Button
-                            variant='outline'
-                            size='sm'
-                            className='h-9 rounded-md text-[13px] font-semibold'
-                            asChild
-                          >
-                            <Link
-                              href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(
-                                String(contract.enrollment_id),
-                              )}
-                            >
-                              View enrollment
-                            </Link>
-                          </Button>
-                        ) : (
-                          <Button
-                            variant='outline'
-                            size='sm'
-                            className='h-9 rounded-md text-[13px] font-semibold'
-                            asChild
-                          >
-                            <Link
-                              href={ROUTES.ADMIN.MODULES.ENROLLMENT_CONTRACTS.ENROLL(
-                                String(contract.id),
-                              )}
-                            >
-                              Enrollment
-                            </Link>
-                          </Button>
-                        )
-                      ) : (
-                        <span className='text-muted-foreground text-xs font-medium'>
-                          —
-                        </span>
-                      )}
+                    <TableCell className='align-center text-end whitespace-nowrap'>
+                      <EnrollmentContractRowActions contract={contract} />
                     </TableCell>
                   ) : null}
                 </TableRow>

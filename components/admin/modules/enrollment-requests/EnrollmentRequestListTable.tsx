@@ -84,6 +84,7 @@ const ENROLLMENT_VISIBLE_COLUMNS_STORAGE_KEY =
 
 /** First-load defaults: triage-first fields; ops can enable assignment/contact columns from Columns. */
 const DEFAULT_VISIBLE_COLUMN_KEYS: readonly EnrollmentColumnKey[] = [
+  'reference',
   'applicant',
   'requestedProgram',
   'contactPhone',
@@ -637,7 +638,7 @@ export default function EnrollmentRequestListTable() {
                     </TableCell>
                   ) : null}
                   {showColumn('actions') ? (
-                    <TableCell>
+                    <TableCell className='align-center text-end whitespace-nowrap'>
                       <EnrollmentRequestRowActions
                         request={request}
                         onStartIntake={() => setStartIntakeRequest(request)}

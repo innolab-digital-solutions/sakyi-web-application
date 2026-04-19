@@ -73,6 +73,7 @@ const INTAKE_VISIBLE_COLUMNS_STORAGE_KEY =
 
 /** First-load defaults; staff can show linked request & handler from Columns. */
 const DEFAULT_VISIBLE_COLUMN_KEYS: readonly IntakeColumnKey[] = [
+  'reference',
   'applicant',
   'requestedProgram',
   'linkedRequest',
@@ -584,7 +585,7 @@ export default function IntakeListTable() {
                   ) : null}
 
                   {showColumn('actions') ? (
-                    <TableCell>
+                    <TableCell className='align-center text-end whitespace-nowrap'>
                       <IntakeRowActions
                         intake={intake}
                         onSendContract={() => {
