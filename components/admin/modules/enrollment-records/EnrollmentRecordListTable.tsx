@@ -2,9 +2,9 @@
 
 import { format, parseISO } from 'date-fns';
 import {
-  CalendarIcon,
+  ActivityIcon,
   CheckCircle2Icon,
-  PlayIcon,
+  ClockIcon,
   XCircleIcon,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -169,19 +169,19 @@ const ENROLLMENT_STATUS_STYLES: Record<
   }
 > = {
   scheduled: {
-    icon: CalendarIcon,
+    icon: ClockIcon,
     className:
-      'border-sky-300/80 bg-sky-50 text-sky-800 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-200',
+      'border-amber-300/80 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200',
   },
   active: {
-    icon: PlayIcon,
+    icon: ActivityIcon,
     className:
-      'border-emerald-300/80 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200',
+      'border-indigo-300/80 bg-indigo-50 text-indigo-800 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200',
   },
   completed: {
     icon: CheckCircle2Icon,
     className:
-      'border-neutral-300/80 bg-neutral-50 text-neutral-800 dark:border-neutral-700 dark:bg-neutral-950/40 dark:text-neutral-200',
+      'border-emerald-300/80 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200',
   },
   cancelled: {
     icon: XCircleIcon,

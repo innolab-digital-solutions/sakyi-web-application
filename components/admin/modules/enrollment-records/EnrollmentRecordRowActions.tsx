@@ -4,12 +4,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import {
   CalendarIcon,
-  CheckCircle2Icon,
+  CircleCheckIcon,
+  ClipboardCopyIcon,
   EyeIcon,
   MoreHorizontalIcon,
-  PlayIcon,
   StickyNoteIcon,
-  Trash2Icon,
   UserCogIcon,
   XCircleIcon,
 } from 'lucide-react';
@@ -17,11 +16,16 @@ import Link from 'next/link';
 import * as React from 'react';
 import { toast } from 'sonner';
 
-import ComboboxField, {
-  type ComboboxOption,
-} from '@/components/shared/form/ComboBoxField';
-import TextAreaField from '@/components/shared/form/TextAreaField';
-import TextField from '@/components/shared/form/TextField';
+import {
+  clearCareTeamFieldErrors,
+  validateCareTeamRows,
+} from '@/components/admin/modules/enrollmentCareTeamValidation';
+import EnrollmentCareTeamEditorDialog, {
+  type EnrollmentCareTeamRow,
+} from '@/components/admin/modules/enrollment-records/EnrollmentCareTeamEditorDialog';
+import type { ComboboxOption } from '@/components/shared/form/ComboBoxField';
+import EnrollmentNotesEditorDialog from '@/components/admin/modules/enrollment-records/EnrollmentNotesEditorDialog';
+import EnrollmentScheduleEditorDialog from '@/components/admin/modules/enrollment-records/EnrollmentScheduleEditorDialog';
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -34,14 +38,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -49,7 +45,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Label } from '@/components/ui/label';
 import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
@@ -59,7 +54,6 @@ import {
   patchEnrollmentCareTeam,
   patchEnrollmentNotes,
   patchEnrollmentSchedule,
-  postEnrollmentActivate,
   postEnrollmentCancel,
   postEnrollmentComplete,
 } from '@/domains/enrollment-records/services';
@@ -97,6 +91,12 @@ function toDateInputValue(iso: string | null | undefined): string {
   }
 }
 
+function getEnrollmentReference(enrollment: AdminEnrollment): string {
+  const code = enrollment.code?.trim();
+  if (code) return code;
+  return `#${enrollment.id}`;
+}
+
 function flattenApiErrors(
   raw: Record<string, unknown> | undefined,
 ): Record<string, string> {
@@ -121,13 +121,7 @@ function resolveTeamMemberPictureUrl(
   return `${base.domainEndpoint}${t}`;
 }
 
-type TeamRow = {
-  key: string;
-  userId: string;
-  position: string;
-};
-
-function newTeamRow(): TeamRow {
+function newTeamRow(): EnrollmentCareTeamRow {
   return {
     key:
       typeof crypto !== 'undefined' && 'randomUUID' in crypto
@@ -155,8 +149,7 @@ function rosterFromEnrollment(
       const id = (o.user as { id?: unknown }).id;
       if (typeof id === 'number') uid = id;
     }
-    const position =
-      typeof o.position === 'string' ? o.position.trim() : '';
+    const position = typeof o.position === 'string' ? o.position.trim() : '';
     if (Number.isFinite(uid) && uid > 0 && position)
       out.push({ user_id: uid, position });
   }
@@ -165,7 +158,7 @@ function rosterFromEnrollment(
 
 function rosterToRows(
   roster: Array<{ user_id: number; position: string }>,
-): TeamRow[] {
+): EnrollmentCareTeamRow[] {
   if (roster.length === 0) return [newTeamRow()];
   return roster.map((m) => ({
     ...newTeamRow(),
@@ -174,7 +167,7 @@ function rosterToRows(
   }));
 }
 
-type ConfirmKind = 'activate' | 'complete' | 'cancel' | null;
+type ConfirmKind = 'complete' | 'cancel' | null;
 
 export type EnrollmentRecordRowActionsProps = {
   row: AdminEnrollment;
@@ -186,8 +179,8 @@ export default function EnrollmentRecordRowActions({
   const queryClient = useQueryClient();
   const status = normalizeStatus(row.status);
   const mutable = isEnrollmentMutable(row.status);
-  const isScheduled = status === 'scheduled';
   const isActive = status === 'active';
+  const referenceText = getEnrollmentReference(row);
 
   const [scheduleOpen, setScheduleOpen] = React.useState(false);
   const [notesOpen, setNotesOpen] = React.useState(false);
@@ -206,7 +199,9 @@ export default function EnrollmentRecordRowActions({
   const [notesBody, setNotesBody] = React.useState('');
   const [notesError, setNotesError] = React.useState<string | undefined>();
 
-  const [teamRows, setTeamRows] = React.useState<TeamRow[]>([newTeamRow()]);
+  const [teamRows, setTeamRows] = React.useState<EnrollmentCareTeamRow[]>([
+    newTeamRow(),
+  ]);
   const [careErrors, setCareErrors] = React.useState<Record<string, string>>(
     {},
   );
@@ -307,7 +302,7 @@ export default function EnrollmentRecordRowActions({
 
   const updateTeamRow = (
     index: number,
-    patch: Partial<Pick<TeamRow, 'userId' | 'position'>>,
+    patch: Partial<Pick<EnrollmentCareTeamRow, 'userId' | 'position'>>,
   ) => {
     setTeamRows((prev) =>
       prev.map((r, i) => (i === index ? { ...r, ...patch } : r)),
@@ -317,6 +312,8 @@ export default function EnrollmentRecordRowActions({
       delete n.team_members;
       delete n[`row_${index}`];
       delete n[`position_${index}`];
+      delete n[`team_members.${index}.user_id`];
+      delete n[`team_members.${index}.position`];
       return n;
     });
   };
@@ -366,10 +363,7 @@ export default function EnrollmentRecordRowActions({
       invalidateList();
     },
     onError: (e: Error) => {
-      if (
-        e.message === '__VALIDATION__' ||
-        e.message === '__FIELD_ERRORS__'
-      ) {
+      if (e.message === '__VALIDATION__' || e.message === '__FIELD_ERRORS__') {
         return;
       }
       toast.error(e.message ?? 'Could not update schedule.');
@@ -400,33 +394,11 @@ export default function EnrollmentRecordRowActions({
   });
 
   const validateCareTeam = (): boolean => {
-    const next: Record<string, string> = {};
-    const payload = teamRows
-      .filter((r) => r.userId.trim() && r.position.trim())
-      .map((r) => ({
-        user_id: Number.parseInt(r.userId, 10),
-        position: r.position.trim(),
-      }));
-    if (payload.length === 0) {
-      next.team_members = 'Add at least one team member with role.';
-    } else {
-      for (let i = 0; i < teamRows.length; i++) {
-        const r = teamRows[i];
-        const hasUser = Boolean(r.userId?.trim());
-        const hasPos = Boolean(r.position.trim());
-        if (hasUser !== hasPos) {
-          next[`row_${i}`] = 'Select a staff member and enter a position.';
-        }
-        if (r.position.trim().length > 50) {
-          next[`position_${i}`] = 'Position must be at most 50 characters.';
-        }
-      }
-      const ids = payload.map((p) => p.user_id);
-      if (new Set(ids).size !== ids.length) {
-        next.team_members = 'Each staff member can only be assigned once.';
-      }
-    }
-    setCareErrors(next);
+    const next = validateCareTeamRows(teamRows);
+    setCareErrors((prev) => {
+      const cleared = clearCareTeamFieldErrors(prev);
+      return { ...cleared, ...next };
+    });
     return Object.keys(next).length === 0;
   };
 
@@ -471,11 +443,9 @@ export default function EnrollmentRecordRowActions({
   const { mutate: mutateLifecycle, isPending: lifecyclePending } = useMutation({
     mutationFn: async (kind: Exclude<ConfirmKind, null>) => {
       const res =
-        kind === 'activate'
-          ? await postEnrollmentActivate(row.id)
-          : kind === 'complete'
-            ? await postEnrollmentComplete(row.id)
-            : await postEnrollmentCancel(row.id);
+        kind === 'complete'
+          ? await postEnrollmentComplete(row.id)
+          : await postEnrollmentCancel(row.id);
       if (res.status === 'error') {
         throw new Error(res.message ?? 'Action failed.');
       }
@@ -483,11 +453,9 @@ export default function EnrollmentRecordRowActions({
     },
     onSuccess: ({ kind }) => {
       const msg =
-        kind === 'activate'
-          ? 'Enrollment activated.'
-          : kind === 'complete'
-            ? 'Enrollment completed.'
-            : 'Enrollment cancelled.';
+        kind === 'complete'
+          ? 'Enrollment marked as complete.'
+          : 'Enrollment cancelled.';
       toast.success(msg);
       setConfirm(null);
       invalidateList();
@@ -515,12 +483,30 @@ export default function EnrollmentRecordRowActions({
     mutateCareTeam();
   };
 
+  const handleCopyReference = () => {
+    void (async () => {
+      try {
+        await navigator.clipboard.writeText(referenceText);
+        toast.success('Reference copied to clipboard.');
+      } catch {
+        toast.error('Could not copy reference.');
+      }
+    })();
+  };
+
   return (
     <>
       <div className='flex items-center justify-end gap-1.5'>
-        <Button variant='outline' size='sm' className={viewDetailButtonClass} asChild>
+        <Button
+          variant='outline'
+          size='sm'
+          className={viewDetailButtonClass}
+          asChild
+        >
           <Link
-            href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(String(row.id))}
+            href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(
+              String(row.id),
+            )}
             className='inline-flex items-center gap-1.5'
           >
             <EyeIcon className='size-3.5 shrink-0' />
@@ -540,13 +526,21 @@ export default function EnrollmentRecordRowActions({
               <MoreHorizontalIcon className='size-4' />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align='end' className='min-w-48'>
+          <DropdownMenuContent align='end' className='min-w-52'>
             <DropdownMenuLabel className='text-foreground/70 space-y-1 px-2 py-1.5 text-[11px]! font-bold tracking-wide uppercase'>
               More Options
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+              onClick={handleCopyReference}
+            >
+              <ClipboardCopyIcon className='size-3.5 shrink-0' />
+              Copy reference
+            </DropdownMenuItem>
             {mutable ? (
               <>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
                   onClick={() => setScheduleOpen(true)}
@@ -569,288 +563,72 @@ export default function EnrollmentRecordRowActions({
                   Edit care team
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                {isScheduled ? (
-                  <DropdownMenuItem
-                    className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-                    onClick={() => setConfirm({ kind: 'activate', row })}
-                  >
-                    <PlayIcon className='size-3.5 shrink-0' />
-                    Activate
-                  </DropdownMenuItem>
-                ) : null}
                 {isActive ? (
                   <DropdownMenuItem
                     className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
                     onClick={() => setConfirm({ kind: 'complete', row })}
                   >
-                    <CheckCircle2Icon className='size-3.5 shrink-0' />
-                    Mark complete
+                    <CircleCheckIcon className='size-3.5 shrink-0' />
+                    Mark as complete
                   </DropdownMenuItem>
                 ) : null}
                 <DropdownMenuItem
                   className='text-destructive focus:text-destructive flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
                   onClick={() => setConfirm({ kind: 'cancel', row })}
                 >
-                  <XCircleIcon className='size-3.5 shrink-0 text-destructive' />
+                  <XCircleIcon className='text-destructive size-3.5 shrink-0' />
                   Cancel enrollment
                 </DropdownMenuItem>
               </>
-            ) : (
-              <DropdownMenuItem disabled className='text-[13px]! font-medium'>
-                No additional actions
-              </DropdownMenuItem>
-            )}
+            ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      <Dialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
-        <DialogContent className='max-w-md'>
-          <DialogHeader>
-            <DialogTitle>Update schedule</DialogTitle>
-            <DialogDescription className='text-muted-foreground text-sm font-medium'>
-              {isActive
-                ? 'For active enrollments only the end date can be changed. Start date is locked.'
-                : 'Adjust start and optional end dates while the enrollment is scheduled or active.'}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleScheduleSubmit} className='space-y-4'>
-            {isActive ? (
-              <div className='space-y-1.5'>
-                <Label className='text-sm font-semibold'>Start date (locked)</Label>
-                <p className='text-foreground text-sm tabular-nums'>
-                  {toDateInputValue(row.starts_at) || '—'}
-                </p>
-              </div>
-            ) : (
-              <div className='space-y-1.5'>
-                <Label htmlFor={`sch-start-${row.id}`} className='text-sm font-semibold'>
-                  Start date <span className='text-destructive'>*</span>
-                </Label>
-                <input
-                  id={`sch-start-${row.id}`}
-                  type='date'
-                  value={startsAt}
-                  onChange={(e) => {
-                    setStartsAt(e.target.value);
-                    setScheduleErrors((p) => {
-                      const n = { ...p };
-                      delete n.starts_at;
-                      return n;
-                    });
-                  }}
-                  className='border-input bg-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
-                />
-                {scheduleErrors.starts_at ? (
-                  <p className='text-destructive text-xs font-medium'>
-                    {scheduleErrors.starts_at}
-                  </p>
-                ) : null}
-              </div>
-            )}
-            <div className='space-y-1.5'>
-              <Label htmlFor={`sch-end-${row.id}`} className='text-sm font-semibold'>
-                End date
-              </Label>
-              <input
-                id={`sch-end-${row.id}`}
-                type='date'
-                value={endsAt}
-                min={
-                  (isActive ? toDateInputValue(row.starts_at) : startsAt) ||
-                  undefined
-                }
-                onChange={(e) => {
-                  setEndsAt(e.target.value);
-                  setScheduleErrors((p) => {
-                    const n = { ...p };
-                    delete n.ends_at;
-                    return n;
-                  });
-                }}
-                className='border-input bg-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
-              />
-              {scheduleErrors.ends_at ? (
-                <p className='text-destructive text-xs font-medium'>
-                  {scheduleErrors.ends_at}
-                </p>
-              ) : null}
-            </div>
-            {scheduleErrors.status ? (
-              <p className='text-destructive text-xs font-medium'>
-                {scheduleErrors.status}
-              </p>
-            ) : null}
-            <DialogFooter className='gap-2 sm:gap-0'>
-              <Button
-                type='button'
-                variant='outline'
-                onClick={() => setScheduleOpen(false)}
-              >
-                Close
-              </Button>
-              <Button type='submit' disabled={schedulePending}>
-                {schedulePending ? 'Saving…' : 'Save schedule'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <EnrollmentScheduleEditorDialog
+        open={scheduleOpen}
+        onOpenChange={setScheduleOpen}
+        isActive={isActive}
+        rowId={row.id}
+        rowStartsAt={row.starts_at}
+        startsAt={startsAt}
+        setStartsAt={setStartsAt}
+        endsAt={endsAt}
+        setEndsAt={setEndsAt}
+        scheduleErrors={scheduleErrors}
+        setScheduleErrors={setScheduleErrors}
+        schedulePending={schedulePending}
+        onSubmit={handleScheduleSubmit}
+      />
 
-      <Dialog open={notesOpen} onOpenChange={setNotesOpen}>
-        <DialogContent className='max-w-md'>
-          <DialogHeader>
-            <DialogTitle>Edit notes</DialogTitle>
-            <DialogDescription className='text-muted-foreground text-sm font-medium'>
-              Notes are optional. Leave empty and save to clear.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleNotesSubmit} className='space-y-4'>
-            <TextAreaField
-              label='Notes'
-              value={notesBody}
-              onChange={(e) => {
-                setNotesBody(e.target.value);
-                setNotesError(undefined);
-              }}
-              rows={5}
-              error={notesError}
-            />
-            <DialogFooter className='gap-2 sm:gap-0'>
-              <Button
-                type='button'
-                variant='outline'
-                onClick={() => setNotesOpen(false)}
-              >
-                Close
-              </Button>
-              <Button type='submit' disabled={notesPending}>
-                {notesPending ? 'Saving…' : 'Save notes'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <EnrollmentNotesEditorDialog
+        open={notesOpen}
+        onOpenChange={setNotesOpen}
+        notesBody={notesBody}
+        setNotesBody={setNotesBody}
+        notesError={notesError}
+        setNotesError={setNotesError}
+        notesPending={notesPending}
+        onSubmit={handleNotesSubmit}
+      />
 
-      <Dialog open={careTeamOpen} onOpenChange={setCareTeamOpen}>
-        <DialogContent className='max-h-[90vh] max-w-lg overflow-y-auto'>
-          <DialogHeader>
-            <DialogTitle>Edit care team</DialogTitle>
-            <DialogDescription className='text-muted-foreground text-sm font-medium'>
-              Replaces the full roster. At least one staff member with a role is
-              required. The enrolled client cannot be assigned as staff.
-            </DialogDescription>
-          </DialogHeader>
-          {detailLoading ? (
-            <p className='text-muted-foreground text-sm'>Loading roster…</p>
-          ) : detailError ? (
-            <p className='text-destructive text-sm'>
-              {detailQueryError instanceof Error
-                ? detailQueryError.message
-                : 'Could not load roster.'}
-            </p>
-          ) : (
-            <form onSubmit={handleCareSubmit} className='space-y-4'>
-              <div className='flex justify-end'>
-                <Button
-                  type='button'
-                  variant='outline'
-                  size='sm'
-                  className='h-8 gap-1 text-xs font-semibold'
-                  onClick={() => setTeamRows((r) => [...r, newTeamRow()])}
-                >
-                  Add member
-                </Button>
-              </div>
-              {careErrors.team_members ? (
-                <p className='text-destructive text-xs font-medium'>
-                  {careErrors.team_members}
-                </p>
-              ) : null}
-              {teamRows.map((tr, index) => (
-                <div
-                  key={tr.key}
-                  className='border-border space-y-3 rounded-md border bg-muted/20 p-3'
-                >
-                  <div className='flex items-start justify-between gap-2'>
-                    <span className='text-muted-foreground text-xs font-semibold'>
-                      Member {index + 1}
-                    </span>
-                    {teamRows.length > 1 ? (
-                      <Button
-                        type='button'
-                        variant='ghost'
-                        size='icon'
-                        className='text-destructive hover:text-destructive size-8'
-                        aria-label='Remove member'
-                        onClick={() => {
-                          setTeamRows((prev) =>
-                            prev.filter((_, i) => i !== index),
-                          );
-                          setCareErrors((p) => {
-                            const n = { ...p };
-                            delete n.team_members;
-                            return n;
-                          });
-                        }}
-                      >
-                        <Trash2Icon className='size-4' />
-                      </Button>
-                    ) : null}
-                  </div>
-                  <ComboboxField
-                    label='Staff'
-                    required
-                    placeholder={
-                      teamLoading ? 'Loading team…' : 'Select team member'
-                    }
-                    disabled={teamLoading}
-                    options={optionsForTeamRow(index)}
-                    value={tr.userId}
-                    onChange={(val) =>
-                      updateTeamRow(index, {
-                        userId: val != null ? val : '',
-                      })
-                    }
-                    emptyMessage='No team members found.'
-                    searchPlaceholder='Search by name or email'
-                    error={
-                      careErrors[`team_members.${index}.user_id`] ||
-                      careErrors[`row_${index}`]
-                    }
-                  />
-                  <TextField
-                    label='Position'
-                    required
-                    placeholder='e.g. Lead coach'
-                    maxLength={50}
-                    value={tr.position}
-                    onChange={(e) =>
-                      updateTeamRow(index, { position: e.target.value })
-                    }
-                    error={
-                      careErrors[`team_members.${index}.position`] ||
-                      careErrors[`position_${index}`]
-                    }
-                  />
-                </div>
-              ))}
-              <DialogFooter className='gap-2 sm:gap-0'>
-                <Button
-                  type='button'
-                  variant='outline'
-                  onClick={() => setCareTeamOpen(false)}
-                >
-                  Close
-                </Button>
-                <Button type='submit' disabled={carePending}>
-                  {carePending ? 'Saving…' : 'Save care team'}
-                </Button>
-              </DialogFooter>
-            </form>
-          )}
-        </DialogContent>
-      </Dialog>
+      <EnrollmentCareTeamEditorDialog
+        open={careTeamOpen}
+        onOpenChange={setCareTeamOpen}
+        detailLoading={detailLoading}
+        detailError={detailError}
+        detailQueryError={detailQueryError}
+        teamRows={teamRows}
+        setTeamRows={setTeamRows}
+        careErrors={careErrors}
+        setCareErrors={setCareErrors}
+        teamLoading={teamLoading}
+        optionsForTeamRow={optionsForTeamRow}
+        updateTeamRow={updateTeamRow}
+        carePending={carePending}
+        onSubmit={handleCareSubmit}
+        onAddMember={() => setTeamRows((r) => [...r, newTeamRow()])}
+      />
 
       <AlertDialog
         open={confirm != null}
@@ -861,18 +639,14 @@ export default function EnrollmentRecordRowActions({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {confirm?.kind === 'activate'
-                ? 'Activate enrollment?'
-                : confirm?.kind === 'complete'
-                  ? 'Mark enrollment complete?'
-                  : 'Cancel enrollment?'}
+              {confirm?.kind === 'complete'
+                ? 'Mark enrollment as complete?'
+                : 'Cancel enrollment?'}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {confirm?.kind === 'activate'
-                ? 'This moves the record from scheduled to active. The start date must be today or in the past for the server to accept it.'
-                : confirm?.kind === 'complete'
-                  ? 'This marks the enrollment as completed. This action is intended for manual completion while the enrollment is active.'
-                  : 'This stops the enrollment before completion. Scheduled or active enrollments can be cancelled.'}
+              {confirm?.kind === 'complete'
+                ? 'This sets the enrollment to completed. Use this when the participant has finished the program and you are recording completion manually.'
+                : 'This stops the enrollment before completion. Scheduled or active enrollments can be cancelled.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -889,11 +663,9 @@ export default function EnrollmentRecordRowActions({
             >
               {lifecyclePending
                 ? 'Working…'
-                : confirm?.kind === 'activate'
-                  ? 'Activate'
-                  : confirm?.kind === 'complete'
-                    ? 'Mark complete'
-                    : 'Cancel enrollment'}
+                : confirm?.kind === 'complete'
+                  ? 'Mark as complete'
+                  : 'Cancel enrollment'}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

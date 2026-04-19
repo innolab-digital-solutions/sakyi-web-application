@@ -14,6 +14,18 @@ import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
 
+import {
+  clearCareTeamFieldErrors,
+  validateCareTeamRows,
+} from '@/components/admin/modules/enrollmentCareTeamValidation';
+import {
+  STEP_BODY_HEIGHT_CLASS,
+  enrollmentWizardDialogContentClass,
+  enrollmentWizardDialogFooterClass,
+  enrollmentWizardStepBodyCardClass,
+  wizardOutlineButtonClass,
+  wizardPrimaryButtonClass,
+} from '@/components/admin/modules/enrollmentWizardModalUi';
 import ComboboxField, {
   type ComboboxOption,
 } from '@/components/shared/form/ComboBoxField';
@@ -45,16 +57,6 @@ import type { TeamMember } from '@/domains/lookup/types/team-members';
 import { http } from '@/lib/api/client';
 import { getInitials } from '@/lib/utils/string';
 import { cn } from '@/lib/utils/styles';
-
-/** Matches `OnboardingWizard` / intake assessment footer controls. */
-const wizardOutlineButtonClass =
-  'bg-background hover:bg-muted h-10 shrink-0 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold';
-
-const wizardPrimaryButtonClass =
-  'h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold';
-
-/** Stable step body height so switching steps does not resize the dialog (content scrolls inside). */
-const STEP_BODY_HEIGHT_CLASS = 'h-[21rem] max-h-[48vh]';
 
 const STEPS = [
   {
@@ -101,27 +103,6 @@ function newRow(): TeamMemberRow {
     userId: '',
     position: '',
   };
-}
-
-/** Same copy as the first-row empty state — reused for every row. */
-const CARE_TEAM_STAFF_REQUIRED = 'Select a staff member.';
-const CARE_TEAM_POSITION_REQUIRED = 'Enter their position.';
-
-function clearCareTeamFieldErrors(
-  prev: Record<string, string>,
-): Record<string, string> {
-  const n = { ...prev };
-  delete n.team_members;
-  for (const k of Object.keys(n)) {
-    if (
-      k.startsWith('team_members.') ||
-      /^row_\d+$/.test(k) ||
-      /^position_\d+$/.test(k)
-    ) {
-      delete n[k];
-    }
-  }
-  return n;
 }
 
 function flattenApiErrors(
@@ -266,63 +247,7 @@ export default function CreateEnrollmentFromContractModal({
   };
 
   const validateStep2 = (): boolean => {
-    const next: Record<string, string> = {};
-
-    const completeCount = rows.filter(
-      (r) => r.userId.trim() && r.position.trim(),
-    ).length;
-
-    for (let i = 0; i < rows.length; i++) {
-      const r = rows[i];
-      const hasUser = Boolean(r.userId?.trim());
-      const hasPos = Boolean(r.position.trim());
-
-      if (r.position.trim().length > 50) {
-        next[`team_members.${i}.position`] =
-          'Position must be at most 50 characters.';
-      } else if (hasUser && !hasPos) {
-        next[`team_members.${i}.position`] = CARE_TEAM_POSITION_REQUIRED;
-      } else if (!hasUser && hasPos) {
-        next[`team_members.${i}.user_id`] = CARE_TEAM_STAFF_REQUIRED;
-      }
-    }
-
-    // More than one row: every row must be complete (no trailing empty rows).
-    if (rows.length > 1) {
-      for (let i = 0; i < rows.length; i++) {
-        const r = rows[i];
-        const hasUser = Boolean(r.userId?.trim());
-        const hasPos = Boolean(r.position.trim());
-        if (hasUser || hasPos) continue;
-        next[`team_members.${i}.user_id`] = CARE_TEAM_STAFF_REQUIRED;
-        next[`team_members.${i}.position`] = CARE_TEAM_POSITION_REQUIRED;
-      }
-    }
-
-    if (completeCount === 0) {
-      const hasTeamFieldError = Object.keys(next).some((k) =>
-        k.startsWith('team_members.'),
-      );
-      if (!hasTeamFieldError) {
-        next['team_members.0.user_id'] = CARE_TEAM_STAFF_REQUIRED;
-        next['team_members.0.position'] = CARE_TEAM_POSITION_REQUIRED;
-      }
-    }
-
-    const seenUser = new Map<number, number>();
-    for (let i = 0; i < rows.length; i++) {
-      const r = rows[i];
-      if (!r.userId?.trim() || !r.position?.trim()) continue;
-      const uid = Number.parseInt(r.userId, 10);
-      if (Number.isNaN(uid)) continue;
-      if (seenUser.has(uid)) {
-        next[`team_members.${i}.user_id`] =
-          'This staff member is already assigned in another row.';
-      } else {
-        seenUser.set(uid, i);
-      }
-    }
-
+    const next = validateCareTeamRows(rows);
     setErrors((prev) => {
       const cleared = clearCareTeamFieldErrors(prev);
       return { ...cleared, ...next };
@@ -449,7 +374,7 @@ export default function CreateEnrollmentFromContractModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={!isPending}
-        className='flex max-h-[min(92vh,44rem)] min-h-0 flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl'
+        className={enrollmentWizardDialogContentClass}
       >
         <div className='border-border flex min-h-0 flex-1 flex-col overflow-hidden'>
           <DialogHeader className='border-border shrink-0 border-b px-6 pt-6 pb-4 text-left'>
@@ -543,7 +468,7 @@ export default function CreateEnrollmentFromContractModal({
 
                 <div
                   className={cn(
-                    'bg-muted/5 flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-neutral-200/80',
+                    enrollmentWizardStepBodyCardClass,
                     STEP_BODY_HEIGHT_CLASS,
                   )}
                 >
@@ -761,7 +686,7 @@ export default function CreateEnrollmentFromContractModal({
         </div>
 
         {contract && !contractLoading && !contractError && eligible ? (
-          <DialogFooter className='border-border bg-muted/20 flex shrink-0 flex-row flex-wrap items-center justify-end gap-3 border-t px-6 py-4 pt-6'>
+          <DialogFooter className={enrollmentWizardDialogFooterClass}>
             {step === 1 ? (
               <Button
                 type='button'
@@ -809,7 +734,7 @@ export default function CreateEnrollmentFromContractModal({
             )}
           </DialogFooter>
         ) : !contractLoading && (contractError || !contract) ? (
-          <DialogFooter className='border-border bg-muted/20 flex shrink-0 flex-row flex-wrap items-center justify-end gap-3 border-t px-6 py-4 pt-6'>
+          <DialogFooter className={enrollmentWizardDialogFooterClass}>
             <Button
               type='button'
               variant='outline'
@@ -821,7 +746,7 @@ export default function CreateEnrollmentFromContractModal({
             </Button>
           </DialogFooter>
         ) : contract && !eligible ? (
-          <DialogFooter className='border-border bg-muted/20 flex shrink-0 flex-row flex-wrap items-center justify-end gap-3 border-t px-6 py-4 pt-6'>
+          <DialogFooter className={enrollmentWizardDialogFooterClass}>
             <Button
               type='button'
               variant='outline'
