@@ -8,7 +8,6 @@ import {
   NotebookPen,
   Scale,
   UserCog,
-  Users,
 } from 'lucide-react';
 
 import { ADMIN_ROUTES } from '@/config/routes/admin';
@@ -153,12 +152,6 @@ export const ADMIN_NAVIGATION: NavItem[] = [
     name: 'Measurement Reference',
     icon: Scale,
     path: ADMIN_ROUTES.MODULES.UNITS.LIST,
-    subitems: [],
-  },
-  {
-    name: 'Care Teams',
-    icon: Users,
-    path: '#',
     subitems: [],
   },
 ] as const;

@@ -550,8 +550,8 @@ export default function EnrollmentRecordListTable() {
                             {visibleAssignedMembers.map((member, index) => {
                               const name =
                                 member.user?.name?.trim() || 'Unknown member';
-                              const email =
-                                member.user?.email?.trim() || 'No email';
+                              const position =
+                                member.position?.trim() || 'No position';
                               const picture = resolveMemberPictureUrl(
                                 member.user?.picture_url,
                               );
@@ -579,13 +579,14 @@ export default function EnrollmentRecordListTable() {
                                   </TooltipTrigger>
                                   <TooltipContent
                                     side='top'
+                                    surface
                                     className='max-w-64'
                                   >
                                     <p className='text-xs font-semibold'>
                                       {name}
                                     </p>
-                                    <p className='text-xs opacity-90'>
-                                      {email}
+                                    <p className='text-muted-foreground text-[10px] font-semibold'>
+                                      {position}
                                     </p>
                                   </TooltipContent>
                                 </Tooltip>
@@ -601,8 +602,8 @@ export default function EnrollmentRecordListTable() {
                                     +{remainingAssignedMembers}
                                   </div>
                                 </TooltipTrigger>
-                                <TooltipContent side='top'>
-                                  <p className='text-xs'>
+                                <TooltipContent side='top' surface>
+                                  <p className='text-xs font-medium'>
                                     {remainingAssignedMembers} more assigned
                                     member
                                     {remainingAssignedMembers === 1 ? '' : 's'}
