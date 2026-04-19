@@ -70,6 +70,9 @@ export const ADMIN_ROUTES = {
     ENROLLMENT_CONTRACTS: {
       LIST: `${BASE}/enrollment-contracts`,
       DETAIL: (id: string) => `${BASE}/enrollment-contracts/${id}`,
+      /** Create program enrollment from a signed contract (full-page form). */
+      ENROLL: (contractId: string) =>
+        `${BASE}/enrollment-contracts/${contractId}/enroll`,
     },
     ENROLLMENT_RECORDS: {
       LIST: `${BASE}/enrollments`,

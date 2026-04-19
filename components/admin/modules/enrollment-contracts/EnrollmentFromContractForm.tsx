@@ -2,6 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { PlusIcon, Trash2Icon, UserPlusIcon } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
 
@@ -13,16 +15,10 @@ import TextField from '@/components/shared/form/TextField';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
 import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
+import { ROUTES } from '@/config/routes';
 import { createEnrollment } from '@/domains/enrollment-records/services';
 import type { EnrollmentContract } from '@/domains/enrollment-contracts/types';
 import type { TeamMember } from '@/domains/lookup/types/team-members';
@@ -70,17 +66,14 @@ function flattenApiErrors(
   return out;
 }
 
-export type EnrollmentFromContractSheetProps = {
-  contract: EnrollmentContract | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+export type EnrollmentFromContractFormProps = {
+  contract: EnrollmentContract;
 };
 
-export default function EnrollmentFromContractSheet({
+export default function EnrollmentFromContractForm({
   contract,
-  open,
-  onOpenChange,
-}: EnrollmentFromContractSheetProps) {
+}: EnrollmentFromContractFormProps) {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [startsAt, setStartsAt] = React.useState('');
   const [endsAt, setEndsAt] = React.useState('');
@@ -94,11 +87,9 @@ export default function EnrollmentFromContractSheet({
       const res = await http.get<TeamMember[]>(LOOKUP_ENDPOINTS.TEAM_MEMBERS);
       return res.status === 'success' ? res.data : [];
     },
-    enabled: open,
   });
 
   React.useEffect(() => {
-    if (!open || !contract) return;
     const today = new Date();
     const y = today.getFullYear();
     const m = String(today.getMonth() + 1).padStart(2, '0');
@@ -108,7 +99,7 @@ export default function EnrollmentFromContractSheet({
     setNotes('');
     setRows([newRow()]);
     setErrors({});
-  }, [open, contract?.id]);
+  }, [contract.id]);
 
   const optionsForRow = React.useCallback(
     (rowIndex: number): ComboboxOption[] => {
@@ -190,7 +181,6 @@ export default function EnrollmentFromContractSheet({
 
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
-      if (!contract) throw new Error('No contract selected.');
       const membersPayload = rows
         .filter((r) => r.userId.trim() && r.position.trim())
         .map((r) => ({
@@ -216,7 +206,7 @@ export default function EnrollmentFromContractSheet({
       }
       return res.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success('Enrollment created.');
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.ENROLLMENT_CONTRACTS.LIST],
@@ -224,7 +214,13 @@ export default function EnrollmentFromContractSheet({
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.ENROLLMENT_RECORDS.LIST],
       });
-      onOpenChange(false);
+      if (data?.id != null) {
+        router.push(
+          ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(String(data.id)),
+        );
+      } else {
+        router.push(ROUTES.ADMIN.MODULES.ENROLLMENT_CONTRACTS.LIST);
+      }
     },
     onError: (e: Error) => {
       if (e.message === '__FIELD_ERRORS__') return;
@@ -254,32 +250,27 @@ export default function EnrollmentFromContractSheet({
     });
   };
 
-  const contractRef = contract?.code?.trim() || `#${contract?.id ?? ''}`;
+  const contractRef = contract.code?.trim() || `#${contract.id}`;
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className='flex max-h-full flex-col overflow-y-auto px-6 sm:max-w-lg [&>button]:cursor-pointer'>
-        <SheetHeader className='px-0'>
-          <SheetTitle className='text-foreground text-md font-bold'>
-            Create enrollment
-          </SheetTitle>
-          <SheetDescription className='text-muted-foreground text-sm font-medium'>
-            Link care team members to this signed contract. Start and end dates
-            apply to the program enrollment; staff each need a role label (for
-            example Lead coach).
-          </SheetDescription>
-        </SheetHeader>
-
-        {contract ? (
-          <p className='text-muted-foreground border-border mt-2 rounded-md border bg-muted/40 px-3 py-2 text-xs font-medium'>
-            Contract:{' '}
-            <span className='text-foreground font-semibold'>{contractRef}</span>
-          </p>
-        ) : null}
+    <div className='mx-auto max-w-3xl space-y-6'>
+      <section className='border-border rounded-md border bg-white p-4 shadow-xs sm:p-6'>
+        <h2 className='text-foreground text-sm font-semibold'>
+          Create enrollment
+        </h2>
+        <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
+          Link care team members to this signed contract. Start and end dates
+          apply to the program enrollment; staff each need a role label (for
+          example Lead coach).
+        </p>
+        <p className='text-muted-foreground border-border mt-4 rounded-md border bg-muted/40 px-3 py-2 text-xs font-medium'>
+          Contract:{' '}
+          <span className='text-foreground font-semibold'>{contractRef}</span>
+        </p>
 
         <form
           onSubmit={handleSubmit}
-          className='mt-4 flex min-h-0 flex-1 flex-col gap-5 pb-2'
+          className='mt-6 space-y-6'
           noValidate
         >
           <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
@@ -382,7 +373,7 @@ export default function EnrollmentFromContractSheet({
               {rows.map((row, index) => (
                 <div
                   key={row.key}
-                  className='border-border space-y-3 rounded-md border bg-muted/20 p-3'
+                  className='border-border space-y-3 rounded-md border bg-muted/20 p-4'
                 >
                   <div className='flex items-start justify-between gap-2'>
                     <span className='text-muted-foreground text-xs font-semibold'>
@@ -450,10 +441,21 @@ export default function EnrollmentFromContractSheet({
             </div>
           </div>
 
-          <div className='border-border mt-auto flex flex-col gap-2 border-t pt-4'>
+          <div className='border-border flex flex-col gap-3 border-t pt-6 sm:flex-row sm:items-center sm:justify-between'>
+            <Button
+              type='button'
+              variant='outline'
+              disabled={isPending}
+              className='bg-background hover:bg-muted h-10 w-full rounded-md border-neutral-300 px-3 text-[13px]! font-semibold sm:w-auto'
+              asChild
+            >
+              <Link href={ROUTES.ADMIN.MODULES.ENROLLMENT_CONTRACTS.LIST}>
+                Cancel
+              </Link>
+            </Button>
             <Button
               type='submit'
-              disabled={isPending || !contract}
+              disabled={isPending}
               className='h-10 w-full gap-1.5 rounded-md text-[13px]! font-semibold sm:w-auto'
             >
               <UserPlusIcon className='size-3.5' />
@@ -461,7 +463,7 @@ export default function EnrollmentFromContractSheet({
             </Button>
           </div>
         </form>
-      </SheetContent>
-    </Sheet>
+      </section>
+    </div>
   );
 }

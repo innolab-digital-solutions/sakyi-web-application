@@ -8,7 +8,6 @@ import { useEffect, useMemo, useState } from 'react';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import EnrollmentContractFilters from '@/components/admin/modules/enrollment-contracts/EnrollmentContractFilters';
-import EnrollmentFromContractSheet from '@/components/admin/modules/enrollment-contracts/EnrollmentFromContractSheet';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -172,8 +171,6 @@ function SignaturePreview({ url }: { url: string }) {
 }
 
 export default function EnrollmentContractListTable() {
-  const [enrollmentContract, setEnrollmentContract] =
-    useState<EnrollmentContract | null>(null);
   const [visibleColumnKeys, setVisibleColumnKeys] = useState<
     ContractColumnKey[]
   >(() => {
@@ -272,14 +269,6 @@ export default function EnrollmentContractListTable() {
   };
 
   return (
-    <>
-      <EnrollmentFromContractSheet
-        contract={enrollmentContract}
-        open={enrollmentContract !== null}
-        onOpenChange={(next) => {
-          if (!next) setEnrollmentContract(null);
-        }}
-      />
     <TableListShell
       controls={controls}
       searchPlaceholder='Search applicant, contact, or reference'
@@ -492,13 +481,18 @@ export default function EnrollmentContractListTable() {
                           </Button>
                         ) : (
                           <Button
-                            type='button'
                             variant='outline'
                             size='sm'
                             className='h-9 rounded-md text-[13px] font-semibold'
-                            onClick={() => setEnrollmentContract(contract)}
+                            asChild
                           >
-                            Enrollment
+                            <Link
+                              href={ROUTES.ADMIN.MODULES.ENROLLMENT_CONTRACTS.ENROLL(
+                                String(contract.id),
+                              )}
+                            >
+                              Enrollment
+                            </Link>
                           </Button>
                         )
                       ) : (
@@ -514,6 +508,5 @@ export default function EnrollmentContractListTable() {
         </TableBody>
       </Table>
     </TableListShell>
-    </>
   );
 }

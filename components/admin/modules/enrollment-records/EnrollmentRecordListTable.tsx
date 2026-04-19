@@ -1,16 +1,22 @@
 'use client';
 
 import { format, parseISO } from 'date-fns';
-import { ClipboardListIcon } from 'lucide-react';
+import {
+  CalendarIcon,
+  CheckCircle2Icon,
+  ClipboardListIcon,
+  PlayIcon,
+  XCircleIcon,
+} from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
-import { useState } from 'react';
+import { type ComponentType, useMemo, useState } from 'react';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
+import EnrollmentRecordFilters from '@/components/admin/modules/enrollment-records/EnrollmentRecordFilters';
+import EnrollmentRecordRowActions from '@/components/admin/modules/enrollment-records/EnrollmentRecordRowActions';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -22,8 +28,10 @@ import {
 import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
-import { ROUTES } from '@/config/routes';
-import type { AdminEnrollment } from '@/domains/enrollment-records/types/admin';
+import type {
+  AdminEnrollment,
+  EnrollmentLifecycleStatus,
+} from '@/domains/enrollment-records/types/admin';
 import { useTable } from '@/lib/table';
 import { getInitials } from '@/lib/utils/string';
 
@@ -39,8 +47,59 @@ const SKELETON_WIDTHS = [
   'w-28',
   'w-28',
   'w-28',
-  'w-20',
+  'w-32',
 ] as const;
+
+const STATUS_LABEL: Record<EnrollmentLifecycleStatus, string> = {
+  scheduled: 'Scheduled',
+  active: 'Active',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+};
+
+const ENROLLMENT_STATUS_STYLES: Record<
+  EnrollmentLifecycleStatus,
+  {
+    icon: ComponentType<{ className?: string }>;
+    className: string;
+  }
+> = {
+  scheduled: {
+    icon: CalendarIcon,
+    className:
+      'border-sky-300/80 bg-sky-50 text-sky-800 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-200',
+  },
+  active: {
+    icon: PlayIcon,
+    className:
+      'border-emerald-300/80 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200',
+  },
+  completed: {
+    icon: CheckCircle2Icon,
+    className:
+      'border-neutral-300/80 bg-neutral-50 text-neutral-800 dark:border-neutral-700 dark:bg-neutral-950/40 dark:text-neutral-200',
+  },
+  cancelled: {
+    icon: XCircleIcon,
+    className:
+      'border-rose-300/80 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200',
+  },
+};
+
+function normalizeEnrollmentStatus(
+  raw: string | undefined,
+): EnrollmentLifecycleStatus | null {
+  const s = (raw ?? '').trim().toLowerCase();
+  if (
+    s === 'scheduled' ||
+    s === 'active' ||
+    s === 'completed' ||
+    s === 'cancelled'
+  ) {
+    return s;
+  }
+  return null;
+}
 
 const PROGRAM_THUMBNAIL_FALLBACK = '/images/logo-gray.png';
 
@@ -96,16 +155,6 @@ function formatDateCell(iso: string | null | undefined): string | null {
   }
 }
 
-function formatStatusLabel(raw: string): string {
-  return raw
-    .trim()
-    .replace(/[_-]+/g, ' ')
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
-    .join(' ');
-}
-
 function getEnrollmentReference(row: AdminEnrollment): string {
   const code = row.code?.trim();
   if (code) return code;
@@ -130,8 +179,25 @@ export default function EnrollmentRecordListTable() {
     params: {
       sync: true,
       writeInitialToUrl: true,
+      extra: {
+        mode: 'allowlist',
+        allowlist: ['status'],
+      },
     },
   });
+
+  const statusFilter = useMemo(() => {
+    const v = controls.params.values.status?.trim().toLowerCase();
+    if (
+      v === 'scheduled' ||
+      v === 'active' ||
+      v === 'completed' ||
+      v === 'cancelled'
+    ) {
+      return v;
+    }
+    return 'all' as const;
+  }, [controls.params.values.status]);
 
   const { query } = controls;
   const showSkeleton = query.isPending && !query.data;
@@ -144,6 +210,13 @@ export default function EnrollmentRecordListTable() {
     <TableListShell
       controls={controls}
       searchPlaceholder='Search reference, client, program, or contract code'
+      filters={
+        <EnrollmentRecordFilters
+          statusFilter={statusFilter}
+          onClearStatus={() => controls.params.clear(['status'])}
+          onSetStatus={(status) => controls.params.set({ status })}
+        />
+      }
     >
       <Table className='w-full min-w-7xl'>
         <TableHeader className='bg-muted/50 [&_tr]:border-border'>
@@ -202,6 +275,11 @@ export default function EnrollmentRecordListTable() {
               const updatedAt = formatDateCell(row.timestamps?.updated_at);
               const startsAt = formatDateCell(row.starts_at);
               const endsAt = formatDateCell(row.ends_at);
+              const lifecycle = normalizeEnrollmentStatus(row.status);
+              const statusStyle = lifecycle
+                ? ENROLLMENT_STATUS_STYLES[lifecycle]
+                : null;
+              const StatusIcon = statusStyle?.icon;
 
               return (
                 <TableRow key={row.id}>
@@ -262,9 +340,18 @@ export default function EnrollmentRecordListTable() {
                     </div>
                   </TableCell>
                   <TableCell className='align-center'>
-                    <span className='border-border bg-muted/60 text-foreground inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold'>
-                      {formatStatusLabel(row.status || 'unknown')}
-                    </span>
+                    {lifecycle && statusStyle && StatusIcon ? (
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
+                      >
+                        <StatusIcon className='size-3.5 shrink-0' />
+                        {STATUS_LABEL[lifecycle]}
+                      </span>
+                    ) : (
+                      <span className='border-border bg-muted/60 text-foreground inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold'>
+                        {(row.status ?? 'unknown').trim() || '—'}
+                      </span>
+                    )}
                   </TableCell>
                   <TableCell className='text-foreground/80 align-center text-[13px] tabular-nums'>
                     {startsAt ?? <TableCellEmpty label='—' />}
@@ -276,20 +363,7 @@ export default function EnrollmentRecordListTable() {
                     {updatedAt ?? <TableCellEmpty label='—' />}
                   </TableCell>
                   <TableCell className='align-center text-end'>
-                    <Button
-                      variant='outline'
-                      size='sm'
-                      className='h-9 rounded-md text-[13px] font-semibold'
-                      asChild
-                    >
-                      <Link
-                        href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(
-                          String(row.id),
-                        )}
-                      >
-                        View
-                      </Link>
-                    </Button>
+                    <EnrollmentRecordRowActions row={row} />
                   </TableCell>
                 </TableRow>
               );

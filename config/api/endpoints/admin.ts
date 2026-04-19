@@ -91,6 +91,12 @@ export const ADMIN_ENDPOINTS = {
       LIST: `${BASE}/enrollments`,
       CREATE: `${BASE}/enrollments`,
       DETAIL: (id: string) => `${BASE}/enrollments/${id}`,
+      SCHEDULE_UPDATE: (id: string) => `${BASE}/enrollments/${id}/schedule`,
+      NOTES_UPDATE: (id: string) => `${BASE}/enrollments/${id}/notes`,
+      CARE_TEAM_UPDATE: (id: string) => `${BASE}/enrollments/${id}/care-team`,
+      ACTIVATE: (id: string) => `${BASE}/enrollments/${id}/activate`,
+      COMPLETE: (id: string) => `${BASE}/enrollments/${id}/complete`,
+      CANCEL: (id: string) => `${BASE}/enrollments/${id}/cancel`,
     },
     BLOG_POSTS: {
       LIST: `${BASE}/blog-posts`,

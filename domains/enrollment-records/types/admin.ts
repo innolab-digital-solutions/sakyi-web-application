@@ -1,3 +1,20 @@
+/** Lifecycle values from admin API (`enrollment-mutation-logic.md`). */
+export const ENROLLMENT_LIFECYCLE_STATUSES = [
+  'scheduled',
+  'active',
+  'completed',
+  'cancelled',
+] as const;
+
+export type EnrollmentLifecycleStatus =
+  (typeof ENROLLMENT_LIFECYCLE_STATUSES)[number];
+
+/** Care team row as returned on show / accepted on PATCH care-team. */
+export type EnrollmentTeamMemberPayload = {
+  user_id: number;
+  position: string;
+};
+
 export interface AdminEnrollment {
   id: number;
   code: string;
@@ -35,4 +52,6 @@ export interface AdminEnrollment {
     created_at: string | null;
     updated_at: string | null;
   };
+  /** Present on detail; used for care-team PATCH (full roster). */
+  team_members?: EnrollmentTeamMemberPayload[];
 }
