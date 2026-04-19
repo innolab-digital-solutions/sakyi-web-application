@@ -1,12 +1,14 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { type ComponentType } from 'react';
 import { CheckCircle2Icon, FileSignatureIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
+import CreateEnrollmentFromContractModal from '@/components/admin/modules/enrollment-contracts/CreateEnrollmentFromContractModal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import TableCellEmpty from '@/components/ui/table-cell-empty';
@@ -72,6 +74,8 @@ export type EnrollmentContractDetailViewProps = {
 export default function EnrollmentContractDetailView({
   contractId,
 }: EnrollmentContractDetailViewProps) {
+  const [createEnrollmentOpen, setCreateEnrollmentOpen] = useState(false);
+
   const { data, isPending, isError, error } = useQuery({
     queryKey: ['enrollment-contract', contractId],
     queryFn: async () => {
@@ -318,18 +322,22 @@ export default function EnrollmentContractDetailView({
             </Button>
           ) : null}
           {data.status === 'signed' && !hasEnrollmentId ? (
-            <Button className='h-9' asChild>
-              <Link
-                href={ROUTES.ADMIN.MODULES.ENROLLMENT_CONTRACTS.ENROLL(
-                  String(data.id),
-                )}
-              >
-                Create enrollment
-              </Link>
+            <Button
+              type='button'
+              className='h-9'
+              onClick={() => setCreateEnrollmentOpen(true)}
+            >
+              Create enrollment
             </Button>
           ) : null}
         </div>
       </section>
+
+      <CreateEnrollmentFromContractModal
+        contractId={createEnrollmentOpen ? contractId : null}
+        open={createEnrollmentOpen}
+        onOpenChange={setCreateEnrollmentOpen}
+      />
     </div>
   );
 }

@@ -39,6 +39,7 @@ const moreTriggerClass =
 
 export type EnrollmentContractRowActionsProps = {
   contract: EnrollmentContract;
+  onOpenCreateEnrollment: (contractId: number) => void;
 };
 
 type PrimaryAction = 'createEnrollment' | 'viewEnrollment' | 'viewDetail';
@@ -57,6 +58,7 @@ function getPrimaryAction(contract: EnrollmentContract): PrimaryAction {
 /** Surfaces the strongest next step when signed; otherwise “View detail” + ⋯. */
 export default function EnrollmentContractRowActions({
   contract,
+  onOpenCreateEnrollment,
 }: EnrollmentContractRowActionsProps) {
   const referenceText = getContractReference(contract);
   const primary = getPrimaryAction(contract);
@@ -109,20 +111,14 @@ export default function EnrollmentContractRowActions({
       ) : null}
       {primary === 'createEnrollment' ? (
         <Button
+          type='button'
           variant='default'
           size='sm'
           className={mainActionButtonClass}
-          asChild
+          onClick={() => onOpenCreateEnrollment(contract.id)}
         >
-          <Link
-            href={ROUTES.ADMIN.MODULES.ENROLLMENT_CONTRACTS.ENROLL(
-              String(contract.id),
-            )}
-            className='inline-flex items-center gap-1.5'
-          >
-            <FileSignatureIcon className='size-3.5 shrink-0' />
-            Create enrollment
-          </Link>
+          <FileSignatureIcon className='size-3.5 shrink-0' />
+          Create enrollment
         </Button>
       ) : null}
       {primary === 'viewEnrollment' ? (
@@ -198,16 +194,12 @@ export default function EnrollmentContractRowActions({
                 </DropdownMenuItem>
               ) : null}
               {showCreateInMenu ? (
-                <DropdownMenuItem asChild className='cursor-pointer'>
-                  <Link
-                    className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
-                    href={ROUTES.ADMIN.MODULES.ENROLLMENT_CONTRACTS.ENROLL(
-                      String(contract.id),
-                    )}
-                  >
-                    <FileSignatureIcon className='size-3.5 shrink-0' />
-                    Create enrollment
-                  </Link>
+                <DropdownMenuItem
+                  className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                  onClick={() => onOpenCreateEnrollment(contract.id)}
+                >
+                  <FileSignatureIcon className='size-3.5 shrink-0' />
+                  Create enrollment
                 </DropdownMenuItem>
               ) : null}
             </>

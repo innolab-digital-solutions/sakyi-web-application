@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
+import CreateEnrollmentFromContractModal from '@/components/admin/modules/enrollment-contracts/CreateEnrollmentFromContractModal';
 import EnrollmentContractFilters from '@/components/admin/modules/enrollment-contracts/EnrollmentContractFilters';
 import EnrollmentContractRowActions from '@/components/admin/modules/enrollment-contracts/EnrollmentContractRowActions';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
@@ -278,7 +279,22 @@ export default function EnrollmentContractListTable() {
     setVisibleColumnKeys([...DEFAULT_VISIBLE_COLUMN_KEYS]);
   };
 
+  const [createEnrollmentOpen, setCreateEnrollmentOpen] = useState(false);
+  const [createEnrollmentContractId, setCreateEnrollmentContractId] =
+    useState<number | null>(null);
+
+  const openCreateEnrollment = (id: number) => {
+    setCreateEnrollmentContractId(id);
+    setCreateEnrollmentOpen(true);
+  };
+
+  const onCreateEnrollmentModalOpenChange = (next: boolean) => {
+    setCreateEnrollmentOpen(next);
+    if (!next) setCreateEnrollmentContractId(null);
+  };
+
   return (
+    <>
     <TableListShell
       controls={controls}
       searchPlaceholder='Search ...'
@@ -472,7 +488,10 @@ export default function EnrollmentContractListTable() {
 
                   {showColumn('actions') ? (
                     <TableCell className='align-center text-end whitespace-nowrap'>
-                      <EnrollmentContractRowActions contract={contract} />
+                      <EnrollmentContractRowActions
+                        contract={contract}
+                        onOpenCreateEnrollment={openCreateEnrollment}
+                      />
                     </TableCell>
                   ) : null}
                 </TableRow>
@@ -481,5 +500,11 @@ export default function EnrollmentContractListTable() {
         </TableBody>
       </Table>
     </TableListShell>
+    <CreateEnrollmentFromContractModal
+      contractId={createEnrollmentContractId}
+      open={createEnrollmentOpen}
+      onOpenChange={onCreateEnrollmentModalOpenChange}
+    />
+    </>
   );
 }
