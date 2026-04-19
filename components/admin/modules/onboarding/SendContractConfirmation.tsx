@@ -45,13 +45,15 @@ export default function SendContractConfirmation({
   const description =
     variant === 'first' ? (
       <>
-        This sends a secure link to <strong>{who}</strong> by mobile
-        notification so they can review and sign the enrollment contract. Only
-        send when the intake is complete and you are ready for them to act.
+        This sends a secure link to{' '}
+        <span className='text-primary text-xs font-semibold'>{who}</span> by
+        mobile notification so they can review and sign the enrollment contract.
+        Only send when the intake is complete and you are ready for them to act.
       </>
     ) : (
       <>
-        A contract notification was already sent to <strong>{who}</strong>.
+        A contract notification was already sent to{' '}
+        <span className='text-primary text-xs font-semibold'>{who}</span>.
         Sending again will deliver another mobile notification. Use this only if
         they did not receive the first message or you need to send a reminder.
       </>
