@@ -133,11 +133,12 @@ const GENDER_BADGE: Record<
   },
 };
 
-function resolveGenderKind(
-  raw: string | null | undefined,
-): GenderKind | null {
+function resolveGenderKind(raw: string | null | undefined): GenderKind | null {
   if (!raw?.trim()) return null;
-  const compact = raw.trim().toLowerCase().replace(/[\s_-]+/g, '');
+  const compact = raw
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, '');
   if (
     compact === 'female' ||
     compact === 'f' ||
@@ -270,8 +271,7 @@ export default function ClientProfileListTable() {
     setVisibleColumnKeys([...DEFAULT_VISIBLE_COLUMN_KEYS]);
   };
 
-  const showColumn = (key: ClientProfileColumnKey) =>
-    visibleColumnSet.has(key);
+  const showColumn = (key: ClientProfileColumnKey) => visibleColumnSet.has(key);
 
   return (
     <TableListShell
@@ -402,9 +402,7 @@ export default function ClientProfileListTable() {
                   ) : null}
                   {showColumn('dob') ? (
                     <TableCell className='tabular-nums'>
-                      {dobDisplay ?? (
-                        <TableCellEmpty label='Not provided' />
-                      )}
+                      {dobDisplay ?? <TableCellEmpty label='Not provided' />}
                     </TableCell>
                   ) : null}
                   {showColumn('gender') ? (

@@ -107,7 +107,12 @@ export default function EnrollmentRequestRowActions({
           Start intake
         </Button>
       ) : (
-        <Button variant='outline' size='sm' className={viewDetailButtonClass} asChild>
+        <Button
+          variant='outline'
+          size='sm'
+          className={viewDetailButtonClass}
+          asChild
+        >
           <Link
             href={ROUTES.ADMIN.MODULES.ENROLLMENT_REQUESTS.DETAIL(
               String(request.id),
@@ -133,9 +138,9 @@ export default function EnrollmentRequestRowActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end' className='min-w-52'>
-        <DropdownMenuLabel className='text-foreground/70 space-y-1 px-2 py-1.5 text-[11px]! font-bold tracking-wide uppercase'>
-More Options
-</DropdownMenuLabel>
+          <DropdownMenuLabel className='text-foreground/70 space-y-1 px-2 py-1.5 text-[11px]! font-bold tracking-wide uppercase'>
+            More Options
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'

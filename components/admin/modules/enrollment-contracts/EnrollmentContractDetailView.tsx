@@ -1,12 +1,12 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
-import { type ComponentType } from 'react';
 import { CheckCircle2Icon, FileSignatureIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
+import { type ComponentType } from 'react';
 
 import CreateEnrollmentFromContractModal from '@/components/admin/modules/enrollment-contracts/CreateEnrollmentFromContractModal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,9 +16,9 @@ import { base } from '@/config/api/base';
 import { ROUTES } from '@/config/routes';
 import { getEnrollmentContractById } from '@/domains/enrollment-contracts/services';
 import {
+  contractHasLinkedEnrollment,
   type EnrollmentContract,
   type EnrollmentContractStatus,
-  contractHasLinkedEnrollment,
 } from '@/domains/enrollment-contracts/types';
 import { getInitials } from '@/lib/utils/string';
 
@@ -114,7 +114,7 @@ export default function EnrollmentContractDetailView({
   const createdAt = formatDateCell(data.timestamps.created_at);
   const updatedAt = formatDateCell(data.timestamps.updated_at);
   const signatureSrc = data.signature_url?.trim()
-    ? resolveMediaUrl(data.signature_url) ?? data.signature_url.trim()
+    ? (resolveMediaUrl(data.signature_url) ?? data.signature_url.trim())
     : null;
 
   const hasLinkedEnrollment = contractHasLinkedEnrollment(data);
@@ -236,7 +236,7 @@ export default function EnrollmentContractDetailView({
                 <dt className='text-muted-foreground text-xs font-semibold'>
                   Email
                 </dt>
-                <dd className='text-foreground wrap-break-word text-[13px] font-medium'>
+                <dd className='text-foreground text-[13px] font-medium wrap-break-word'>
                   {client.email?.trim() || '—'}
                 </dd>
               </div>
@@ -263,7 +263,9 @@ export default function EnrollmentContractDetailView({
       </section>
 
       <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5'>
-        <h2 className='text-foreground text-sm font-semibold'>Linked records</h2>
+        <h2 className='text-foreground text-sm font-semibold'>
+          Linked records
+        </h2>
         <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
           Intake and enrollment request associated with this contract.
         </p>
@@ -275,8 +277,7 @@ export default function EnrollmentContractDetailView({
                   String(intake.id),
                 )}
               >
-                Intake:{' '}
-                {intake.code?.trim() || `#${intake.id}`}
+                Intake: {intake.code?.trim() || `#${intake.id}`}
               </Link>
             </Button>
           ) : (

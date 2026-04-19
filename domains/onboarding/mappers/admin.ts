@@ -86,7 +86,7 @@ export function getRequiredFieldErrorsForSection(
         typeof question.question === 'string' && question.question.trim()
           ? question.question.trim().toLowerCase()
           : 'intake question';
-     
+
       nextErrors[question.id] = getTranslation(
         language,
         'shared.validation.required',

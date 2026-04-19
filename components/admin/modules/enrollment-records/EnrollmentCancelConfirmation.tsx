@@ -47,7 +47,6 @@ export default function EnrollmentCancelConfirmation({
             <div className='space-y-1.5'>
               <AlertDialogTitle className='text-foreground/90 text-sm font-bold capitalize'>
                 Confirm Enrollment Cancellation?
-           
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
                 This stops{' '}
@@ -71,7 +70,6 @@ export default function EnrollmentCancelConfirmation({
             error={noteError}
             disabled={isSubmitting}
             placeholder='Please provide a reason for cancellation'
-       
             className='text-[13px]!'
           />
         </div>

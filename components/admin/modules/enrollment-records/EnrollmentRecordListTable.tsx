@@ -646,7 +646,9 @@ export default function EnrollmentRecordListTable() {
                   ) : null}
                   {showColumn('lastUpdatedAt') ? (
                     <TableCell>
-                      {lastUpdatedAt ?? <TableCellEmpty label='No update date' />}
+                      {lastUpdatedAt ?? (
+                        <TableCellEmpty label='No update date' />
+                      )}
                     </TableCell>
                   ) : null}
                   {showColumn('intakeReference') ? (

@@ -13,12 +13,12 @@ export type EnrollmentLifecycleStatus =
 export type EnrollmentTeamMemberPayload = {
   id: number;
   position: string;
-  user:{
+  user: {
     id: number;
     name: string;
     email: string;
     picture_url: string | null;
-  }
+  };
 };
 
 export interface AdminEnrollment {

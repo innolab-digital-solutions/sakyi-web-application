@@ -44,7 +44,7 @@ export default function PageHeader({
           {title}
         </h1>
         {description != null && description !== '' && (
-          <div className='text-muted-foreground text-[13.5px] max-w-4xl font-medium'>
+          <div className='text-muted-foreground max-w-4xl text-[13.5px] font-medium'>
             {description}
           </div>
         )}

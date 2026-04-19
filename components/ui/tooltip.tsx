@@ -67,7 +67,7 @@ function TooltipContent({
           className={cn(
             'z-50 size-2.5 translate-y-[calc(-50%-2px)] rotate-45 rounded-[2px]',
             surface
-              ? 'border-border bg-white fill-white  border'
+              ? 'border-border border bg-white fill-white'
               : 'bg-foreground fill-white',
           )}
         />

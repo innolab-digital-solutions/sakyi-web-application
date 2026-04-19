@@ -2,7 +2,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
-import { type ComponentType } from 'react';
 import {
   CheckCircle2Icon,
   PhoneCallIcon,
@@ -11,6 +10,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { type ComponentType } from 'react';
 import { useState } from 'react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -258,7 +258,7 @@ export default function EnrollmentRequestDetailView({
             <dt className='text-muted-foreground text-xs font-semibold'>
               Notes
             </dt>
-            <dd className='text-foreground mt-1 whitespace-pre-wrap text-[13px] font-medium'>
+            <dd className='text-foreground mt-1 text-[13px] font-medium whitespace-pre-wrap'>
               {data.notes.trim()}
             </dd>
           </div>
@@ -291,7 +291,7 @@ export default function EnrollmentRequestDetailView({
                 <dt className='text-muted-foreground text-xs font-semibold'>
                   Email
                 </dt>
-                <dd className='text-foreground wrap-break-word text-[13px] font-medium'>
+                <dd className='text-foreground text-[13px] font-medium wrap-break-word'>
                   {data.client.email?.trim() || '—'}
                 </dd>
               </div>
@@ -364,7 +364,7 @@ export default function EnrollmentRequestDetailView({
               <p className='text-foreground text-[13px] font-semibold'>
                 {data.handler.name}
               </p>
-              <p className='text-muted-foreground wrap-break-word text-xs font-medium'>
+              <p className='text-muted-foreground text-xs font-medium wrap-break-word'>
                 {data.handler.email}
               </p>
               {data.handler.role?.trim() ? (

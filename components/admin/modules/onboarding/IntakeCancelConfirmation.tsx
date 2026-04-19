@@ -50,8 +50,8 @@ export default function IntakeCancelConfirmation({
                 Cancel this intake assessment?
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
-                Cancelling will immediately stop this intake assessment interview
-                for{' '}
+                Cancelling will immediately stop this intake assessment
+                interview for{' '}
                 <span className='text-destructive text-xs font-semibold'>
                   {intakeReference?.trim() || 'this intake'}
                 </span>{' '}

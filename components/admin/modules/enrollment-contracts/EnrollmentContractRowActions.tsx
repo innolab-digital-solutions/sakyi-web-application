@@ -21,8 +21,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ROUTES } from '@/config/routes';
 import {
-  type EnrollmentContract,
   contractHasLinkedEnrollment,
+  type EnrollmentContract,
 } from '@/domains/enrollment-contracts/types';
 
 function getContractReference(contract: EnrollmentContract): string {
