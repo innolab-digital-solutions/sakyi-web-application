@@ -14,5 +14,6 @@ export {
   type PatchEnrollmentSchedulePayload,
   postEnrollmentActivate,
   postEnrollmentCancel,
+  type PostEnrollmentCancelPayload,
   postEnrollmentComplete,
 } from './admin.service';

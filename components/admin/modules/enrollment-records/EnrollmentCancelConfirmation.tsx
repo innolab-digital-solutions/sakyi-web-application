@@ -14,29 +14,28 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 
-export type IntakeCancelConfirmationProps = {
+export type EnrollmentCancelConfirmationProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isSubmitting: boolean;
-  /** Intake reference (e.g. code or `#id`) shown in the description, like enrollment cancel. */
-  intakeReference?: string;
+  enrollmentReference?: string;
   cancellationNote: string;
   onCancellationNoteChange: (value: string) => void;
   noteError?: string;
   onConfirmCancel: () => void;
 };
 
-/** Confirmation dialog for cancelling an in-progress intake assessment interview. */
-export default function IntakeCancelConfirmation({
+/** Confirmation dialog for cancelling a scheduled or active program enrollment. */
+export default function EnrollmentCancelConfirmation({
   open,
   onOpenChange,
   isSubmitting,
-  intakeReference,
+  enrollmentReference,
   cancellationNote,
   onCancellationNoteChange,
   noteError,
   onConfirmCancel,
-}: IntakeCancelConfirmationProps) {
+}: EnrollmentCancelConfirmationProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className='gap-0 overflow-hidden p-0 sm:max-w-md'>
@@ -47,18 +46,17 @@ export default function IntakeCancelConfirmation({
             </div>
             <div className='space-y-1.5'>
               <AlertDialogTitle className='text-foreground/90 text-sm font-bold capitalize'>
-                Cancel this intake assessment?
+                Confirm Enrollment Cancellation?
+           
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
-                Cancelling will immediately stop this intake assessment interview
-                for{' '}
+                This stops{' '}
                 <span className='text-destructive text-xs font-semibold'>
-                  {intakeReference?.trim() || 'this intake'}
+                  {enrollmentReference?.trim() || 'this enrollment'}
                 </span>{' '}
-                and change the status of both the intake and the associated
-                enrollment request to “cancelled.” Please provide a brief note
-                to ensure your team has clear context for this action on the
-                intake record.
+                before completion. Scheduled or active enrollments can be
+                cancelled. Please add a brief note so your team has clear
+                context on the enrollment record.
               </AlertDialogDescription>
             </div>
           </div>
@@ -73,6 +71,7 @@ export default function IntakeCancelConfirmation({
             error={noteError}
             disabled={isSubmitting}
             placeholder='Please provide a reason for cancellation'
+       
             className='text-[13px]!'
           />
         </div>
@@ -82,7 +81,7 @@ export default function IntakeCancelConfirmation({
             disabled={isSubmitting}
             className='text-foreground bg-background hover:bg-muted h-10 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
           >
-            Continue Interview
+            Keep enrollment
           </AlertDialogCancel>
           <Button
             type='button'
@@ -91,8 +90,8 @@ export default function IntakeCancelConfirmation({
             className='border-destructive/45 h-10 cursor-pointer gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
             onClick={onConfirmCancel}
           >
-            <Ban className='size-3.5' />
-            {isSubmitting ? 'Cancelling…' : 'Cancel Intake'}
+            <Ban className='size-3.5' aria-hidden />
+            {isSubmitting ? 'Cancelling…' : 'Cancel enrollment'}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

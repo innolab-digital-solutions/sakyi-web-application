@@ -50,7 +50,7 @@ type EnrollmentRecordColumnKey =
   | 'status'
   | 'startsAt'
   | 'endsAt'
-  | 'updatedAt'
+  | 'lastUpdatedAt'
   | 'intakeReference'
   | 'contract'
   | 'createdAt'
@@ -123,8 +123,8 @@ const ENROLLMENT_RECORD_COLUMNS: readonly EnrollmentRecordColumnDefinition[] = [
     skeletonWidth: 'w-28',
   },
   {
-    key: 'updatedAt',
-    label: 'Updated At',
+    key: 'lastUpdatedAt',
+    label: 'Last Updated At',
     headerClassName: '',
     skeletonWidth: 'w-28',
   },
@@ -464,7 +464,7 @@ export default function EnrollmentRecordListTable() {
               );
               const programLabel = getProgramLabel(row);
               const programCode = getProgramCode(row);
-              const updatedAt = formatDateCell(row.timestamps?.updated_at);
+              const lastUpdatedAt = formatDateCell(row.timestamps?.updated_at);
               const createdAt = formatDateCell(row.timestamps?.created_at);
               const startsAt = formatDateCell(row.starts_at);
               const endsAt = formatDateCell(row.ends_at);
@@ -643,9 +643,9 @@ export default function EnrollmentRecordListTable() {
                       {endsAt ?? <TableCellEmpty label='No end date' />}
                     </TableCell>
                   ) : null}
-                  {showColumn('updatedAt') ? (
+                  {showColumn('lastUpdatedAt') ? (
                     <TableCell>
-                      {updatedAt ?? <TableCellEmpty label='No update date' />}
+                      {lastUpdatedAt ?? <TableCellEmpty label='No update date' />}
                     </TableCell>
                   ) : null}
                   {showColumn('intakeReference') ? (

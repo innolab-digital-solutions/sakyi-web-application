@@ -16,25 +16,18 @@ import Link from 'next/link';
 import * as React from 'react';
 import { toast } from 'sonner';
 
+import EnrollmentCancelConfirmation from '@/components/admin/modules/enrollment-records/EnrollmentCancelConfirmation';
+import EnrollmentCareTeamEditorDialog, {
+  type EnrollmentCareTeamRow,
+} from '@/components/admin/modules/enrollment-records/EnrollmentCareTeamEditorDialog';
+import EnrollmentMarkCompleteConfirmation from '@/components/admin/modules/enrollment-records/EnrollmentMarkCompleteConfirmation';
+import EnrollmentNotesEditorDialog from '@/components/admin/modules/enrollment-records/EnrollmentNotesEditorDialog';
+import EnrollmentScheduleEditorDialog from '@/components/admin/modules/enrollment-records/EnrollmentScheduleEditorDialog';
 import {
   clearCareTeamFieldErrors,
   validateCareTeamRows,
 } from '@/components/admin/modules/enrollmentCareTeamValidation';
-import EnrollmentCareTeamEditorDialog, {
-  type EnrollmentCareTeamRow,
-} from '@/components/admin/modules/enrollment-records/EnrollmentCareTeamEditorDialog';
 import type { ComboboxOption } from '@/components/shared/form/ComboBoxField';
-import EnrollmentNotesEditorDialog from '@/components/admin/modules/enrollment-records/EnrollmentNotesEditorDialog';
-import EnrollmentScheduleEditorDialog from '@/components/admin/modules/enrollment-records/EnrollmentScheduleEditorDialog';
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -167,8 +160,6 @@ function rosterToRows(
   }));
 }
 
-type ConfirmKind = 'complete' | 'cancel' | null;
-
 export type EnrollmentRecordRowActionsProps = {
   row: AdminEnrollment;
 };
@@ -185,10 +176,12 @@ export default function EnrollmentRecordRowActions({
   const [scheduleOpen, setScheduleOpen] = React.useState(false);
   const [notesOpen, setNotesOpen] = React.useState(false);
   const [careTeamOpen, setCareTeamOpen] = React.useState(false);
-  const [confirm, setConfirm] = React.useState<{
-    kind: Exclude<ConfirmKind, null>;
-    row: AdminEnrollment;
-  } | null>(null);
+  const [markCompleteOpen, setMarkCompleteOpen] = React.useState(false);
+  const [cancelEnrollmentOpen, setCancelEnrollmentOpen] = React.useState(false);
+  const [cancellationNote, setCancellationNote] = React.useState('');
+  const [cancellationNoteError, setCancellationNoteError] = React.useState<
+    string | undefined
+  >(undefined);
 
   const [startsAt, setStartsAt] = React.useState('');
   const [endsAt, setEndsAt] = React.useState('');
@@ -210,7 +203,7 @@ export default function EnrollmentRecordRowActions({
     void queryClient.invalidateQueries({ queryKey: [...LIST_QUERY_KEY] });
   }, [queryClient]);
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (!scheduleOpen) return;
     setStartsAt(toDateInputValue(row.starts_at));
     setEndsAt(toDateInputValue(row.ends_at));
@@ -358,7 +351,8 @@ export default function EnrollmentRecordRowActions({
       return res.data;
     },
     onSuccess: () => {
-      toast.success('Schedule updated.');
+      toast.success('The enrollment schedule was successfully updated.');
+
       setScheduleOpen(false);
       invalidateList();
     },
@@ -383,7 +377,8 @@ export default function EnrollmentRecordRowActions({
       return res.data;
     },
     onSuccess: () => {
-      toast.success('Notes saved.');
+      toast.success('The notes have been successfully updated.');
+
       setNotesOpen(false);
       invalidateList();
     },
@@ -424,7 +419,7 @@ export default function EnrollmentRecordRowActions({
       return res.data;
     },
     onSuccess: () => {
-      toast.success('Care team updated.');
+      toast.success('The care team members have been successfully updated.');
       setCareTeamOpen(false);
       invalidateList();
       void queryClient.invalidateQueries({
@@ -440,28 +435,49 @@ export default function EnrollmentRecordRowActions({
     },
   });
 
-  const { mutate: mutateLifecycle, isPending: lifecyclePending } = useMutation({
-    mutationFn: async (kind: Exclude<ConfirmKind, null>) => {
-      const res =
-        kind === 'complete'
-          ? await postEnrollmentComplete(row.id)
-          : await postEnrollmentCancel(row.id);
+  const { mutate: mutateComplete, isPending: completePending } = useMutation({
+    mutationFn: async () => {
+      const res = await postEnrollmentComplete(row.id);
       if (res.status === 'error') {
-        throw new Error(res.message ?? 'Action failed.');
+        throw new Error(res.message ?? 'Could not update enrollment.');
       }
-      return { kind, data: res.data };
+      return res.data;
     },
-    onSuccess: ({ kind }) => {
-      const msg =
-        kind === 'complete'
-          ? 'Enrollment marked as complete.'
-          : 'Enrollment cancelled.';
-      toast.success(msg);
-      setConfirm(null);
+    onSuccess: () => {
+      toast.success('The enrollment has been marked as complete.');
+      setMarkCompleteOpen(false);
       invalidateList();
     },
     onError: (e: Error) => {
-      toast.error(e.message ?? 'Action failed.');
+      toast.error(e.message ?? 'Could not update enrollment.');
+    },
+  });
+
+  const { mutate: mutateCancel, isPending: cancelPending } = useMutation({
+    mutationFn: async (note: string) => {
+      const res = await postEnrollmentCancel(row.id, {
+        cancellation_note: note,
+      });
+      if (res.status === 'error') {
+        const flat = flattenApiErrors(res.errors);
+        if (flat.cancellation_note) {
+          setCancellationNoteError(flat.cancellation_note);
+          throw new Error('__FIELD_ERRORS__');
+        }
+        throw new Error(res.message ?? 'Could not cancel enrollment.');
+      }
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success('The enrollment has been cancelled.');
+      setCancelEnrollmentOpen(false);
+      setCancellationNote('');
+      setCancellationNoteError(undefined);
+      invalidateList();
+    },
+    onError: (e: Error) => {
+      if (e.message === '__FIELD_ERRORS__') return;
+      toast.error(e.message ?? 'Could not cancel enrollment.');
     },
   });
 
@@ -481,6 +497,16 @@ export default function EnrollmentRecordRowActions({
     e.preventDefault();
     if (!validateCareTeam()) return;
     mutateCareTeam();
+  };
+
+  const handleConfirmCancelEnrollment = () => {
+    const trimmed = cancellationNote.trim();
+    if (!trimmed) {
+      setCancellationNoteError('A cancellation note is required.');
+      return;
+    }
+    setCancellationNoteError(undefined);
+    mutateCancel(trimmed);
   };
 
   const handleCopyReference = () => {
@@ -566,7 +592,7 @@ export default function EnrollmentRecordRowActions({
                 {isActive ? (
                   <DropdownMenuItem
                     className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-                    onClick={() => setConfirm({ kind: 'complete', row })}
+                    onClick={() => setMarkCompleteOpen(true)}
                   >
                     <CircleCheckIcon className='size-3.5 shrink-0' />
                     Mark as complete
@@ -574,7 +600,7 @@ export default function EnrollmentRecordRowActions({
                 ) : null}
                 <DropdownMenuItem
                   className='text-destructive focus:text-destructive flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-                  onClick={() => setConfirm({ kind: 'cancel', row })}
+                  onClick={() => setCancelEnrollmentOpen(true)}
                 >
                   <XCircleIcon className='text-destructive size-3.5 shrink-0' />
                   Cancel enrollment
@@ -630,46 +656,33 @@ export default function EnrollmentRecordRowActions({
         onAddMember={() => setTeamRows((r) => [...r, newTeamRow()])}
       />
 
-      <AlertDialog
-        open={confirm != null}
+      <EnrollmentMarkCompleteConfirmation
+        open={markCompleteOpen}
+        onOpenChange={setMarkCompleteOpen}
+        isSubmitting={completePending}
+        enrollmentReference={referenceText}
+        onConfirm={() => mutateComplete()}
+      />
+
+      <EnrollmentCancelConfirmation
+        open={cancelEnrollmentOpen}
         onOpenChange={(open) => {
-          if (!open) setConfirm(null);
+          setCancelEnrollmentOpen(open);
+          if (!open) {
+            setCancellationNote('');
+            setCancellationNoteError(undefined);
+          }
         }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {confirm?.kind === 'complete'
-                ? 'Mark enrollment as complete?'
-                : 'Cancel enrollment?'}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {confirm?.kind === 'complete'
-                ? 'This sets the enrollment to completed. Use this when the participant has finished the program and you are recording completion manually.'
-                : 'This stops the enrollment before completion. Scheduled or active enrollments can be cancelled.'}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={lifecyclePending}>
-              Back
-            </AlertDialogCancel>
-            <Button
-              type='button'
-              variant={confirm?.kind === 'cancel' ? 'destructive' : 'default'}
-              disabled={lifecyclePending}
-              onClick={() => {
-                if (confirm) mutateLifecycle(confirm.kind);
-              }}
-            >
-              {lifecyclePending
-                ? 'Working…'
-                : confirm?.kind === 'complete'
-                  ? 'Mark as complete'
-                  : 'Cancel enrollment'}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        isSubmitting={cancelPending}
+        enrollmentReference={referenceText}
+        cancellationNote={cancellationNote}
+        onCancellationNoteChange={(value) => {
+          setCancellationNote(value);
+          setCancellationNoteError(undefined);
+        }}
+        noteError={cancellationNoteError}
+        onConfirmCancel={handleConfirmCancelEnrollment}
+      />
     </>
   );
 }

@@ -537,6 +537,11 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
                 open={cancelDialogOpen}
                 onOpenChange={setCancelDialogOpen}
                 isSubmitting={cancelMutation.isPending}
+                intakeReference={
+                  intakeRecord
+                    ? intakeRecord.code?.trim() || `#${intakeRecord.id}`
+                    : undefined
+                }
                 cancellationNote={
                   typeof cancelForm.fields.cancellation_note === 'string'
                     ? cancelForm.fields.cancellation_note

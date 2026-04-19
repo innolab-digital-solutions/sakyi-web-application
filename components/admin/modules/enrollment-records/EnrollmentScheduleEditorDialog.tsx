@@ -72,16 +72,18 @@ export default function EnrollmentScheduleEditorDialog({
   onSubmit,
 }: ScheduleEditorDialogProps) {
   const formId = `enrollment-schedule-editor-${rowId}`;
-  const startDate = !isActive ? parseYmdLocal(startsAt) : undefined;
-  const endDate = parseYmdLocal(endsAt);
   const lockedStartYmd = toDateInputValue(rowStartsAt);
+  /** Parent `startsAt` can lag one frame after open; fall back to row start so end-date rules stay correct. */
+  const effectiveStartYmd = isActive
+    ? lockedStartYmd
+    : startsAt.trim() || lockedStartYmd;
+  const startDate = !isActive ? parseYmdLocal(effectiveStartYmd) : undefined;
+  const endDate = parseYmdLocal(endsAt);
   const lockedStartDisplay = lockedStartYmd
     ? format(parse(lockedStartYmd, 'yyyy-MM-dd', new Date()), 'PP')
     : '—';
 
-  const startForEndConstraint = isActive
-    ? parseYmdLocal(lockedStartYmd)
-    : startDate;
+  const startForEndConstraint = parseYmdLocal(effectiveStartYmd);
   const endCalendarDisabled = startForEndConstraint
     ? { before: startOfDay(startForEndConstraint) }
     : undefined;

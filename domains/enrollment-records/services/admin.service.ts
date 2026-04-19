@@ -86,11 +86,16 @@ export async function postEnrollmentComplete(
   );
 }
 
+export type PostEnrollmentCancelPayload = {
+  cancellation_note: string;
+};
+
 export async function postEnrollmentCancel(
   id: number,
+  body: PostEnrollmentCancelPayload,
 ): Promise<ApiResponse<AdminEnrollment>> {
   return http.post<AdminEnrollment>(
     ENDPOINTS.ADMIN.MODULES.ENROLLMENT_RECORDS.CANCEL(String(id)),
-    {},
+    body,
   );
 }
