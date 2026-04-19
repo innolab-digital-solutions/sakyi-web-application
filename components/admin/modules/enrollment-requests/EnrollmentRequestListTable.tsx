@@ -4,7 +4,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import {
   CheckCircle2Icon,
-  ClipboardCheckIcon,
   PhoneCallIcon,
   TimerResetIcon,
   XCircleIcon,
@@ -17,10 +16,10 @@ import { toast } from 'sonner';
 import TableListShell from '@/components/admin/layout/TableListShell';
 import EnrollmentIntakeConfirmation from '@/components/admin/modules/enrollment-requests/EnrollmentIntakeConfirmation';
 import EnrollmentRequestFilters from '@/components/admin/modules/enrollment-requests/EnrollmentRequestFilters';
+import EnrollmentRequestRowActions from '@/components/admin/modules/enrollment-requests/EnrollmentRequestRowActions';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -66,9 +65,9 @@ type EnrollmentColumnKey =
   | 'applicant'
   | 'requestedProgram'
   | 'contactPhone'
-  | 'received'
+  | 'requestedAt'
   | 'handledBy'
-  | 'contacted'
+  | 'contactedAt'
   | 'status'
   | 'actions';
 
@@ -79,8 +78,19 @@ type EnrollmentColumnDefinition = {
   skeletonWidth: string;
 };
 
+/** Bumped when default visibility changes so prior auto-saved “all columns” does not stick forever. */
 const ENROLLMENT_VISIBLE_COLUMNS_STORAGE_KEY =
-  'sakyi:admin:enrollment-requests:visible-columns';
+  'sakyi:admin:enrollment-requests:visible-columns:v2';
+
+/** First-load defaults: triage-first fields; ops can enable assignment/contact columns from Columns. */
+const DEFAULT_VISIBLE_COLUMN_KEYS: readonly EnrollmentColumnKey[] = [
+  'applicant',
+  'requestedProgram',
+  'contactPhone',
+  'requestedAt',
+  'status',
+  'actions',
+];
 
 const ENROLLMENT_COLUMNS: readonly EnrollmentColumnDefinition[] = [
   {
@@ -108,20 +118,8 @@ const ENROLLMENT_COLUMNS: readonly EnrollmentColumnDefinition[] = [
     skeletonWidth: 'w-26',
   },
   {
-    key: 'received',
-    label: 'Received',
-    headerClassName: '',
-    skeletonWidth: 'w-28',
-  },
-  {
-    key: 'handledBy',
-    label: 'Handled By',
-    headerClassName: '',
-    skeletonWidth: 'w-36',
-  },
-  {
-    key: 'contacted',
-    label: 'Contacted',
+    key: 'requestedAt',
+    label: 'Requested At',
     headerClassName: '',
     skeletonWidth: 'w-28',
   },
@@ -132,10 +130,22 @@ const ENROLLMENT_COLUMNS: readonly EnrollmentColumnDefinition[] = [
     skeletonWidth: 'w-24',
   },
   {
+    key: 'handledBy',
+    label: 'Handled By',
+    headerClassName: '',
+    skeletonWidth: 'w-36',
+  },
+  {
+    key: 'contactedAt',
+    label: 'Contacted At',
+    headerClassName: '',
+    skeletonWidth: 'w-28',
+  },
+  {
     key: 'actions',
     label: 'Actions',
     headerClassName: '',
-    skeletonWidth: 'w-44',
+    skeletonWidth: 'w-32',
   },
 ] as const;
 
@@ -219,7 +229,9 @@ function ProgramThumbnail({
   thumbnailUrl: string | null | undefined;
 }) {
   const [useFallback, setUseFallback] = useState(() => !thumbnailUrl?.trim());
-  const src = useFallback ? PROGRAM_THUMBNAIL_FALLBACK : thumbnailUrl!.trim();
+  const src = useFallback
+    ? PROGRAM_THUMBNAIL_FALLBACK
+    : (thumbnailUrl ?? '').trim();
   const unoptimized = src.startsWith('http://') || src.startsWith('https://');
 
   return (
@@ -238,24 +250,6 @@ function ProgramThumbnail({
   );
 }
 
-/**
- * Intake should only start while the request is still actively being worked.
- * In practice that means:
- * - pending: newly submitted and still triageable
- * - contacted: qualified and in active follow-up
- * Finalized states (completed/cancelled) should not create new intake sessions.
- * If an intake is already linked (`onboarding_intake`), do not offer start again.
- */
-function canStartIntake(request: EnrollmentRequestResource): boolean {
-  if (!request.client?.id) return false;
-  if (request.onboarding_intake) return false;
-  return request.status === 'pending' || request.status === 'contacted';
-}
-
-function canMarkAsContacted(request: EnrollmentRequestResource): boolean {
-  return request.status === 'pending';
-}
-
 export default function EnrollmentRequestListTable() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -264,7 +258,7 @@ export default function EnrollmentRequestListTable() {
   const [visibleColumnKeys, setVisibleColumnKeys] = useState<
     EnrollmentColumnKey[]
   >(() => {
-    const fallback = ENROLLMENT_COLUMNS.map((column) => column.key);
+    const fallback = [...DEFAULT_VISIBLE_COLUMN_KEYS];
     if (typeof window === 'undefined') return fallback;
 
     const raw = window.localStorage.getItem(
@@ -325,7 +319,8 @@ export default function EnrollmentRequestListTable() {
       }
     },
     onSuccess: () => {
-      toast.success('Enrollment request status updated.');
+      toast.success('Enrollment request marked as contacted successfully.');
+ 
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.ENROLLMENT_REQUESTS.LIST],
       });
@@ -425,13 +420,13 @@ export default function EnrollmentRequestListTable() {
   };
 
   const resetColumns = () => {
-    setVisibleColumnKeys(ENROLLMENT_COLUMNS.map((column) => column.key));
+    setVisibleColumnKeys([...DEFAULT_VISIBLE_COLUMN_KEYS]);
   };
 
   return (
     <TableListShell
       controls={controls}
-      searchPlaceholder='Search applicant, contact, or reference'
+      searchPlaceholder='Search ...'
       filters={
         <EnrollmentRequestFilters
           statusFilter={statusFilter}
@@ -482,9 +477,9 @@ export default function EnrollmentRequestListTable() {
             rows.length === 0 && (
               <TableEmptyStateRow
                 colSpan={visibleColumnCount}
-                icon={ClipboardCheckIcon}
-                title='No Enrollment Requests Available'
-                description='New enrollment requests will appear here for assignment, contact follow-up, and status tracking through intake.'
+                title='No Enrollment Requests Found'
+                description='There are currently no enrollment requests in the table. When prospective clients request program enrollment, their requests will appear here for your review and action.'
+           
               />
             )}
 
@@ -494,7 +489,7 @@ export default function EnrollmentRequestListTable() {
             rows.map((request) => {
               const programLabel = getProgramLabel(request);
               const programCode = getProgramCode(request);
-              const receivedAt = formatDateCell(request.timestamps.created_at);
+              const requestedAt = formatDateCell(request.timestamps.created_at);
               const contactedAt = formatDateCell(request.contacted_at);
               const showColumn = (columnKey: EnrollmentColumnKey) =>
                 visibleColumnSet.has(columnKey);
@@ -502,14 +497,14 @@ export default function EnrollmentRequestListTable() {
               return (
                 <TableRow key={request.id}>
                   {showColumn('reference') ? (
-                    <TableCell className='align-center min-w-45 whitespace-normal'>
+                    <TableCell>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {getRequestReference(request)}
                       </p>
                     </TableCell>
                   ) : null}
                   {showColumn('applicant') ? (
-                    <TableCell className='align-center whitespace-normal'>
+                    <TableCell>
                       <div className='flex items-start gap-3'>
                         <Avatar
                           size='default'
@@ -534,7 +529,7 @@ export default function EnrollmentRequestListTable() {
                               <TableCellEmpty label='Name not provided' />
                             )}
                           </p>
-                          <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
+                          <p className='text-muted-foreground text-xs font-medium'>
                             {request.client?.email ?? 'No email on file'}
                           </p>
                         </div>
@@ -542,7 +537,7 @@ export default function EnrollmentRequestListTable() {
                     </TableCell>
                   ) : null}
                   {showColumn('requestedProgram') ? (
-                    <TableCell className='align-center min-w-75 whitespace-normal'>
+                    <TableCell>
                       <div className='flex items-start gap-3'>
                         <ProgramThumbnail
                           thumbnailUrl={request.program?.thumbnail_url}
@@ -555,7 +550,7 @@ export default function EnrollmentRequestListTable() {
                               <TableCellEmpty label='No program linked' />
                             )}
                           </p>
-                          <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
+                          <p className='text-muted-foreground text-xs font-medium'>
                             {programCode !== '—' ? (
                               programCode
                             ) : (
@@ -575,9 +570,26 @@ export default function EnrollmentRequestListTable() {
                       )}
                     </TableCell>
                   ) : null}
-                  {showColumn('received') ? (
+                  {showColumn('requestedAt') ? (
                     <TableCell className='text-foreground/80 align-center tabular-nums'>
-                      {receivedAt ?? <TableCellEmpty label='Not set' />}
+                      {requestedAt ?? <TableCellEmpty label='Not set' />}
+                    </TableCell>
+                  ) : null}
+                  {showColumn('status') ? (
+                    <TableCell className='align-center'>
+                      {(() => {
+                        const statusStyle = STATUS_STYLES[request.status];
+                        const StatusIcon = statusStyle.icon;
+
+                        return (
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
+                          >
+                            <StatusIcon className='size-3.5 shrink-0' />
+                            {STATUS_LABEL[request.status]}
+                          </span>
+                        );
+                      })()}
                     </TableCell>
                   ) : null}
                   {showColumn('handledBy') ? (
@@ -614,82 +626,34 @@ export default function EnrollmentRequestListTable() {
                           </div>
                         </div>
                       ) : (
-                        <TableCellEmpty label='Not assigned' />
+                        <TableCellEmpty label='No handler' />
                       )}
                     </TableCell>
                   ) : null}
-                  {showColumn('contacted') ? (
+                  {showColumn('contactedAt') ? (
                     <TableCell className='text-foreground/80 align-center tabular-nums'>
                       {contactedAt ?? (
                         <TableCellEmpty label='Not Contact Yet' />
                       )}
                     </TableCell>
                   ) : null}
-                  {showColumn('status') ? (
-                    <TableCell className='align-center'>
-                      {(() => {
-                        const statusStyle = STATUS_STYLES[request.status];
-                        const StatusIcon = statusStyle.icon;
-
-                        return (
-                          <span
-                            className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
-                          >
-                            <StatusIcon className='size-3.5 shrink-0' />
-                            {STATUS_LABEL[request.status]}
-                          </span>
-                        );
-                      })()}
-                    </TableCell>
-                  ) : null}
                   {showColumn('actions') ? (
-                    <TableCell className='align-center whitespace-nowrap'>
-                      {(() => {
-                        const showStartIntake = canStartIntake(request);
-                        const showMarkContacted = canMarkAsContacted(request);
-                        const hasActions = showStartIntake || showMarkContacted;
-
-                        return (
-                          <div className='flex flex-nowrap items-center justify-start gap-2'>
-                            {showStartIntake ? (
-                              <Button
-                                className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-                                disabled={
-                                  isStartingIntake &&
-                                  startingIntakeRequest?.id === request.id
-                                }
-                                onClick={() => setStartIntakeRequest(request)}
-                              >
-                                <ClipboardCheckIcon className='size-3.5' />
-                                Start Intake
-                              </Button>
-                            ) : null}
-                            {showMarkContacted ? (
-                              <Button
-                                variant='outline'
-                                size='sm'
-                                className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
-                                disabled={updatingId === request.id}
-                                onClick={() => {
-                                  mutateStatus({
-                                    id: request.id,
-                                    payload: { status: 'contacted' },
-                                  });
-                                }}
-                              >
-                                <PhoneCallIcon className='size-3.5 text-sky-700 dark:text-sky-300' />
-                                Mark as Contacted
-                              </Button>
-                            ) : null}
-                            {!hasActions ? (
-                              <TableCellEmpty
-                                label='Finalized'
-                                className='whitespace-nowrap'
-                              />
-                            ) : null}
-                          </div>
-                        );
-                      })()}
+                    <TableCell>
+                      <EnrollmentRequestRowActions
+                        request={request}
+                        onStartIntake={() => setStartIntakeRequest(request)}
+                        onMarkContacted={() => {
+                          mutateStatus({
+                            id: request.id,
+                            payload: { status: 'contacted' },
+                          });
+                        }}
+                        isStartingIntake={
+                          isStartingIntake &&
+                          startingIntakeRequest?.id === request.id
+                        }
+                        isUpdatingStatus={updatingId === request.id}
+                      />
                     </TableCell>
                   ) : null}
                 </TableRow>

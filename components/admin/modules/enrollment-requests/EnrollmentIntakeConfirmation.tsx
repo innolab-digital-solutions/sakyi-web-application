@@ -1,6 +1,6 @@
 'use client';
 
-import { CircleQuestionMark, ClipboardCheckIcon } from 'lucide-react';
+import { CircleQuestionMark, ClipboardListIcon } from 'lucide-react';
 
 import {
   AlertDialog,
@@ -37,15 +37,16 @@ export default function EnrollmentIntakeConfirmation({
               <CircleQuestionMark className='size-5' />
             </div>
             <div className='space-y-1.5'>
-              <AlertDialogTitle className='text-foreground text-sm font-bold capitalize'>
-                Confirm intake assessment start
+              <AlertDialogTitle className='text-foreground/90 text-sm font-bold capitalize'>
+                Do you want to start the intake assessment?
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
-                We will create a new intake assessment for{' '}
-                <strong>
+                Starting this process will create a new intake assessment for{' '}
+                <span className='text-primary text-xs font-semibold'>
                   {requestReference || 'the selected enrollment request'}
-                </strong>{' '}
-                and immediately open the interview form so you can begin.
+                </span>
+                . You will be directed to the interview form to begin the
+                assessment immediately.
               </AlertDialogDescription>
             </div>
           </div>
@@ -65,7 +66,7 @@ export default function EnrollmentIntakeConfirmation({
               onConfirm();
             }}
           >
-            <ClipboardCheckIcon className='size-3.5' />
+            <ClipboardListIcon className='size-3.5' />
             {isSubmitting ? 'Creating intake...' : 'Create and open interview'}
           </AlertDialogAction>
         </AlertDialogFooter>

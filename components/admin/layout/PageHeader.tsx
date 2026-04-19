@@ -40,11 +40,11 @@ export default function PageHeader({
       <div
         className={cn('flex flex-col space-y-1.5', hasActions && 'max-w-2xl')}
       >
-        <h1 className='text-foreground text-md font-bold capitalize'>
+        <h1 className='text-foreground text-[15.5px] font-bold capitalize'>
           {title}
         </h1>
         {description != null && description !== '' && (
-          <div className='text-muted-foreground text-sm font-medium'>
+          <div className='text-muted-foreground text-[13.5px] max-w-4xl font-medium'>
             {description}
           </div>
         )}

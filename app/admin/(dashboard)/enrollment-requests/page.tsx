@@ -7,7 +7,7 @@ import EnrollmentRequestListTable from '@/components/admin/modules/enrollment-re
 export const metadata: Metadata = {
   title: 'Enrollment Requests | SaKyi Admin',
   description:
-    'Review and manage client program enrollment requests: triage new submissions, record contact, and move requests through your workflow.',
+    'Triage inbound enrollment requests from clients: search and filter by status, open a request for full context, record first contact, and start intake when someone is ready to move into enrollment.',
 };
 
 export default function EnrollmentRequestsPage() {
@@ -15,7 +15,7 @@ export default function EnrollmentRequestsPage() {
     <div className='space-y-8'>
       <PageHeader
         title='Enrollment Requests'
-        description='Review incoming enrollment requests, confirm who is assigned to each case, track first-contact activity, and update request status as clients progress to intake.'
+        description='Triage inbound enrollment requests from clients: search and filter by status, open a request for full context, record first contact, and start intake when someone is ready to move into enrollment.'
       />
 
       <Suspense

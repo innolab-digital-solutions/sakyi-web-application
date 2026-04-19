@@ -1,20 +1,21 @@
-import type { LucideIcon } from 'lucide-react';
+import { FileSearchIcon, type LucideIcon } from 'lucide-react';
 
 import { TableCell, TableRow } from '@/components/ui/table';
 
 type TableEmptyStateRowProps = {
   colSpan: number;
-  icon: LucideIcon;
+  icon?: LucideIcon;
   title: string;
   description: string;
 };
 
 export default function TableEmptyStateRow({
   colSpan,
-  icon: Icon,
+  icon,
   title,
   description,
 }: TableEmptyStateRowProps) {
+  const Icon = icon ?? FileSearchIcon;
   return (
     <TableRow className='bg-muted/50! hover:bg-transparent'>
       <TableCell colSpan={colSpan} className='py-5 whitespace-normal'>

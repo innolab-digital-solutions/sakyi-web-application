@@ -7,6 +7,14 @@ import type {
   EnrollmentRequestStatus,
 } from '../types';
 
+export async function getEnrollmentRequestById(
+  id: number,
+): Promise<ApiResponse<EnrollmentRequestResource>> {
+  return http.get<EnrollmentRequestResource>(
+    ENDPOINTS.ADMIN.MODULES.ENROLLMENT_REQUESTS.DETAIL(String(id)),
+  );
+}
+
 export type UpdateEnrollmentRequestStatusPayload = {
   status: EnrollmentRequestStatus;
 };

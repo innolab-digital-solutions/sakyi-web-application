@@ -22,7 +22,7 @@ export type EnrollmentRequestResource = {
     code?: string;
     duration: number | string; // depends on backend cast
     price: number | string; // depends on backend cast
-    thumbnail_url: string;
+    thumbnail_url?: string | null;
     title?: string;
     slug?: string;
   };
