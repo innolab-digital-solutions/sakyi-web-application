@@ -3,6 +3,7 @@
 import { PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
+import MovementCategoryForm from '@/components/admin/modules/movement-categories/CategoryForm';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -13,8 +14,6 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import type { MovementCategory } from '@/domains/movement-categories/types';
-
-import MovementCategoryForm from './CategoryForm';
 
 type CreateProps = {
   mode: 'create';
@@ -48,21 +47,24 @@ export default function MovementCategorySheet({
     <Sheet open={isOpen} onOpenChange={setOpen}>
       {!isEdit && (
         <SheetTrigger asChild>
-          <Button className='cursor-pointer' size='lg'>
-            <PlusIcon className='size-4' />
-            Create Category
+          <Button
+            type='button'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+          >
+            <PlusIcon className='size-3.5' />
+            Add Movement Category
           </Button>
         </SheetTrigger>
       )}
       <SheetContent className='overflow-y-auto px-6 sm:max-w-md [&>button]:cursor-pointer'>
-        <SheetHeader className='mb-6'>
-          <SheetTitle>
-            {isEdit ? 'Edit Category' : 'Create Category'}
+        <SheetHeader className='px-0'>
+          <SheetTitle className='text-foreground text-md font-bold'>
+            {isEdit ? 'Edit Movement Category' : 'Add Movement Category'}
           </SheetTitle>
-          <SheetDescription>
+          <SheetDescription className='text-muted-foreground text-sm font-medium'>
             {isEdit
-              ? 'Update the details of this movement category.'
-              : 'Add a new category to organize exercises and movement patterns.'}
+              ? 'Update name, description, and parent so exercises stay organized in the movement library.'
+              : 'Add a movement category to group exercises. Optional parent links build a simple hierarchy in the movement library.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (

@@ -6,24 +6,24 @@ import NutritionItemListTable from '@/components/admin/modules/nutrition-items/I
 import NutritionItemSheet from '@/components/admin/modules/nutrition-items/ItemSheet';
 
 export const metadata: Metadata = {
-  title: 'Nutrition Items | SaKyi Admin',
+  title: 'Food Items | SaKyi Admin',
   description:
-    'Manage nutrition items used to build meal plans and track dietary intake across wellness programs.',
+    'Maintain food items for the nutrition library: names, categories, optional descriptions, and optional default measurements from the reference catalog.',
 };
 
 export default function NutritionItemListPage() {
   return (
     <div className='min-w-0 space-y-8'>
       <PageHeader
-        title='Nutrition Items'
-        description='View and manage all nutrition items in the library. Assign categories, default units, and control availability from one place.'
+        title='Food Items'
+        description='Review this list, search by name or description, and add or edit items so ingredients and foods stay organized under food categories with consistent default measurements.'
         actions={<NutritionItemSheet mode='create' />}
       />
 
       <Suspense
         fallback={
           <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-            Loading items…
+            Loading…
           </div>
         }
       >

@@ -40,7 +40,7 @@ const OurContactDetailSection = () => {
     },
   ];
   return (
-    <SectionContainer id='our-contact-detail-section' className='bg-background'>
+    <SectionContainer id='our-contact-detail-section' className='bg-white'>
       {/* Section Header: Badge, headline, supporting summary */}
       <div
         className='flex min-w-0 flex-col items-center justify-center space-y-6'

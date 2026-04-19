@@ -5,11 +5,20 @@ import { http } from '@/lib/api/client';
 import type { BlogPostCreateInput, BlogPostUpdateInput } from '../schemas';
 import type { AdminBlogPost } from '../types';
 
+/**
+ * Fetches a single blog post for admin edit/detail.
+ * Pass `locale` for localized `title`, `slug`, `excerpt`, and `content` (`en` | `my`).
+ */
 export async function getAdminBlogPostById(
   id: number,
+  options?: { locale?: 'en' | 'my' },
 ): Promise<ApiResponse<AdminBlogPost>> {
+  const qs =
+    options?.locale != null
+      ? `?locale=${encodeURIComponent(options.locale)}`
+      : '';
   return http.get<AdminBlogPost>(
-    ENDPOINTS.ADMIN.MODULES.BLOG_POSTS.DETAIL(String(id)),
+    `${ENDPOINTS.ADMIN.MODULES.BLOG_POSTS.DETAIL(String(id))}${qs}`,
   );
 }
 

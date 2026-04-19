@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import BlogIntroSection from '@/components/marketing/sections/blog/BlogIntroSection';
 import ExploreArticlesSection from '@/components/marketing/sections/blog/ExploreArticlesSection';
+import CallToActionSection from '@/components/marketing/sections/home/CallToActionSection';
 
 export const metadata: Metadata = {
   title: 'Blog | SaKyi Health & Wellness',
@@ -15,6 +16,8 @@ export default function BlogPage() {
       <BlogIntroSection />
 
       <ExploreArticlesSection />
+
+      <CallToActionSection />
     </>
   );
 }

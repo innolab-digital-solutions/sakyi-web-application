@@ -6,24 +6,24 @@ import MovementEquipmentListTable from '@/components/admin/modules/movement-equi
 import MovementEquipmentSheet from '@/components/admin/modules/movement-equipment/EquipmentSheet';
 
 export const metadata: Metadata = {
-  title: 'Movement Equipment | SaKyi Admin',
+  title: 'Exercise equipment | SaKyi Admin',
   description:
-    'Manage movement equipment used across exercises and wellness programs.',
+    'Maintain the shared catalog of exercise equipment used when building movement programs and exercise libraries.',
 };
 
 export default function MovementEquipmentListPage() {
   return (
     <div className='min-w-0 space-y-8'>
       <PageHeader
-        title='Movement Equipment'
-        description='Organize and manage equipment used in movement exercises. Control equipment names, descriptions, and active status from one place.'
+        title='Exercise equipment'
+        description='Search and curate the catalog of gear referenced across exercises. Add or edit names so coaches and content stay consistent; remove items only when nothing in the library should reference them.'
         actions={<MovementEquipmentSheet mode='create' />}
       />
 
       <Suspense
         fallback={
           <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-            Loading equipment…
+            Loading…
           </div>
         }
       >

@@ -42,7 +42,7 @@ const BlogIntroSection = () => {
 
         <div className='flex flex-col items-center pt-4 sm:flex-row sm:justify-center'>
           <PrimaryButton
-            onClick={() => scrollToElement('explore-blog-section')}
+            onClick={() => scrollToElement('explore-articles-section')}
           >
             <Heart className='h-5 w-5' />
             <span>{translate('marketing.pages.blog.hero.cta.primary')}</span>

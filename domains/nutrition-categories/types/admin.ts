@@ -9,6 +9,11 @@ export type NutritionCategory = {
     name: string;
     slug: string;
   } | null;
+  /** Present when the API includes descendants; used to guard parent changes in admin forms. */
+  children?: {
+    id: number;
+    name: string;
+  }[];
   created_at: string;
   updated_at: string;
 };

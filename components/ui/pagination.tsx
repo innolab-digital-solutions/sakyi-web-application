@@ -60,6 +60,10 @@ function PaginationLink({
           variant: isActive ? 'default' : 'ghost',
           size,
         }),
+        // Ghost uses `hover:bg-accent`, which often reads as a loud cyan/teal next
+        // to the primary active state — use muted hover instead.
+        !isActive &&
+          'hover:bg-muted/80 hover:text-foreground dark:hover:bg-muted/50',
         className,
       )}
       {...props}

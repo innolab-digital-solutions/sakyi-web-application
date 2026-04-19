@@ -1,17 +1,13 @@
 import {
   Activity,
   Apple,
-  BookOpenCheck,
   ClipboardCheck,
   Dumbbell,
   FolderKanban,
   LayoutDashboard,
-  ListChecks,
   NotebookPen,
   Scale,
   UserCog,
-  Users,
-  UserSquare2,
 } from 'lucide-react';
 
 import { ADMIN_ROUTES } from '@/config/routes/admin';
@@ -41,57 +37,66 @@ export const ADMIN_NAVIGATION: NavItem[] = [
     subitems: [],
   },
   {
-    name: 'Accounts',
+    name: 'User Accounts',
     icon: UserCog,
     path: '#',
     subitems: [],
   },
   {
-    name: 'Teams',
-    icon: Users,
-    path: '#',
-    subitems: [],
-  },
-  {
-    name: 'Programs',
-    icon: FolderKanban,
-    path: ADMIN_ROUTES.MODULES.PROGRAMS.LIST,
-    subitems: [],
-  },
-  {
-    name: 'Clients',
-    icon: UserSquare2,
-    path: '#',
-    subitems: [],
-  },
-  {
-    name: 'Enrollments',
+    name: 'Enrollment Operations',
     icon: ClipboardCheck,
     path: '#',
-    subitems: [],
+    subitems: [
+      {
+        name: 'Enrollment Requests',
+        path: ADMIN_ROUTES.MODULES.ENROLLMENT_REQUESTS.LIST,
+      },
+      {
+        name: 'Intake Assessments',
+        path: ADMIN_ROUTES.MODULES.INTAKE_ASSESSMENTS.LIST,
+      },
+      {
+        name: 'Contracts & E-Signatures',
+        path: ADMIN_ROUTES.MODULES.ENROLLMENT_CONTRACTS.LIST,
+      },
+      {
+        name: 'Enrollment Records',
+        path: ADMIN_ROUTES.MODULES.ENROLLMENT_RECORDS.LIST,
+      },
+    ],
   },
   {
-    name: 'Doctor Instructions',
-    icon: BookOpenCheck,
-    path: '#',
-    subitems: [],
-  },
-  {
-    name: 'Client Logs',
+    name: 'Client Care',
     icon: Activity,
     path: '#',
-    subitems: [],
+    subitems: [
+      {
+        name: 'Client Profiles',
+        path: ADMIN_ROUTES.MODULES.CLIENT_PROFILES.LIST,
+      },
+      {
+        name: 'Care Plans',
+        path: '#',
+      },
+      {
+        name: 'Daily Task Logs',
+        path: '#',
+      },
+      {
+        name: 'Operational Logs',
+        path: '#',
+      },
+      {
+        name: 'Period Reports',
+        path: '#',
+      },
+    ],
   },
+  /** Primary entry to the admin program catalog (`/programs` list + create/edit flows). */
   {
-    name: 'Intakes',
-    icon: ListChecks,
-    path: ADMIN_ROUTES.MODULES.ONBOARDING.INTAKES.LIST,
-    subitems: [],
-  },
-  {
-    name: 'Measurement Units',
-    icon: Scale,
-    path: ADMIN_ROUTES.MODULES.UNITS.LIST,
+    name: 'Care Programs',
+    icon: FolderKanban,
+    path: ADMIN_ROUTES.MODULES.PROGRAMS.LIST,
     subitems: [],
   },
   {
@@ -100,11 +105,11 @@ export const ADMIN_NAVIGATION: NavItem[] = [
     path: '#',
     subitems: [
       {
-        name: 'Categories',
+        name: 'Food Categories',
         path: ADMIN_ROUTES.MODULES.NUTRITION_CATEGORIES.LIST,
       },
       {
-        name: 'Items',
+        name: 'Food Items',
         path: ADMIN_ROUTES.MODULES.NUTRITION_ITEMS.LIST,
       },
     ],
@@ -115,7 +120,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
     path: '#',
     subitems: [
       {
-        name: 'Categories',
+        name: 'Movement Categories',
         path: ADMIN_ROUTES.MODULES.MOVEMENT_CATEGORIES.LIST,
       },
       {
@@ -123,21 +128,30 @@ export const ADMIN_NAVIGATION: NavItem[] = [
         path: ADMIN_ROUTES.MODULES.MOVEMENT_EXERCISES.LIST,
       },
       {
-        name: 'Equipments',
+        name: 'Exercise equipment',
         path: ADMIN_ROUTES.MODULES.MOVEMENT_EQUIPMENT.LIST,
       },
     ],
   },
   {
-    name: 'Blog',
+    name: 'Content & Education',
     icon: NotebookPen,
     path: '#',
     subitems: [
       {
-        name: 'Categories',
+        name: 'Blog Categories',
         path: ADMIN_ROUTES.MODULES.BLOG_CATEGORIES.LIST,
       },
-      { name: 'Posts', path: ADMIN_ROUTES.MODULES.BLOG_POSTS.LIST },
+      {
+        name: 'Blog Posts',
+        path: ADMIN_ROUTES.MODULES.BLOG_POSTS.LIST,
+      },
     ],
+  },
+  {
+    name: 'Measurement Reference',
+    icon: Scale,
+    path: ADMIN_ROUTES.MODULES.UNITS.LIST,
+    subitems: [],
   },
 ] as const;

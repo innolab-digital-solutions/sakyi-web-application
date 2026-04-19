@@ -1,19 +1,14 @@
 export type BlogPostStatus = 'draft' | 'published' | 'archived';
 
-export type BlogPostTranslation = {
-  locale: 'en' | 'my';
-  title: string;
-  slug: string;
-  excerpt: string | null;
-  content: string;
-};
-
 export type AdminBlogPost = {
   id: number;
   status: BlogPostStatus;
   thumbnail: string | null;
   blog_category: { id: number; name: string } | null;
-  translations: BlogPostTranslation[];
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  content: string;
   timestamps: {
     published_at: string | null;
     archived_at: string | null;

@@ -48,7 +48,7 @@ const AboutOverviewSection = () => {
   ];
 
   return (
-    <SectionContainer id='about-overview-section' className='bg-background'>
+    <SectionContainer id='about-overview-section' className='bg-white'>
       <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
         {/* Left: Decorative image & floating cards */}
         <div className='relative min-w-0' data-aos='fade-right'>

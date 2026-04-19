@@ -1,25 +1,16 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  DumbbellIcon,
-  MoreHorizontalIcon,
-  PencilIcon,
-  Trash2Icon,
-} from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { PackageIcon, PencilIcon, Trash2Icon } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
-import DeleteAlertDialog from '@/components/shared/dialogs/DeleteAlertDialog';
+import MovementEquipmentSheet from '@/components/admin/modules/movement-equipment/EquipmentSheet';
+import RemoveEquipmentConfirmation from '@/components/admin/modules/movement-equipment/RemoveEquipmentConfirmation';
+import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
+import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -28,14 +19,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
 import { deleteMovementEquipment } from '@/domains/movement-equipment/services';
 import type { MovementEquipment } from '@/domains/movement-equipment/types';
 import { useTable } from '@/lib/table';
 
-import MovementEquipmentFilters from './EquipmentFilters';
-import MovementEquipmentSheet from './EquipmentSheet';
+const COLUMN_COUNT = 2;
+
+const SKELETON_WIDTHS = ['w-72', 'w-44'] as const;
 
 export default function MovementEquipmentListTable() {
   const queryClient = useQueryClient();
@@ -49,11 +42,11 @@ export default function MovementEquipmentListTable() {
     mutationFn: async (id: number) => {
       const response = await deleteMovementEquipment(id);
       if (response.status === 'error') {
-        throw new Error(response.message || 'Failed to delete equipment.');
+        throw new Error(response.message || 'Failed to remove equipment.');
       }
     },
     onSuccess: () => {
-      toast.success('Equipment deleted successfully.');
+      toast.success('The equipment was removed from your movement library.');
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.MOVEMENT_EQUIPMENT.LIST],
       });
@@ -62,7 +55,7 @@ export default function MovementEquipmentListTable() {
       });
     },
     onError: (error) => {
-      toast.error(error.message ?? 'Failed to delete equipment.');
+      toast.error(error.message ?? 'Failed to remove equipment.');
     },
   });
 
@@ -72,7 +65,7 @@ export default function MovementEquipmentListTable() {
       await confirmDelete(deleteEquipment.id);
       setDeleteEquipment(null);
     } catch {
-      // onError already toasts; swallow rejection so the click handler does not surface an unhandled promise
+      // onError already toasts
     }
   };
 
@@ -86,13 +79,6 @@ export default function MovementEquipmentListTable() {
     },
   );
 
-  const statusFilter = useMemo(() => {
-    const v = controls.params.values.is_active;
-    if (v === '1') return 'active' as const;
-    if (v === '0') return 'inactive' as const;
-    return 'all' as const;
-  }, [controls.params.values.is_active]);
-
   const { query } = controls;
   const showSkeleton = query.isPending && !query.data;
   const errorMessage =
@@ -104,45 +90,28 @@ export default function MovementEquipmentListTable() {
     <>
       <TableListShell
         controls={controls}
-        filters={
-          <MovementEquipmentFilters
-            status={statusFilter}
-            onStatusChange={(next) => {
-              if (next === 'all') {
-                controls.params.clear(['is_active']);
-                return;
-              }
-              controls.params.set({
-                is_active: next === 'active' ? '1' : '0',
-              });
-            }}
-          />
-        }
+        searchPlaceholder='Search equipment by name'
       >
-        <Table className='min-w-120 table-fixed'>
+        <Table className='w-full min-w-2xl'>
           <TableHeader className='bg-muted/50 [&_tr]:border-border'>
             <TableRow className='border-border hover:bg-transparent'>
-              <TableHead className='w-[70%]'>Name</TableHead>
-              <TableHead className='w-[20%]'>Status</TableHead>
-              <TableHead className='w-[10%] text-right'>Actions</TableHead>
+              <TableHead>Equipment</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {showSkeleton &&
-              Array.from({ length: 3 }).map((_, row) => (
-                <TableRow key={`skeleton-${row}`}>
-                  {Array.from({ length: 3 }).map((_, col) => (
-                    <TableCell key={col} className='py-3'>
-                      <Skeleton className='h-8 w-full' />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
+            {showSkeleton && (
+              <TableSkeletonRows
+                rowCount={3}
+                columnCount={COLUMN_COUNT}
+                cellWidths={[...SKELETON_WIDTHS]}
+              />
+            )}
 
             {!showSkeleton && query.isError && (
               <TableRow>
                 <TableCell
-                  colSpan={4}
+                  colSpan={COLUMN_COUNT}
                   className='text-destructive py-8 text-center text-sm'
                 >
                   {errorMessage}
@@ -154,72 +123,48 @@ export default function MovementEquipmentListTable() {
               !query.isError &&
               query.data?.status === 'success' &&
               rows.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={4} className='py-14'>
-                    <div className='mx-auto flex max-w-md flex-col items-center justify-center text-center'>
-                      <div className='bg-primary/10 text-primary mb-4 inline-flex size-12 items-center justify-center rounded-full'>
-                        <DumbbellIcon className='size-6' />
-                      </div>
-                      <p className='text-foreground text-base font-semibold'>
-                        No equipment yet
-                      </p>
-                      <p className='text-muted-foreground mt-1 text-sm leading-relaxed'>
-                        Equipment will appear here once you start adding items
-                        used in movement exercises.
-                      </p>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                <TableEmptyStateRow
+                  colSpan={COLUMN_COUNT}
+                  icon={PackageIcon}
+                  title='No equipment yet'
+                  description='Add kettlebells, bands, benches, and other gear so exercises and programs can reference a single, consistent catalog.'
+                />
               )}
 
             {!showSkeleton &&
               !query.isError &&
               query.data?.status === 'success' &&
               rows.map((item) => (
-                <TableRow key={item.id} className='border-border/80'>
-                  <TableCell className='min-w-0 py-2.5 align-middle'>
-                    <p className='text-foreground truncate text-sm font-medium'>
-                      {item.name}
+                <TableRow key={item.id} className='border-border'>
+                  <TableCell className='align-center whitespace-normal'>
+                    <p className='text-foreground text-[13px] font-semibold'>
+                      {item.name?.trim() ? (
+                        item.name.trim()
+                      ) : (
+                        <TableCellEmpty label='Name not set' />
+                      )}
                     </p>
                   </TableCell>
-                  <TableCell className='py-2.5 align-middle'>
-                    <span
-                      className={`inline-flex items-center gap-1.5 text-xs font-medium ${item.is_active ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}
-                    >
-                      <span
-                        className={`size-1.5 rounded-full ${item.is_active ? 'bg-emerald-500' : 'bg-muted-foreground/40'}`}
-                      />
-                      {item.is_active ? 'Active' : 'Inactive'}
-                    </span>
-                  </TableCell>
-                  <TableCell className='py-2.5 pr-2 text-right align-middle'>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant='ghost'
-                          size='icon'
-                          className='size-8 cursor-pointer'
-                        >
-                          <MoreHorizontalIcon className='size-4' />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align='end'>
-                        <DropdownMenuItem
-                          className='flex cursor-pointer items-center gap-2'
-                          onClick={() => setEditEquipment(item)}
-                        >
-                          <PencilIcon className='size-3.5' />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className='text-destructive focus:text-destructive flex cursor-pointer items-center gap-2'
-                          onClick={() => setDeleteEquipment(item)}
-                        >
-                          <Trash2Icon className='size-3.5' />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                  <TableCell className='align-center whitespace-nowrap'>
+                    <div className='flex flex-nowrap items-center justify-start gap-2'>
+                      <Button
+                        type='button'
+                        className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                        onClick={() => setEditEquipment(item)}
+                      >
+                        <PencilIcon className='size-3.5' />
+                        Edit
+                      </Button>
+                      <Button
+                        type='button'
+                        variant='outline'
+                        className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-10 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                        onClick={() => setDeleteEquipment(item)}
+                      >
+                        <Trash2Icon className='size-3.5' />
+                        Remove
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -238,23 +183,14 @@ export default function MovementEquipmentListTable() {
         />
       )}
 
-      <DeleteAlertDialog
+      <RemoveEquipmentConfirmation
         open={!!deleteEquipment}
         onOpenChange={(o) => {
           if (!o) setDeleteEquipment(null);
         }}
-        title='Delete Equipment'
-        description={
-          <>
-            Are you sure you want to delete{' '}
-            <span className='text-foreground font-medium'>
-              {deleteEquipment?.name}
-            </span>
-            ? This action cannot be undone.
-          </>
-        }
+        equipmentName={deleteEquipment?.name}
+        isRemoving={isDeleting}
         onConfirm={handleDelete}
-        isDeleting={isDeleting}
       />
     </>
   );

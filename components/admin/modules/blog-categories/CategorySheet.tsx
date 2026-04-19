@@ -48,21 +48,24 @@ export default function BlogCategorySheet({
     <Sheet open={isOpen} onOpenChange={setOpen}>
       {!isEdit && (
         <SheetTrigger asChild>
-          <Button className='cursor-pointer' size='lg'>
-            <PlusIcon className='size-4' />
-            Create Category
+          <Button
+            type='button'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+          >
+            <PlusIcon className='size-3.5' />
+            Add blog category
           </Button>
         </SheetTrigger>
       )}
       <SheetContent className='overflow-y-auto px-6 sm:max-w-md [&>button]:cursor-pointer'>
-        <SheetHeader className='mb-6'>
-          <SheetTitle>
-            {isEdit ? 'Edit Category' : 'Create Category'}
+        <SheetHeader className='px-0'>
+          <SheetTitle className='text-foreground text-md font-bold'>
+            {isEdit ? 'Edit blog category' : 'Add blog category'}
           </SheetTitle>
-          <SheetDescription>
+          <SheetDescription className='text-muted-foreground text-sm font-medium'>
             {isEdit
-              ? 'Update the details of this blog category.'
-              : 'Add a new category to organise blog posts. Fill in translations for both English and Myanmar.'}
+              ? 'Update English and Myanmar names and descriptions so labels stay consistent wherever categories appear in the admin and on the site.'
+              : 'Create a category to group blog posts. Provide both English and Myanmar translations so editors and readers see the right labels.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (

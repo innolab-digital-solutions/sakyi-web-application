@@ -49,8 +49,6 @@ export const ADMIN_ROUTES = {
     },
     MOVEMENT_EXERCISES: {
       LIST: `${BASE}/movement-exercises`,
-      CREATE: `${BASE}/movement-exercises/create`,
-      EDIT: (id: string) => `${BASE}/movement-exercises/${id}/edit`,
       DETAIL: (id: string) => `${BASE}/movement-exercises/${id}`,
     },
     MOVEMENT_EQUIPMENT: {
@@ -65,19 +63,34 @@ export const ADMIN_ROUTES = {
       EDIT: (id: string) => `${BASE}/blog-categories/${id}/edit`,
       DETAIL: (id: string) => `${BASE}/blog-categories/${id}`,
     },
+    ENROLLMENT_REQUESTS: {
+      LIST: `${BASE}/enrollment-requests`,
+      DETAIL: (id: string) => `${BASE}/enrollment-requests/${id}`,
+    },
+    ENROLLMENT_CONTRACTS: {
+      LIST: `${BASE}/enrollment-contracts`,
+      DETAIL: (id: string) => `${BASE}/enrollment-contracts/${id}`,
+    },
+    ENROLLMENT_RECORDS: {
+      LIST: `${BASE}/enrollments`,
+      DETAIL: (id: string) => `${BASE}/enrollments/${id}`,
+    },
     BLOG_POSTS: {
       LIST: `${BASE}/blog-posts`,
       CREATE: `${BASE}/blog-posts/create`,
       EDIT: (id: string) => `${BASE}/blog-posts/${id}/edit`,
       DETAIL: (id: string) => `${BASE}/blog-posts/${id}`,
     },
-    ONBOARDING: {
-      INTAKES: {
-        LIST: `${BASE}/onboarding/intakes`,
-        CREATE: `${BASE}/onboarding/intakes/create`,
-        INTERVIEW: (id: string) => `${BASE}/onboarding/intakes/${id}/interview`,
-        DETAIL: (id: string) => `${BASE}/onboarding/intakes/${id}`,
-      },
+    INTAKE_ASSESSMENTS: {
+      LIST: `${BASE}/intake-assessments`,
+      CREATE: `${BASE}/intake-assessments/create`,
+      INTERVIEW: (id: string) =>
+        `${BASE}/intake-assessments/${id}?view=interview`,
+      DETAIL: (id: string) => `${BASE}/intake-assessments/${id}`,
+    },
+    CLIENT_PROFILES: {
+      LIST: `${BASE}/client-profiles`,
+      DETAIL: (id: string) => `${BASE}/client-profiles/${id}`,
     },
   },
 } as const;

@@ -46,7 +46,7 @@ const SendUsMessageSection = () => {
   };
 
   return (
-    <SectionContainer id='send-us-message-section' className='bg-slate-50'>
+    <SectionContainer id='send-us-message-section' className='bg-white'>
       {/* Header */}
       <div
         className='flex min-w-0 flex-col items-center justify-center space-y-6'

@@ -3,10 +3,8 @@ import { z } from 'zod';
 import { BlogCategoryBodySchema } from './base.schema';
 
 /**
- * Admin create payload. is_active is required on creation.
+ * Admin create payload. `is_active` defaults to true per {@link BlogCategoryBodySchema}.
  */
-export const BlogCategoryCreateSchema = BlogCategoryBodySchema.extend({
-  is_active: z.boolean(),
-}).required({ is_active: true });
+export const BlogCategoryCreateSchema = BlogCategoryBodySchema;
 
 export type BlogCategoryCreateInput = z.infer<typeof BlogCategoryCreateSchema>;

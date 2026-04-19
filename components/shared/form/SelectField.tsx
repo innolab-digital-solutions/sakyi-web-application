@@ -139,7 +139,7 @@ const SelectFieldSingle = React.forwardRef<
 
     const responsiveLabelClass = cn(
       'font-medium text-xs',
-      'md:text-sm',
+      'md:text-[13px]',
       required
         ? 'after:text-destructive after:ml-0.5 after:content-["*"]'
         : undefined,
@@ -147,7 +147,7 @@ const SelectFieldSingle = React.forwardRef<
 
     const responsiveErrorClass = cn(
       'text-destructive flex items-center gap-2 font-medium text-xs',
-      'md:text-sm',
+      'md:text-[13px]',
     );
 
     const isControlled = onChange !== undefined;
@@ -294,7 +294,7 @@ const SelectFieldMultiple = React.forwardRef<
 
     const responsiveLabelClass = cn(
       'font-medium text-xs',
-      'md:text-sm',
+      'md:text-[13px]',
       required
         ? 'after:text-destructive after:ml-0.5 after:content-["*"]'
         : undefined,
@@ -302,7 +302,7 @@ const SelectFieldMultiple = React.forwardRef<
 
     const responsiveErrorClass = cn(
       'text-destructive flex items-center gap-2 font-medium text-xs',
-      'md:text-sm',
+      'md:text-[13px]',
     );
 
     return (

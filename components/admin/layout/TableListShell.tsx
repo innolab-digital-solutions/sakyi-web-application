@@ -1,5 +1,6 @@
 'use client';
 
+import { SearchIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import TextField from '@/components/shared/form/TextField';
@@ -110,7 +111,7 @@ const TableListShell = <TItem,>({
   return (
     <div
       className={cn(
-        'border-border bg-card max-w-full min-w-0 space-y-5 rounded-md border p-6 shadow',
+        'border-border max-w-full min-w-0 space-y-5 rounded-md border bg-white p-6 shadow-xs',
         className,
       )}
     >
@@ -118,14 +119,17 @@ const TableListShell = <TItem,>({
         <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
           {searchEnabled ? (
             <div className='w-full sm:flex-1'>
-              <TextField
-                type='search'
-                placeholder={searchPlaceholder}
-                className='bg-background h-11! w-full max-w-xs rounded-md text-[13px]!'
-                value={searchValue}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                aria-busy={searchBusy}
-              />
+              <div className='relative w-full max-w-xs'>
+                <SearchIcon className='text-muted-foreground pointer-events-none absolute top-1/2 left-3.5 z-10 size-4 -translate-y-1/2' />
+                <TextField
+                  type='search'
+                  placeholder={searchPlaceholder}
+                  className='bg-background h-11! w-full rounded-md border-neutral-200 pr-3 pl-10 text-[13px]! font-medium md:pr-3 md:pl-10'
+                  value={searchValue}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  aria-busy={searchBusy}
+                />
+              </div>
             </div>
           ) : null}
           {filters ? (
@@ -184,7 +188,8 @@ const TableListShell = <TItem,>({
                         <PaginationPrevious
                           href='#'
                           className={cn(
-                            !canPrev && 'pointer-events-none opacity-40',
+                            !canPrev &&
+                              'pointer-events-none text-[13px] font-medium opacity-40',
                           )}
                           onClick={(e) => {
                             e.preventDefault();
@@ -200,6 +205,7 @@ const TableListShell = <TItem,>({
                             href='#'
                             size='default'
                             isActive={n === currentPage}
+                            className='text-[13px] font-bold'
                             onClick={(e) => {
                               e.preventDefault();
                               pagination.onPageChange(n);
@@ -214,7 +220,8 @@ const TableListShell = <TItem,>({
                         <PaginationNext
                           href='#'
                           className={cn(
-                            !canNext && 'pointer-events-none opacity-40',
+                            !canNext &&
+                              'pointer-events-none text-[13px] font-medium opacity-40',
                           )}
                           onClick={(e) => {
                             e.preventDefault();

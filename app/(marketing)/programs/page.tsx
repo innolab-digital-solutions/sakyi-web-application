@@ -6,6 +6,7 @@ import FAQSection from '@/components/marketing/sections/programs/FAQSection';
 import HowItWorks from '@/components/marketing/sections/programs/HowItWorks';
 import PersonalizedCareSection from '@/components/marketing/sections/programs/PersonalizedCareSection';
 import ProgramIntroSection from '@/components/marketing/sections/programs/ProgramIntroSection';
+import ProgramsHashScroll from '@/components/marketing/sections/programs/ProgramsHashScroll';
 import WhyChooseSaKyiSection from '@/components/marketing/sections/programs/WhyChooseSaKyiSection';
 
 export const metadata: Metadata = {
@@ -17,6 +18,8 @@ export const metadata: Metadata = {
 export default function ProgramsPage() {
   return (
     <>
+      <ProgramsHashScroll />
+
       <ProgramIntroSection />
 
       <ExploreProgramsSection />

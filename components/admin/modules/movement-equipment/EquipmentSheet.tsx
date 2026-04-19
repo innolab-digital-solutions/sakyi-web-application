@@ -3,6 +3,7 @@
 import { PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
+import MovementEquipmentForm from '@/components/admin/modules/movement-equipment/EquipmentForm';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -13,8 +14,6 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import type { MovementEquipment } from '@/domains/movement-equipment/types';
-
-import MovementEquipmentForm from './EquipmentForm';
 
 type CreateProps = {
   mode: 'create';
@@ -48,21 +47,24 @@ export default function MovementEquipmentSheet({
     <Sheet open={isOpen} onOpenChange={setOpen}>
       {!isEdit && (
         <SheetTrigger asChild>
-          <Button className='cursor-pointer' size='lg'>
-            <PlusIcon className='size-4' />
-            Create Equipment
+          <Button
+            type='button'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+          >
+            <PlusIcon className='size-3.5' />
+            Add equipment
           </Button>
         </SheetTrigger>
       )}
       <SheetContent className='overflow-y-auto px-6 sm:max-w-md [&>button]:cursor-pointer'>
-        <SheetHeader className='mb-6'>
-          <SheetTitle>
-            {isEdit ? 'Edit Equipment' : 'Create Equipment'}
+        <SheetHeader className='px-0'>
+          <SheetTitle className='text-foreground text-md font-bold'>
+            {isEdit ? 'Edit equipment' : 'Add equipment'}
           </SheetTitle>
-          <SheetDescription>
+          <SheetDescription className='text-muted-foreground text-sm font-medium'>
             {isEdit
-              ? 'Update the details of this movement equipment.'
-              : 'Add a new equipment item used in movement exercises.'}
+              ? 'Update the display name so exercises and programs stay aligned with what clients and coaches expect in the movement library.'
+              : 'Add a catalog entry for gear used in exercises (weights, mats, machines, and similar). New items are available immediately in exercise forms.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (

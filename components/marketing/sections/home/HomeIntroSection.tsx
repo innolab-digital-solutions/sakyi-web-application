@@ -18,13 +18,15 @@ import SectionContainer from '@/components/marketing/SectionContainer';
 import Body1 from '@/components/shared/typography/Body1';
 import Body2 from '@/components/shared/typography/Body2';
 import Heading1 from '@/components/shared/typography/Heading1';
+import { ROUTES } from '@/config/routes';
 import { useLanguage } from '@/context/LanguageContext';
+import { scrollToElement } from '@/lib/utils/scroll';
 
 const HomeIntroSection = () => {
   const { language, translate } = useLanguage();
 
   return (
-    <SectionContainer id='hero-section' className='bg-white'>
+    <SectionContainer id='hero-section' className='bg-background'>
       <div className='grid min-w-0 items-center gap-12 lg:grid-cols-2 lg:gap-16'>
         {/* Left side: Text and CTAs */}
         <div className='min-w-0 space-y-8' data-aos='fade-right'>
@@ -62,13 +64,21 @@ const HomeIntroSection = () => {
 
           {/* Primary and secondary CTAs */}
           <div className='flex min-w-0 flex-col gap-4 sm:flex-row'>
-            <PrimaryButton className='w-full min-w-0 sm:w-auto'>
+            <PrimaryButton
+              className='w-full min-w-0 sm:w-auto'
+              onClick={() => scrollToElement('our-programs-section')}
+            >
               <Heart className='h-5 w-5' />
               <span>{translate('marketing.pages.home.hero.cta.primary')}</span>
               <ArrowRight className='h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
             </PrimaryButton>
 
-            <SecondaryButton className='w-full min-w-0 sm:w-auto'>
+            <SecondaryButton
+              className='w-full min-w-0 sm:w-auto'
+              onClick={() => {
+                window.location.href = ROUTES.MARKETING.ABOUT;
+              }}
+            >
               <Brain className='h-5 w-5' />
               <span>
                 {translate('marketing.pages.home.hero.cta.secondary')}

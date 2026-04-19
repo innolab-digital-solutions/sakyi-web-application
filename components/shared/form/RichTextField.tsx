@@ -204,7 +204,7 @@ export default function RichTextField({
 
   const responsiveLabelClass = cn(
     'font-medium text-xs',
-    'md:text-sm',
+    'md:text-[13px]',
     required
       ? 'after:text-destructive after:ml-0.5 after:content-["*"]'
       : undefined,
@@ -212,7 +212,7 @@ export default function RichTextField({
 
   const responsiveErrorClass = cn(
     'text-destructive flex items-center gap-2 font-medium text-xs',
-    'md:text-sm',
+    'md:text-[13px]',
   );
 
   return (
@@ -236,8 +236,8 @@ export default function RichTextField({
       >
         <div className='bg-muted/30 border-b border-neutral-200 px-1.5 py-1 md:px-2 md:py-1.5'>
           <TooltipProvider delayDuration={150}>
-            <div className='flex flex-wrap items-center justify-between gap-1'>
-              <div className='flex flex-wrap items-center gap-0.5'>
+            <div className='flex w-full flex-nowrap items-center justify-between gap-1 overflow-x-auto'>
+              <div className='flex flex-nowrap items-center gap-0.5'>
                 <Select
                   value={blockTypeValue}
                   onValueChange={(v) => {
@@ -484,58 +484,65 @@ export default function RichTextField({
                   <TooltipContent side='top'>Decrease indent</TooltipContent>
                 </Tooltip>
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <EditorToolbarIconButton
-                      active={editor?.isActive({ textAlign: 'left' }) ?? false}
-                      onClick={() =>
-                        editor?.chain().focus().setTextAlign('left').run()
-                      }
-                      disabled={!editor || disabled}
-                      aria-label='Align left'
-                    >
-                      <AlignLeft className='h-3 w-3' />
-                    </EditorToolbarIconButton>
-                  </TooltipTrigger>
-                  <TooltipContent side='top'>Align left</TooltipContent>
-                </Tooltip>
+                {/* Keep L/C/R on one row: wrapping was splitting align-left from center/right */}
+                <div className='flex shrink-0 items-center gap-0.5'>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <EditorToolbarIconButton
+                        active={
+                          editor?.isActive({ textAlign: 'left' }) ?? false
+                        }
+                        onClick={() =>
+                          editor?.chain().focus().setTextAlign('left').run()
+                        }
+                        disabled={!editor || disabled}
+                        aria-label='Align left'
+                      >
+                        <AlignLeft className='h-3 w-3' />
+                      </EditorToolbarIconButton>
+                    </TooltipTrigger>
+                    <TooltipContent side='top'>Align left</TooltipContent>
+                  </Tooltip>
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <EditorToolbarIconButton
-                      active={
-                        editor?.isActive({ textAlign: 'center' }) ?? false
-                      }
-                      onClick={() =>
-                        editor?.chain().focus().setTextAlign('center').run()
-                      }
-                      disabled={!editor || disabled}
-                      aria-label='Align center'
-                    >
-                      <AlignCenter className='h-3 w-3' />
-                    </EditorToolbarIconButton>
-                  </TooltipTrigger>
-                  <TooltipContent side='top'>Align center</TooltipContent>
-                </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <EditorToolbarIconButton
+                        active={
+                          editor?.isActive({ textAlign: 'center' }) ?? false
+                        }
+                        onClick={() =>
+                          editor?.chain().focus().setTextAlign('center').run()
+                        }
+                        disabled={!editor || disabled}
+                        aria-label='Align center'
+                      >
+                        <AlignCenter className='h-3 w-3' />
+                      </EditorToolbarIconButton>
+                    </TooltipTrigger>
+                    <TooltipContent side='top'>Align center</TooltipContent>
+                  </Tooltip>
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <EditorToolbarIconButton
-                      active={editor?.isActive({ textAlign: 'right' }) ?? false}
-                      onClick={() =>
-                        editor?.chain().focus().setTextAlign('right').run()
-                      }
-                      disabled={!editor || disabled}
-                      aria-label='Align right'
-                    >
-                      <AlignRight className='h-3 w-3' />
-                    </EditorToolbarIconButton>
-                  </TooltipTrigger>
-                  <TooltipContent side='top'>Align right</TooltipContent>
-                </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <EditorToolbarIconButton
+                        active={
+                          editor?.isActive({ textAlign: 'right' }) ?? false
+                        }
+                        onClick={() =>
+                          editor?.chain().focus().setTextAlign('right').run()
+                        }
+                        disabled={!editor || disabled}
+                        aria-label='Align right'
+                      >
+                        <AlignRight className='h-3 w-3' />
+                      </EditorToolbarIconButton>
+                    </TooltipTrigger>
+                    <TooltipContent side='top'>Align right</TooltipContent>
+                  </Tooltip>
+                </div>
               </div>
 
-              <div className='flex items-center gap-0.5'>
+              <div className='flex shrink-0 items-center gap-0.5'>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <EditorToolbarIconButton

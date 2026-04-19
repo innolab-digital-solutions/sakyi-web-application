@@ -1,11 +1,11 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, FileQuestion } from 'lucide-react';
-import Link from 'next/link';
+import { BookOpen } from 'lucide-react';
 import { useMemo } from 'react';
 
 import BlogCard from '@/components/marketing/cards/BlogCard';
+import ContentEmptyState from '@/components/marketing/cards/ContentEmptyState';
 import SectionContainer from '@/components/marketing/SectionContainer';
 import Body1 from '@/components/shared/typography/Body1';
 import Heading1 from '@/components/shared/typography/Heading1';
@@ -82,31 +82,11 @@ const ExploreArticlesSection = () => {
             <BlogCard key={post.id} post={post} index={index} />
           ))
         ) : (
-          <div className='col-span-full rounded-3xl border border-dashed border-slate-200 bg-slate-50/60 p-12 text-center'>
-            <div className='mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-r from-[#35bec5] to-[#0c96c4] text-white'>
-              <FileQuestion className='h-8 w-8' />
-            </div>
-            <h3
-              className='mb-4 text-2xl font-bold text-slate-900'
-              style={{ fontFamily: 'Poppins, sans-serif' }}
-            >
-              Fresh insights are on the way
-            </h3>
-            <p
-              className='mx-auto mb-6 max-w-2xl text-base text-slate-600'
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
-              We&apos;re curating expert articles right now. Check back soon or
-              let us know what topics you&apos;d love to read about.
-            </p>
-            <Link
-              href='/contact'
-              className='inline-flex items-center justify-center rounded-full border border-slate-200 px-6 py-3 text-sm font-semibold text-slate-700 transition-all duration-300 hover:border-[#35bec5] hover:text-[#35bec5] hover:shadow-lg'
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
-              Request a topic
-            </Link>
-          </div>
+          <ContentEmptyState
+            title='Fresh insights are on the way'
+            description="We're curating expert articles right now. Please check back soon."
+            className='col-span-full'
+          />
         )}
       </div>
     </SectionContainer>

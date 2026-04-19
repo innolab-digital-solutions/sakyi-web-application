@@ -6,7 +6,7 @@ import TextField from '@/components/shared/form/TextField';
 import type {
   OnboardingIntakeQuestion,
   OnboardingQuestionOption,
-} from '@/domains/onboarding/types';
+} from '@/domains/intake-assessments/types';
 
 type OnboardingQuestionFieldProps = {
   question: OnboardingIntakeQuestion;
@@ -18,9 +18,39 @@ type OnboardingQuestionFieldProps = {
   ) => void;
 };
 
+function buildPlaceholder(question: OnboardingIntakeQuestion): string {
+  const cleanedLabel = question.question
+    .replace(/[?*:]/g, '')
+    .trim()
+    .toLowerCase();
+  const target = cleanedLabel.length > 0 ? cleanedLabel : 'value';
+
+  if (question.type === 'select') {
+    return `Select ${target}`;
+  }
+
+  if (question.type === 'multiselect') {
+    return `Select one or more ${target}`;
+  }
+
+  if (question.type === 'date') {
+    return 'Select a date';
+  }
+
+  if (question.type === 'number') {
+    return `Enter ${target}`;
+  }
+
+  return `Enter ${target}`;
+}
+
 function getSelectOptions(
-  options: OnboardingQuestionOption[] | null,
+  options: unknown,
 ): { label: string; value: string }[] {
+  const normalizedOptions = Array.isArray(options)
+    ? (options as OnboardingQuestionOption[])
+    : [];
+
   const prettifyOptionLabel = (raw: string): string => {
     return raw
       .replace(/[_-]+/g, ' ')
@@ -34,7 +64,7 @@ function getSelectOptions(
   const seen = new Set<string>();
   const uniqueOptions: { label: string; value: string }[] = [];
 
-  for (const option of options ?? []) {
+  for (const option of normalizedOptions) {
     const normalizedValue =
       typeof option === 'string' ? option.trim() : String(option.value).trim();
     const normalizedLabel =
@@ -66,6 +96,7 @@ export default function OnboardingQuestionField({
     return (
       <TextField
         label={question.question}
+        placeholder={buildPlaceholder(question)}
         required={question.required}
         disabled={disabled}
         value={typeof value === 'string' ? value : ''}
@@ -79,6 +110,7 @@ export default function OnboardingQuestionField({
     return (
       <TextField
         label={question.question}
+        placeholder={buildPlaceholder(question)}
         required={question.required}
         type='number'
         disabled={disabled}
@@ -95,6 +127,7 @@ export default function OnboardingQuestionField({
     return (
       <TextField
         label={question.question}
+        placeholder={buildPlaceholder(question)}
         required={question.required}
         type='date'
         disabled={disabled}
@@ -109,6 +142,7 @@ export default function OnboardingQuestionField({
     return (
       <SelectField
         label={question.question}
+        placeholder={buildPlaceholder(question)}
         required={question.required}
         disabled={disabled}
         options={getSelectOptions(question.options)}
@@ -128,6 +162,7 @@ export default function OnboardingQuestionField({
       <SelectField
         multiple
         label={question.question}
+        placeholder={buildPlaceholder(question)}
         required={question.required}
         disabled={disabled}
         options={getSelectOptions(question.options)}

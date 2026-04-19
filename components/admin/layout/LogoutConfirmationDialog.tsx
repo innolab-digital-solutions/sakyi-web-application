@@ -1,16 +1,14 @@
 'use client';
 
-import { ArrowRight, LogOut, LogOutIcon } from 'lucide-react';
+import { ArrowRight, CircleQuestionMark, LogOut } from 'lucide-react';
 
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogMedia,
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
@@ -37,32 +35,40 @@ const LogoutConfirmationDialog = () => {
           <ArrowRight className='h-4 w-4 shrink-0' />
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent
-        size='sm'
-        className='border-border shadow-sm data-[size=sm]:sm:max-w-sm'
-      >
-        <AlertDialogHeader>
-          <AlertDialogMedia className='bg-destructive/10 size-12'>
-            <LogOutIcon className='text-destructive size-5' />
-          </AlertDialogMedia>
-          <AlertDialogTitle className='text-md text-foreground/90'>
-            Log out Confirmation
-          </AlertDialogTitle>
-          <AlertDialogDescription className='text-sm font-medium'>
-            Are you sure you want to log out of your account?
-          </AlertDialogDescription>
+      <AlertDialogContent className='gap-0 overflow-hidden p-0 sm:max-w-md'>
+        <AlertDialogHeader className='border-border border-b p-6'>
+          <div className='flex items-start gap-3'>
+            <div className='border-destructive/25 bg-destructive/10 text-destructive mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-md border'>
+              <CircleQuestionMark className='size-5' aria-hidden />
+            </div>
+            <div className='space-y-1.5'>
+              <AlertDialogTitle className='text-foreground text-sm font-bold capitalize'>
+                Sign out of the dashboard?
+              </AlertDialogTitle>
+              <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
+                Your current session will end. Sign in again anytime to return
+                to the admin console.
+              </AlertDialogDescription>
+            </div>
+          </div>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel className='bg-muted-foreground/10 hover:bg-muted-foreground/20 border-foreground/10 cursor-pointer'>
-            Cancel
-          </AlertDialogCancel>
-          <AlertDialogAction
-            variant='destructive'
-            className='cursor-pointer'
-            onClick={() => logout()}
+        <AlertDialogFooter className='bg-muted/30 border-border gap-2 border-t p-4 sm:justify-end'>
+          <AlertDialogCancel
+            disabled={isLoading}
+            className='text-foreground bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
           >
-            Log out
-          </AlertDialogAction>
+            Stay signed in
+          </AlertDialogCancel>
+          <Button
+            type='button'
+            disabled={isLoading}
+            variant='destructive'
+            className='border-destructive/45 h-10 cursor-pointer gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
+            onClick={() => void logout()}
+          >
+            <LogOut className='size-3.5' />
+            {isLoading ? 'Signing out…' : 'Sign out'}
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

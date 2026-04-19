@@ -6,17 +6,17 @@ import BlogCategoryListTable from '@/components/admin/modules/blog-categories/Ca
 import BlogCategorySheet from '@/components/admin/modules/blog-categories/CategorySheet';
 
 export const metadata: Metadata = {
-  title: 'Blog Categories | SaKyi Admin',
+  title: 'Blog categories | SaKyi Admin',
   description:
-    'Manage blog categories used to organise articles and posts across the SaKyi platform.',
+    'Create and edit blog categories with English and Myanmar labels for organising articles.',
 };
 
 export default function BlogCategoryListPage() {
   return (
     <div className='min-w-0 space-y-8'>
       <PageHeader
-        title='Blog Categories'
-        description='Organise and manage blog categories used to classify articles and posts. Each category supports both English and Myanmar translations.'
+        title='Blog categories'
+        description='Categories group posts in the library and on the site. Switch list language to review English or Myanmar labels before editing.'
         actions={<BlogCategorySheet mode='create' />}
       />
 

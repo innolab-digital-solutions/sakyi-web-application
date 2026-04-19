@@ -8,7 +8,7 @@ const positiveIdString = z
   .refine((value) => Number.parseInt(value, 10) > 0, 'Invalid identifier.');
 
 export const OnboardingIntakeCreateSchema = z.object({
-  user_id: positiveIdString,
+  enrollment_request_id: positiveIdString,
   onboarding_template_id: positiveIdString,
   notes: z.string().max(2000, 'Notes must be 2000 characters or less.'),
 });

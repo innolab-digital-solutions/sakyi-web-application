@@ -69,10 +69,10 @@ export type OnboardingIntakeQuestion = {
   id: number;
   question: string;
   key: string;
-  type: OnboardingQuestionType;
+  type: OnboardingQuestionType | string;
   required: boolean;
-  options: OnboardingQuestionOption[] | null;
-  answer: Record<string, unknown> | null; // e.g. { value: "..."} / { values: [...] } / file meta object
+  options: OnboardingQuestionOption[] | unknown | null;
+  answer: Record<string, unknown> | unknown | null; // e.g. { value: "..."} / { values: [...] } / file meta object
 };
 
 export type OnboardingIntakeSection = {
@@ -90,18 +90,51 @@ export type OnboardingIntakeTemplate = {
   sections: OnboardingIntakeSection[];
 };
 
-export type OnboardingIntakeData = {
+export type OnboardingIntake = {
   id: number;
-  status: OnboardingStatus;
+  code: string;
+  status: string;
   notes: string | null;
-  user?: UserLite; // whenLoaded in resource => optional at type level
-  handler?: UserLite; // whenLoaded in resource => optional
-  template?: OnboardingIntakeTemplate; // whenLoaded in resource => optional
+  cancellation_note: string | null;
+  enrollment_request?: {
+    id: number;
+    code: string;
+  } | null;
+  client?: {
+    id: number;
+    client_code: string | null;
+    name: string;
+    email: string;
+    picture_url: string | null;
+  };
+  enrollment_contract?: {
+    id: number;
+    code: string;
+    sent_at: string | null;
+    signed_at: string | null;
+  } | null;
+  handler?: {
+    id: number;
+    name: string;
+    email: string;
+    picture_url: string | null;
+    role: string | null;
+  };
+  program?: {
+    id: number;
+    code: string;
+    thumbnail_url: string | null;
+    title?: string;
+    slug?: string;
+  } | null;
+  template?: OnboardingIntakeTemplate;
   timestamps: {
     created_at: string | null; // ISO string
     updated_at: string | null; // ISO string
   };
 };
+
+export type OnboardingIntakeData = OnboardingIntake;
 
 export type OnboardingProgressMeta = {
   progress: {
@@ -155,7 +188,7 @@ export type OnboardingListIntakesParams = {
 };
 
 export type CreateOnboardingIntakePayload = {
-  user_id: number;
+  enrollment_request_id: number;
   onboarding_template_id: number;
   notes?: string;
 };

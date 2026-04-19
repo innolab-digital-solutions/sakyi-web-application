@@ -3,13 +3,12 @@
 import { AlertCircle, PlusIcon, Trash2Icon } from 'lucide-react';
 import * as React from 'react';
 
+import TextField from '@/components/shared/form/TextField';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils/styles';
 
 type StringListFieldProps = {
-  label?: string;
+  label: string;
   description?: string;
   value: string[];
   onChange: (value: string[]) => void;
@@ -19,8 +18,8 @@ type StringListFieldProps = {
 };
 
 /**
- * Editable ordered list of plain strings. Items are added via an input + "Add" button
- * (or pressing Enter) and removed individually with a trash icon.
+ * Editable ordered list of plain strings, styled like other admin form subsections
+ * (blog post / program content cards).
  */
 export default function StringListField({
   label,
@@ -54,31 +53,42 @@ export default function StringListField({
   };
 
   return (
-    <div className='space-y-2'>
-      {label && (
-        <Label className='text-xs font-medium md:text-sm'>{label}</Label>
+    <div
+      className={cn(
+        'space-y-3 rounded-md border p-4 sm:p-4',
+        error
+          ? 'border-destructive bg-destructive/4'
+          : 'border-border bg-muted/15',
       )}
-      {description && (
-        <p className='text-muted-foreground text-xs'>{description}</p>
-      )}
+    >
+      <div className='space-y-1'>
+        <p className='text-foreground text-sm font-semibold'>{label}</p>
+        {description ? (
+          <p className='text-muted-foreground text-xs leading-relaxed font-medium'>
+            {description}
+          </p>
+        ) : null}
+      </div>
 
-      {value.length > 0 && (
-        <ul className='space-y-1.5'>
+      {value.length > 0 ? (
+        <ul className='space-y-2'>
           {value.map((item, index) => (
             <li
               key={index}
-              className='bg-muted/40 border-border/50 flex items-center gap-2 rounded-md border px-3 py-2 text-sm'
+              className='border-border bg-background flex items-center gap-2 rounded-md border px-3 py-2.5 text-sm shadow-xs'
             >
-              <span className='text-muted-foreground mr-1 shrink-0 text-xs tabular-nums'>
-                {index + 1}.
+              <span className='text-muted-foreground w-6 shrink-0 text-xs font-semibold tabular-nums'>
+                {index + 1}
               </span>
-              <span className='min-w-0 flex-1 truncate'>{item}</span>
+              <span className='min-w-0 flex-1 leading-snug wrap-break-word'>
+                {item}
+              </span>
               <button
                 type='button'
                 disabled={disabled}
                 onClick={() => handleRemove(index)}
                 className={cn(
-                  'text-muted-foreground hover:text-destructive shrink-0 rounded-sm p-0.5 transition-colors',
+                  'text-muted-foreground hover:text-destructive shrink-0 rounded-sm p-1 transition-colors',
                   'focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none',
                   'disabled:pointer-events-none disabled:opacity-40',
                 )}
@@ -89,45 +99,61 @@ export default function StringListField({
             </li>
           ))}
         </ul>
-      )}
-
-      {value.length === 0 && (
-        <p className='text-muted-foreground rounded-md border border-dashed px-3 py-3 text-center text-xs'>
+      ) : (
+        <div
+          className={cn(
+            'rounded-md border border-dashed py-8 text-center text-xs font-medium',
+            error
+              ? 'border-destructive/60 bg-destructive/4 text-destructive/90'
+              : 'border-border/70 bg-background/60 text-muted-foreground',
+          )}
+        >
           No items yet. Add one below.
-        </p>
+        </div>
       )}
 
-      <div className='flex gap-2'>
-        <Input
-          ref={inputRef}
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          disabled={disabled}
-          className='h-10 border-neutral-200 px-3 text-xs font-medium md:h-12 md:px-4 md:text-sm'
-        />
+      <div className='flex flex-col gap-2 sm:flex-row sm:items-end'>
+        <div className='min-w-0 flex-1'>
+          <TextField
+            ref={inputRef}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            disabled={disabled}
+            className={
+              error
+                ? 'border-destructive bg-destructive/4 focus-visible:ring-destructive/20'
+                : undefined
+            }
+          />
+        </div>
         <Button
           type='button'
           variant='outline'
           disabled={disabled || !inputValue.trim()}
           onClick={handleAdd}
-          className='h-10 shrink-0 md:h-12'
+          className={cn(
+            'h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold sm:w-auto md:h-12',
+            error
+              ? 'border-destructive/60 bg-destructive/4 text-destructive hover:bg-destructive/8'
+              : 'text-foreground bg-background hover:bg-muted border-neutral-300',
+          )}
         >
-          <PlusIcon className='size-4' />
+          <PlusIcon className='size-3.5' />
           Add
         </Button>
       </div>
 
-      {error && (
+      {error ? (
         <p
-          className='text-destructive flex items-center gap-2 text-xs font-medium md:text-sm'
+          className='text-destructive flex items-center gap-2 text-xs font-medium md:text-[13px]'
           role='alert'
         >
           <AlertCircle className='size-4 shrink-0' />
           <span>{error}</span>
         </p>
-      )}
+      ) : null}
     </div>
   );
 }

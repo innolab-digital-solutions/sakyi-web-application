@@ -16,6 +16,12 @@ export const programStatusSchema = z.enum([
  * Per-locale translation entry for a program.
  * Translatable fields: title, tagline, excerpt, about, and the four list fields.
  */
+const programStructureItemSchema = z.object({
+  period: z.string(),
+  title: z.string(),
+  description: z.string(),
+});
+
 export const ProgramTranslationSchema = z.object({
   locale: z.enum(['en', 'my']),
   title: z
@@ -37,7 +43,7 @@ export const ProgramTranslationSchema = z.object({
   features: z.array(z.string()).default([]),
   ideals: z.array(z.string()).default([]),
   expectations: z.array(z.string()).default([]),
-  structures: z.array(z.string()).default([]),
+  structures: z.array(programStructureItemSchema).default([]),
 });
 
 export type ProgramTranslationInput = z.infer<typeof ProgramTranslationSchema>;
@@ -58,13 +64,8 @@ export const ProgramBodySchema = z.object({
     ),
   thumbnail_url: z.string().max(2048).optional().or(z.literal('')),
   duration: z.string().max(500).optional().or(z.literal('')),
-  price: z.object({
-    amount: z.number().nonnegative('Amount must be zero or greater.'),
-    currency: z
-      .string()
-      .length(3, 'Currency must be a 3-letter ISO code.')
-      .toUpperCase(),
-  }),
+  /** Flat number on write; API may still return amount+currency on read. */
+  price: z.number().nonnegative('Price must be zero or greater.').optional(),
   status: programStatusSchema,
   translations: z
     .array(ProgramTranslationSchema)

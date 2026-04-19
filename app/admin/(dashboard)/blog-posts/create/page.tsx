@@ -1,30 +1,22 @@
-import { ArrowLeftIcon } from 'lucide-react';
 import type { Metadata } from 'next';
-import Link from 'next/link';
 
 import PageHeader from '@/components/admin/layout/PageHeader';
 import BlogPostForm from '@/components/admin/modules/blog-posts/PostForm';
-import { Button } from '@/components/ui/button';
-import { ROUTES } from '@/config/routes';
 
 export const metadata: Metadata = {
-  title: 'Create Blog Post | SaKyi Admin',
+  title: 'Add blog post | SaKyi Admin',
+  description:
+    'Draft a new library article with English and Myanmar fields, optional thumbnail and category, and a published switch—so editors can prepare copy before it appears on the public blog.',
 };
 
 export default function BlogPostCreatePage() {
   return (
     <div className='space-y-8'>
-      <div className='flex items-center gap-4'>
-        <Button asChild variant='ghost' size='icon' className='cursor-pointer'>
-          <Link href={ROUTES.ADMIN.MODULES.BLOG_POSTS.LIST}>
-            <ArrowLeftIcon className='size-4' />
-          </Link>
-        </Button>
-        <PageHeader
-          title='Create Blog Post'
-          description='Write a new post with bilingual content in English and Myanmar.'
-        />
-      </div>
+      <PageHeader
+        title='Add blog post'
+        description='Compose titles, excerpts, and body copy per language; attach a category and optional thumbnail; use the published switch when the post should be live. Save to add the entry to the admin library and site feed according to your status choice.'
+      />
+
       <BlogPostForm mode='create' />
     </div>
   );

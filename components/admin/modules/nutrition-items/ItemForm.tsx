@@ -8,9 +8,6 @@ import { toast } from 'sonner';
 import ComboboxField, {
   type ComboboxOption,
 } from '@/components/shared/form/ComboBoxField';
-import SelectField, {
-  type SelectFieldOption,
-} from '@/components/shared/form/SelectField';
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
 import { Button } from '@/components/ui/button';
@@ -25,11 +22,6 @@ import {
 import type { NutritionItem } from '@/domains/nutrition-items/types';
 import { getUnitsLookup } from '@/domains/units/services';
 import { useForm } from '@/lib/form';
-
-const STATUS_OPTIONS: SelectFieldOption[] = [
-  { value: 'true', label: 'Active' },
-  { value: 'false', label: 'Inactive' },
-];
 
 type CreateProps = {
   mode: 'create';
@@ -127,12 +119,12 @@ export default function NutritionItemForm({ mode, item, onSuccess }: Props) {
             queryClient.invalidateQueries({
               queryKey: ['table', ENDPOINTS.ADMIN.MODULES.NUTRITION_ITEMS.LIST],
             });
-            toast.success('Item updated successfully.');
+            toast.success('Food item updated successfully.');
             if (onSuccess) onSuccess();
             else router.push(ROUTES.ADMIN.MODULES.NUTRITION_ITEMS.LIST);
           },
           onFailure: (error) => {
-            toast.error(error.message ?? 'Failed to update item.');
+            toast.error(error.message ?? 'Failed to update food item.');
           },
         },
       );
@@ -144,12 +136,12 @@ export default function NutritionItemForm({ mode, item, onSuccess }: Props) {
         queryClient.invalidateQueries({
           queryKey: ['table', ENDPOINTS.ADMIN.MODULES.NUTRITION_ITEMS.LIST],
         });
-        toast.success('Item created successfully.');
+        toast.success('Food item created successfully.');
         if (onSuccess) onSuccess();
         else router.push(ROUTES.ADMIN.MODULES.NUTRITION_ITEMS.LIST);
       },
       onFailure: (error) => {
-        toast.error(error.message ?? 'Failed to create item.');
+        toast.error(error.message ?? 'Failed to create food item.');
       },
     });
   };
@@ -200,10 +192,10 @@ export default function NutritionItemForm({ mode, item, onSuccess }: Props) {
           error={form.errors.nutrition_category_id}
         />
         <ComboboxField
-          label='Default Unit'
-          placeholder='Select a unit…'
-          searchPlaceholder='Search units…'
-          emptyMessage='No units found.'
+          label='Measurement'
+          placeholder='Select a measurement'
+          searchPlaceholder='Search by name or abbreviation…'
+          emptyMessage='No measurements found in the catalog.'
           options={unitOptions}
           value={
             form.fields.default_unit_id
@@ -215,23 +207,13 @@ export default function NutritionItemForm({ mode, item, onSuccess }: Props) {
           }
           error={form.errors.default_unit_id}
         />
-        <SelectField
-          label='Status'
-          name='is_active'
-          required
-          placeholder='Select status…'
-          options={STATUS_OPTIONS}
-          value={String(form.fields.is_active ?? true)}
-          onChange={(val) => form.setData('is_active', val === 'true')}
-          error={form.errors.is_active}
-        />
 
-        <div className='flex items-center justify-end gap-3'>
+        <div className='flex flex-nowrap items-center justify-end gap-2'>
           <Button
             type='button'
             variant='outline'
             disabled={loading}
-            className='cursor-pointer'
+            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
             onClick={() =>
               onSuccess
                 ? onSuccess()
@@ -240,14 +222,18 @@ export default function NutritionItemForm({ mode, item, onSuccess }: Props) {
           >
             Cancel
           </Button>
-          <Button type='submit' className='cursor-pointer' disabled={loading}>
+          <Button
+            type='submit'
+            disabled={loading}
+            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+          >
             {loading
               ? isEdit
-                ? 'Saving…'
+                ? 'Saving Changes…'
                 : 'Creating…'
               : isEdit
                 ? 'Save Changes'
-                : 'Create Item'}
+                : 'Create Food Item'}
           </Button>
         </div>
       </div>

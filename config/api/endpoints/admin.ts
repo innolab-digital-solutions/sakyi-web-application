@@ -20,16 +20,12 @@ export const ADMIN_ENDPOINTS = {
   MODULES: {
     PROGRAMS: {
       LIST: `${BASE}/programs`,
+      /** Full JSON create (`id` omitted). */
       CREATE: `${BASE}/programs`,
+      /** Full JSON update (same body shape as create, including `id`). */
+      UPDATE: (id: string) => `${BASE}/programs/${id}`,
       DELETE: (id: string) => `${BASE}/programs/${id}`,
       DETAIL: (id: string) => `${BASE}/programs/${id}`,
-      STEPS: {
-        OVERVIEW: (id: string) => `${BASE}/programs/${id}/steps/overview`,
-        TRANSLATIONS: (id: string) =>
-          `${BASE}/programs/${id}/steps/translations`,
-      },
-      PUBLISH: (id: string) => `${BASE}/programs/${id}/publish`,
-      UPDATE_STATUS: (id: string) => `${BASE}/programs/${id}/status`,
     },
     UNITS: {
       LIST: `${BASE}/units`,
@@ -80,6 +76,28 @@ export const ADMIN_ENDPOINTS = {
       DELETE: (id: string) => `${BASE}/blog-categories/${id}`,
       DETAIL: (id: string) => `${BASE}/blog-categories/${id}`,
     },
+    ENROLLMENT_REQUESTS: {
+      LIST: `${BASE}/enrollment-requests`,
+      UPDATE: (id: string) => `${BASE}/enrollment-requests/${id}`,
+      DETAIL: (id: string) => `${BASE}/enrollment-requests/${id}`,
+      ASSIGN_CONTRACT: (id: string) =>
+        `${BASE}/enrollment-requests/${id}/assign-contract`,
+    },
+    ENROLLMENT_CONTRACTS: {
+      LIST: `${BASE}/enrollment-contracts`,
+      DETAIL: (id: string) => `${BASE}/enrollment-contracts/${id}`,
+    },
+    ENROLLMENT_RECORDS: {
+      LIST: `${BASE}/enrollments`,
+      CREATE: `${BASE}/enrollments`,
+      DETAIL: (id: string) => `${BASE}/enrollments/${id}`,
+      SCHEDULE_UPDATE: (id: string) => `${BASE}/enrollments/${id}/schedule`,
+      NOTES_UPDATE: (id: string) => `${BASE}/enrollments/${id}/notes`,
+      CARE_TEAM_UPDATE: (id: string) => `${BASE}/enrollments/${id}/care-team`,
+      ACTIVATE: (id: string) => `${BASE}/enrollments/${id}/activate`,
+      COMPLETE: (id: string) => `${BASE}/enrollments/${id}/complete`,
+      CANCEL: (id: string) => `${BASE}/enrollments/${id}/cancel`,
+    },
     BLOG_POSTS: {
       LIST: `${BASE}/blog-posts`,
       CREATE: `${BASE}/blog-posts`,
@@ -87,17 +105,24 @@ export const ADMIN_ENDPOINTS = {
       DELETE: (id: string) => `${BASE}/blog-posts/${id}`,
       DETAIL: (id: string) => `${BASE}/blog-posts/${id}`,
     },
-    ONBOARDING: {
+    CLIENT_PROFILES: {
+      LIST: `${BASE}/client-profiles`,
+      DETAIL: (id: string) => `${BASE}/client-profiles/${id}`,
+    },
+    INTAKE_ASSESSMENTS: {
       TEMPLATE: (version: number) => `${BASE}/onboarding/templates/${version}`,
-      INTAKES: {
-        LIST: `${BASE}/onboarding/intakes`,
-        CREATE: `${BASE}/onboarding/intakes`,
-        SAVE_SECTION_ANSWERS: (intakeId: string, sectionId: string) =>
-          `${BASE}/onboarding/intakes/${intakeId}/sections/${sectionId}`,
-        DETAIL: (id: string) => `${BASE}/onboarding/intakes/${id}`,
-        CANCEL: (id: string) => `${BASE}/onboarding/intakes/${id}/cancel`,
-        COMPLETE: (id: string) => `${BASE}/onboarding/intakes/${id}/complete`,
-      },
+      LIST: `${BASE}/onboarding/intakes`,
+      CREATE: `${BASE}/onboarding/intakes`,
+      SAVE_SECTION_ANSWERS: (intakeId: string, sectionId: string) =>
+        `${BASE}/onboarding/intakes/${intakeId}/sections/${sectionId}`,
+      DETAIL: (id: string) => `${BASE}/onboarding/intakes/${id}`,
+      CANCEL: (id: string) => `${BASE}/onboarding/intakes/${id}/cancel`,
+      COMPLETE: (id: string) => `${BASE}/onboarding/intakes/${id}/complete`,
+    },
+    NOTIFICATIONS: {
+      LIST: `${BASE}/notifications`,
+      MARK_AS_READ: (id: string) => `${BASE}/notifications/${id}/read`,
+      MARK_ALL_AS_READ: `${BASE}/notifications/read-all`,
     },
   },
 } as const;

@@ -1,13 +1,10 @@
 export {
-  createProgramDraft,
   deleteProgram,
   getProgramById,
   getPrograms,
+  type ProgramSavePayload,
   type ProgramTranslationPayload,
-  publishProgram,
-  saveProgramOverview,
-  saveProgramTranslations,
-  updateProgramStatus,
+  saveProgram,
 } from './admin.service';
 export {
   getPrograms as getMarketingPrograms,
