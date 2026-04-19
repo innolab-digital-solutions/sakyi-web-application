@@ -25,6 +25,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import TableCellEmpty from '@/components/ui/table-cell-empty';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import type {
@@ -40,6 +46,7 @@ type EnrollmentRecordColumnKey =
   | 'reference'
   | 'client'
   | 'program'
+  | 'assignedMembers'
   | 'status'
   | 'startsAt'
   | 'endsAt'
@@ -58,13 +65,14 @@ type EnrollmentRecordColumnDefinition = {
 
 /** Bumped when default visibility changes. */
 const ENROLLMENT_RECORD_VISIBLE_COLUMNS_STORAGE_KEY =
-  'sakyi:admin:enrollment-records:visible-columns:v1';
+  'sakyi:admin:enrollment-records:visible-columns:v2';
 
 /** Default triage set; staff can surface intake, contract, and created from Columns. */
 const DEFAULT_VISIBLE_COLUMN_KEYS: readonly EnrollmentRecordColumnKey[] = [
   'reference',
   'client',
   'program',
+  'assignedMembers',
   'status',
   'startsAt',
   'endsAt',
@@ -89,6 +97,12 @@ const ENROLLMENT_RECORD_COLUMNS: readonly EnrollmentRecordColumnDefinition[] = [
     label: 'Program',
     headerClassName: '',
     skeletonWidth: 'w-48',
+  },
+  {
+    key: 'assignedMembers',
+    label: 'Assigned Members',
+    headerClassName: '',
+    skeletonWidth: 'w-32',
   },
   {
     key: 'status',
@@ -194,6 +208,15 @@ function normalizeEnrollmentStatus(
 const PROGRAM_THUMBNAIL_FALLBACK = '/images/logo-gray.png';
 
 function resolveClientPictureUrl(
+  raw: string | null | undefined,
+): string | undefined {
+  if (!raw?.trim()) return undefined;
+  const t = raw.trim();
+  if (t.startsWith('http')) return t;
+  return `${base.domainEndpoint}${t}`;
+}
+
+function resolveMemberPictureUrl(
   raw: string | null | undefined,
 ): string | undefined {
   if (!raw?.trim()) return undefined;
@@ -450,6 +473,10 @@ export default function EnrollmentRecordListTable() {
                 ? ENROLLMENT_STATUS_STYLES[lifecycle]
                 : null;
               const StatusIcon = statusStyle?.icon;
+              const assignedMembers = row.team_members ?? [];
+              const visibleAssignedMembers = assignedMembers.slice(0, 3);
+              const remainingAssignedMembers =
+                assignedMembers.length - visibleAssignedMembers.length;
 
               return (
                 <TableRow key={row.id}>
@@ -513,6 +540,81 @@ export default function EnrollmentRecordListTable() {
                           </p>
                         </div>
                       </div>
+                    </TableCell>
+                  ) : null}
+                  {showColumn('assignedMembers') ? (
+                    <TableCell>
+                      {assignedMembers.length > 0 ? (
+                        <TooltipProvider delayDuration={100}>
+                          <div className='flex items-center'>
+                            {visibleAssignedMembers.map((member, index) => {
+                              const name =
+                                member.user?.name?.trim() || 'Unknown member';
+                              const email =
+                                member.user?.email?.trim() || 'No email';
+                              const picture = resolveMemberPictureUrl(
+                                member.user?.picture_url,
+                              );
+                              return (
+                                <Tooltip key={member.id}>
+                                  <TooltipTrigger asChild>
+                                    <div
+                                      className='ring-background relative inline-flex cursor-default rounded-full ring-2'
+                                      style={{
+                                        marginLeft: index === 0 ? 0 : -8,
+                                      }}
+                                    >
+                                      <Avatar className='size-8'>
+                                        {picture ? (
+                                          <AvatarImage
+                                            src={picture}
+                                            alt={name}
+                                          />
+                                        ) : null}
+                                        <AvatarFallback className='text-[10px]'>
+                                          {getInitials(name, 2) || '?'}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    side='top'
+                                    className='max-w-64'
+                                  >
+                                    <p className='text-xs font-semibold'>
+                                      {name}
+                                    </p>
+                                    <p className='text-xs opacity-90'>
+                                      {email}
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              );
+                            })}
+                            {remainingAssignedMembers > 0 ? (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div
+                                    className='bg-muted text-foreground ring-background inline-flex size-8 items-center justify-center rounded-full text-[11px] font-semibold ring-2'
+                                    style={{ marginLeft: -8 }}
+                                  >
+                                    +{remainingAssignedMembers}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent side='top'>
+                                  <p className='text-xs'>
+                                    {remainingAssignedMembers} more assigned
+                                    member
+                                    {remainingAssignedMembers === 1 ? '' : 's'}
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            ) : null}
+                          </div>
+                        </TooltipProvider>
+                      ) : (
+                        <TableCellEmpty label='Not assigned' />
+                      )}
                     </TableCell>
                   ) : null}
                   {showColumn('status') ? (

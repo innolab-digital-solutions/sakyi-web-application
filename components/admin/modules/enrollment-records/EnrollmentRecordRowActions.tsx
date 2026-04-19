@@ -591,7 +591,7 @@ export default function EnrollmentRecordRowActions({
                   className='text-destructive focus:text-destructive flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
                   onClick={() => setConfirm({ kind: 'cancel', row })}
                 >
-                  <XCircleIcon className='size-3.5 shrink-0' />
+                  <XCircleIcon className='size-3.5 shrink-0 text-destructive' />
                   Cancel enrollment
                 </DropdownMenuItem>
               </>
