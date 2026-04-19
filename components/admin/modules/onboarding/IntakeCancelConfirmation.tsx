@@ -43,13 +43,12 @@ export default function IntakeCancelConfirmation({
               <CircleQuestionMark className='size-5' aria-hidden />
             </div>
             <div className='space-y-1.5'>
-              <AlertDialogTitle className='text-foreground text-sm font-bold capitalize'>
+            <AlertDialogTitle className='text-foreground/90 text-sm font-bold capitalize'>
                 Cancel this intake assessment?
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
-                Cancelling stops this interview and marks the intake as
-                cancelled. A brief note is required so your team has context on
-                the intake record.
+                Cancelling will immediately stop this intake assessment interview and change the status of both the intake and the associated enrollment request to “cancelled.” Please provide a brief note to ensure your team has clear context for this action on the intake record.
+           
               </AlertDialogDescription>
             </div>
           </div>
@@ -64,6 +63,7 @@ export default function IntakeCancelConfirmation({
             error={noteError}
             disabled={isSubmitting}
             placeholder='Reason for cancellation (visible on the intake record)'
+            className='text-[13.5px]!'
           />
         </div>
 

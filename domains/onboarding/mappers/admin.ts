@@ -1,3 +1,5 @@
+import { FALLBACK_LANGUAGE, type SupportedLanguage } from '@/config/languages';
+import { getTranslation } from '@/lib/localization/core';
 import type { ApiError } from '@/types/api';
 
 import type {
@@ -43,10 +45,12 @@ export function hydrateDraftAnswersFromSections(
 
 /**
  * Returns client-side required-field errors for a section (mirrors interview step validation rules).
+ * Messages use {@link getTranslation} `shared.validation.required` (`The :attribute field is required.`).
  */
 export function getRequiredFieldErrorsForSection(
   section: OnboardingIntakeSection,
   sectionDraft: SectionDraftAnswers,
+  language: SupportedLanguage = FALLBACK_LANGUAGE,
 ): Record<number, string> {
   const nextErrors: Record<number, string> = {};
 
@@ -78,7 +82,16 @@ export function getRequiredFieldErrorsForSection(
     }
 
     if (isMissing) {
-      nextErrors[question.id] = 'This field is required.';
+      const attribute =
+        typeof question.question === 'string' && question.question.trim()
+          ? question.question.trim().toLowerCase()
+          : 'intake question';
+     
+      nextErrors[question.id] = getTranslation(
+        language,
+        'shared.validation.required',
+        { attribute },
+      );
     }
   }
 

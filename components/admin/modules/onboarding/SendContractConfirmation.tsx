@@ -68,7 +68,7 @@ export default function SendContractConfirmation({
               <Smartphone className='size-5' aria-hidden />
             </div>
             <div className='space-y-1.5'>
-              <AlertDialogTitle className='text-foreground text-sm font-bold capitalize'>
+              <AlertDialogTitle className='text-foreground/90 text-sm font-bold capitalize'>
                 {title}
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>

@@ -418,8 +418,7 @@ export default function IntakeListTable() {
               <TableEmptyStateRow
                 colSpan={visibleColumnCount}
                 title='No intake assessments found'
-                description="No intake assessments found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later."
-           
+                description='No intake assessments found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
               />
             )}
 
