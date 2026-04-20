@@ -2,23 +2,19 @@ import type { ApiResponse } from '@/types/api';
 
 export type Status = 'pending' | 'active' | 'suspended' | 'archived';
 
+export type UserRole = {
+  id: number;
+  name: string;
+};
+
 export type User = {
-  id: string;
-  role?: string;
+  id: number;
+  client_code: string | null;
   name: string;
   email: string;
-  picture: string;
-  dob: string;
-  gender: string;
-  phone: string;
-  address: string;
   status: Status;
-  timestamps: {
-    email_verified_at: string;
-    last_login_at: string;
-    created_at: string;
-    updated_at: string;
-  };
+  role: UserRole | null;
+  last_login_at: string | null;
 };
 
 export type UserResponse = ApiResponse<User>;
