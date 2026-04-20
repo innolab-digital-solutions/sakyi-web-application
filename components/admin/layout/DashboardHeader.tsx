@@ -1,6 +1,6 @@
 'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useAuth } from '@/context/AuthContext';
@@ -11,60 +11,39 @@ import DashboardNotification from './DashboardNotification';
 const DashboardHeader = () => {
   const { user } = useAuth();
 
+  const roleName =
+    typeof user?.role === 'object' && user?.role !== null
+      ? user.role.name
+      : String(user?.role ?? '');
+
   return (
     <header className='border-border bg-background sticky top-0 z-10 w-full shrink-0 border-b px-2.5'>
       <div className='flex h-16 items-center justify-between px-5'>
-        {/* Left section: Sidebar trigger and breadcrumbs */}
         <div className='flex h-5 items-center'>
-          {/* Button to open sidebar */}
           <SidebarTrigger className='hover:text-foreground h-9 w-9 cursor-pointer border border-gray-300 hover:bg-gray-100' />
 
-          {/* Vertical separator (hidden on small screens) */}
           <Separator orientation='vertical' className='mx-3 hidden sm:block' />
 
-          {/* Breadcrumb nav (hidden on small screens) */}
-          <div className='hidden sm:block'>
-            {/* <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbPage className='text-foreground font-medium'>
-                    Control Panel
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link
-                      href={ROUTES.ADMIN.MODULES.OVERVIEW}
-                      className='text-foreground hover:text-accent! font-medium'
-                    >
-                      Overview
-                    </Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb> */}
-          </div>
+          <div className='hidden sm:block'></div>
         </div>
 
-        {/* Right section: User info and avatar */}
         <div className='flex items-center gap-8'>
           <DashboardNotification />
+
           <div className='flex items-center gap-2'>
-            {/* User name and role */}
             <div className='flex flex-col items-end gap-x-1'>
               <h3 className='text-foreground text-sm font-semibold'>
                 {user?.name ?? 'Anonymous'}
               </h3>
-              {user?.role && (
+
+              {roleName && (
                 <p className='text-muted-foreground text-xs font-medium'>
-                  {user.role}
+                  {roleName}
                 </p>
               )}
             </div>
-            {/* User avatar */}
+
             <Avatar className='size-9 rounded-lg'>
-              {user?.picture && <AvatarImage src={user.picture} />}
               <AvatarFallback>
                 {getInitials(user?.name ?? 'Anonymous', 2)}
               </AvatarFallback>
