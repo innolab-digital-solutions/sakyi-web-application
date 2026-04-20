@@ -1,7 +1,7 @@
 import { ENDPOINTS } from '@/config/api/endpoints';
+import type { User } from '@/domains/user/types';
 import type { ApiResponse } from '@/lib/api/client';
 import { http } from '@/lib/api/client';
-import type { User } from '@/domains/user/types';
 
 import type { UserCreateInput, UserUpdateInput } from '../schemas';
 
