@@ -3,11 +3,15 @@ import { z } from 'zod';
 import { STATUS } from '../constants';
 import { ProgramBodySchema } from './base.schema';
 
-const programCreateStatusSchema = z.enum([STATUS.DRAFT, STATUS.PUBLISHED]);
+const programCreateStatusSchema = z.enum([
+  STATUS.DRAFT,
+  STATUS.PUBLISHED,
+  STATUS.ARCHIVED,
+]);
 
 /**
  * Admin create payload. Defaults new programs to draft unless specified.
- * Hidden/archived are not valid on create — they apply after publish.
+ * Hidden is not valid on create.
  */
 export const ProgramCreateSchema = ProgramBodySchema.extend({
   status: programCreateStatusSchema.optional().default(STATUS.DRAFT),

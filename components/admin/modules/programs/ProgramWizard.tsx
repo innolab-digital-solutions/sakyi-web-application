@@ -1,8 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertTriangleIcon, ArrowLeftIcon } from 'lucide-react';
-import Link from 'next/link';
+import { ClipboardListIcon, SaveIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
@@ -171,7 +170,7 @@ function mergeTranslationValidationErrors(
     title: t.title,
     tagline: t.tagline,
     excerpt: t.excerpt,
-    about: t.about,
+    about: normalizeRichTextValue(t.about),
   });
   if (!content.success) {
     for (const issue of content.error.issues) {
@@ -224,17 +223,12 @@ function normalizeStructureRows(
     .filter((s) => s.period && s.title && s.description);
 }
 
-function isMyTranslationStarted(t: TranslationData): boolean {
-  return (
-    t.title.trim() !== '' ||
-    t.tagline.trim() !== '' ||
-    t.excerpt.trim() !== '' ||
-    t.about.trim() !== '' ||
-    t.features.length > 0 ||
-    t.ideals.length > 0 ||
-    t.expectations.length > 0 ||
-    t.structures.length > 0
-  );
+function normalizeRichTextValue(value: string): string {
+  const plainText = value
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .trim();
+  return plainText.length === 0 ? '' : value;
 }
 
 function mimeFromThumbnailFilename(fileName: string): string {
@@ -271,28 +265,6 @@ function programThumbnailToRemoteFiles(
   ];
 }
 
-function resolveSaveStatus(
-  isEditMode: boolean,
-  current: AdminProgram | undefined,
-  publish: boolean,
-  catalogVis: boolean,
-): 'draft' | 'published' | 'hidden' {
-  if (!isEditMode) {
-    return publish ? 'published' : 'draft';
-  }
-  const s = current?.status;
-  if (s === STATUS.DRAFT || s === STATUS.ARCHIVED) {
-    return publish ? 'published' : 'draft';
-  }
-  if (s === STATUS.PUBLISHED) {
-    return catalogVis ? 'published' : 'hidden';
-  }
-  if (s === STATUS.HIDDEN) {
-    return catalogVis ? 'published' : 'hidden';
-  }
-  return 'draft';
-}
-
 export type ProgramWizardProps = {
   mode: 'create' | 'edit';
   program?: AdminProgram;
@@ -323,12 +295,20 @@ export default function ProgramWizard({
     FileUploadFieldRemoteFile[]
   >(() => programThumbnailToRemoteFiles(program?.thumbnail_url));
 
-  /** Create / draft edit: save and publish to catalog when true. */
-  const [publishOnSave, setPublishOnSave] = React.useState(false);
-  /** Published / hidden edit: when false, program is hidden from catalog. */
-  const [catalogVisible, setCatalogVisible] = React.useState(
-    () => program?.status !== STATUS.HIDDEN,
-  );
+  const [status, setStatus] = React.useState<
+    typeof STATUS.DRAFT | typeof STATUS.PUBLISHED | typeof STATUS.ARCHIVED
+  >(() => {
+    if (
+      program?.status === STATUS.PUBLISHED ||
+      program?.status === STATUS.ARCHIVED ||
+      program?.status === STATUS.HIDDEN
+    ) {
+      return program.status === STATUS.HIDDEN
+        ? STATUS.ARCHIVED
+        : program.status;
+    }
+    return STATUS.DRAFT;
+  });
 
   const [translations, setTranslations] = React.useState<TranslationData[]>(
     () =>
@@ -376,8 +356,14 @@ export default function ProgramWizard({
     field: keyof Omit<TranslationData, 'locale'>,
     value: TranslationData[typeof field],
   ) => {
+    const normalizedValue =
+      field === 'about' && typeof value === 'string'
+        ? normalizeRichTextValue(value)
+        : value;
     setTranslations((prev) =>
-      prev.map((t) => (t.locale === locale ? { ...t, [field]: value } : t)),
+      prev.map((t) =>
+        t.locale === locale ? { ...t, [field]: normalizedValue } : t,
+      ),
     );
     const key = `translations.${locale}.${field}`;
     setErrors((prev) => {
@@ -395,15 +381,6 @@ export default function ProgramWizard({
 
   const hasLocaleFieldErrors = (locale: string) =>
     Object.keys(errors).some((k) => k.startsWith(`translations.${locale}.`));
-
-  const showCatalogVisibilitySwitch =
-    isEdit &&
-    (program?.status === STATUS.PUBLISHED || program?.status === STATUS.HIDDEN);
-
-  const showPublishOnSaveSwitch =
-    !isEdit ||
-    program?.status === STATUS.DRAFT ||
-    program?.status === STATUS.ARCHIVED;
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -427,10 +404,7 @@ export default function ProgramWizard({
       mergeTranslationValidationErrors(errs, en, 'translations.en');
 
       const myT = translations.find((t) => t.locale === 'my')!;
-      const includesMy = isMyTranslationStarted(myT);
-      if (includesMy) {
-        mergeTranslationValidationErrors(errs, myT, 'translations.my');
-      }
+      mergeTranslationValidationErrors(errs, myT, 'translations.my');
 
       if (Object.keys(errs).length > 0) {
         setErrors(errs);
@@ -445,13 +419,13 @@ export default function ProgramWizard({
       }
 
       const translationPayload = translations
-        .filter((t) => t.locale === 'en' || (t.locale === 'my' && includesMy))
+        .filter((t) => t.locale === 'en' || t.locale === 'my')
         .map((t) => ({
           locale: t.locale,
           title: t.title.trim(),
           tagline: t.tagline.trim(),
           excerpt: t.excerpt.trim(),
-          about: t.about.trim(),
+          about: normalizeRichTextValue(t.about),
           features: t.features.map((s) => s.trim()).filter(Boolean),
           ideals: t.ideals.map((s) => s.trim()).filter(Boolean),
           expectations: t.expectations.map((s) => s.trim()).filter(Boolean),
@@ -468,12 +442,7 @@ export default function ProgramWizard({
         price,
         goal_ids: goalIds,
         translations: translationPayload,
-        status: resolveSaveStatus(
-          isEdit,
-          program,
-          publishOnSave,
-          catalogVisible,
-        ),
+        status: status === STATUS.ARCHIVED ? STATUS.HIDDEN : status,
       };
 
       const saveRes = await saveProgram(saveBody, thumbnailFile);
@@ -525,60 +494,249 @@ export default function ProgramWizard({
     mutation.mutate();
   };
 
+  const isArchived = status === STATUS.ARCHIVED;
+  const isPublished = status === STATUS.PUBLISHED;
+
   return (
-    <div className='space-y-6'>
-      <form onSubmit={handleSubmit} className='space-y-6' noValidate>
-        <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5'>
-          <div className='flex flex-wrap items-start justify-between gap-4'>
-            <div className='min-w-0 space-y-1'>
-              <h3 className='text-foreground text-sm font-semibold'>
-                Catalog &amp; pricing
+    <form onSubmit={handleSubmit} noValidate>
+      <div className='grid min-w-0 gap-6 lg:grid-cols-3 lg:items-start'>
+        <section className='border-border min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:col-span-2'>
+          <div className='space-y-6'>
+            <div>
+              <h3 className='text-foreground/90 text-sm font-semibold'>
+                Program Content
               </h3>
-              <p className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
-                Thumbnail, goals, duration, and pricing apply across every
-                language version of this program.
+              <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
+                Complete localized content so title, highlights, and structure
+                are clear and consistent for each language.
               </p>
             </div>
-            <Button
-              variant='outline'
-              asChild
-              className='bg-background hover:bg-muted h-10 w-full gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold sm:w-auto'
-            >
-              <Link href={ROUTES.ADMIN.MODULES.PROGRAMS.LIST}>
-                <ArrowLeftIcon className='size-3.5' />
-                Back to programs
-              </Link>
-            </Button>
-          </div>
-          <div className='mt-5 space-y-4'>
-            <FileUploadField
-              label='Thumbnail'
-              required
-              accept='image/*'
-              maxFileSize={5 * 1024 * 1024}
-              existingFiles={existingThumbnail}
-              onExistingFilesChange={(files) => {
-                setExistingThumbnail(files);
-                if (files.length === 0) setThumbnailFile(null);
-                setErrors((prev) => {
-                  const n = { ...prev };
-                  delete n.thumbnail;
-                  return n;
-                });
-              }}
-              onFilesChange={(files) => {
-                setThumbnailFile(files[0] ?? null);
-                setErrors((prev) => {
-                  const n = { ...prev };
-                  delete n.thumbnail;
-                  return n;
-                });
-              }}
-              emptyHint='Click or drag image here (max 5 MB)'
-              error={errors.thumbnail}
-            />
 
-            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+            <div className='mt-5'>
+              <Tabs
+                value={activeLocale}
+                onValueChange={(v) => setActiveLocale(v as 'en' | 'my')}
+              >
+                <TabsList
+                  variant='line'
+                  className='bg-muted! border-border mb-4 w-full border'
+                >
+                  <TabsTrigger
+                    value='en'
+                    className='relative flex-1 cursor-pointer gap-1.5 text-[13px] font-semibold'
+                  >
+                    English
+                    {hasLocaleFieldErrors('en') ? (
+                      <span
+                        className='bg-destructive size-1.5 shrink-0 rounded-full'
+                        aria-hidden
+                      />
+                    ) : null}
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value='my'
+                    className='relative flex-1 cursor-pointer gap-1.5 text-[13px] font-semibold'
+                  >
+                    Myanmar
+                    {hasLocaleFieldErrors('my') ? (
+                      <span
+                        className='bg-destructive size-1.5 shrink-0 rounded-full'
+                        aria-hidden
+                      />
+                    ) : null}
+                  </TabsTrigger>
+                </TabsList>
+
+                {LANGUAGES.map((lang) => {
+                  const t = translations.find((tr) => tr.locale === lang.code)!;
+                  return (
+                    <TabsContent
+                      key={lang.code}
+                      value={lang.code}
+                      className='space-y-4'
+                    >
+                      <TextField
+                        label='Title'
+                        required
+                        placeholder={
+                          lang.code === 'en'
+                            ? 'e.g. Weight Loss & Wellness'
+                            : 'ခေါင်းစဉ်…'
+                        }
+                        value={t.title}
+                        onChange={(e) =>
+                          updateTranslation(lang.code, 'title', e.target.value)
+                        }
+                        error={getTranslationError(lang.code, 'title')}
+                      />
+                      <TextField
+                        label='Tagline'
+                        required
+                        placeholder='Short phrase for cards'
+                        value={t.tagline}
+                        onChange={(e) =>
+                          updateTranslation(
+                            lang.code,
+                            'tagline',
+                            e.target.value,
+                          )
+                        }
+                        error={getTranslationError(lang.code, 'tagline')}
+                      />
+                      <TextAreaField
+                        label='Excerpt'
+                        required
+                        placeholder='Summary for listings'
+                        rows={4}
+                        value={t.excerpt}
+                        onChange={(e) =>
+                          updateTranslation(
+                            lang.code,
+                            'excerpt',
+                            e.target.value,
+                          )
+                        }
+                        error={getTranslationError(lang.code, 'excerpt')}
+                      />
+                      <RichTextField
+                        label='About'
+                        required
+                        value={t.about}
+                        onChange={(val) =>
+                          updateTranslation(lang.code, 'about', val)
+                        }
+                        error={getTranslationError(lang.code, 'about')}
+                      />
+
+                      <div className='border-border space-y-4 border-t pt-6'>
+                        <div>
+                          <h3 className='text-foreground/90 text-sm font-semibold'>
+                            Lists and Program Structure
+                          </h3>
+                          <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
+                            Define feature lists, ideal audience, expectations,
+                            and the multi-phase structure for this program.
+                          </p>
+                        </div>
+                        <StringListField
+                          label='Key Features'
+                          description='List the core features and benefits participants will receive from this program.'
+                     
+                          value={t.features}
+                          onChange={(val) =>
+                            updateTranslation(lang.code, 'features', val)
+                          }
+                          error={getTranslationError(lang.code, 'features')}
+                        />
+                        <StringListField
+                          label='Ideal Participants'
+                          description='Specify the target audience who would benefit the most from this program.'
+                     
+                          value={t.ideals}
+                          onChange={(val) =>
+                            updateTranslation(lang.code, 'ideals', val)
+                          }
+                          error={getTranslationError(lang.code, 'ideals')}
+                        />
+                        <StringListField
+                          label='Participant Expectations'
+                          description='Outline what participants should anticipate from this program, including commitments, deliverables, and overall experience.'
+                     
+                          value={t.expectations}
+                          onChange={(val) =>
+                            updateTranslation(lang.code, 'expectations', val)
+                          }
+                          error={getTranslationError(lang.code, 'expectations')}
+                        />
+                        <StructureRepeaterField
+                          label='Program Structure'
+                          description='Define each program phase. For each phase, specify a period label, a title, and a descriptive summary to clearly outline the participant journey.'
+                     
+                          value={t.structures}
+                          onChange={(val) =>
+                            updateTranslation(lang.code, 'structures', val)
+                          }
+                          error={getTranslationError(lang.code, 'structures')}
+                        />
+                      </div>
+                    </TabsContent>
+                  );
+                })}
+              </Tabs>
+            </div>
+
+            <div className='border-border flex flex-nowrap items-center justify-end gap-2 border-t pt-5'>
+              <Button
+                type='button'
+                variant='outline'
+                disabled={mutation.isPending}
+                className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+                onClick={() => router.push(ROUTES.ADMIN.MODULES.PROGRAMS.LIST)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type='submit'
+                disabled={mutation.isPending}
+                className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
+              >
+                {isEdit ? (
+                  <SaveIcon className='size-3.5' />
+                ) : (
+                  <ClipboardListIcon className='size-3.5' />
+                )}
+                {mutation.isPending
+                  ? 'Saving…'
+                  : isEdit
+                    ? 'Save Changes'
+                    : 'Create Program'}
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        <section className='border-border min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:col-span-1'>
+          <div className='space-y-5'>
+            <div>
+              <h3 className='text-foreground/90 text-sm font-semibold'>
+                Program Settings
+              </h3>
+              <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
+                Configure thumbnail, goals, duration, price, and status before
+                saving this program.
+              </p>
+            </div>
+
+            <div className='border-border space-y-2 border-t pt-4'>
+              <FileUploadField
+                label='Thumbnail'
+                required
+                accept='image/*'
+                maxFileSize={5 * 1024 * 1024}
+                existingFiles={existingThumbnail}
+                onExistingFilesChange={(files) => {
+                  setExistingThumbnail(files);
+                  if (files.length === 0) setThumbnailFile(null);
+                  setErrors((prev) => {
+                    const n = { ...prev };
+                    delete n.thumbnail;
+                    return n;
+                  });
+                }}
+                onFilesChange={(files) => {
+                  setThumbnailFile(files[0] ?? null);
+                  setErrors((prev) => {
+                    const n = { ...prev };
+                    delete n.thumbnail;
+                    return n;
+                  });
+                }}
+                emptyHint='Click or drag image here (max 5 MB)'
+                error={errors.thumbnail}
+              />
+            </div>
+
+            <div className='border-border grid grid-cols-1 gap-4 border-t pt-4 sm:grid-cols-1'>
               <TextField
                 label='Duration'
                 required
@@ -615,322 +773,96 @@ export default function ProgramWizard({
               />
             </div>
 
-            <ComboboxField
-              label='Goals'
-              required
-              multiple
-              placeholder='Select goals…'
-              searchPlaceholder='Search goals…'
-              emptyMessage='No goals found.'
-              options={goalOptions}
-              value={goalIds.map((id) => String(id))}
-              onChange={(vals) => {
-                setGoalIds((vals ?? []).map((v) => Number(v)));
-                setErrors((prev) => {
-                  const n = { ...prev };
-                  delete n.goal_ids;
-                  return n;
-                });
-              }}
-              error={errors.goal_ids}
-            />
-          </div>
-        </section>
-
-        <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5'>
-          <h3 className='text-foreground text-sm font-semibold'>Visibility</h3>
-          <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
-            {showCatalogVisibilitySwitch
-              ? 'Published programs can be hidden from the catalog without deleting them.'
-              : 'Drafts stay internal until you publish. Thumbnail, goals, duration, and price are required to save.'}
-          </p>
-          {errors.status ? (
-            <p className='text-destructive mt-2 text-sm font-medium'>
-              {errors.status}
-            </p>
-          ) : null}
-          <div className='mt-5 space-y-4'>
-            {showPublishOnSaveSwitch ? (
-              <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-                <div className='min-w-0 space-y-1'>
-                  <Label
-                    htmlFor='program-publish-on-save'
-                    className='text-foreground text-sm font-semibold'
-                  >
-                    Publish to catalog
-                  </Label>
-                  <p className='text-muted-foreground text-xs leading-relaxed font-medium'>
-                    When on, the program is published after save (if validation
-                    passes). When off, it remains a draft.
-                  </p>
-                </div>
-                <Switch
-                  id='program-publish-on-save'
-                  className='shrink-0'
-                  checked={publishOnSave}
-                  onCheckedChange={(v) => {
-                    setPublishOnSave(v);
-                    setErrors((prev) => {
-                      if (!('status' in prev)) return prev;
-                      const n = { ...prev };
-                      delete n.status;
-                      return n;
-                    });
-                  }}
-                />
-              </div>
-            ) : null}
-
-            {showCatalogVisibilitySwitch ? (
-              <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-                <div className='min-w-0 space-y-1'>
-                  <Label
-                    htmlFor='program-catalog-visible'
-                    className='text-foreground text-sm font-semibold'
-                  >
-                    Visible in catalog
-                  </Label>
-                  <p className='text-muted-foreground text-xs leading-relaxed font-medium'>
-                    Turn off to hide this program from public listings while
-                    keeping data for reactivation.
-                  </p>
-                </div>
-                <Switch
-                  id='program-catalog-visible'
-                  className='shrink-0'
-                  checked={catalogVisible}
-                  onCheckedChange={(v) => {
-                    setCatalogVisible(v);
-                    setErrors((prev) => {
-                      if (!('status' in prev)) return prev;
-                      const n = { ...prev };
-                      delete n.status;
-                      return n;
-                    });
-                  }}
-                />
-              </div>
-            ) : null}
-          </div>
-        </section>
-
-        <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5'>
-          <div className='space-y-6'>
-            <div>
-              <h3 className='text-foreground text-sm font-semibold'>Content</h3>
-              <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
-                Titles, lists, and structure blocks are translated per language.
-              </p>
-
-              <div className='mt-5'>
-                <Tabs
-                  value={activeLocale}
-                  onValueChange={(v) => setActiveLocale(v as 'en' | 'my')}
-                >
-                  <TabsList
-                    variant='line'
-                    className='bg-muted! border-border mb-4 w-full border'
-                  >
-                    <TabsTrigger
-                      value='en'
-                      className='relative flex-1 cursor-pointer gap-1.5 text-[13px] font-semibold'
-                    >
-                      English
-                      {hasLocaleFieldErrors('en') ? (
-                        <span
-                          className='bg-destructive size-1.5 shrink-0 rounded-full'
-                          aria-hidden
-                        />
-                      ) : null}
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value='my'
-                      className='relative flex-1 cursor-pointer gap-1.5 text-[13px] font-semibold'
-                    >
-                      Myanmar
-                      {hasLocaleFieldErrors('my') ? (
-                        <span
-                          className='bg-destructive size-1.5 shrink-0 rounded-full'
-                          aria-hidden
-                        />
-                      ) : null}
-                    </TabsTrigger>
-                  </TabsList>
-
-                  {LANGUAGES.map((lang) => {
-                    const t = translations.find(
-                      (tr) => tr.locale === lang.code,
-                    )!;
-                    return (
-                      <TabsContent
-                        key={lang.code}
-                        value={lang.code}
-                        className='space-y-4'
-                      >
-                        {lang.code === 'my' && !isMyTranslationStarted(t) ? (
-                          <div className='flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-400'>
-                            <AlertTriangleIcon className='mt-0.5 size-3.5 shrink-0' />
-                            <span>
-                              Myanmar is optional until you start filling
-                              it—then all fields and lists must be complete.
-                            </span>
-                          </div>
-                        ) : null}
-
-                        <TextField
-                          label='Title'
-                          required={lang.code === 'en'}
-                          placeholder={
-                            lang.code === 'en'
-                              ? 'e.g. Weight Loss & Wellness'
-                              : 'ခေါင်းစဉ်…'
-                          }
-                          value={t.title}
-                          onChange={(e) =>
-                            updateTranslation(
-                              lang.code,
-                              'title',
-                              e.target.value,
-                            )
-                          }
-                          error={getTranslationError(lang.code, 'title')}
-                        />
-                        <TextField
-                          label='Tagline'
-                          required={lang.code === 'en'}
-                          placeholder='Short phrase for cards'
-                          value={t.tagline}
-                          onChange={(e) =>
-                            updateTranslation(
-                              lang.code,
-                              'tagline',
-                              e.target.value,
-                            )
-                          }
-                          error={getTranslationError(lang.code, 'tagline')}
-                        />
-                        <TextAreaField
-                          label='Excerpt'
-                          required={lang.code === 'en'}
-                          placeholder='Summary for listings'
-                          rows={4}
-                          value={t.excerpt}
-                          onChange={(e) =>
-                            updateTranslation(
-                              lang.code,
-                              'excerpt',
-                              e.target.value,
-                            )
-                          }
-                          error={getTranslationError(lang.code, 'excerpt')}
-                        />
-                        <RichTextField
-                          label='About'
-                          required={lang.code === 'en'}
-                          value={t.about}
-                          onChange={(val) =>
-                            updateTranslation(lang.code, 'about', val)
-                          }
-                          error={getTranslationError(lang.code, 'about')}
-                        />
-
-                        <div className='border-border space-y-4 border-t pt-6'>
-                          <div>
-                            <p className='text-foreground text-sm font-semibold'>
-                              Lists &amp; program structure
-                            </p>
-                            <p className='text-muted-foreground mt-1 text-xs leading-relaxed font-medium'>
-                              {lang.code === 'en'
-                                ? 'Bullet lists and phased structure for this language.'
-                                : 'ဤဘာသာစကားအတွက် စာရင်းများနှင့် အဆင့်ဆင့် ဖွဲ့စည်းပုံ။'}
-                            </p>
-                          </div>
-                          <div className='grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start'>
-                            <StringListField
-                              label='Features'
-                              description={
-                                lang.code === 'en'
-                                  ? 'What this program offers.'
-                                  : 'ဤပရိုဂရမ်က ပေးသမျှ။'
-                              }
-                              value={t.features}
-                              onChange={(val) =>
-                                updateTranslation(lang.code, 'features', val)
-                              }
-                              error={getTranslationError(lang.code, 'features')}
-                            />
-                            <StringListField
-                              label='Ideals'
-                              description={
-                                lang.code === 'en'
-                                  ? 'Who this program is ideal for.'
-                                  : 'ဤပရိုဂရမ်သည် ဘယ်သူ့အတွက် သင့်တော်သည်။'
-                              }
-                              value={t.ideals}
-                              onChange={(val) =>
-                                updateTranslation(lang.code, 'ideals', val)
-                              }
-                              error={getTranslationError(lang.code, 'ideals')}
-                            />
-                          </div>
-                          <StringListField
-                            label='Expectations'
-                            description={
-                              lang.code === 'en'
-                                ? 'What clients can expect.'
-                                : 'ဖောက်သည်များ မျှော်လင့်နိုင်သည်များ။'
-                            }
-                            value={t.expectations}
-                            onChange={(val) =>
-                              updateTranslation(lang.code, 'expectations', val)
-                            }
-                            error={getTranslationError(
-                              lang.code,
-                              'expectations',
-                            )}
-                          />
-                          <StructureRepeaterField
-                            label='Program structure'
-                            description={
-                              lang.code === 'en'
-                                ? 'Each block is a phase: period label, title, and description.'
-                                : 'အဆင့်တစ်ခုစီ — ကာလ၊ ခေါင်းစဉ်၊ ဖော်ပြချက်။'
-                            }
-                            value={t.structures}
-                            onChange={(val) =>
-                              updateTranslation(lang.code, 'structures', val)
-                            }
-                            error={getTranslationError(lang.code, 'structures')}
-                          />
-                        </div>
-                      </TabsContent>
-                    );
-                  })}
-                </Tabs>
-              </div>
+            <div className='border-border border-t pt-4'>
+              <ComboboxField
+                label='Goals'
+                required
+                multiple
+                placeholder='Select goals…'
+                searchPlaceholder='Search goals…'
+                emptyMessage='No goals found.'
+                options={goalOptions}
+                value={goalIds.map((id) => String(id))}
+                onChange={(vals) => {
+                  setGoalIds((vals ?? []).map((v) => Number(v)));
+                  setErrors((prev) => {
+                    const n = { ...prev };
+                    delete n.goal_ids;
+                    return n;
+                  });
+                }}
+                error={errors.goal_ids}
+              />
             </div>
 
-            <div className='border-border flex flex-nowrap items-center justify-end gap-2 border-t pt-6'>
-              <Button
-                type='button'
-                variant='outline'
-                disabled={mutation.isPending}
-                className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
-                onClick={() => router.push(ROUTES.ADMIN.MODULES.PROGRAMS.LIST)}
-              >
-                Cancel
-              </Button>
-              <Button
-                type='submit'
-                disabled={mutation.isPending}
-                className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
-              >
-                {mutation.isPending ? 'Saving…' : 'Save program'}
-              </Button>
+            <div className='border-border border-t pt-4'>
+              <div className='bg-muted/30 border-border space-y-1 rounded-md border p-3.5'>
+                <div className='flex items-center justify-between gap-3'>
+                  <Label
+                    htmlFor='program-published'
+                    className='text-foreground text-[13px] font-semibold'
+                  >
+                    Publication Status
+                  </Label>
+                  {isEdit ? (
+                    <span className='text-muted-foreground text-[10px] font-bold uppercase'>
+                      {isArchived ? 'Archived' : 'Published'}
+                    </span>
+                  ) : (
+                    <Switch
+                      id='program-published'
+                      className='h-5 w-9 shrink-0 **:data-[slot=switch-thumb]:size-4 **:data-[slot=switch-thumb]:data-[state=checked]:translate-x-4'
+                      checked={isPublished}
+                      onCheckedChange={(checked) => {
+                        setStatus(checked ? STATUS.PUBLISHED : STATUS.DRAFT);
+                        setErrors((prev) => {
+                          const n = { ...prev };
+                          delete n.status;
+                          return n;
+                        });
+                      }}
+                    />
+                  )}
+                </div>
+                <p className='text-muted-foreground text-[12px] leading-relaxed font-medium'>
+                  {isPublished
+                    ? 'This program is published and visible in catalog listings.'
+                    : isArchived
+                      ? 'This program is archived and no longer visible in catalog listings.'
+                      : 'This program is in draft status and not visible in catalog listings.'}
+                </p>
+                {isEdit ? (
+                  <div className='pt-1'>
+                    <Button
+                      type='button'
+                      variant='outline'
+                      disabled={mutation.isPending}
+                      className='text-foreground bg-background hover:bg-muted h-9 shrink-0 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+                      onClick={() => {
+                        setStatus(
+                          isArchived ? STATUS.PUBLISHED : STATUS.ARCHIVED,
+                        );
+                        setErrors((prev) => {
+                          const n = { ...prev };
+                          delete n.status;
+                          return n;
+                        });
+                      }}
+                    >
+                      {isArchived ? 'Move to Published' : 'Move to Archived'}
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
+              {errors.status ? (
+                <p className='text-destructive mt-2 text-xs font-medium'>
+                  {errors.status}
+                </p>
+              ) : null}
             </div>
           </div>
         </section>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 }

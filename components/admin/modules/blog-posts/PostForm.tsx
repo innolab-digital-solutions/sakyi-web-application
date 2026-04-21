@@ -325,7 +325,7 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
         <section className='border-border min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:col-span-2'>
           <div className='space-y-6'>
             <div>
-              <h3 className='text-foreground/90 text-[15px] font-semibold'>
+              <h3 className='text-foreground/90 text-sm font-semibold'>
                 Post Content
               </h3>
               <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
@@ -459,7 +459,7 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
         <section className='border-border min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:col-span-1'>
           <div className='space-y-5'>
             <div>
-              <h3 className='text-foreground/90 text-[15px] font-semibold'>
+              <h3 className='text-foreground/90 text-sm font-semibold'>
                 Post Settings
               </h3>
               <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
