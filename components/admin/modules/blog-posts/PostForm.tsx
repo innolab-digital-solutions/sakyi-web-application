@@ -531,7 +531,7 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
                   ) : (
                     <Switch
                       id='blog-post-published'
-                    className='h-5 w-9 shrink-0 **:data-[slot=switch-thumb]:size-4 **:data-[slot=switch-thumb]:data-[state=checked]:translate-x-4'
+                      className='h-5 w-9 shrink-0 **:data-[slot=switch-thumb]:size-4 **:data-[slot=switch-thumb]:data-[state=checked]:translate-x-4'
                       checked={isPublished}
                       onCheckedChange={(checked) =>
                         form.setData('status', checked ? 'published' : 'draft')

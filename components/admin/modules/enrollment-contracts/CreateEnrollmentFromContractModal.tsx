@@ -302,7 +302,7 @@ export default function CreateEnrollmentFromContractModal({
     },
     onSuccess: (data) => {
       toast.success('The enrollment has been created successfully.');
- 
+
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.ENROLLMENT_CONTRACTS.LIST],
       });

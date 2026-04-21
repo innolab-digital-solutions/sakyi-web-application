@@ -393,7 +393,9 @@ export default function EnrollmentRequestListTable() {
     isUpdatingStatus &&
     updatingId === markContactedRequest.id;
   const isCancellingSelectedRequest =
-    cancelRequest != null && isUpdatingStatus && updatingId === cancelRequest.id;
+    cancelRequest != null &&
+    isUpdatingStatus &&
+    updatingId === cancelRequest.id;
   const { query } = controls;
   const showSkeleton = query.isPending && !query.data;
   const errorMessage =
@@ -730,7 +732,9 @@ export default function EnrollmentRequestListTable() {
       <EnrollmentRequestCancelConfirmation
         open={cancelRequest != null}
         isSubmitting={Boolean(isCancellingSelectedRequest)}
-        requestReference={cancelRequest ? getRequestReference(cancelRequest) : undefined}
+        requestReference={
+          cancelRequest ? getRequestReference(cancelRequest) : undefined
+        }
         cancellationNote={cancelRequestNote}
         onCancellationNoteChange={(value) => {
           setCancelRequestNote(value);

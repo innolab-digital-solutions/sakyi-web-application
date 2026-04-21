@@ -40,9 +40,15 @@ import {
   postCarePlanActivate,
   postCarePlanRevision,
 } from '@/domains/care-plans/services';
-import type { AdminCarePlan, CarePlanStatus } from '@/domains/care-plans/types/admin';
+import type {
+  AdminCarePlan,
+  CarePlanStatus,
+} from '@/domains/care-plans/types/admin';
 
-const LIST_QUERY_KEY = ['table', ENDPOINTS.ADMIN.MODULES.CARE_PLANS.LIST] as const;
+const LIST_QUERY_KEY = [
+  'table',
+  ENDPOINTS.ADMIN.MODULES.CARE_PLANS.LIST,
+] as const;
 
 const viewDetailButtonClass =
   'normal-case bg-background hover:bg-muted text-foreground h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold';
@@ -50,7 +56,9 @@ const viewDetailButtonClass =
 const moreTriggerClass =
   'bg-background hover:bg-muted text-foreground/80 size-9 shrink-0 rounded-md border-neutral-300';
 
-function normalizeStatus(status: string | null | undefined): CarePlanStatus | null {
+function normalizeStatus(
+  status: string | null | undefined,
+): CarePlanStatus | null {
   const value = (status ?? '').trim().toLowerCase();
   if (
     value === 'draft' ||
@@ -86,7 +94,8 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
 
   const canEdit = status === 'draft';
   const canActivate = status === 'draft';
-  const canCreateRevision = status === 'active' || status === 'completed' || status === 'cancelled';
+  const canCreateRevision =
+    status === 'active' || status === 'completed' || status === 'cancelled';
   const hasMenuAfterCopy = canEdit || canActivate || canCreateRevision;
 
   const { mutate: activatePlan, isPending: activatePending } = useMutation({
@@ -119,7 +128,9 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
       toast.success('Care plan revision created successfully.');
       invalidateList();
       if (nextPlan?.id != null) {
-        router.push(ROUTES.ADMIN.MODULES.CARE_PLANS.BUILDER(String(nextPlan.id)));
+        router.push(
+          ROUTES.ADMIN.MODULES.CARE_PLANS.WORKSPACE(String(nextPlan.id)),
+        );
       }
     },
     onError: (error: Error) => {
@@ -187,7 +198,9 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
                   <DropdownMenuItem asChild>
                     <Link
                       className='flex items-center gap-2 text-[13px]! font-medium'
-                      href={ROUTES.ADMIN.MODULES.CARE_PLANS.BUILDER(String(row.id))}
+                      href={ROUTES.ADMIN.MODULES.CARE_PLANS.WORKSPACE(
+                        String(row.id),
+                      )}
                     >
                       <FilePenLineIcon className='size-3.5 shrink-0' />
                       Edit care plan
@@ -235,7 +248,8 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
                   <span className='text-primary text-xs font-semibold'>
                     {reference}
                   </span>{' '}
-                  to active. After activation, major changes should be done through revision mode.
+                  to active. After activation, major changes should be done
+                  through revision mode.
                 </AlertDialogDescription>
               </div>
             </div>

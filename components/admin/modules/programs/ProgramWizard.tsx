@@ -293,7 +293,9 @@ export default function ProgramWizard({
   const [errors, setErrors] = React.useState<FieldErrors>({});
 
   const [duration, setDuration] = React.useState(program?.duration ?? '');
-  const [price, setPrice] = React.useState(getProgramPriceAmount(program?.price));
+  const [price, setPrice] = React.useState(
+    getProgramPriceAmount(program?.price),
+  );
   const [goalIds, setGoalIds] = React.useState<number[]>(
     () => program?.goals?.map((g) => Number(g.id)) ?? [],
   );
@@ -813,11 +815,11 @@ export default function ProgramWizard({
                   </Label>
                   {isEdit ? (
                     <span className='text-muted-foreground text-[10px] font-bold uppercase'>
-                  {isArchived
-                    ? 'Archived'
-                    : isPublished
-                      ? 'Published'
-                      : 'Draft'}
+                      {isArchived
+                        ? 'Archived'
+                        : isPublished
+                          ? 'Published'
+                          : 'Draft'}
                     </span>
                   ) : (
                     <Switch

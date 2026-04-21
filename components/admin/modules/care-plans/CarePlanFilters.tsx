@@ -67,7 +67,8 @@ export default function CarePlanFilters({
           >
             <SlidersHorizontalIcon className='size-4 opacity-80' />
             <span>
-              Status: {statusFilter === 'all' ? 'All' : STATUS_LABEL[statusFilter]}
+              Status:{' '}
+              {statusFilter === 'all' ? 'All' : STATUS_LABEL[statusFilter]}
             </span>
             <ChevronDownIcon className='size-3.5 opacity-70' />
           </Button>

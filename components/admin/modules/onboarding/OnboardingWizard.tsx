@@ -89,8 +89,9 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
     if (typeof window === 'undefined') return false;
     try {
       return (
-        window.localStorage.getItem(ONBOARDING_INTAKE_GUIDANCE_DISMISSED_STORAGE_KEY) ===
-        '1'
+        window.localStorage.getItem(
+          ONBOARDING_INTAKE_GUIDANCE_DISMISSED_STORAGE_KEY,
+        ) === '1'
       );
     } catch {
       return false;
@@ -230,7 +231,10 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
   };
 
   const saveMutation = useMutation({
-    mutationFn: async ({ section, draftSnapshot }: SaveSectionMutationInput) => {
+    mutationFn: async ({
+      section,
+      draftSnapshot,
+    }: SaveSectionMutationInput) => {
       const payload = buildSaveSectionPayload(section, draftSnapshot);
       saveForm.setData('answers', payload.answers);
       return saveOnboardingIntakeSection(intakeId, section.id, payload);
@@ -563,7 +567,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
                 <p className='text-foreground text-[13px] font-semibold'>
                   Complete this intake template with the client on the call
                 </p>
-                <p className='text-muted-foreground text-[13px] font-medium leading-snug'>
+                <p className='text-muted-foreground text-[13px] leading-snug font-medium'>
                   The questions match that template: enter what the client
                   shares and move section by section so required fields are
                   covered. Before you submit, use the numbered tabs to review
@@ -609,7 +613,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
                   disabled={isReadonly}
                   className='shrink-0 gap-2 text-[13px] font-semibold'
                 >
-                  <span className='shrink-0 tabular-nums text-inherit'>
+                  <span className='shrink-0 text-inherit tabular-nums'>
                     {index + 1}.
                   </span>
                   <span className='min-w-0 wrap-break-word text-inherit'>

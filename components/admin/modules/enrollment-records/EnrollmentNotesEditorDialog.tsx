@@ -71,7 +71,7 @@ export default function EnrollmentNotesEditorDialog({
             >
               <div className='min-h-0 flex-1 overflow-y-auto p-4'>
                 <TextAreaField
-                label='Notes'
+                  label='Notes'
                   placeholder='Enter any relevant internal notes for this enrollment (visible to staff only)'
                   value={notesBody}
                   onChange={(e) => {

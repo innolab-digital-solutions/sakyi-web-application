@@ -94,10 +94,7 @@ export default function NutritionCategoryListTable() {
 
   return (
     <>
-      <TableListShell
-        controls={controls}
-        searchPlaceholder='Search ...'
-      >
+      <TableListShell controls={controls} searchPlaceholder='Search ...'>
         <Table className='w-full min-w-3xl'>
           <TableHeader className='bg-muted/50 [&_tr]:border-border'>
             <TableRow className='border-border hover:bg-transparent'>
@@ -132,10 +129,10 @@ export default function NutritionCategoryListTable() {
               rows.length === 0 && (
                 <TableEmptyStateRow
                   colSpan={COLUMN_COUNT}
-                   title='No Food Categories Found'
-                description='No food categories found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
+                  title='No Food Categories Found'
+                  description='No food categories found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
                 />
-              )}  
+              )}
 
             {!showSkeleton &&
               !query.isError &&

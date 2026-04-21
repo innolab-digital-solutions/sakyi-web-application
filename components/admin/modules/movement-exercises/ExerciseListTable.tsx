@@ -202,8 +202,8 @@ export default function ExerciseListTable() {
               rows.length === 0 && (
                 <TableEmptyStateRow
                   colSpan={COLUMN_COUNT}
-                     title='No Exercises Found'
-                description='No exercises found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
+                  title='No Exercises Found'
+                  description='No exercises found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
                 />
               )}
 

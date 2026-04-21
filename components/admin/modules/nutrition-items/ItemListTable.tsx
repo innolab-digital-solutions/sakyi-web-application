@@ -81,10 +81,7 @@ export default function NutritionItemListTable() {
 
   return (
     <>
-      <TableListShell
-        controls={controls}
-        searchPlaceholder='Search ...'
-      >
+      <TableListShell controls={controls} searchPlaceholder='Search ...'>
         <Table className='w-full min-w-4xl'>
           <TableHeader className='bg-muted/50 [&_tr]:border-border'>
             <TableRow className='border-border hover:bg-transparent'>
@@ -120,8 +117,8 @@ export default function NutritionItemListTable() {
               rows.length === 0 && (
                 <TableEmptyStateRow
                   colSpan={COLUMN_COUNT}
-                       title='No Food Items Found'
-                description='No food items found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
+                  title='No Food Items Found'
+                  description='No food items found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
                 />
               )}
 

@@ -45,7 +45,8 @@ export default function EnrollmentCreateCarePlanConfirmation({
                 <span className='text-primary text-xs font-semibold'>
                   {enrollmentReference?.trim() || 'this enrollment'}
                 </span>
-                . You will continue in the care plan builder to set dates and generate days.
+                . You will continue in the care plan workspace to set dates and
+                generate days.
               </AlertDialogDescription>
             </div>
           </div>

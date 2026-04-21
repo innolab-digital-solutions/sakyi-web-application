@@ -95,7 +95,7 @@ export const ADMIN_ROUTES = {
     CARE_PLANS: {
       LIST: `${BASE}/care-plans`,
       CREATE: `${BASE}/care-plans/create`,
-      BUILDER: (id: string) => `${BASE}/care-plans/${id}/builder`,
+      WORKSPACE: (id: string) => `${BASE}/care-plans/${id}/workspace`,
       DETAIL: (id: string) => `${BASE}/care-plans/${id}`,
     },
   },

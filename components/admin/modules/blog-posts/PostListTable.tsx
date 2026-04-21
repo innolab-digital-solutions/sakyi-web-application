@@ -250,7 +250,7 @@ export default function BlogPostListTable() {
               rows.length === 0 && (
                 <TableEmptyStateRow
                   colSpan={COLUMN_COUNT}
-                      title='No Blog Post Found'
+                  title='No Blog Post Found'
                   description='No blog posts found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
                 />
               )}

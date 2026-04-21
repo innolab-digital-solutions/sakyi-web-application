@@ -1,13 +1,3 @@
-export {
-  getCarePlanBuilderById,
-  patchCarePlanBasics,
-  postCreateCarePlan,
-  postCarePlanActivate,
-  postCarePlanGenerateDays,
-  postCarePlanRevision,
-  postCarePlanValidate,
-  putCarePlanSectionItems,
-} from './admin.service';
 export type {
   AdminCarePlan,
   AdminCarePlanBuilder,
@@ -18,3 +8,13 @@ export type {
   CarePlanValidationIssue,
   CarePlanValidationResult,
 } from '../types/admin';
+export {
+  getCarePlanBuilderById,
+  patchCarePlanBasics,
+  postCarePlanActivate,
+  postCarePlanGenerateDays,
+  postCarePlanRevision,
+  postCarePlanValidate,
+  postCreateCarePlan,
+  putCarePlanSectionItems,
+} from './admin.service';

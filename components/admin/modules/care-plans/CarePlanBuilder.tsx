@@ -3,47 +3,54 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format, parse, startOfDay } from 'date-fns';
 import {
-  ActivityIcon,
   AlertTriangleIcon,
   AppleIcon,
   ArrowLeftIcon,
-  ArrowRightIcon,
   CheckCircle2Icon,
+  ChevronRightIcon,
   DumbbellIcon,
-  FileTextIcon,
   FootprintsIcon,
   HeartPulseIcon,
   PlusIcon,
-  SaveIcon,
   Trash2Icon,
-  XCircleIcon,
 } from 'lucide-react';
 import * as React from 'react';
 import { type ComponentType } from 'react';
 import { toast } from 'sonner';
 
+import CarePlanCompleteConfirmation from '@/components/admin/modules/care-plans/CarePlanCompleteConfirmation';
 import ComboboxField, {
   type ComboboxOption,
 } from '@/components/shared/form/ComboBoxField';
 import DatePickerField from '@/components/shared/form/DatePickerField';
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
 import { ROUTES } from '@/config/routes';
 import {
   getCarePlanBuilderById,
-  patchCarePlanBasics,
   postCarePlanGenerateDays,
   postCarePlanRevision,
+  postCarePlanValidate,
   putCarePlanSectionItems,
 } from '@/domains/care-plans/services';
 import type {
   CarePlanSectionItem,
   CarePlanSectionKey,
   CarePlanStatus,
+  CarePlanValidationIssue,
 } from '@/domains/care-plans/types/admin';
 import { getUnitsLookup } from '@/domains/units/services';
 import { http } from '@/lib/api/client';
@@ -68,39 +75,6 @@ const SECTION_GUIDANCE: Record<CarePlanSectionKey, string> = {
     'Add everyday activities the client should aim for (walking, stretching, errands, etc.) with a clear target and simple wording they can follow on their own.',
   recovery:
     'Describe rest, wind-down, and recovery habits for the client, including sleep windows, light mobility, breathing, or relaxation, so they can recover well between harder days.',
-};
-
-const STATUS_LABEL: Record<CarePlanStatus, string> = {
-  draft: 'Draft',
-  active: 'Active',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
-};
-
-const CARE_PLAN_STATUS_STYLES: Record<
-  CarePlanStatus,
-  { icon: ComponentType<{ className?: string }>; className: string }
-> = {
-  draft: {
-    icon: FileTextIcon,
-    className:
-      'border-amber-300/80 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200',
-  },
-  active: {
-    icon: ActivityIcon,
-    className:
-      'border-indigo-300/80 bg-indigo-50 text-indigo-800 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200',
-  },
-  completed: {
-    icon: CheckCircle2Icon,
-    className:
-      'border-emerald-300/80 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200',
-  },
-  cancelled: {
-    icon: XCircleIcon,
-    className:
-      'border-rose-300/80 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200',
-  },
 };
 
 type CarePlanBuilderProps = {
@@ -495,16 +469,23 @@ export default function CarePlanBuilder({
     starts_on: '',
     ends_on: '',
   });
-  const [generateForm, setGenerateForm] = React.useState({
-    replace_existing: false,
+  const [generateDayModalOpen, setGenerateDayModalOpen] = React.useState(false);
+  const [generateDayModalForm, setGenerateDayModalForm] = React.useState({
+    starts_on: '',
+    ends_on: '',
   });
-  const [basicsErrors, setBasicsErrors] = React.useState<{
+  const [generateDayModalErrors, setGenerateDayModalErrors] = React.useState<{
     starts_on?: string;
     ends_on?: string;
   }>({});
   const [sectionSaveError, setSectionSaveError] = React.useState<
     string | undefined
   >();
+  const [finishModalOpen, setFinishModalOpen] = React.useState(false);
+  const [finishValidationResult, setFinishValidationResult] = React.useState<{
+    is_valid: boolean;
+    issues: CarePlanValidationIssue[];
+  } | null>(null);
   const [itemFieldErrors, setItemFieldErrors] =
     React.useState<CarePlanItemFieldErrorsState>({});
   const [movementRowErrors, setMovementRowErrors] =
@@ -516,7 +497,7 @@ export default function CarePlanBuilder({
       const response = await getCarePlanBuilderById(carePlanId);
       if (response.status === 'error') {
         throw new Error(
-          response.message ?? 'Could not load care plan builder.',
+          response.message ?? 'Could not load care plan workspace.',
         );
       }
       return response.data;
@@ -577,14 +558,9 @@ export default function CarePlanBuilder({
   const normalizedStatus = normalizeStatus(builder?.status);
   const editable = !isDetailMode && normalizedStatus === 'draft';
   const hasGeneratedDays = (builder?.days.length ?? 0) > 0;
-  const statusStyle = normalizedStatus
-    ? CARE_PLAN_STATUS_STYLES[normalizedStatus]
-    : null;
-  const StatusIcon = statusStyle?.icon;
 
   React.useEffect(() => {
     if (!builder) return;
-    setBasicsErrors({});
     setBasicsForm({
       starts_on: builder.starts_on ?? '',
       ends_on: builder.ends_on ?? '',
@@ -715,52 +691,35 @@ export default function CarePlanBuilder({
     });
   }, [carePlanId, queryClient]);
 
-  const basicsMutation = useMutation({
-    mutationFn: async (payload: { starts_on: string; ends_on: string }) => {
-      const response = await patchCarePlanBasics(carePlanId, payload);
-      if (response.status === 'error') {
-        throw new Error(response.message ?? 'Could not update plan basics.');
-      }
-      return response.data;
-    },
-    onSuccess: () => {
-      toast.success('The care plan basics have been saved successfully.');
-      invalidateBuilder();
-    },
-    onError: (error: Error) => {
-      toast.error(error.message ?? 'Could not update plan basics.');
-    },
-  });
-
-  const validateBasicsDates = (): boolean => {
+  const getDateRangeErrors = (payload: {
+    starts_on: string;
+    ends_on: string;
+  }) => {
     const next: { starts_on?: string; ends_on?: string } = {};
-    if (!basicsForm.starts_on.trim()) {
+    if (!payload.starts_on.trim()) {
       next.starts_on = 'The start date field is required.';
     }
-    if (!basicsForm.ends_on.trim()) {
+    if (!payload.ends_on.trim()) {
       next.ends_on = 'The end date field is required.';
     }
-    const startD = parseYmdLocal(basicsForm.starts_on);
-    const endD = parseYmdLocal(basicsForm.ends_on);
+    const startD = parseYmdLocal(payload.starts_on);
+    const endD = parseYmdLocal(payload.ends_on);
     if (startD && endD && endD.getTime() < startD.getTime()) {
       next.ends_on = 'End date must be on or after the start date.';
     }
-    setBasicsErrors(next);
-    return Object.keys(next).length === 0;
-  };
-
-  const handleSaveBasics = () => {
-    if (!validateBasicsDates()) return;
-    basicsMutation.mutate({
-      starts_on: basicsForm.starts_on.trim(),
-      ends_on: basicsForm.ends_on.trim(),
-    });
+    return next;
   };
 
   const generateMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (payload: {
+      starts_on: string;
+      ends_on: string;
+      replace_existing: boolean;
+    }) => {
       const response = await postCarePlanGenerateDays(carePlanId, {
-        replace_existing: generateForm.replace_existing,
+        starts_on: payload.starts_on,
+        ends_on: payload.ends_on,
+        replace_existing: payload.replace_existing,
       });
       if (response.status === 'error') {
         throw new Error(response.message ?? 'Could not generate days.');
@@ -776,9 +735,30 @@ export default function CarePlanBuilder({
     },
   });
 
-  const handleGenerateDays = () => {
-    if (!validateBasicsDates()) return;
-    generateMutation.mutate();
+  const openGenerateDayModal = () => {
+    setGenerateDayModalForm({
+      starts_on: basicsForm.starts_on.trim(),
+      ends_on: basicsForm.ends_on.trim(),
+    });
+    setGenerateDayModalErrors({});
+    setGenerateDayModalOpen(true);
+  };
+
+  const handleGenerateFromModal = () => {
+    const payload = {
+      starts_on: generateDayModalForm.starts_on.trim(),
+      ends_on: generateDayModalForm.ends_on.trim(),
+    };
+    const errors = getDateRangeErrors(payload);
+    setGenerateDayModalErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
+    setBasicsForm(payload);
+    generateMutation.mutate({
+      ...payload,
+      replace_existing: true,
+    });
+    setGenerateDayModalOpen(false);
   };
 
   const sectionSaveMutation = useMutation({
@@ -839,46 +819,80 @@ export default function CarePlanBuilder({
     const itemFieldErrs: CarePlanItemFieldErrorsState = {};
     const movementRowErrs: CarePlanMovementRowErrorsState = {};
 
-    const normalizedLocalItems = normalizeSectionItemsForSave(
-      localItems,
-      activeSection,
-    );
+    const sectionToValidate = activeSection;
 
-    for (let i = 0; i < normalizedLocalItems.length; i++) {
-      const item = normalizedLocalItems[i];
-      if (!item.title) {
-        itemFieldErrs[i] = {
-          ...itemFieldErrs[i],
+    const isItemMeaningful = (
+      item: CarePlanSectionItem | undefined,
+    ): boolean => {
+      if (!item) return false;
+      const title = normalizeValue(item.title);
+      const guidance = normalizeValue(item.guidance);
+      const targetValue = normalizeValue(item.target_value);
+      const targetUnit = normalizeValue(item.target_unit);
+      const movementId = normalizeValue(
+        item.movement_exercise_id || item.exercise_id,
+      );
+
+      if (sectionToValidate === 'movement') {
+        const exercises = Array.isArray(item.exercises) ? item.exercises : [];
+        const hasMeaningfulExercise = exercises.some((exercise) =>
+          isMovementExerciseMeaningful(normalizeMovementExercise(exercise)),
+        );
+        return Boolean(
+          title ||
+          guidance ||
+          targetValue ||
+          targetUnit ||
+          movementId ||
+          hasMeaningfulExercise,
+        );
+      }
+
+      return Boolean(title || guidance || targetValue || targetUnit);
+    };
+
+    for (let itemIndex = 0; itemIndex < localItems.length; itemIndex++) {
+      const item = localItems[itemIndex];
+      if (!isItemMeaningful(item)) continue;
+
+      const title = normalizeValue(item?.title);
+      if (!title) {
+        itemFieldErrs[itemIndex] = {
+          ...itemFieldErrs[itemIndex],
           title: 'The title field is required.',
         };
       }
 
-      if (activeSection === 'movement') {
+      if (sectionToValidate === 'movement') {
         const exercises = Array.isArray(item?.exercises) ? item.exercises : [];
-        if (exercises.length === 0) {
-          movementRowErrs[`${i}-0`] = {
-            ...movementRowErrs[`${i}-0`],
+        const meaningfulExerciseRows = exercises
+          .map((exercise, exerciseIndex) => ({
+            exerciseIndex,
+            normalized: normalizeMovementExercise(exercise),
+          }))
+          .filter((row) => isMovementExerciseMeaningful(row.normalized));
+
+        if (meaningfulExerciseRows.length === 0) {
+          movementRowErrs[`${itemIndex}-0`] = {
+            ...movementRowErrs[`${itemIndex}-0`],
             exercise: 'Please select an exercise for this row.',
           };
         } else {
-          for (let j = 0; j < exercises.length; j++) {
-            if (
-              String(exercises[j]?.movement_exercise_id ?? '').trim().length ===
-              0
-            ) {
-              movementRowErrs[`${i}-${j}`] = {
-                ...movementRowErrs[`${i}-${j}`],
+          for (const row of meaningfulExerciseRows) {
+            if (!row.normalized.movement_exercise_id) {
+              movementRowErrs[`${itemIndex}-${row.exerciseIndex}`] = {
+                ...movementRowErrs[`${itemIndex}-${row.exerciseIndex}`],
                 exercise: 'Please select an exercise for this row.',
               };
             }
           }
         }
       } else {
-        const val = String(item?.target_value ?? '').trim();
-        const unit = String(item?.target_unit ?? '').trim();
+        const val = normalizeValue(item?.target_value);
+        const unit = normalizeValue(item?.target_unit);
         if (val && !unit) {
-          itemFieldErrs[i] = {
-            ...itemFieldErrs[i],
+          itemFieldErrs[itemIndex] = {
+            ...itemFieldErrs[itemIndex],
             target_unit: 'Select a unit when a target value is set.',
           };
         }
@@ -912,7 +926,8 @@ export default function CarePlanBuilder({
       setActiveSection(SECTIONS[0].key);
       return;
     }
-    toast.success('All daily sections are completed and saved.');
+    setFinishValidationResult(null);
+    setFinishModalOpen(true);
   };
 
   const moveToPreviousStep = () => {
@@ -961,13 +976,37 @@ export default function CarePlanBuilder({
     onSuccess: (data) => {
       toast.success('Care plan revision created.');
       if (data?.id != null) {
-        window.location.href = ROUTES.ADMIN.MODULES.CARE_PLANS.BUILDER(
+        window.location.href = ROUTES.ADMIN.MODULES.CARE_PLANS.WORKSPACE(
           String(data.id),
         );
       }
     },
     onError: (error: Error) => {
       toast.error(error.message ?? 'Could not create care plan revision.');
+    },
+  });
+
+  const validateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await postCarePlanValidate(carePlanId);
+      if (response.status === 'error') {
+        throw new Error(response.message ?? 'Could not validate care plan.');
+      }
+      return response.data;
+    },
+    onSuccess: (data) => {
+      setFinishValidationResult({
+        is_valid: Boolean(data?.is_valid),
+        issues: Array.isArray(data?.issues) ? data.issues : [],
+      });
+      if (data?.is_valid) {
+        toast.success('Care plan is valid and ready for activation.');
+      } else {
+        toast.error('Care plan has validation issues. Please review.');
+      }
+    },
+    onError: (error: Error) => {
+      toast.error(error.message ?? 'Could not validate care plan.');
     },
   });
 
@@ -1093,10 +1132,18 @@ export default function CarePlanBuilder({
     );
   };
 
-  const startDateForBasics = parseYmdLocal(basicsForm.starts_on);
-  const basicsEndCalendarDisabled = startDateForBasics
-    ? { before: startDateForBasics }
+  const startDateForGenerateModal = parseYmdLocal(
+    generateDayModalForm.starts_on,
+  );
+  const generateModalEndCalendarDisabled = startDateForGenerateModal
+    ? { before: startDateForGenerateModal }
     : undefined;
+  const hasGenerateOverwriteWarning =
+    Boolean(builder?.starts_on?.trim()) &&
+    Boolean(builder?.ends_on?.trim()) &&
+    (generateDayModalForm.starts_on.trim() !==
+      (builder?.starts_on ?? '').trim() ||
+      generateDayModalForm.ends_on.trim() !== (builder?.ends_on ?? '').trim());
 
   const addItem = () => {
     if (activeSection === 'movement') return;
@@ -1114,7 +1161,7 @@ export default function CarePlanBuilder({
   if (builderQuery.isPending) {
     return (
       <div className='text-muted-foreground text-sm'>
-        Loading care plan builder...
+        Loading care plan workspace...
       </div>
     );
   }
@@ -1124,7 +1171,7 @@ export default function CarePlanBuilder({
       <div className='text-destructive rounded-md border p-4 text-sm'>
         {builderQuery.error instanceof Error
           ? builderQuery.error.message
-          : 'Could not load care plan builder.'}
+          : 'Could not load care plan workspace.'}
       </div>
     );
   }
@@ -1144,21 +1191,18 @@ export default function CarePlanBuilder({
             </p>
           </div>
           <div className='flex flex-wrap items-center gap-2'>
-            {statusStyle && StatusIcon && normalizedStatus ? (
-              <span
-                className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-semibold ${statusStyle.className}`}
+            {editable ? (
+              <Button
+                type='button'
+                variant='outline'
+                className='text-foreground bg-background hover:bg-muted h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+                disabled={generateMutation.isPending}
+                onClick={openGenerateDayModal}
               >
-                <StatusIcon className='size-3.5' />
-                {STATUS_LABEL[normalizedStatus]}
-              </span>
-            ) : (
-              <span className='inline-flex items-center rounded-full border border-neutral-300 bg-neutral-50 px-2 py-1 text-[11px] font-semibold text-neutral-700'>
-                {builder.status || 'Unknown'}
-              </span>
-            )}
-            <span className='inline-flex items-center rounded-full border border-neutral-300 bg-neutral-50 px-2 py-1 text-[11px] font-semibold text-neutral-700'>
-              Cycle {builder.cycle_number ?? '—'}
-            </span>
+                Generate Day Plans
+                <ChevronRightIcon className='size-3.5' />
+              </Button>
+            ) : null}
           </div>
         </div>
 
@@ -1185,127 +1229,7 @@ export default function CarePlanBuilder({
             </div>
           </div>
         ) : null}
-        <div className='border-border border-t pt-4'>
-          <div className='space-y-4'>
-            <div className='space-y-1.5'>
-              <p className='text-foreground text-sm font-bold'>
-                Care Plan Basics
-              </p>
-              <p className='text-muted-foreground text-[13px] font-medium'>
-                Specify the mandatory start and end dates for this care plan and
-                configure auto-generation preferences. Completing this setup is
-                required before proceeding to day-by-day plan building.
-              </p>
-            </div>
-
-            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-              <DatePickerField
-                label='Start Date'
-                required
-                presets
-                clearable={false}
-                dateFormat='PP'
-                className='[&_button]:text-[13px] md:[&_button]:text-[13px]'
-                value={startDateForBasics}
-                onChange={(d) => {
-                  const next = d ? startOfDay(d) : undefined;
-                  const startsYmd = next ? format(next, 'yyyy-MM-dd') : '';
-                  setBasicsForm((prev) => {
-                    let ends = prev.ends_on;
-                    if (next && prev.ends_on.trim()) {
-                      const endD = parseYmdLocal(prev.ends_on);
-                      if (endD && endD.getTime() < next.getTime()) ends = '';
-                    }
-                    return { starts_on: startsYmd, ends_on: ends };
-                  });
-                  setBasicsErrors((p) => {
-                    const n = { ...p };
-                    delete n.starts_on;
-                    delete n.ends_on;
-                    return n;
-                  });
-                }}
-                error={basicsErrors.starts_on}
-                disabled={!editable || basicsMutation.isPending}
-              />
-              <DatePickerField
-                label='End Date'
-                required
-                presets={false}
-                placeholder='Pick end date'
-                dateFormat='PP'
-                className='[&_button]:text-[13px] md:[&_button]:text-[13px]'
-                value={parseYmdLocal(basicsForm.ends_on)}
-                onChange={(d) => {
-                  setBasicsForm((prev) => ({
-                    ...prev,
-                    ends_on: d ? format(startOfDay(d), 'yyyy-MM-dd') : '',
-                  }));
-                  setBasicsErrors((p) => {
-                    const n = { ...p };
-                    delete n.ends_on;
-                    return n;
-                  });
-                }}
-                error={basicsErrors.ends_on}
-                calendarProps={{
-                  disabled: basicsEndCalendarDisabled,
-                }}
-                disabled={!editable || basicsMutation.isPending}
-              />
-            </div>
-
-            <label className='text-foreground/90 flex items-center gap-2.5 text-[13px] font-medium'>
-              <Switch
-                className='h-5 w-9 shrink-0 **:data-[slot=switch-thumb]:size-4 **:data-[slot=switch-thumb]:data-[state=checked]:translate-x-4'
-                checked={generateForm.replace_existing}
-                onCheckedChange={(checked) =>
-                  setGenerateForm((prev) => ({
-                    ...prev,
-                    replace_existing: checked === true,
-                  }))
-                }
-                disabled={!editable || generateMutation.isPending}
-              />
-              <span>Overwrite existing days during day generation</span>
-            </label>
-
-            {editable ? (
-              <div className='flex flex-wrap justify-end gap-2'>
-                <Button
-                  variant='outline'
-                  onClick={handleSaveBasics}
-                  disabled={basicsMutation.isPending}
-                  className='text-foreground bg-background hover:bg-muted h-10 shrink-0 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
-                >
-                  <SaveIcon className='size-3.5' />
-                  {basicsMutation.isPending ? 'Saving…' : 'Save Plan Basics'}
-                </Button>
-                <Button
-                  onClick={handleGenerateDays}
-                  disabled={generateMutation.isPending}
-                  className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
-                >
-                  {generateMutation.isPending ? (
-                    <>
-                      <SaveIcon className='size-3.5 animate-spin' />
-                      Generating days…
-                    </>
-                  ) : (
-                    <>
-                      <ArrowRightIcon className='size-3.5' />
-                      Continue to Plan Tasks
-                    </>
-                  )}
-                </Button>
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </section>
-
-      <section className='border-border max-w-full min-w-0 space-y-5 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:p-6'>
-        <div className='mb-4 flex flex-wrap items-start justify-between gap-3'>
+        <div className='border-border mt-4 mb-4 flex flex-wrap items-start justify-between gap-3 border-t pt-4'>
           <div className='space-y-1.5'>
             <p className='text-foreground text-sm font-bold'>
               Plan Task Configuration
@@ -1317,17 +1241,19 @@ export default function CarePlanBuilder({
               saved.
             </p>
           </div>
-          {!hasGeneratedDays ? (
-            <span className='rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800'>
-              Locked until setup is complete
-            </span>
-          ) : null}
+          <div className='flex flex-wrap items-center justify-end gap-2'>
+            {!hasGeneratedDays ? (
+              <span className='rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800'>
+                Locked until setup is complete
+              </span>
+            ) : null}
+          </div>
         </div>
 
         {!hasGeneratedDays ? (
           <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
             Complete setup and click{' '}
-            <span className='font-semibold'>Continue to builder</span> to
+            <span className='font-semibold'>Generate Day Plans</span> to
             generate days.
           </div>
         ) : (
@@ -1715,14 +1641,22 @@ export default function CarePlanBuilder({
                                   disabled={sectionSaveMutation.isPending}
                                   onClick={() => void handleSaveSection(true)}
                                 >
+                                  {!sectionSaveMutation.isPending &&
+                                  isLastSection &&
+                                  isLastDay ? (
+                                    <CheckCircle2Icon className='size-3.5' />
+                                  ) : null}
                                   {sectionSaveMutation.isPending
                                     ? 'Saving…'
                                     : isLastSection
                                       ? isLastDay
-                                        ? 'Save & Finish'
-                                        : 'Save & Next Day'
-                                      : 'Save & Continue'}
-                                  <ArrowRightIcon className='size-3.5' />
+                                        ? 'Complete Care Plan'
+                                        : 'Continue to Next Day'
+                                      : 'Continue'}
+                                  {!sectionSaveMutation.isPending &&
+                                  !(isLastSection && isLastDay) ? (
+                                    <ChevronRightIcon className='size-3.5' />
+                                  ) : null}
                                 </Button>
                               </div>
                             </div>
@@ -1737,6 +1671,129 @@ export default function CarePlanBuilder({
           </div>
         )}
       </section>
+
+      <AlertDialog
+        open={generateDayModalOpen}
+        onOpenChange={setGenerateDayModalOpen}
+      >
+        <AlertDialogContent className='gap-0 overflow-hidden p-0 sm:max-w-lg'>
+          <AlertDialogHeader className='border-border border-b p-6'>
+            <AlertDialogTitle className='text-foreground/90 text-sm font-bold'>
+              Generate day plans
+            </AlertDialogTitle>
+            <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
+              Set the date range used to build all plan days. Existing day rows
+              are replaced by default in this flow.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className='space-y-4 p-6'>
+            <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+              <DatePickerField
+                label='Start Date'
+                required
+                presets={false}
+                placeholder='Pick start date'
+                dateFormat='PP'
+                className='[&_button]:text-[13px] md:[&_button]:text-[13px]'
+                value={parseYmdLocal(generateDayModalForm.starts_on)}
+                onChange={(d) => {
+                  const startsYmd = d
+                    ? format(startOfDay(d), 'yyyy-MM-dd')
+                    : '';
+                  setGenerateDayModalForm((prev) => {
+                    let ends = prev.ends_on;
+                    const next = parseYmdLocal(startsYmd);
+                    if (next && prev.ends_on.trim()) {
+                      const endD = parseYmdLocal(prev.ends_on);
+                      if (endD && endD.getTime() < next.getTime()) ends = '';
+                    }
+                    return { starts_on: startsYmd, ends_on: ends };
+                  });
+                  setGenerateDayModalErrors((prev) => {
+                    const next = { ...prev };
+                    delete next.starts_on;
+                    delete next.ends_on;
+                    return next;
+                  });
+                }}
+                error={generateDayModalErrors.starts_on}
+                disabled={generateMutation.isPending}
+              />
+              <DatePickerField
+                label='End Date'
+                required
+                presets={false}
+                placeholder='Pick end date'
+                dateFormat='PP'
+                className='[&_button]:text-[13px] md:[&_button]:text-[13px]'
+                value={parseYmdLocal(generateDayModalForm.ends_on)}
+                onChange={(d) => {
+                  setGenerateDayModalForm((prev) => ({
+                    ...prev,
+                    ends_on: d ? format(startOfDay(d), 'yyyy-MM-dd') : '',
+                  }));
+                  setGenerateDayModalErrors((prev) => {
+                    const next = { ...prev };
+                    delete next.ends_on;
+                    return next;
+                  });
+                }}
+                error={generateDayModalErrors.ends_on}
+                calendarProps={{
+                  disabled: generateModalEndCalendarDisabled,
+                }}
+                disabled={generateMutation.isPending}
+              />
+            </div>
+
+            {hasGenerateOverwriteWarning ? (
+              <div className='rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[13px] font-medium text-amber-900'>
+                Changing the current start/end dates will overwrite existing
+                generated day plans in this care plan.
+              </div>
+            ) : null}
+          </div>
+
+          <AlertDialogFooter className='bg-muted/30 border-border gap-2 border-t p-4 sm:justify-end'>
+            <AlertDialogCancel
+              disabled={generateMutation.isPending}
+              className='text-foreground bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={generateMutation.isPending}
+              className='h-10 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
+              onClick={(event) => {
+                event.preventDefault();
+                handleGenerateFromModal();
+              }}
+            >
+              {generateMutation.isPending
+                ? 'Generating days…'
+                : 'Generate Day Plans'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <CarePlanCompleteConfirmation
+        open={finishModalOpen}
+        isValidating={validateMutation.isPending}
+        planReference={builder?.code?.trim() || `#${carePlanId}`}
+        validationResult={finishValidationResult}
+        onOpenChange={setFinishModalOpen}
+        onValidate={() => validateMutation.mutate()}
+        onViewDetail={() => {
+          window.location.href = ROUTES.ADMIN.MODULES.CARE_PLANS.DETAIL(
+            String(carePlanId),
+          );
+        }}
+        onBackToList={() => {
+          window.location.href = ROUTES.ADMIN.MODULES.CARE_PLANS.LIST;
+        }}
+      />
     </div>
   );
 }

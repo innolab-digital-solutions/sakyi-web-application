@@ -42,7 +42,11 @@ export interface AdminCarePlan {
   };
 }
 
-export type CarePlanSectionKey = 'nutrition' | 'movement' | 'activity' | 'recovery';
+export type CarePlanSectionKey =
+  | 'nutrition'
+  | 'movement'
+  | 'activity'
+  | 'recovery';
 
 export type CarePlanSectionItem = {
   id?: number | string;

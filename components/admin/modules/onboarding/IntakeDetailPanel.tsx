@@ -505,7 +505,7 @@ export default function IntakeDetailPanel({
                   value={String(section.id)}
                   className='shrink-0 gap-2 text-[13px] font-semibold'
                 >
-                  <span className='shrink-0 tabular-nums text-inherit'>
+                  <span className='shrink-0 text-inherit tabular-nums'>
                     {index + 1}.
                   </span>
                   <span className='min-w-0 wrap-break-word text-inherit'>

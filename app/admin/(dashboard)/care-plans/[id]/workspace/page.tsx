@@ -9,9 +9,9 @@ import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/config/routes';
 
 export const metadata: Metadata = {
-  title: 'Care Plan Builder | SaKyi Admin',
+  title: 'Care Plan Workspace | SaKyi Admin',
   description:
-    'Build and maintain a care plan in one guided workspace, from core details and day generation to validation checks and activation.',
+    'Configure and manage a care plan in one guided workspace, from day generation to section planning, validation checks, and activation readiness.',
 };
 
 type CarePlanBuilderPageProps = {
@@ -27,8 +27,8 @@ export default async function CarePlanBuilderPage({
   return (
     <div className='min-w-0 space-y-8'>
       <PageHeader
-        title='Care Plan Builder'
-        description='Manage and customize every aspect of a care plan, including days, sections, scheduling, and core details. Use this builder to edit or review all care plan settings before activation.'
+        title='Care Plan Workspace'
+        description='Manage and customize every aspect of a care plan, including day generation, section tasks, scheduling, and validation before activation.'
         actions={
           <Button
             variant='outline'
@@ -45,7 +45,7 @@ export default async function CarePlanBuilderPage({
       <Suspense
         fallback={
           <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-            Loading care plan builder…
+            Loading care plan workspace…
           </div>
         }
       >

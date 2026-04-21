@@ -131,7 +131,7 @@ export default function CarePlanCreateModal({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.CARE_PLANS.LIST],
       });
       onOpenChange(false);
-      router.push(ROUTES.ADMIN.MODULES.CARE_PLANS.BUILDER(String(data.id)));
+      router.push(ROUTES.ADMIN.MODULES.CARE_PLANS.WORKSPACE(String(data.id)));
     },
     onError: (error: Error) => {
       toast.error(error.message ?? 'Could not create care plan.');
@@ -160,7 +160,8 @@ export default function CarePlanCreateModal({
             </DialogTitle>
             <DialogDescription className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
               Start a draft care plan for an enrollment. You will continue in
-              the day builder to set dates, generate days, and define sections.
+              the care plan workspace to set dates, generate days, and define
+              sections.
             </DialogDescription>
           </DialogHeader>
 

@@ -52,8 +52,8 @@ export default function EnrollmentRequestCancelConfirmation({
                 <span className='text-destructive text-xs font-semibold'>
                   {requestReference?.trim() || 'this enrollment request'}
                 </span>{' '}
-                as cancelled and remove it from active follow-up. Please
-                provide a cancellation note so your team has clear context.
+                as cancelled and remove it from active follow-up. Please provide
+                a cancellation note so your team has clear context.
               </AlertDialogDescription>
             </div>
           </div>

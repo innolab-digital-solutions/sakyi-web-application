@@ -59,7 +59,7 @@ export default function BlogCategorySheet({
       )}
       <SheetContent className='overflow-y-auto px-6 sm:max-w-md [&>button]:cursor-pointer'>
         <SheetHeader className='px-0'>
-          <SheetTitle className='text-foreground capitalize text-[15.5px] font-bold'>
+          <SheetTitle className='text-foreground text-[15.5px] font-bold capitalize'>
             {isEdit ? 'Edit blog category' : 'Create blog category'}
           </SheetTitle>
           <SheetDescription className='text-muted-foreground text-[13.5px] font-medium'>

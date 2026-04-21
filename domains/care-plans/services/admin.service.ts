@@ -20,6 +20,8 @@ export type CreateCarePlanPayload = {
 };
 
 export type GenerateCarePlanDaysPayload = {
+  starts_on: string;
+  ends_on: string;
   replace_existing?: boolean;
 };
 
@@ -44,7 +46,10 @@ export async function postCarePlanRevision(
 export async function postCreateCarePlan(
   body: CreateCarePlanPayload,
 ): Promise<ApiResponse<AdminCarePlan>> {
-  return http.post<AdminCarePlan>(ENDPOINTS.ADMIN.MODULES.CARE_PLANS.CREATE, body);
+  return http.post<AdminCarePlan>(
+    ENDPOINTS.ADMIN.MODULES.CARE_PLANS.CREATE,
+    body,
+  );
 }
 
 export async function getCarePlanBuilderById(

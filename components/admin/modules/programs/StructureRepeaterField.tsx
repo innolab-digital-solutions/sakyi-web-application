@@ -110,7 +110,7 @@ export default function StructureRepeaterField({
                   <Trash2Icon className='size-3.5' />
                 </button>
               </div>
-              <p className='text-muted-foreground pt-1 pl-6 font-medium text-xs leading-snug wrap-break-word'>
+              <p className='text-muted-foreground pt-1 pl-6 text-xs leading-snug font-medium wrap-break-word'>
                 {row.description}
               </p>
             </li>
@@ -118,7 +118,7 @@ export default function StructureRepeaterField({
         </ul>
       )}
 
-      <div className='border-border border-t my-4' />
+      <div className='border-border my-4 border-t' />
 
       <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
         <TextField

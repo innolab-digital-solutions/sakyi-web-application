@@ -52,9 +52,7 @@ export default function MovementCategoryListTable() {
       }
     },
     onSuccess: () => {
-      toast.success(
-        'The movement category has been removed successfully.',
-      );
+      toast.success('The movement category has been removed successfully.');
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST],
       });

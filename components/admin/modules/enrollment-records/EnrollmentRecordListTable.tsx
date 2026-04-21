@@ -614,10 +614,12 @@ export default function EnrollmentRecordListTable() {
                                       member.user?.name?.trim() ||
                                       'Unknown member';
                                     const position =
-                                      member.position?.trim() ||
-                                      'No position';
+                                      member.position?.trim() || 'No position';
                                     return (
-                                      <div key={member.id} className='space-y-0.5'>
+                                      <div
+                                        key={member.id}
+                                        className='space-y-0.5'
+                                      >
                                         <p className='text-xs font-semibold'>
                                           {name}
                                         </p>

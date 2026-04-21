@@ -503,13 +503,15 @@ export default function EnrollmentRecordRowActions({
           queryKey: ['table', ENDPOINTS.ADMIN.MODULES.CARE_PLANS.LIST],
         });
         if (data?.id != null) {
-          router.push(ROUTES.ADMIN.MODULES.CARE_PLANS.BUILDER(String(data.id)));
+          router.push(
+            ROUTES.ADMIN.MODULES.CARE_PLANS.WORKSPACE(String(data.id)),
+          );
         }
       },
       onError: (e: Error) => {
         toast.error(e.message ?? 'Could not create care plan draft.');
-    },
-  });
+      },
+    });
 
   const handleScheduleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -618,13 +620,13 @@ export default function EnrollmentRecordRowActions({
                   <UserCogIcon className='size-3.5 shrink-0' />
                   Edit care team
                 </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                <DropdownMenuItem
+                  className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
                   onClick={() => setCreateCarePlanOpen(true)}
-                  >
+                >
                   <FilePlus2Icon className='size-3.5 shrink-0' />
                   Create care plan draft
-                  </DropdownMenuItem>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {isActive ? (
                   <DropdownMenuItem

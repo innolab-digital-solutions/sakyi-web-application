@@ -6,7 +6,8 @@ import CarePlanBuilder from '@/components/admin/modules/care-plans/CarePlanBuild
 
 export const metadata: Metadata = {
   title: 'Care Plan Detail | SaKyi Admin',
-  description: 'Review a single care plan in read-only mode, including day structure and validation context, so you can confirm plan quality before making updates.',
+  description:
+    'Review a single care plan in read-only mode, including day structure and validation context, so you can confirm plan quality before making updates.',
 };
 
 type CarePlanDetailPageProps = {
