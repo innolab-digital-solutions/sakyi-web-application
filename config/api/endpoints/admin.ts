@@ -109,6 +109,19 @@ export const ADMIN_ENDPOINTS = {
       LIST: `${BASE}/client-profiles`,
       DETAIL: (id: string) => `${BASE}/client-profiles/${id}`,
     },
+    CARE_PLANS: {
+      LIST: `${BASE}/care-plans`,
+      CREATE: `${BASE}/care-plans`,
+      DETAIL: (id: string) => `${BASE}/care-plans/${id}`,
+      BASICS_UPDATE: (id: string) => `${BASE}/care-plans/${id}/basics`,
+      DAYS_GENERATE: (id: string) => `${BASE}/care-plans/${id}/days/generate`,
+      BUILDER: (id: string) => `${BASE}/care-plans/${id}/builder`,
+      DAY_SECTION_ITEMS: (id: string, dayId: string, section: string) =>
+        `${BASE}/care-plans/${id}/days/${dayId}/sections/${section}/items`,
+      VALIDATE: (id: string) => `${BASE}/care-plans/${id}/validate`,
+      ACTIVATE: (id: string) => `${BASE}/care-plans/${id}/activate`,
+      REVISION: (id: string) => `${BASE}/care-plans/${id}/revision`,
+    },
     INTAKE_ASSESSMENTS: {
       TEMPLATE: (version: number) => `${BASE}/onboarding/templates/${version}`,
       LIST: `${BASE}/onboarding/intakes`,

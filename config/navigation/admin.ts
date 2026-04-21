@@ -76,7 +76,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
       },
       {
         name: 'Care Plans',
-        path: '#',
+        path: ADMIN_ROUTES.MODULES.CARE_PLANS.LIST,
       },
       {
         name: 'Daily Task Logs',

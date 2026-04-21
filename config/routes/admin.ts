@@ -92,5 +92,11 @@ export const ADMIN_ROUTES = {
       LIST: `${BASE}/client-profiles`,
       DETAIL: (id: string) => `${BASE}/client-profiles/${id}`,
     },
+    CARE_PLANS: {
+      LIST: `${BASE}/care-plans`,
+      CREATE: `${BASE}/care-plans/create`,
+      BUILDER: (id: string) => `${BASE}/care-plans/${id}/builder`,
+      DETAIL: (id: string) => `${BASE}/care-plans/${id}`,
+    },
   },
 } as const;

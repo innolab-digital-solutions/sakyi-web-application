@@ -7,12 +7,14 @@ import {
   CircleCheckIcon,
   ClipboardCopyIcon,
   EyeIcon,
+  FilePlus2Icon,
   MoreHorizontalIcon,
   StickyNoteIcon,
   UserCogIcon,
   XCircleIcon,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
 
@@ -20,6 +22,7 @@ import EnrollmentCancelConfirmation from '@/components/admin/modules/enrollment-
 import EnrollmentCareTeamEditorDialog, {
   type EnrollmentCareTeamRow,
 } from '@/components/admin/modules/enrollment-records/EnrollmentCareTeamEditorDialog';
+import EnrollmentCreateCarePlanConfirmation from '@/components/admin/modules/enrollment-records/EnrollmentCreateCarePlanConfirmation';
 import EnrollmentMarkCompleteConfirmation from '@/components/admin/modules/enrollment-records/EnrollmentMarkCompleteConfirmation';
 import EnrollmentNotesEditorDialog from '@/components/admin/modules/enrollment-records/EnrollmentNotesEditorDialog';
 import EnrollmentScheduleEditorDialog from '@/components/admin/modules/enrollment-records/EnrollmentScheduleEditorDialog';
@@ -50,6 +53,7 @@ import {
   postEnrollmentCancel,
   postEnrollmentComplete,
 } from '@/domains/enrollment-records/services';
+import { postCreateCarePlan } from '@/domains/care-plans/services';
 import type { AdminEnrollment } from '@/domains/enrollment-records/types/admin';
 import type { TeamMember } from '@/domains/lookup/types/team-members';
 import { http } from '@/lib/api/client';
@@ -167,6 +171,7 @@ export type EnrollmentRecordRowActionsProps = {
 export default function EnrollmentRecordRowActions({
   row,
 }: EnrollmentRecordRowActionsProps) {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const status = normalizeStatus(row.status);
   const mutable = isEnrollmentMutable(row.status);
@@ -178,6 +183,7 @@ export default function EnrollmentRecordRowActions({
   const [careTeamOpen, setCareTeamOpen] = React.useState(false);
   const [markCompleteOpen, setMarkCompleteOpen] = React.useState(false);
   const [cancelEnrollmentOpen, setCancelEnrollmentOpen] = React.useState(false);
+  const [createCarePlanOpen, setCreateCarePlanOpen] = React.useState(false);
   const [cancellationNote, setCancellationNote] = React.useState('');
   const [cancellationNoteError, setCancellationNoteError] = React.useState<
     string | undefined
@@ -481,6 +487,30 @@ export default function EnrollmentRecordRowActions({
     },
   });
 
+  const { mutate: mutateCreateCarePlan, isPending: createCarePlanPending } =
+    useMutation({
+      mutationFn: async () => {
+        const res = await postCreateCarePlan({ enrollment_id: row.id });
+        if (res.status === 'error') {
+          throw new Error(res.message ?? 'Could not create care plan draft.');
+        }
+        return res.data;
+      },
+      onSuccess: (data) => {
+        toast.success('Draft care plan created successfully.');
+        setCreateCarePlanOpen(false);
+        void queryClient.invalidateQueries({
+          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.CARE_PLANS.LIST],
+        });
+        if (data?.id != null) {
+          router.push(ROUTES.ADMIN.MODULES.CARE_PLANS.BUILDER(String(data.id)));
+        }
+      },
+      onError: (e: Error) => {
+        toast.error(e.message ?? 'Could not create care plan draft.');
+      },
+    });
+
   const handleScheduleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setScheduleErrors({});
@@ -588,6 +618,13 @@ export default function EnrollmentRecordRowActions({
                   <UserCogIcon className='size-3.5 shrink-0' />
                   Edit care team
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                  className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                  onClick={() => setCreateCarePlanOpen(true)}
+                >
+                  <FilePlus2Icon className='size-3.5 shrink-0' />
+                  Create care plan draft
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {isActive ? (
                   <DropdownMenuItem
@@ -682,6 +719,14 @@ export default function EnrollmentRecordRowActions({
         }}
         noteError={cancellationNoteError}
         onConfirmCancel={handleConfirmCancelEnrollment}
+      />
+
+      <EnrollmentCreateCarePlanConfirmation
+        open={createCarePlanOpen}
+        onOpenChange={setCreateCarePlanOpen}
+        isSubmitting={createCarePlanPending}
+        enrollmentReference={referenceText}
+        onConfirm={() => mutateCreateCarePlan()}
       />
     </>
   );
