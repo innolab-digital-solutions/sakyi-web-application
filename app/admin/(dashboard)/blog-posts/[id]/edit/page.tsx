@@ -17,7 +17,7 @@ export default function BlogPostEditPage() {
     <div className='space-y-8'>
       <PageHeader
         title='Edit Blog Post'
-        description='Update bilingual blog content and adjust category, thumbnail, or publish status with consistent editorial controls.'
+        description='Edit bilingual blog content and update category, thumbnail, or publish status so the article remains accurate and aligned with editorial standards.'
         actions={
           <Button
             asChild

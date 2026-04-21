@@ -6,7 +6,7 @@ import CarePlanBuilder from '@/components/admin/modules/care-plans/CarePlanBuild
 
 export const metadata: Metadata = {
   title: 'Care Plan Builder | SaKyi Admin',
-  description: 'Care plan builder workspace for admin users.',
+  description: 'Build and maintain a care plan in one guided workspace, from core details and day generation to validation checks and activation.',
 };
 
 type CarePlanBuilderPageProps = {
@@ -23,7 +23,7 @@ export default async function CarePlanBuilderPage({
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Care Plan Builder'
-        description={`Manage care plan #${id} through basics, day generation, day sections, validation, and activation.`}
+        description={`Manage care plan #${id} through each builder step, including basics, day generation, section editing, validation, and activation.`}
       />
       <Suspense
         fallback={

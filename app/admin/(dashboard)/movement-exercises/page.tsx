@@ -8,7 +8,7 @@ import ExerciseSheet from '@/components/admin/modules/movement-exercises/Exercis
 export const metadata: Metadata = {
   title: 'Exercises | SaKyi Admin',
   description:
-    'Manage standardized exercises with category, difficulty, equipment, and optional media for movement programming.',
+    'Manage a standardized exercise library with category, difficulty, equipment, and optional media so movement programming remains accurate and reusable.',
 };
 
 export default function MovementExerciseListPage() {
@@ -16,7 +16,7 @@ export default function MovementExerciseListPage() {
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Exercises'
-        description='Manage shared exercises so movement programming remains accurate across category, difficulty, and equipment references.'
+        description='Manage a standardized exercise library with category, difficulty, equipment, and optional media so movement programming remains accurate and reusable.'
         actions={<ExerciseSheet mode='create' />}
       />
 

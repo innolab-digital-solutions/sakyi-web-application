@@ -60,8 +60,8 @@ export default function UnitSheet({ mode, unit, open, onOpenChange }: Props) {
           </SheetTitle>
           <SheetDescription className='text-muted-foreground text-[13.5px] font-medium'>
             {isEdit
-              ? 'Revise this measurement name, abbreviation, or type to keep records clear and consistent across care plans, operational logs, and reporting.'
-              : 'Add a standardized measurement reference so staff can capture quantities consistently across care plans, operational logs, and reporting.'}
+              ? 'Update the measurement name, abbreviation, or type so quantity records stay clear and consistent across planning, operations, and reporting.'
+              : 'Add a measurement reference so staff can capture quantities with clear, consistent units across planning, operations, and reporting.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (

@@ -63,8 +63,8 @@ export default function MovementCategorySheet({
           </SheetTitle>
           <SheetDescription className='text-muted-foreground text-[13.5px] font-medium'>
             {isEdit
-              ? 'Revise the category name, description, or parent relationship so exercises remain organized across movement programming.'
-              : 'Add a standardized movement category so exercises can be grouped consistently across movement programming.'}
+              ? 'Update the category name, description, or parent link so exercises remain clearly organized throughout movement planning and delivery.'
+              : 'Create a movement category to group related exercises clearly and keep your movement library structure consistent.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (

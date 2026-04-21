@@ -8,7 +8,7 @@ import BlogCategorySheet from '@/components/admin/modules/blog-categories/Catego
 export const metadata: Metadata = {
   title: 'Blog Categories | SaKyi Admin',
   description:
-    'Manage standardized blog categories with bilingual labels so articles stay organized across admin and public views.',
+    'Manage bilingual blog categories in one shared library so editors can keep article grouping clear, consistent, and aligned across admin and public views.',
 };
 
 export default function BlogCategoryListPage() {
@@ -16,7 +16,7 @@ export default function BlogCategoryListPage() {
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Blog Categories'
-        description='Manage shared blog categories with English and Myanmar labels so article grouping stays consistent.'
+        description='Manage bilingual blog categories in one shared library so editors can keep article grouping clear, consistent, and aligned across admin and public views.'
         actions={<BlogCategorySheet mode='create' />}
       />
 

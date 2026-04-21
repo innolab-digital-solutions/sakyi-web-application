@@ -5,7 +5,7 @@ import CarePlansPageClient from './CarePlansPageClient';
 export const metadata: Metadata = {
   title: 'Care Plans | SaKyi Admin',
   description:
-    'Browse, search, and manage all client care plans. Review assigned clients, reference codes, and current plan status at a glance. Quickly check care window dates, identify plan progress or issues.',
+    'Browse and manage all client care plans from one workspace, with quick access to assigned clients, reference codes, care windows, and current status for better follow-up.',
 };
 
 export default function CarePlansPage() {

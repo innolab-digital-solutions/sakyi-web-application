@@ -11,7 +11,7 @@ import { ROUTES } from '@/config/routes';
 export const metadata: Metadata = {
   title: 'Blog Posts | SaKyi Admin',
   description:
-    'Manage bilingual blog posts with consistent category, thumbnail, and publish status controls.',
+    'Manage bilingual blog posts with clear editorial controls for category, thumbnail, and publish status so content stays accurate and ready for release.',
 };
 
 export default function BlogPostListPage() {
@@ -19,7 +19,7 @@ export default function BlogPostListPage() {
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Blog Posts'
-        description='Manage shared blog posts with bilingual content, category, thumbnail, and publish settings.'
+        description='Manage bilingual blog posts with clear editorial controls for category, thumbnail, and publish status so content stays accurate and ready for release.'
         actions={
           <Button
             asChild

@@ -8,7 +8,7 @@ import NutritionItemSheet from '@/components/admin/modules/nutrition-items/ItemS
 export const metadata: Metadata = {
   title: 'Food Items | SaKyi Admin',
   description:
-    'Manage standardized food items used in nutrition planning with consistent category and measurement assignments.',
+    'Manage a shared food item library with consistent category and measurement references so nutrition planning and tracking remain accurate.',
 };
 
 export default function NutritionItemListPage() {
@@ -16,7 +16,7 @@ export default function NutritionItemListPage() {
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Food Items'
-        description='Manage shared food items so nutrition entries stay consistent with the right category and optional measurement defaults.'
+        description='Manage a shared food item library with consistent category and measurement references so nutrition planning and tracking remain accurate.'
         actions={<NutritionItemSheet mode='create' />}
       />
 

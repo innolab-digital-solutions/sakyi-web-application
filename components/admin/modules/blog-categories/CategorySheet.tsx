@@ -64,8 +64,8 @@ export default function BlogCategorySheet({
           </SheetTitle>
           <SheetDescription className='text-muted-foreground text-[13.5px] font-medium'>
             {isEdit
-              ? 'Revise English and Myanmar names or descriptions so category labels remain consistent in the admin library and public blog.'
-              : 'Add a standardized blog category with English and Myanmar translations so posts can be grouped consistently.'}
+              ? 'Update English and Myanmar names or descriptions so blog category labels remain clear, accurate, and consistent across admin and public views.'
+              : 'Add a bilingual blog category with clear labels and descriptions so posts can be grouped consistently across your editorial workflow.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (

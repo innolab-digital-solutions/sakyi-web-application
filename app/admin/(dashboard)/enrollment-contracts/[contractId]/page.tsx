@@ -10,7 +10,7 @@ import { ROUTES } from '@/config/routes';
 export const metadata: Metadata = {
   title: 'Enrollment contract | SaKyi Admin',
   description:
-    'Review a single enrollment contract: applicant, e-signature status, linked intake and request, and enrollment next steps.',
+    'Review one enrollment contract with applicant details, e-signature progress, related intake and request records, and clear options for enrollment follow-up.',
 };
 
 type EnrollmentContractDetailPageProps = {
@@ -31,7 +31,7 @@ export default async function EnrollmentContractDetailPage({
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Enrollment contract'
-        description='Full context for this e-signature case: who it belongs to, notification and signature timing, linked intake and enrollment request, and options to open or create the enrollment record.'
+        description='Get complete context for this e-signature case, including ownership, signature timeline, linked intake and request records, and enrollment actions.'
         actions={
           <Button
             asChild

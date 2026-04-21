@@ -63,8 +63,8 @@ export default function ExerciseSheet({
           </SheetTitle>
           <SheetDescription className='text-muted-foreground text-[13.5px] font-medium'>
             {isEdit
-              ? 'Revise this exercise details, category, difficulty, equipment, or media link so movement programming remains accurate and consistent.'
-              : 'Add a standardized exercise with category and difficulty, then include optional equipment or media details when needed.'}
+              ? 'Update this exercise’s details, category, difficulty, equipment, or media so movement programming stays accurate and dependable.'
+              : 'Add a new exercise with category and difficulty, then include equipment or media details to support clear coaching and planning.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (

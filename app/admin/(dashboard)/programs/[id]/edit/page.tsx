@@ -29,7 +29,7 @@ export default async function ProgramEditPage({
     <div className='space-y-8'>
       <PageHeader
         title='Edit program'
-        description='Update program overview details and localized content, then save as draft or publish to reflect changes in the catalog.'
+        description='Update this care program’s overview, pricing, goals, and localized content, then save as draft or publish to keep the catalog current.'
       />
 
       <ProgramForm mode='edit' programId={id} />

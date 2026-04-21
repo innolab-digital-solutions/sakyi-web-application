@@ -15,7 +15,7 @@ export default function CarePlansPageClient() {
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Care Plans'
-        description='Browse, search, and manage all client care plans. Review assigned clients, reference codes, and current plan status at a glance. Quickly check care window dates, identify plan progress or issues.'
+        description='Browse and manage all client care plans from one workspace, with quick access to assigned clients, reference codes, care windows, and current status for better follow-up.'
         actions={
           <Button
             type='button'

@@ -8,7 +8,7 @@ import MovementEquipmentSheet from '@/components/admin/modules/movement-equipmen
 export const metadata: Metadata = {
   title: 'Equipment | SaKyi Admin',
   description:
-    'Manage the standardized equipment catalog used across exercises and movement programs.',
+    'Manage a shared movement equipment catalog so exercise instructions and program setup use clear, consistent terminology across the team.',
 };
 
 export default function MovementEquipmentListPage() {
@@ -16,7 +16,7 @@ export default function MovementEquipmentListPage() {
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Equipment'
-        description='Manage shared movement equipment so exercise instructions and program setup stay consistent.'
+        description='Manage a shared movement equipment catalog so exercise instructions and program setup use clear, consistent terminology across the team.'
         actions={<MovementEquipmentSheet mode='create' />}
       />
 

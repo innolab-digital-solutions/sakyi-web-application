@@ -63,8 +63,8 @@ export default function MovementEquipmentSheet({
           </SheetTitle>
           <SheetDescription className='text-muted-foreground text-[13.5px] font-medium'>
             {isEdit
-              ? 'Revise this equipment name so exercises and movement programs reference consistent terminology.'
-              : 'Add standardized movement equipment so exercise setup and coaching instructions stay consistent.'}
+              ? 'Update this equipment entry so exercise instructions and movement programs continue using clear, consistent terminology.'
+              : 'Add a movement equipment reference so exercise setup instructions and coaching guidance stay consistent across programs.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (

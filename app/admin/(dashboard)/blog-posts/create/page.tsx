@@ -10,7 +10,7 @@ import { ROUTES } from '@/config/routes';
 export const metadata: Metadata = {
   title: 'Create Blog Post | SaKyi Admin',
   description:
-    'Create a bilingual blog post with category, thumbnail, and publish controls for consistent editorial workflow.',
+    'Create a bilingual blog post by completing content, category, thumbnail, and publish settings so each article follows a consistent editorial workflow.',
 };
 
 export default function BlogPostCreatePage() {
@@ -18,7 +18,7 @@ export default function BlogPostCreatePage() {
     <div className='space-y-8'>
       <PageHeader
         title='Create Blog Post'
-        description='Create a new bilingual blog post and set category, thumbnail, and publish status before publishing.'
+        description='Create a bilingual blog post by completing content, category, thumbnail, and publish settings so each article follows a consistent editorial workflow.'
         actions={
           <Button
             asChild

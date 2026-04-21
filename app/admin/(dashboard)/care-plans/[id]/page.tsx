@@ -6,7 +6,7 @@ import CarePlanBuilder from '@/components/admin/modules/care-plans/CarePlanBuild
 
 export const metadata: Metadata = {
   title: 'Care Plan Detail | SaKyi Admin',
-  description: 'Care plan detail view for admin users.',
+  description: 'Review a single care plan in read-only mode, including day structure and validation context, so you can confirm plan quality before making updates.',
 };
 
 type CarePlanDetailPageProps = {
@@ -23,7 +23,7 @@ export default async function CarePlanDetailPage({
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Care Plan Detail'
-        description={`Read-focused detail view for care plan #${id}, including day sections and validation context.`}
+        description={`Review care plan #${id} in read-only mode, including day sections and validation context, to confirm structure and quality before editing.`}
       />
       <Suspense
         fallback={

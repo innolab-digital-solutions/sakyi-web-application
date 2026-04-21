@@ -19,7 +19,7 @@ export default async function IntakeAssessmentInterviewPage({
     <div className='space-y-8'>
       <PageHeader
         title='Intake Assessment Interview'
-        description='Work through the intake assessment form with the client. Progress saves as you move through steps.'
+        description='Guide the client through each intake interview step while progress saves automatically, so you can complete the assessment without losing context.'
       />
       <IntakeAssessmentWizard intakeId={intakeId} />
     </div>

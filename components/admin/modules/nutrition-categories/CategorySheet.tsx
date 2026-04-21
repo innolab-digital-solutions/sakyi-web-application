@@ -63,8 +63,8 @@ export default function NutritionCategorySheet({
           </SheetTitle>
           <SheetDescription className='text-muted-foreground text-[13.5px] font-medium'>
             {isEdit
-              ? 'Revise the category name, description, or parent relationship so food items stay organized across nutrition plans and logs.'
-              : 'Add a standardized food category so teams can group nutrition items consistently across nutrition plans and logs.'}
+              ? 'Update the category name, description, or parent link so food items remain organized across nutrition planning and tracking.'
+              : 'Create a food category to group nutrition items clearly and keep planning and operational records consistent.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (

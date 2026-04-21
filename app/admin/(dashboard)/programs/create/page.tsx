@@ -6,7 +6,7 @@ import ProgramForm from '@/components/admin/modules/programs/ProgramForm';
 export const metadata: Metadata = {
   title: 'Create program | SaKyi Admin',
   description:
-    'Create a care program with standardized pricing, goals, and localized content before publishing it to the catalog.',
+    'Create a care program by defining pricing, goals, and localized content so the listing is complete, consistent, and ready to publish.',
 };
 
 export default function ProgramCreatePage() {
@@ -14,7 +14,7 @@ export default function ProgramCreatePage() {
     <div className='space-y-8'>
       <PageHeader
         title='Create program'
-        description='Create a new program by setting overview details first, then completing localized content before publishing.'
+        description='Create a care program by defining pricing, goals, and localized content so the listing is complete, consistent, and ready to publish.'
       />
 
       <ProgramForm mode='create' />

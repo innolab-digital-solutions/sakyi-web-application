@@ -8,7 +8,7 @@ import UnitSheet from '@/components/admin/modules/units/UnitSheet';
 export const metadata: Metadata = {
   title: 'Measurement Reference | SaKyi Admin',
   description:
-    'Manage standardized measurement references used across care plans, operational logs, and reporting so teams capture quantities consistently.',
+    'Manage shared measurement references used across care plans, operational logs, and reporting so quantities are recorded clearly and consistently.',
 };
 
 export default function UnitListPage() {
@@ -16,7 +16,7 @@ export default function UnitListPage() {
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Measurement Reference'
-        description='Manage shared measurement references so quantities stay clear and consistent across care plans and operational logs.'
+        description='Manage shared measurement references used across care plans, operational logs, and reporting so quantities are recorded clearly and consistently.'
         actions={<UnitSheet mode='create' />}
       />
 

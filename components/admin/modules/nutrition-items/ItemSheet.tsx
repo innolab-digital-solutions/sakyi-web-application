@@ -63,8 +63,8 @@ export default function NutritionItemSheet({
           </SheetTitle>
           <SheetDescription className='text-muted-foreground text-[13.5px] font-medium'>
             {isEdit
-              ? 'Revise this food item, category assignment, or default measurement so entries stay accurate across nutrition planning and operational tracking.'
-              : 'Add a standardized food item and optionally assign a default measurement so portions and documentation stay consistent.'}
+              ? 'Update this food item, category, or default measurement so nutrition entries stay accurate across planning and daily operations.'
+              : 'Add a food item and optionally set a default measurement so portion tracking and documentation remain consistent.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (

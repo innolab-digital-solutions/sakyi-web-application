@@ -11,7 +11,7 @@ import { ROUTES } from '@/config/routes';
 export const metadata: Metadata = {
   title: 'Care Programs | SaKyi Admin',
   description:
-    'Manage care programs with consistent pricing, goals, language content, and publication visibility across the catalog.',
+    'Manage the care program catalog with consistent pricing, goals, localized content, and publication status so listings stay accurate for internal and public use.',
 };
 
 export default function ProgramListsPage() {
@@ -19,7 +19,7 @@ export default function ProgramListsPage() {
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Care Programs'
-        description='Manage the care program catalog so pricing, goals, language content, and publication status stay accurate.'
+        description='Manage the care program catalog with consistent pricing, goals, localized content, and publication status so listings stay accurate for internal and public use.'
         actions={
           <Button
             asChild
