@@ -47,8 +47,7 @@ export default function RemoveBlogCategoryConfirmation({
                 <strong className='text-foreground font-semibold'>
                   {displayName}
                 </strong>{' '}
-                from your blog library. Posts that reference it may need to be
-                reassigned. This action cannot be undone.
+                from your blog category library. This action cannot be undone.
               </AlertDialogDescription>
             </div>
           </div>

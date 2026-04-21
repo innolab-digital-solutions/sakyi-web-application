@@ -50,7 +50,7 @@ export default function BlogCategorySheet({
         <SheetTrigger asChild>
           <Button
             type='button'
-            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
           >
             <PlusIcon className='size-3.5' />
             Add blog category
@@ -59,13 +59,13 @@ export default function BlogCategorySheet({
       )}
       <SheetContent className='overflow-y-auto px-6 sm:max-w-md [&>button]:cursor-pointer'>
         <SheetHeader className='px-0'>
-          <SheetTitle className='text-foreground text-md font-bold'>
+          <SheetTitle className='text-foreground capitalize text-[15.5px] font-bold'>
             {isEdit ? 'Edit blog category' : 'Add blog category'}
           </SheetTitle>
-          <SheetDescription className='text-muted-foreground text-sm font-medium'>
+          <SheetDescription className='text-muted-foreground text-[13.5px] font-medium'>
             {isEdit
-              ? 'Update English and Myanmar names and descriptions so labels stay consistent wherever categories appear in the admin and on the site.'
-              : 'Create a category to group blog posts. Provide both English and Myanmar translations so editors and readers see the right labels.'}
+              ? 'Revise English and Myanmar names or descriptions so category labels remain consistent in the admin library and public blog.'
+              : 'Add a standardized blog category with English and Myanmar translations so posts can be grouped consistently.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (

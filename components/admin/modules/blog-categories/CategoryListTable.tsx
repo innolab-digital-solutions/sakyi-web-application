@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { NotebookPenIcon, PencilIcon, Trash2Icon } from 'lucide-react';
+import { SquarePenIcon, Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -55,7 +55,7 @@ export default function BlogCategoryListTable() {
       }
     },
     onSuccess: () => {
-      toast.success('The blog category was removed from your library.');
+      toast.success('The blog category has been removed successfully.');
       queryClient.invalidateQueries({
         queryKey: ['table', BLOG_CATEGORY_LIST_ENDPOINT],
       });
@@ -106,7 +106,7 @@ export default function BlogCategoryListTable() {
     <>
       <TableListShell
         controls={controls}
-        searchPlaceholder='Search category name or description'
+        searchPlaceholder='Search ...'
         filters={
           <BlogCategoryFilters
             locale={listLocale}
@@ -149,9 +149,8 @@ export default function BlogCategoryListTable() {
               rows.length === 0 && (
                 <TableEmptyStateRow
                   colSpan={COLUMN_COUNT}
-                  icon={NotebookPenIcon}
-                  title='No blog categories yet'
-                  description='Add categories to group posts for readers and editors. Each category has English and Myanmar names in the form.'
+                  title='No Blog Categories Found'
+                  description='No blog categories found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
                 />
               )}
 
@@ -182,16 +181,17 @@ export default function BlogCategoryListTable() {
                     <div className='flex flex-nowrap items-center justify-start gap-2'>
                       <Button
                         type='button'
-                        className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                        variant='outline'
+                        className='text-foreground bg-background hover:bg-muted h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
                         onClick={() => setEditCategory(category)}
                       >
-                        <PencilIcon className='size-3.5' />
+                        <SquarePenIcon className='size-3.5' />
                         Edit
                       </Button>
                       <Button
                         type='button'
                         variant='outline'
-                        className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-10 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                        className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
                         onClick={() => setDeleteCategory(category)}
                       >
                         <Trash2Icon className='size-3.5' />

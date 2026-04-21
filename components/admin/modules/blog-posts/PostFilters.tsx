@@ -11,6 +11,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import type { BlogPostStatus } from '@/domains/blogs/types';
@@ -69,6 +70,7 @@ export default function BlogPostFilters({
           >
             All statuses
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
           {(Object.keys(STATUS_LABELS) as BlogPostStatus[]).map((s) => (
             <DropdownMenuItem
               key={s}

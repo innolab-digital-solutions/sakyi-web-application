@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query';
+import { FolderPlusIcon, SaveIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -224,17 +225,12 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
 
   const validate = (): boolean => {
     const next: Record<string, string> = {};
-    if (!fields.en.name.trim()) next['en_name'] = 'English name is required.';
-    if (!fields.my.name.trim()) next['my_name'] = 'Myanmar name is required.';
+    if (!fields.en.name.trim()) next['en_name'] = 'The name field is required.';
+    if (!fields.my.name.trim()) next['my_name'] = 'The name field is required.';
     setErrors(next);
     const ok = Object.keys(next).length === 0;
     if (!ok) {
       setActiveLocale(firstLocaleTabForErrors(next));
-      toast.error('Required fields are missing', {
-        description:
-          'Each language needs a category name. The tab with missing information is opened below.',
-        duration: 5000,
-      });
     }
     return ok;
   };
@@ -285,22 +281,21 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
       });
       toast.success(
         isEdit
-          ? 'Blog category updated successfully.'
-          : 'Blog category created successfully.',
+          ? 'The blog category has been updated successfully.'
+          : 'The blog category has been created successfully.',
       );
       const onSuccess = props.onSuccess;
       if (onSuccess) onSuccess();
       else router.push(ROUTES.ADMIN.MODULES.BLOG_CATEGORIES.LIST);
-    },
-    onError: (error) => {
-      toast.error(error.message ?? 'Something went wrong.');
     },
   });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validate()) return;
-    mutateAsync();
+    mutateAsync().catch(() => {
+      // field errors are already mapped to input error props
+    });
   };
 
   const onSuccess = props.onSuccess;
@@ -344,7 +339,7 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
 
           <TabsContent value='en' className='space-y-4'>
             <TextField
-              label='Name'
+              label='Category Name'
               required
               placeholder='e.g. Health & Nutrition'
               value={fields.en.name}
@@ -365,7 +360,7 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
 
           <TabsContent value='my' className='space-y-4'>
             <TextField
-              label='Name'
+              label='Category Name'
               required
               placeholder='e.g. ကျန်းမာရေးနှင့် အာဟာရ'
               value={fields.my.name}
@@ -390,7 +385,7 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
             type='button'
             variant='outline'
             disabled={isPending}
-            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
             onClick={() =>
               onSuccess
                 ? onSuccess()
@@ -402,8 +397,13 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
           <Button
             type='submit'
             disabled={isPending}
-            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
           >
+            {isEdit ? (
+              <SaveIcon className='size-3.5' />
+            ) : (
+              <FolderPlusIcon className='size-3.5' />
+            )}
             {isPending
               ? isEdit
                 ? 'Saving Changes…'
