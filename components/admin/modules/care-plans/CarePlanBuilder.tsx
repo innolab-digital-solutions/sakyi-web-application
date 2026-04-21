@@ -1,17 +1,19 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { format, parse, startOfDay } from 'date-fns';
+import { addDays, format, parse, startOfDay } from 'date-fns';
 import {
   AlertTriangleIcon,
   AppleIcon,
   ArrowLeftIcon,
+  CalendarIcon,
   CheckCircle2Icon,
   ChevronRightIcon,
   DumbbellIcon,
   FootprintsIcon,
   HeartPulseIcon,
   PlusIcon,
+  RefreshCwIcon,
   Trash2Icon,
 } from 'lucide-react';
 import * as React from 'react';
@@ -19,22 +21,12 @@ import { type ComponentType } from 'react';
 import { toast } from 'sonner';
 
 import CarePlanCompleteConfirmation from '@/components/admin/modules/care-plans/CarePlanCompleteConfirmation';
+import CarePlanGenerateDaysModal from '@/components/admin/modules/care-plans/CarePlanGenerateDaysModal';
 import ComboboxField, {
   type ComboboxOption,
 } from '@/components/shared/form/ComboBoxField';
-import DatePickerField from '@/components/shared/form/DatePickerField';
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
@@ -113,6 +105,9 @@ function parseYmdLocal(ymd: string): Date | undefined {
   const d = parse(ymd.trim(), 'yyyy-MM-dd', new Date());
   return Number.isNaN(d.getTime()) ? undefined : startOfDay(d);
 }
+
+const MAX_START_OFFSET_DAYS = 180;
+const MAX_PLAN_DURATION_DAYS = 90;
 
 function formatTargetDateLabel(ymd: string | null | undefined): string {
   if (!ymd?.trim()) return 'Date not set';
@@ -558,6 +553,12 @@ export default function CarePlanBuilder({
   const normalizedStatus = normalizeStatus(builder?.status);
   const editable = !isDetailMode && normalizedStatus === 'draft';
   const hasGeneratedDays = (builder?.days.length ?? 0) > 0;
+  const generateDayButtonLabel = hasGeneratedDays
+    ? 'Regenerate Day Plans'
+    : 'Generate Day Plans';
+  const generateDayModalTitle = hasGeneratedDays
+    ? 'Regenerate day plans'
+    : 'Generate day plans';
 
   React.useEffect(() => {
     if (!builder) return;
@@ -704,8 +705,22 @@ export default function CarePlanBuilder({
     }
     const startD = parseYmdLocal(payload.starts_on);
     const endD = parseYmdLocal(payload.ends_on);
+    const today = startOfDay(new Date());
+    const maxAllowedStart = addDays(today, MAX_START_OFFSET_DAYS);
+    if (startD && startD.getTime() < today.getTime()) {
+      next.starts_on = 'Start date must be today or later.';
+    }
+    if (startD && startD.getTime() > maxAllowedStart.getTime()) {
+      next.starts_on = `Start date cannot be more than ${MAX_START_OFFSET_DAYS} days from today.`;
+    }
     if (startD && endD && endD.getTime() < startD.getTime()) {
       next.ends_on = 'End date must be on or after the start date.';
+    } else if (startD && endD) {
+      const diffInDays =
+        Math.floor((endD.getTime() - startD.getTime()) / 86400000) + 1;
+      if (diffInDays > MAX_PLAN_DURATION_DAYS) {
+        next.ends_on = `Plan duration cannot exceed ${MAX_PLAN_DURATION_DAYS} days.`;
+      }
     }
     return next;
   };
@@ -742,6 +757,36 @@ export default function CarePlanBuilder({
     });
     setGenerateDayModalErrors({});
     setGenerateDayModalOpen(true);
+  };
+
+  const handleGenerateModalStartsOnChange = (startsYmd: string) => {
+    setGenerateDayModalForm((prev) => {
+      let ends = prev.ends_on;
+      const next = parseYmdLocal(startsYmd);
+      if (next && prev.ends_on.trim()) {
+        const endD = parseYmdLocal(prev.ends_on);
+        if (endD && endD.getTime() < next.getTime()) ends = '';
+      }
+      return { starts_on: startsYmd, ends_on: ends };
+    });
+    setGenerateDayModalErrors((prev) => {
+      const next = { ...prev };
+      delete next.starts_on;
+      delete next.ends_on;
+      return next;
+    });
+  };
+
+  const handleGenerateModalEndsOnChange = (endsYmd: string) => {
+    setGenerateDayModalForm((prev) => ({
+      ...prev,
+      ends_on: endsYmd,
+    }));
+    setGenerateDayModalErrors((prev) => {
+      const next = { ...prev };
+      delete next.ends_on;
+      return next;
+    });
   };
 
   const handleGenerateFromModal = () => {
@@ -1136,8 +1181,23 @@ export default function CarePlanBuilder({
     generateDayModalForm.starts_on,
   );
   const generateModalEndCalendarDisabled = startDateForGenerateModal
-    ? { before: startDateForGenerateModal }
+    ? {
+        before: startDateForGenerateModal,
+        after: addDays(startDateForGenerateModal, MAX_PLAN_DURATION_DAYS - 1),
+      }
     : undefined;
+  const generateModalStartCalendarDisabled = {
+    before: startOfDay(new Date()),
+    after: addDays(startOfDay(new Date()), MAX_START_OFFSET_DAYS),
+  };
+  const rangePreviewLabel = React.useMemo(() => {
+    const start = parseYmdLocal(generateDayModalForm.starts_on);
+    const end = parseYmdLocal(generateDayModalForm.ends_on);
+    if (!start || !end) return undefined;
+    const diffInDays = Math.floor((end.getTime() - start.getTime()) / 86400000) + 1;
+    if (diffInDays <= 0) return undefined;
+    return `${diffInDays} day${diffInDays === 1 ? '' : 's'} selected`;
+  }, [generateDayModalForm.starts_on, generateDayModalForm.ends_on]);
   const hasGenerateOverwriteWarning =
     Boolean(builder?.starts_on?.trim()) &&
     Boolean(builder?.ends_on?.trim()) &&
@@ -1194,13 +1254,16 @@ export default function CarePlanBuilder({
             {editable ? (
               <Button
                 type='button'
-                variant='outline'
-                className='text-foreground bg-background hover:bg-muted h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+                className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
                 disabled={generateMutation.isPending}
                 onClick={openGenerateDayModal}
               >
-                Generate Day Plans
-                <ChevronRightIcon className='size-3.5' />
+                {hasGeneratedDays ? (
+                  <RefreshCwIcon className='size-3.5' />
+                ) : (
+                  <CalendarIcon className='size-3.5' />
+                )}
+                {generateDayButtonLabel}
               </Button>
             ) : null}
           </div>
@@ -1229,32 +1292,52 @@ export default function CarePlanBuilder({
             </div>
           </div>
         ) : null}
-        <div className='border-border mt-4 mb-4 flex flex-wrap items-start justify-between gap-3 border-t pt-4'>
+        {/* <div className='border-border mt-4 mb-4 flex flex-wrap items-start justify-between gap-3 border-t pt-4'>
           <div className='space-y-1.5'>
             <p className='text-foreground text-sm font-bold'>
-              Plan Task Configuration
+              Daily Plan Setup
             </p>
             <p className='text-muted-foreground text-[13px] font-medium'>
-              Define each day&apos;s tasks for the enrolled client in nutrition,
-              movement, activity, and recovery, as clear instructions from their
-              doctor. Work section by section and continue when each part is
-              saved.
+              Organize day-by-day care instructions across nutrition, movement,
+              activity, and recovery. Generate days first, then complete each
+              section to prepare the plan for validation and activation.
             </p>
           </div>
-          <div className='flex flex-wrap items-center justify-end gap-2'>
-            {!hasGeneratedDays ? (
-              <span className='rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800'>
-                Locked until setup is complete
-              </span>
-            ) : null}
-          </div>
-        </div>
+        </div> */}
 
         {!hasGeneratedDays ? (
-          <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-            Complete setup and click{' '}
-            <span className='font-semibold'>Generate Day Plans</span> to
-            generate days.
+          <div className='from-primary/5 to-background border-border relative overflow-hidden rounded-md border border-dashed bg-linear-to-br p-8'>
+            <div className='mx-auto flex max-w-xl flex-col items-center text-center'>
+              <div className='bg-primary/10 border-primary/20 text-primary mb-3 inline-flex size-10 items-center justify-center rounded-md border'>
+                {hasGeneratedDays ? (
+                  <RefreshCwIcon className='size-4' aria-hidden />
+                ) : (
+                  <CalendarIcon className='size-4' aria-hidden />
+                )}
+              </div>
+              <p className='text-foreground capitalize text-sm font-semibold'>
+                No day plans are currently available.
+              </p>
+              <p className='text-muted-foreground mt-1 text-[13px] font-medium'>
+                Generate a day schedule first, then define section tasks for each
+                day across nutrition, movement, activity, and recovery.
+              </p>
+              {editable ? (
+                <Button
+                  type='button'
+                  className='mt-4 h-10 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
+                  disabled={generateMutation.isPending}
+                  onClick={openGenerateDayModal}
+                >
+                  {hasGeneratedDays ? (
+                    <RefreshCwIcon className='size-3.5' />
+                  ) : (
+                    <CalendarIcon className='size-3.5' />
+                  )}
+                  {generateDayButtonLabel}
+                </Button>
+              ) : null}
+            </div>
           </div>
         ) : (
           <div className='space-y-4'>
@@ -1672,111 +1755,24 @@ export default function CarePlanBuilder({
         )}
       </section>
 
-      <AlertDialog
+      <CarePlanGenerateDaysModal
         open={generateDayModalOpen}
+        title={generateDayModalTitle}
+        submitLabel={generateDayButtonLabel}
+        startsOn={generateDayModalForm.starts_on}
+        endsOn={generateDayModalForm.ends_on}
+        startsOnError={generateDayModalErrors.starts_on}
+        endsOnError={generateDayModalErrors.ends_on}
+        showOverwriteWarning={hasGenerateOverwriteWarning}
+        isSubmitting={generateMutation.isPending}
+        startDateDisabled={generateModalStartCalendarDisabled}
+        endDateDisabled={generateModalEndCalendarDisabled}
+        rangePreviewLabel={rangePreviewLabel}
         onOpenChange={setGenerateDayModalOpen}
-      >
-        <AlertDialogContent className='gap-0 overflow-hidden p-0 sm:max-w-lg'>
-          <AlertDialogHeader className='border-border border-b p-6'>
-            <AlertDialogTitle className='text-foreground/90 text-sm font-bold'>
-              Generate day plans
-            </AlertDialogTitle>
-            <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
-              Set the date range used to build all plan days. Existing day rows
-              are replaced by default in this flow.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <div className='space-y-4 p-6'>
-            <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-              <DatePickerField
-                label='Start Date'
-                required
-                presets={false}
-                placeholder='Pick start date'
-                dateFormat='PP'
-                className='[&_button]:text-[13px] md:[&_button]:text-[13px]'
-                value={parseYmdLocal(generateDayModalForm.starts_on)}
-                onChange={(d) => {
-                  const startsYmd = d
-                    ? format(startOfDay(d), 'yyyy-MM-dd')
-                    : '';
-                  setGenerateDayModalForm((prev) => {
-                    let ends = prev.ends_on;
-                    const next = parseYmdLocal(startsYmd);
-                    if (next && prev.ends_on.trim()) {
-                      const endD = parseYmdLocal(prev.ends_on);
-                      if (endD && endD.getTime() < next.getTime()) ends = '';
-                    }
-                    return { starts_on: startsYmd, ends_on: ends };
-                  });
-                  setGenerateDayModalErrors((prev) => {
-                    const next = { ...prev };
-                    delete next.starts_on;
-                    delete next.ends_on;
-                    return next;
-                  });
-                }}
-                error={generateDayModalErrors.starts_on}
-                disabled={generateMutation.isPending}
-              />
-              <DatePickerField
-                label='End Date'
-                required
-                presets={false}
-                placeholder='Pick end date'
-                dateFormat='PP'
-                className='[&_button]:text-[13px] md:[&_button]:text-[13px]'
-                value={parseYmdLocal(generateDayModalForm.ends_on)}
-                onChange={(d) => {
-                  setGenerateDayModalForm((prev) => ({
-                    ...prev,
-                    ends_on: d ? format(startOfDay(d), 'yyyy-MM-dd') : '',
-                  }));
-                  setGenerateDayModalErrors((prev) => {
-                    const next = { ...prev };
-                    delete next.ends_on;
-                    return next;
-                  });
-                }}
-                error={generateDayModalErrors.ends_on}
-                calendarProps={{
-                  disabled: generateModalEndCalendarDisabled,
-                }}
-                disabled={generateMutation.isPending}
-              />
-            </div>
-
-            {hasGenerateOverwriteWarning ? (
-              <div className='rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[13px] font-medium text-amber-900'>
-                Changing the current start/end dates will overwrite existing
-                generated day plans in this care plan.
-              </div>
-            ) : null}
-          </div>
-
-          <AlertDialogFooter className='bg-muted/30 border-border gap-2 border-t p-4 sm:justify-end'>
-            <AlertDialogCancel
-              disabled={generateMutation.isPending}
-              className='text-foreground bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
-            >
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              disabled={generateMutation.isPending}
-              className='h-10 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
-              onClick={(event) => {
-                event.preventDefault();
-                handleGenerateFromModal();
-              }}
-            >
-              {generateMutation.isPending
-                ? 'Generating days…'
-                : 'Generate Day Plans'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        onStartsOnChange={handleGenerateModalStartsOnChange}
+        onEndsOnChange={handleGenerateModalEndsOnChange}
+        onSubmit={handleGenerateFromModal}
+      />
 
       <CarePlanCompleteConfirmation
         open={finishModalOpen}
