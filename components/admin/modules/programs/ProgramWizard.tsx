@@ -130,37 +130,36 @@ function mapProgramApiErrorsToFieldErrors(
 }
 
 const structureRowSchema = z.object({
-  period: z.string().min(1, 'Period is required.'),
-  title: z.string().min(1, 'Title is required.'),
-  description: z.string().min(1, 'Description is required.'),
+  period: z.string().min(1, 'The period field is required.'),
+  title: z.string().min(1, 'The title field is required.'),
+  description: z.string().min(1, 'The description field is required.'),
 });
 
 const overviewSchema = z.object({
   duration: z
     .string()
-    .min(1, 'Duration is required.')
-    .max(10, 'Duration must be at most 10 characters.'),
+    .min(1, 'The duration field is required.')
+    .max(10, 'The duration field must not be greater than 10 characters.'),
   price: z.number().int().nonnegative('Price must be zero or greater.'),
 });
 
 /** Per-locale content + list/structure rules (used for `en` always, `my` when started). */
 const translationContentSchema = z.object({
-  title: z.string().min(1, 'Title is required.').max(255),
-  tagline: z.string().min(1, 'Tagline is required.').max(255),
-  excerpt: z.string().min(1, 'Excerpt is required.'),
-  about: z.string().min(1, 'About is required.'),
+  title: z.string().min(1, 'The title field is required.').max(255),
+  tagline: z.string().min(1, 'The tagline field is required.').max(255),
+  excerpt: z.string().min(1, 'The excerpt field is required.'),
+  about: z.string().min(1, 'The about field is required.'),
 });
 
 const translationDetailsSchema = z.object({
-  features: z.array(z.string()).min(1, 'Add at least one feature.'),
-  ideals: z.array(z.string()).min(1, 'Add at least one ideal.'),
-  expectations: z.array(z.string()).min(1, 'Add at least one expectation.'),
+  features: z.array(z.string()).min(1, 'The features field is required.'),
+  ideals: z.array(z.string()).min(1, 'The ideals field is required.'),
+  expectations: z
+    .array(z.string())
+    .min(1, 'The expectations field is required.'),
   structures: z
     .array(structureRowSchema)
-    .min(
-      1,
-      'Add at least one structure block with period, title, and description.',
-    ),
+    .min(1, 'The structures field is required.'),
 });
 
 function mergeTranslationValidationErrors(
@@ -418,10 +417,10 @@ export default function ProgramWizard({
         }
       }
       if (goalIds.length === 0) {
-        errs.goal_ids = 'Select at least one goal.';
+        errs.goal_ids = 'The goals field is required.';
       }
       if (!thumbnailFile && existingThumbnail.length === 0) {
-        errs.thumbnail = 'Thumbnail is required.';
+        errs.thumbnail = 'The thumbnail field is required.';
       }
 
       const en = translations.find((t) => t.locale === 'en')!;
@@ -916,7 +915,7 @@ export default function ProgramWizard({
                 type='button'
                 variant='outline'
                 disabled={mutation.isPending}
-                className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+                className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
                 onClick={() => router.push(ROUTES.ADMIN.MODULES.PROGRAMS.LIST)}
               >
                 Cancel
@@ -924,7 +923,7 @@ export default function ProgramWizard({
               <Button
                 type='submit'
                 disabled={mutation.isPending}
-                className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
               >
                 {mutation.isPending ? 'Saving…' : 'Save program'}
               </Button>

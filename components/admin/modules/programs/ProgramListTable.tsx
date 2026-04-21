@@ -5,10 +5,9 @@ import { format, parseISO } from 'date-fns';
 import {
   ArchiveIcon,
   CheckCircle2Icon,
-  ClipboardListIcon,
   EyeOffIcon,
   FilePenLineIcon,
-  PencilIcon,
+  SquarePenIcon,
   Trash2Icon,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -266,7 +265,7 @@ export default function ProgramListTable() {
     <>
       <TableListShell
         controls={controls}
-        searchPlaceholder='Search title, code, or tagline'
+        searchPlaceholder='Search ...'
         filters={
           <ProgramFilters
             status={statusFilter}
@@ -323,9 +322,8 @@ export default function ProgramListTable() {
               rows.length === 0 && (
                 <TableEmptyStateRow
                   colSpan={COLUMN_COUNT}
-                  icon={ClipboardListIcon}
-                  title='No Programs Available'
-                  description='Programs you publish appear here with reference code, duration, price, dates, enrollment counts, and thumbnails. Filter by status and list language, or use Create program in the header to add a bilingual track with goals and pricing.'
+                  title='No Care Programs Found'
+                  description='No care programs found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
                 />
               )}
 
@@ -341,13 +339,13 @@ export default function ProgramListTable() {
                 const priceLabel = formatProgramPrice(program);
                 return (
                   <TableRow key={program.id}>
-                    <TableCell className='align-center min-w-45 whitespace-normal'>
+                    <TableCell className='min-w-42'>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {program.code.trim()}
                       </p>
                     </TableCell>
 
-                    <TableCell className='align-center min-w-96 whitespace-normal'>
+                    <TableCell className='min-w-72'>
                       <div className='flex items-start gap-3'>
                         <ProgramThumbnail
                           thumbnailUrl={program.thumbnail_url}
@@ -363,7 +361,7 @@ export default function ProgramListTable() {
                       </div>
                     </TableCell>
 
-                    <TableCell className='text-foreground/80 align-center whitespace-normal'>
+                    <TableCell>
                       <p
                         className='line-clamp-2 text-[13px] wrap-break-word'
                         title={getTrackLabel(program)}
@@ -371,17 +369,17 @@ export default function ProgramListTable() {
                         {getTrackLabel(program)}
                       </p>
                     </TableCell>
-                    <TableCell className='text-foreground/80 align-center tabular-nums'>
+                    <TableCell>
                       {priceLabel === '—' ? (
                         <TableCellEmpty label='Not set' />
                       ) : (
                         priceLabel
                       )}
                     </TableCell>
-                    <TableCell className='text-foreground/80 align-center tabular-nums'>
+                    <TableCell className='min-w-40'>
                       {publishedAt ?? <TableCellEmpty label='Not published' />}
                     </TableCell>
-                    <TableCell className='align-center'>
+                    <TableCell>
                       <span
                         className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
                       >
@@ -390,7 +388,7 @@ export default function ProgramListTable() {
                       </span>
                     </TableCell>
 
-                    <TableCell className='text-foreground/80 align-center tabular-nums'>
+                    <TableCell className='min-w-36'>
                       {program.enrolled_count != null &&
                       !Number.isNaN(program.enrolled_count) ? (
                         program.enrolled_count.toLocaleString()
@@ -399,11 +397,12 @@ export default function ProgramListTable() {
                       )}
                     </TableCell>
 
-                    <TableCell className='align-center whitespace-nowrap'>
+                    <TableCell>
                       <div className='flex flex-nowrap items-center justify-start gap-2'>
                         <Button
                           type='button'
-                          className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                          variant='outline'
+                          className='text-foreground bg-background hover:bg-muted h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
                           asChild
                         >
                           <Link
@@ -411,14 +410,14 @@ export default function ProgramListTable() {
                               String(program.id),
                             )}
                           >
-                            <PencilIcon className='size-3.5' />
+                            <SquarePenIcon className='size-3.5' />
                             Edit
                           </Link>
                         </Button>
                         <Button
                           type='button'
                           variant='outline'
-                          className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-10 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                          className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
                           onClick={() => setDeleteTarget(program)}
                         >
                           <Trash2Icon className='size-3.5' />
