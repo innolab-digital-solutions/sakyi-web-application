@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { PencilIcon, Scale, Trash2Icon } from 'lucide-react';
+import { SquarePenIcon, Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -50,7 +50,7 @@ export default function UnitListTable() {
       }
     },
     onSuccess: () => {
-      toast.success('The measurement was removed from the reference catalog.');
+      toast.success('The measurement has been removed successfully.');
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.UNITS.LIST],
       });
@@ -93,7 +93,7 @@ export default function UnitListTable() {
     <>
       <TableListShell
         controls={controls}
-        searchPlaceholder='Search name or abbreviation'
+        searchPlaceholder='Search ...'
         filters={
           <UnitFilters
             typeFilter={typeFilterParam}
@@ -137,9 +137,8 @@ export default function UnitListTable() {
               rows.length === 0 && (
                 <TableEmptyStateRow
                   colSpan={COLUMN_COUNT}
-                  icon={Scale}
-                  title='No Measurements Available'
-                  description='Definitions you add will appear here for search and filtering. Use Add in the header to define mass, volume, time, and other scales your team relies on.'
+                  title='No Measurement Reference Found'
+                  description='No measurement reference found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
                 />
               )}
 
@@ -181,16 +180,17 @@ export default function UnitListTable() {
                       <div className='flex flex-nowrap items-center justify-start gap-2'>
                         <Button
                           type='button'
-                          className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                          variant='outline'
+                          className='text-foreground bg-background hover:bg-muted h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
                           onClick={() => setEditUnit(unit)}
                         >
-                          <PencilIcon className='size-3.5' />
+                          <SquarePenIcon className='size-3.5' />
                           Edit
                         </Button>
                         <Button
                           type='button'
                           variant='outline'
-                          className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-10 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                          className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
                           onClick={() => setDeleteUnit(unit)}
                         >
                           <Trash2Icon className='size-3.5' />

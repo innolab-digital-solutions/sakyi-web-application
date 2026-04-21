@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useQueryClient } from '@tanstack/react-query';
+import { FolderPlusIcon, SaveIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -113,7 +114,7 @@ export default function MovementCategoryForm({
             queryClient.invalidateQueries({
               queryKey: movementCategoryParentPickerQueryKey,
             });
-            toast.success('Movement category updated successfully.');
+            toast.success('Movement category has been updated successfully.');
             if (onSuccess) onSuccess();
             else router.push(ROUTES.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST);
           },
@@ -136,7 +137,7 @@ export default function MovementCategoryForm({
         queryClient.invalidateQueries({
           queryKey: movementCategoryParentPickerQueryKey,
         });
-        toast.success('Movement category created successfully.');
+        toast.success('Movement category has been created successfully.');
         if (onSuccess) onSuccess();
         else router.push(ROUTES.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST);
       },
@@ -158,7 +159,7 @@ export default function MovementCategoryForm({
     >
       <div className='space-y-6'>
         <TextField
-          label='Name'
+          label='Category Name'
           required
           placeholder='e.g. Strength Training'
           value={String(form.fields.name ?? '')}
@@ -192,7 +193,7 @@ export default function MovementCategoryForm({
             type='button'
             variant='outline'
             disabled={loading}
-            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
             onClick={() =>
               onSuccess
                 ? onSuccess()
@@ -204,8 +205,13 @@ export default function MovementCategoryForm({
           <Button
             type='submit'
             disabled={loading}
-            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
           >
+            {isEdit ? (
+              <SaveIcon className='size-3.5' />
+            ) : (
+              <FolderPlusIcon className='size-3.5' />
+            )}
             {loading
               ? isEdit
                 ? 'Saving Changes…'

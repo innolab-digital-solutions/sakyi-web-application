@@ -49,22 +49,22 @@ export default function ExerciseSheet({
         <SheetTrigger asChild>
           <Button
             type='button'
-            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
           >
             <PlusIcon className='size-3.5' />
-            Add Exercise
+            Add exercise
           </Button>
         </SheetTrigger>
       )}
       <SheetContent className='overflow-y-auto px-6 sm:max-w-md [&>button]:cursor-pointer'>
         <SheetHeader className='px-0'>
-          <SheetTitle className='text-foreground text-md font-bold'>
-            {isEdit ? 'Edit Exercise' : 'Add Exercise'}
+          <SheetTitle className='text-foreground text-[15.5px] font-bold capitalize'>
+            {isEdit ? 'Edit exercise' : 'Create exercise'}
           </SheetTitle>
-          <SheetDescription className='text-muted-foreground text-sm font-medium'>
+          <SheetDescription className='text-muted-foreground text-[13.5px] font-medium'>
             {isEdit
-              ? 'Update name, description, category, difficulty, equipment, and optional video link so this exercise stays accurate in the movement library.'
-              : 'Add an exercise to the movement library. Choose category and difficulty, then optionally add description, equipment, and a YouTube link.'}
+              ? 'Revise this exercise details, category, difficulty, equipment, or media link so movement programming remains accurate and consistent.'
+              : 'Add a standardized exercise with category and difficulty, then include optional equipment or media details when needed.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (

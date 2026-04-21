@@ -497,7 +497,7 @@ export default function EnrollmentRecordRowActions({
         return res.data;
       },
       onSuccess: (data) => {
-        toast.success('Draft care plan created successfully.');
+        toast.success('The care plan draft has been created successfully.');
         setCreateCarePlanOpen(false);
         void queryClient.invalidateQueries({
           queryKey: ['table', ENDPOINTS.ADMIN.MODULES.CARE_PLANS.LIST],

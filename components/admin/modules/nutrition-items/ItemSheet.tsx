@@ -49,22 +49,22 @@ export default function NutritionItemSheet({
         <SheetTrigger asChild>
           <Button
             type='button'
-            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
           >
             <PlusIcon className='size-3.5' />
-            Add Food Item
+            Add food item
           </Button>
         </SheetTrigger>
       )}
       <SheetContent className='overflow-y-auto px-6 sm:max-w-md [&>button]:cursor-pointer'>
         <SheetHeader className='px-0'>
-          <SheetTitle className='text-foreground text-md font-bold'>
-            {isEdit ? 'Edit Food Item' : 'Add Food Item'}
+          <SheetTitle className='text-foreground text-[15.5px] font-bold capitalize'>
+            {isEdit ? 'Edit food item' : 'Create food item'}
           </SheetTitle>
-          <SheetDescription className='text-muted-foreground text-sm font-medium'>
+          <SheetDescription className='text-muted-foreground text-[13.5px] font-medium'>
             {isEdit
-              ? 'Update name, description, category, and default measurement so this entry stays accurate across meal planning and nutrition data.'
-              : 'Add a food or ingredient to the library. Pick a category and an optional default measurement from the reference catalog for portions and labels.'}
+              ? 'Revise this food item, category assignment, or default measurement so entries stay accurate across nutrition planning and operational tracking.'
+              : 'Add a standardized food item and optionally assign a default measurement so portions and documentation stay consistent.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (

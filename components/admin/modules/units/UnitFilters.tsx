@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronDownIcon, TagIcon } from 'lucide-react';
+import { ChevronDownIcon, SlidersHorizontalIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -43,7 +43,7 @@ export default function UnitFilters({
           size='sm'
           className='bg-background hover:bg-muted/70 data-[state=open]:bg-muted/80 hover:text-foreground h-11 cursor-pointer rounded-md border-neutral-200 px-3 text-[13px] font-medium'
         >
-          <TagIcon className='size-4 opacity-80' />
+          <SlidersHorizontalIcon className='size-4 opacity-80' />
           <span>Type: {typeLabel}</span>
           <ChevronDownIcon className='size-3.5 opacity-70' />
         </Button>

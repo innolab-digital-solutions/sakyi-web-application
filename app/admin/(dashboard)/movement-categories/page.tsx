@@ -8,7 +8,7 @@ import MovementCategorySheet from '@/components/admin/modules/movement-categorie
 export const metadata: Metadata = {
   title: 'Movement Categories | SaKyi Admin',
   description:
-    'Maintain movement categories for the movement library: names, descriptions, and parent relationships for organizing exercises.',
+    'Manage standardized movement categories so exercises are grouped consistently across movement programming.',
 };
 
 export default function MovementCategoryListPage() {
@@ -16,7 +16,7 @@ export default function MovementCategoryListPage() {
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Movement Categories'
-        description='Review this list, search by name or parent, and add or edit movement categories so exercises stay grouped consistently in the movement library.'
+        description='Manage shared movement categories so exercise organization stays consistent across movement programming.'
         actions={<MovementCategorySheet mode='create' />}
       />
 

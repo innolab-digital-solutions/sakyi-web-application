@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useQueryClient } from '@tanstack/react-query';
+import { FolderPlusIcon, SaveIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -115,7 +116,7 @@ export default function NutritionCategoryForm({
             queryClient.invalidateQueries({
               queryKey: nutritionCategoryParentPickerQueryKey,
             });
-            toast.success('Food category updated successfully.');
+            toast.success('Food category has been updated successfully.');
             if (onSuccess) onSuccess();
             else router.push(ROUTES.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST);
           },
@@ -141,7 +142,7 @@ export default function NutritionCategoryForm({
         queryClient.invalidateQueries({
           queryKey: nutritionCategoryParentPickerQueryKey,
         });
-        toast.success('Food category created successfully.');
+        toast.success('Food category has been created successfully.');
         if (onSuccess) onSuccess();
         else router.push(ROUTES.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST);
       },
@@ -163,7 +164,7 @@ export default function NutritionCategoryForm({
     >
       <div className='space-y-6'>
         <TextField
-          label='Name'
+          label='Category Name'
           required
           placeholder='e.g. Macronutrients'
           value={String(form.fields.name ?? '')}
@@ -197,7 +198,7 @@ export default function NutritionCategoryForm({
             type='button'
             variant='outline'
             disabled={loading}
-            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
             onClick={() =>
               onSuccess
                 ? onSuccess()
@@ -209,8 +210,13 @@ export default function NutritionCategoryForm({
           <Button
             type='submit'
             disabled={loading}
-            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
           >
+            {isEdit ? (
+              <SaveIcon className='size-3.5' />
+            ) : (
+              <FolderPlusIcon className='size-3.5' />
+            )}
             {loading
               ? isEdit
                 ? 'Saving Changes…'

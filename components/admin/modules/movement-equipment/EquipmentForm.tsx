@@ -1,6 +1,7 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
+import { AxeIcon, SaveIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -83,7 +84,7 @@ export default function MovementEquipmentForm({
             queryClient.invalidateQueries({
               queryKey: ['lookup', LOOKUP_ENDPOINTS.MOVEMENT_EQUIPMENT],
             });
-            toast.success('Equipment updated successfully.');
+            toast.success('Equipment has been updated successfully.');
             if (onSuccess) onSuccess();
             else router.push(ROUTES.ADMIN.MODULES.MOVEMENT_EQUIPMENT.LIST);
           },
@@ -103,7 +104,7 @@ export default function MovementEquipmentForm({
         queryClient.invalidateQueries({
           queryKey: ['lookup', LOOKUP_ENDPOINTS.MOVEMENT_EQUIPMENT],
         });
-        toast.success('Equipment created successfully.');
+        toast.success('Equipment has been created successfully.');
         if (onSuccess) onSuccess();
         else router.push(ROUTES.ADMIN.MODULES.MOVEMENT_EQUIPMENT.LIST);
       },
@@ -125,9 +126,9 @@ export default function MovementEquipmentForm({
     >
       <div className='space-y-6'>
         <TextField
-          label='Name'
+          label='Equipment Name'
           required
-          placeholder='e.g. Kettlebell, Resistance band'
+          placeholder='e.g. Resistance Band'
           value={String(form.fields.name ?? '')}
           onChange={(e) => form.setData('name', e.target.value)}
           error={form.errors.name}
@@ -138,7 +139,7 @@ export default function MovementEquipmentForm({
             type='button'
             variant='outline'
             disabled={loading}
-            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
             onClick={() =>
               onSuccess
                 ? onSuccess()
@@ -150,8 +151,13 @@ export default function MovementEquipmentForm({
           <Button
             type='submit'
             disabled={loading}
-            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
           >
+            {isEdit ? (
+              <SaveIcon className='size-3.5' />
+            ) : (
+              <AxeIcon className='size-3.5' />
+            )}
             {loading
               ? isEdit
                 ? 'Saving Changes…'

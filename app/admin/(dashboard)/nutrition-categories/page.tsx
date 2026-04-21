@@ -8,7 +8,7 @@ import NutritionCategorySheet from '@/components/admin/modules/nutrition-categor
 export const metadata: Metadata = {
   title: 'Food Categories | SaKyi Admin',
   description:
-    'Maintain food categories for the nutrition library: names, descriptions, and parent relationships for organizing food items.',
+    'Manage standardized food categories for the nutrition library so items remain organized and searchable across planning workflows.',
 };
 
 export default function NutritionCategoryListPage() {
@@ -16,7 +16,7 @@ export default function NutritionCategoryListPage() {
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Food Categories'
-        description='Review this list, search by category or description, and add or edit categories so food items stay grouped consistently in the nutrition library.'
+        description='Manage shared food categories so nutrition items stay grouped consistently across planning workflows.'
         actions={<NutritionCategorySheet mode='create' />}
       />
 

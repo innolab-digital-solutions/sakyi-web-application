@@ -128,7 +128,7 @@ export default function CarePlanCreateModal({
       return response.data;
     },
     onSuccess: (data) => {
-      toast.success('Care plan created successfully.');
+      toast.success('The care plan has been created successfully.');
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.CARE_PLANS.LIST],
       });

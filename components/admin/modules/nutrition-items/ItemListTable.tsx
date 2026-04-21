@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { PencilIcon, SaladIcon, Trash2Icon } from 'lucide-react';
+import { SquarePenIcon, Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -42,7 +42,7 @@ export default function NutritionItemListTable() {
       }
     },
     onSuccess: () => {
-      toast.success('The food item was removed from your library.');
+      toast.success('The food item has been removed successfully.');
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.NUTRITION_ITEMS.LIST],
       });
@@ -83,7 +83,7 @@ export default function NutritionItemListTable() {
     <>
       <TableListShell
         controls={controls}
-        searchPlaceholder='Search item, category or measurement'
+        searchPlaceholder='Search ...'
       >
         <Table className='w-full min-w-4xl'>
           <TableHeader className='bg-muted/50 [&_tr]:border-border'>
@@ -120,9 +120,8 @@ export default function NutritionItemListTable() {
               rows.length === 0 && (
                 <TableEmptyStateRow
                   colSpan={COLUMN_COUNT}
-                  icon={SaladIcon}
-                  title='No Food Items Yet'
-                  description='Items you add will appear here for meal planning and nutrition workflows. Use Add in the header to record ingredients and foods with a category and optional default measurement.'
+                       title='No Food Items Found'
+                description='No food items found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
                 />
               )}
 
@@ -175,16 +174,17 @@ export default function NutritionItemListTable() {
                     <div className='flex flex-nowrap items-center justify-start gap-2'>
                       <Button
                         type='button'
-                        className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                        variant='outline'
+                        className='text-foreground bg-background hover:bg-muted h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
                         onClick={() => setEditItem(nutritionItem)}
                       >
-                        <PencilIcon className='size-3.5' />
+                        <SquarePenIcon className='size-3.5' />
                         Edit
                       </Button>
                       <Button
                         type='button'
                         variant='outline'
-                        className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-10 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                        className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
                         onClick={() => setDeleteItem(nutritionItem)}
                       >
                         <Trash2Icon className='size-3.5' />

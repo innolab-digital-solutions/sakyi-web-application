@@ -1,8 +1,8 @@
 import {
   Activity,
-  Apple,
   ClipboardCheck,
   Dumbbell,
+  Fish,
   FolderKanban,
   LayoutDashboard,
   NotebookPen,
@@ -101,7 +101,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
   },
   {
     name: 'Nutrition Library',
-    icon: Apple,
+    icon: Fish,
     path: '#',
     subitems: [
       {
@@ -128,7 +128,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
         path: ADMIN_ROUTES.MODULES.MOVEMENT_EXERCISES.LIST,
       },
       {
-        name: 'Exercise equipment',
+        name: 'Equipment',
         path: ADMIN_ROUTES.MODULES.MOVEMENT_EQUIPMENT.LIST,
       },
     ],

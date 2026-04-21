@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { DumbbellIcon, PencilIcon, Trash2Icon } from 'lucide-react';
+import { SquarePenIcon, Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -53,7 +53,7 @@ export default function MovementCategoryListTable() {
     },
     onSuccess: () => {
       toast.success(
-        'The movement category was removed from the movement library.',
+        'The movement category has been removed successfully.',
       );
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST],
@@ -99,10 +99,7 @@ export default function MovementCategoryListTable() {
 
   return (
     <>
-      <TableListShell
-        controls={controls}
-        searchPlaceholder='Search category name or parent'
-      >
+      <TableListShell controls={controls} searchPlaceholder='Search ...'>
         <Table className='w-full min-w-3xl'>
           <TableHeader className='bg-muted/50 [&_tr]:border-border'>
             <TableRow className='border-border hover:bg-transparent'>
@@ -137,9 +134,8 @@ export default function MovementCategoryListTable() {
               rows.length === 0 && (
                 <TableEmptyStateRow
                   colSpan={COLUMN_COUNT}
-                  icon={DumbbellIcon}
-                  title='No Movement Categories Yet'
-                  description='Movement categories you add will appear here for organizing exercises in the movement library. Use Add in the header to create groups such as strength, mobility, or cardio.'
+                  title='No Movement Categories Found'
+                  description='No movement categories found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
                 />
               )}
 
@@ -179,16 +175,17 @@ export default function MovementCategoryListTable() {
                     <div className='flex flex-nowrap items-center justify-start gap-2'>
                       <Button
                         type='button'
-                        className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                        variant='outline'
+                        className='text-foreground bg-background hover:bg-muted h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
                         onClick={() => setEditCategory(category)}
                       >
-                        <PencilIcon className='size-3.5' />
+                        <SquarePenIcon className='size-3.5' />
                         Edit
                       </Button>
                       <Button
                         type='button'
                         variant='outline'
-                        className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-10 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                        className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
                         onClick={() => setDeleteCategory(category)}
                       >
                         <Trash2Icon className='size-3.5' />
