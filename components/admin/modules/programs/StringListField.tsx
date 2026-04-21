@@ -105,7 +105,7 @@ export default function StringListField({
         </div>
       )}
 
-      <div className='flex flex-col gap-2 sm:flex-row sm:items-end'>
+      <div className='flex flex-col gap-2 sm:flex-row sm:items-start'>
         <div className='min-w-0 flex-1'>
           <TextField
             ref={inputRef}

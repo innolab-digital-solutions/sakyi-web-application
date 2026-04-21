@@ -20,7 +20,7 @@ import ProgramFilters, {
   type ProgramListLocale,
   type ProgramTableStatusFilter,
 } from '@/components/admin/modules/programs/ProgramFilters';
-import DeleteAlertDialog from '@/components/shared/dialogs/DeleteAlertDialog';
+import RemoveProgramConfirmation from '@/components/admin/modules/programs/RemoveProgramConfirmation';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Button } from '@/components/ui/button';
@@ -137,19 +137,16 @@ function formatDateCell(iso: string | null | undefined): string | null {
 }
 
 function formatProgramPrice(program: Program): string {
-  const amount = program.price?.amount;
-  const currency = (program.price?.currency ?? 'USD').trim() || 'USD';
+  const amount =
+    typeof program.price === 'number' ? program.price : program.price?.amount;
+  const currency =
+    typeof program.price === 'number'
+      ? 'MMK'
+      : (program.price?.currency ?? 'MMK').trim() || 'MMK';
   if (amount == null || Number.isNaN(amount)) return '—';
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency,
-      currencyDisplay: 'narrowSymbol',
-      maximumFractionDigits: 0,
-    }).format(amount);
-  } catch {
-    return `${amount} ${currency}`;
-  }
+  return `${new Intl.NumberFormat(undefined, {
+    maximumFractionDigits: 0,
+  }).format(amount)} ${currency.toUpperCase()}`;
 }
 
 function stripHtmlToPlain(text: string): string {
@@ -206,7 +203,7 @@ export default function ProgramListTable() {
       }
     },
     onSuccess: () => {
-      toast.success('Program deleted.');
+      toast.success('The program has been removed successfully.');
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.PROGRAMS.LIST],
       });
@@ -432,29 +429,18 @@ export default function ProgramListTable() {
         </Table>
       </TableListShell>
 
-      <DeleteAlertDialog
+      <RemoveProgramConfirmation
         open={deleteTarget !== null}
         onOpenChange={(open) => {
           if (!open) setDeleteTarget(null);
         }}
-        title='Delete program?'
-        description={
-          deleteTarget ? (
-            <>
-              This will permanently delete{' '}
-              <strong>
-                {deleteTarget.title?.trim() ||
-                  deleteTarget.code ||
-                  `program #${deleteTarget.id}`}
-              </strong>
-              . This action cannot be undone.
-            </>
-          ) : (
-            'This action cannot be undone.'
-          )
+        programName={
+          deleteTarget?.title?.trim() ||
+          deleteTarget?.code ||
+          (deleteTarget ? `program #${deleteTarget.id}` : undefined)
         }
         onConfirm={handleDelete}
-        isDeleting={isDeleting}
+        isRemoving={isDeleting}
       />
     </>
   );

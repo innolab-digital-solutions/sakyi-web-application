@@ -3,7 +3,7 @@ import {
   ClipboardCheck,
   Dumbbell,
   Fish,
-  FolderKanban,
+  HeartHandshakeIcon,
   LayoutDashboard,
   NotebookPen,
   Scale,
@@ -92,10 +92,9 @@ export const ADMIN_NAVIGATION: NavItem[] = [
       },
     ],
   },
-  /** Primary entry to the admin program catalog (`/programs` list + create/edit flows). */
   {
     name: 'Care Programs',
-    icon: FolderKanban,
+    icon: HeartHandshakeIcon,
     path: ADMIN_ROUTES.MODULES.PROGRAMS.LIST,
     subitems: [],
   },

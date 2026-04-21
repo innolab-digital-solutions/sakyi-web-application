@@ -40,10 +40,12 @@ export type Program = {
   }[];
   thumbnail_url?: string | null;
   duration?: string | null;
-  price: {
-    amount: number;
-    currency: string;
-  };
+  price:
+    | number
+    | {
+        amount: number;
+        currency: string;
+      };
   status: (typeof STATUS)[keyof typeof STATUS];
   timestamps: {
     published_at: string | null;
@@ -51,6 +53,6 @@ export type Program = {
     created_at: string;
     updated_at: string;
   };
-  goals?: { id: string; name: string; slug: string }[];
+  goals?: { id: number | string; name: string; slug: string }[];
   enrolled_count?: number;
 };

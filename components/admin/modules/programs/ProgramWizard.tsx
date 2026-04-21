@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ClipboardListIcon, SaveIcon } from 'lucide-react';
+import { HeartHandshakeIcon, SaveIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
@@ -272,6 +272,13 @@ export type ProgramWizardProps = {
   myTranslation?: ProgramTranslation;
 };
 
+function getProgramPriceAmount(
+  price: AdminProgram['price'] | undefined,
+): number {
+  if (typeof price === 'number') return price;
+  return price?.amount ?? 0;
+}
+
 export default function ProgramWizard({
   mode,
   program,
@@ -286,7 +293,7 @@ export default function ProgramWizard({
   const [errors, setErrors] = React.useState<FieldErrors>({});
 
   const [duration, setDuration] = React.useState(program?.duration ?? '');
-  const [price, setPrice] = React.useState(program?.price?.amount ?? 0);
+  const [price, setPrice] = React.useState(getProgramPriceAmount(program?.price));
   const [goalIds, setGoalIds] = React.useState<number[]>(
     () => program?.goals?.map((g) => Number(g.id)) ?? [],
   );
@@ -480,7 +487,11 @@ export default function ProgramWizard({
       queryClient.invalidateQueries({
         queryKey: [ENDPOINTS.ADMIN.MODULES.PROGRAMS.DETAIL(String(programId))],
       });
-      toast.success(isEdit ? 'Program saved.' : 'Program created.');
+      toast.success(
+        isEdit
+          ? 'The program has been updated successfully.'
+          : 'The program has been created successfully.',
+      );
       router.push(ROUTES.ADMIN.MODULES.PROGRAMS.LIST);
     },
     onError: (error: Error) => {
@@ -621,7 +632,6 @@ export default function ProgramWizard({
                         <StringListField
                           label='Key Features'
                           description='List the core features and benefits participants will receive from this program.'
-                     
                           value={t.features}
                           onChange={(val) =>
                             updateTranslation(lang.code, 'features', val)
@@ -631,7 +641,6 @@ export default function ProgramWizard({
                         <StringListField
                           label='Ideal Participants'
                           description='Specify the target audience who would benefit the most from this program.'
-                     
                           value={t.ideals}
                           onChange={(val) =>
                             updateTranslation(lang.code, 'ideals', val)
@@ -641,7 +650,6 @@ export default function ProgramWizard({
                         <StringListField
                           label='Participant Expectations'
                           description='Outline what participants should anticipate from this program, including commitments, deliverables, and overall experience.'
-                     
                           value={t.expectations}
                           onChange={(val) =>
                             updateTranslation(lang.code, 'expectations', val)
@@ -651,7 +659,6 @@ export default function ProgramWizard({
                         <StructureRepeaterField
                           label='Program Structure'
                           description='Define each program phase. For each phase, specify a period label, a title, and a descriptive summary to clearly outline the participant journey.'
-                     
                           value={t.structures}
                           onChange={(val) =>
                             updateTranslation(lang.code, 'structures', val)
@@ -683,13 +690,13 @@ export default function ProgramWizard({
                 {isEdit ? (
                   <SaveIcon className='size-3.5' />
                 ) : (
-                  <ClipboardListIcon className='size-3.5' />
+                  <HeartHandshakeIcon className='size-3.5' />
                 )}
                 {mutation.isPending
                   ? 'Saving…'
                   : isEdit
                     ? 'Save Changes'
-                    : 'Create Program'}
+                    : 'Create Care Program'}
               </Button>
             </div>
           </div>
@@ -806,7 +813,11 @@ export default function ProgramWizard({
                   </Label>
                   {isEdit ? (
                     <span className='text-muted-foreground text-[10px] font-bold uppercase'>
-                      {isArchived ? 'Archived' : 'Published'}
+                  {isArchived
+                    ? 'Archived'
+                    : isPublished
+                      ? 'Published'
+                      : 'Draft'}
                     </span>
                   ) : (
                     <Switch
@@ -840,7 +851,11 @@ export default function ProgramWizard({
                       className='text-foreground bg-background hover:bg-muted h-9 shrink-0 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
                       onClick={() => {
                         setStatus(
-                          isArchived ? STATUS.PUBLISHED : STATUS.ARCHIVED,
+                          isArchived
+                            ? STATUS.PUBLISHED
+                            : isPublished
+                              ? STATUS.ARCHIVED
+                              : STATUS.PUBLISHED,
                         );
                         setErrors((prev) => {
                           const n = { ...prev };
@@ -849,7 +864,11 @@ export default function ProgramWizard({
                         });
                       }}
                     >
-                      {isArchived ? 'Move to Published' : 'Move to Archived'}
+                      {isArchived
+                        ? 'Move to Published'
+                        : isPublished
+                          ? 'Move to Archived'
+                          : 'Move to Published'}
                     </Button>
                   </div>
                 ) : null}
