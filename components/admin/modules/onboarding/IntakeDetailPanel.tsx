@@ -2,7 +2,13 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
-import { PencilIcon } from 'lucide-react';
+import {
+  CheckCircle2Icon,
+  FileTextIcon,
+  PencilIcon,
+  TimerResetIcon,
+  XCircleIcon,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -44,14 +50,51 @@ function formatRoleLabel(role: string): string {
 const PROGRAM_THUMBNAIL_FALLBACK = '/images/logo-gray.png';
 const FILE_PREVIEW_FALLBACK = '/images/logo-gray.png';
 
-function formatStatusLabel(status: string): string {
-  return status
-    .trim()
-    .replace(/[_-]+/g, ' ')
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join(' ');
+type IntakeStatus = 'draft' | 'in_progress' | 'completed' | 'cancelled';
+
+const INTAKE_STATUS_LABEL: Record<IntakeStatus, string> = {
+  draft: 'Draft',
+  in_progress: 'In Progress',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+};
+
+/** Matches {@link IntakeListTable} status column badges. */
+const INTAKE_STATUS_STYLES: Record<
+  IntakeStatus,
+  {
+    icon: React.ComponentType<{ className?: string }>;
+    className: string;
+  }
+> = {
+  draft: {
+    icon: FileTextIcon,
+    className:
+      'border-amber-300/80 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200',
+  },
+  in_progress: {
+    icon: TimerResetIcon,
+    className:
+      'border-indigo-300/80 bg-indigo-50 text-indigo-800 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200',
+  },
+  completed: {
+    icon: CheckCircle2Icon,
+    className:
+      'border-emerald-300/80 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200',
+  },
+  cancelled: {
+    icon: XCircleIcon,
+    className:
+      'border-rose-300/80 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200',
+  },
+};
+
+function asIntakeStatus(value: string | undefined): IntakeStatus | null {
+  if (value === 'draft') return 'draft';
+  if (value === 'in_progress') return 'in_progress';
+  if (value === 'completed') return 'completed';
+  if (value === 'cancelled') return 'cancelled';
+  return null;
 }
 
 function getReadableAnswer(question: OnboardingIntakeQuestion): string {
@@ -281,6 +324,12 @@ export default function IntakeDetailPanel({
       left.sort_order - right.sort_order,
   );
 
+  const intakeStatus = asIntakeStatus(intake.status);
+  const statusStyle = intakeStatus
+    ? INTAKE_STATUS_STYLES[intakeStatus]
+    : INTAKE_STATUS_STYLES.draft;
+  const StatusIcon = statusStyle.icon;
+
   return (
     <div className='grid gap-4 lg:grid-cols-3'>
       <section className='border-border max-w-full min-w-0 space-y-5 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:col-span-2 lg:p-6'>
@@ -331,10 +380,21 @@ export default function IntakeDetailPanel({
               />
             </div>
             <div className='space-y-4 text-left md:justify-self-end md:text-right'>
-              <DetailItem
-                label='Assessment Status'
-                value={formatStatusLabel(intake.status)}
-              />
+              <div className='space-y-1.5'>
+                <p className='text-muted-foreground text-[10px]! font-semibold tracking-wide uppercase'>
+                  Assessment Status
+                </p>
+                <div className='md:flex md:justify-end'>
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
+                  >
+                    <StatusIcon className='size-3.5 shrink-0' aria-hidden />
+                    {intakeStatus
+                      ? INTAKE_STATUS_LABEL[intakeStatus]
+                      : intake.status}
+                  </span>
+                </div>
+              </div>
               <DetailItem
                 label='Created At'
                 value={formatDate(intake.timestamps.created_at)}
@@ -435,14 +495,22 @@ export default function IntakeDetailPanel({
             defaultValue={String(intakeSections[0]?.id)}
             className='mt-4 space-y-4'
           >
-            <TabsList className='flex h-auto w-full justify-start gap-2 overflow-x-auto rounded-md border border-neutral-200 bg-white p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'>
-              {intakeSections.map((section) => (
+            <TabsList
+              variant='line'
+              className='bg-muted! border-border mb-4 w-full min-w-0 flex-nowrap justify-start overflow-x-auto border [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+            >
+              {intakeSections.map((section, index) => (
                 <TabsTrigger
                   key={section.id}
                   value={String(section.id)}
-                  className='text-muted-foreground hover:text-foreground hover:bg-muted/60 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-sm border border-transparent px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-colors data-[state=active]:shadow-xs'
+                  className='shrink-0 gap-2 text-[13px] font-semibold'
                 >
-                  {section.title}
+                  <span className='shrink-0 tabular-nums text-inherit'>
+                    {index + 1}.
+                  </span>
+                  <span className='min-w-0 wrap-break-word text-inherit'>
+                    {section.title}
+                  </span>
                 </TabsTrigger>
               ))}
             </TabsList>

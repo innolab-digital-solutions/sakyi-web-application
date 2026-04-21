@@ -45,6 +45,7 @@ import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
 import { ROUTES } from '@/config/routes';
+import { postCreateCarePlan } from '@/domains/care-plans/services';
 import {
   getEnrollmentRecordById,
   patchEnrollmentCareTeam,
@@ -53,7 +54,6 @@ import {
   postEnrollmentCancel,
   postEnrollmentComplete,
 } from '@/domains/enrollment-records/services';
-import { postCreateCarePlan } from '@/domains/care-plans/services';
 import type { AdminEnrollment } from '@/domains/enrollment-records/types/admin';
 import type { TeamMember } from '@/domains/lookup/types/team-members';
 import { http } from '@/lib/api/client';
@@ -357,7 +357,7 @@ export default function EnrollmentRecordRowActions({
       return res.data;
     },
     onSuccess: () => {
-      toast.success('The enrollment schedule was successfully updated.');
+      toast.success('The enrollment schedule has been updated successfully.');
 
       setScheduleOpen(false);
       invalidateList();
@@ -383,7 +383,7 @@ export default function EnrollmentRecordRowActions({
       return res.data;
     },
     onSuccess: () => {
-      toast.success('The notes have been successfully updated.');
+      toast.success('The notes have been updated successfully.');
 
       setNotesOpen(false);
       invalidateList();
@@ -425,7 +425,7 @@ export default function EnrollmentRecordRowActions({
       return res.data;
     },
     onSuccess: () => {
-      toast.success('The care team members have been successfully updated.');
+      toast.success('The care team members have been updated successfully.');
       setCareTeamOpen(false);
       invalidateList();
       void queryClient.invalidateQueries({
@@ -566,7 +566,7 @@ export default function EnrollmentRecordRowActions({
             className='inline-flex items-center gap-1.5'
           >
             <EyeIcon className='size-3.5 shrink-0' />
-            View detail
+            View Detail
           </Link>
         </Button>
 

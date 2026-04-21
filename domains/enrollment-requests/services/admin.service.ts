@@ -17,6 +17,7 @@ export async function getEnrollmentRequestById(
 
 export type UpdateEnrollmentRequestStatusPayload = {
   status: EnrollmentRequestStatus;
+  cancellation_note?: string;
 };
 
 /**

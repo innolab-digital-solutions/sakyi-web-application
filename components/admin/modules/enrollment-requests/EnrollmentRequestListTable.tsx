@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import TableListShell from '@/components/admin/layout/TableListShell';
 import EnrollmentContactedConfirmation from '@/components/admin/modules/enrollment-requests/EnrollmentContactedConfirmation';
 import EnrollmentIntakeConfirmation from '@/components/admin/modules/enrollment-requests/EnrollmentIntakeConfirmation';
+import EnrollmentRequestCancelConfirmation from '@/components/admin/modules/enrollment-requests/EnrollmentRequestCancelConfirmation';
 import EnrollmentRequestFilters from '@/components/admin/modules/enrollment-requests/EnrollmentRequestFilters';
 import EnrollmentRequestRowActions from '@/components/admin/modules/enrollment-requests/EnrollmentRequestRowActions';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
@@ -259,6 +260,12 @@ export default function EnrollmentRequestListTable() {
     useState<EnrollmentRequestResource | null>(null);
   const [markContactedRequest, setMarkContactedRequest] =
     useState<EnrollmentRequestResource | null>(null);
+  const [cancelRequest, setCancelRequest] =
+    useState<EnrollmentRequestResource | null>(null);
+  const [cancelRequestNote, setCancelRequestNote] = useState('');
+  const [cancelRequestNoteError, setCancelRequestNoteError] = useState<
+    string | undefined
+  >(undefined);
   const [visibleColumnKeys, setVisibleColumnKeys] = useState<
     EnrollmentColumnKey[]
   >(() => {
@@ -322,8 +329,14 @@ export default function EnrollmentRequestListTable() {
         throw new Error(response.message || 'Failed to update status.');
       }
     },
-    onSuccess: () => {
-      toast.success('Enrollment request marked as contacted successfully.');
+    onSuccess: (_response, variables) => {
+      if (variables.payload.status === 'contacted') {
+        toast.success('Enrollment request marked as contacted successfully.');
+      } else if (variables.payload.status === 'cancelled') {
+        toast.success('Enrollment request cancelled successfully.');
+      } else {
+        toast.success('Enrollment request status updated successfully.');
+      }
 
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.ENROLLMENT_REQUESTS.LIST],
@@ -379,6 +392,8 @@ export default function EnrollmentRequestListTable() {
     markContactedRequest != null &&
     isUpdatingStatus &&
     updatingId === markContactedRequest.id;
+  const isCancellingSelectedRequest =
+    cancelRequest != null && isUpdatingStatus && updatingId === cancelRequest.id;
   const { query } = controls;
   const showSkeleton = query.isPending && !query.data;
   const errorMessage =
@@ -569,7 +584,7 @@ export default function EnrollmentRequestListTable() {
                     </TableCell>
                   ) : null}
                   {showColumn('contactPhone') ? (
-                    <TableCell className='align-top whitespace-nowrap'>
+                    <TableCell>
                       {request.phone?.trim() ? (
                         request.phone.trim()
                       ) : (
@@ -650,6 +665,11 @@ export default function EnrollmentRequestListTable() {
                         request={request}
                         onStartIntake={() => setStartIntakeRequest(request)}
                         onMarkContacted={() => setMarkContactedRequest(request)}
+                        onCancelRequest={() => {
+                          setCancelRequest(request);
+                          setCancelRequestNote('');
+                          setCancelRequestNoteError(undefined);
+                        }}
                         isStartingIntake={
                           isStartingIntake &&
                           startingIntakeRequest?.id === request.id
@@ -702,6 +722,54 @@ export default function EnrollmentRequestListTable() {
             {
               onSuccess: () => {
                 setMarkContactedRequest(null);
+              },
+            },
+          );
+        }}
+      />
+      <EnrollmentRequestCancelConfirmation
+        open={cancelRequest != null}
+        isSubmitting={Boolean(isCancellingSelectedRequest)}
+        requestReference={cancelRequest ? getRequestReference(cancelRequest) : undefined}
+        cancellationNote={cancelRequestNote}
+        onCancellationNoteChange={(value) => {
+          setCancelRequestNote(value);
+          if (cancelRequestNoteError) setCancelRequestNoteError(undefined);
+        }}
+        noteError={cancelRequestNoteError}
+        onOpenChange={(open) => {
+          if (!open && !isCancellingSelectedRequest) {
+            setCancelRequest(null);
+            setCancelRequestNote('');
+            setCancelRequestNoteError(undefined);
+          }
+        }}
+        onConfirmCancel={() => {
+          if (!cancelRequest) return;
+          const note = cancelRequestNote.trim();
+          if (!note) {
+            setCancelRequestNoteError('Cancellation note is required.');
+            return;
+          }
+          mutateStatus(
+            {
+              id: cancelRequest.id,
+              payload: { status: 'cancelled', cancellation_note: note },
+            },
+            {
+              onSuccess: () => {
+                setCancelRequest(null);
+                setCancelRequestNote('');
+                setCancelRequestNoteError(undefined);
+              },
+              onError: (error) => {
+                const message =
+                  error.message ?? 'Failed to cancel enrollment request.';
+                if (/cancellation[_\s]?note/i.test(message)) {
+                  setCancelRequestNoteError(message);
+                } else {
+                  setCancelRequestNoteError(undefined);
+                }
               },
             },
           );

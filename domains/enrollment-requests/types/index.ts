@@ -9,7 +9,7 @@ export type EnrollmentRequestResource = {
   code: string;
   phone: string;
   status: EnrollmentRequestStatus;
-  notes: string | null;
+  cancellation_note: string | null;
   contacted_at: string | null; // ISO 8601
   client?: {
     id: number;

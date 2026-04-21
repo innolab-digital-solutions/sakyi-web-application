@@ -475,13 +475,14 @@ export default function EnrollmentRecordListTable() {
               const StatusIcon = statusStyle?.icon;
               const assignedMembers = row.team_members ?? [];
               const visibleAssignedMembers = assignedMembers.slice(0, 3);
+              const hiddenAssignedMembers = assignedMembers.slice(3);
               const remainingAssignedMembers =
                 assignedMembers.length - visibleAssignedMembers.length;
 
               return (
                 <TableRow key={row.id}>
                   {showColumn('reference') ? (
-                    <TableCell>
+                    <TableCell className='min-w-44'>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {getEnrollmentReference(row)}
                       </p>
@@ -518,7 +519,7 @@ export default function EnrollmentRecordListTable() {
                     </TableCell>
                   ) : null}
                   {showColumn('program') ? (
-                    <TableCell>
+                    <TableCell className='min-w-62'>
                       <div className='flex items-start gap-3'>
                         <ProgramThumbnail
                           thumbnailUrl={row.program?.thumbnail_url}
@@ -569,6 +570,7 @@ export default function EnrollmentRecordListTable() {
                                           <AvatarImage
                                             src={picture}
                                             alt={name}
+                                            className='object-cover object-center'
                                           />
                                         ) : null}
                                         <AvatarFallback className='text-[10px]'>
@@ -602,12 +604,29 @@ export default function EnrollmentRecordListTable() {
                                     +{remainingAssignedMembers}
                                   </div>
                                 </TooltipTrigger>
-                                <TooltipContent side='top' surface>
-                                  <p className='text-xs font-medium'>
-                                    {remainingAssignedMembers} more assigned
-                                    member
-                                    {remainingAssignedMembers === 1 ? '' : 's'}
-                                  </p>
+                                <TooltipContent
+                                  side='top'
+                                  surface
+                                  className='max-w-64 space-y-1'
+                                >
+                                  {hiddenAssignedMembers.map((member) => {
+                                    const name =
+                                      member.user?.name?.trim() ||
+                                      'Unknown member';
+                                    const position =
+                                      member.position?.trim() ||
+                                      'No position';
+                                    return (
+                                      <div key={member.id} className='space-y-0.5'>
+                                        <p className='text-xs font-semibold'>
+                                          {name}
+                                        </p>
+                                        <p className='text-muted-foreground text-[10px] font-semibold'>
+                                          {position}
+                                        </p>
+                                      </div>
+                                    );
+                                  })}
                                 </TooltipContent>
                               </Tooltip>
                             ) : null}

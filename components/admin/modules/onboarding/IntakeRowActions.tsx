@@ -123,7 +123,7 @@ export default function IntakeRowActions({
           }}
         >
           <SendHorizontal className='size-3.5 shrink-0' />
-          Send contract
+          Send Contract
         </Button>
       ) : null}
       {primary === 'view' ? (
@@ -140,7 +140,7 @@ export default function IntakeRowActions({
             className='inline-flex items-center gap-1.5'
           >
             <EyeIcon className='size-3.5 shrink-0' />
-            View detail
+            View Detail
           </Link>
         </Button>
       ) : null}
@@ -181,7 +181,7 @@ export default function IntakeRowActions({
                     )}
                   >
                     <EyeIcon className='size-3.5 shrink-0' />
-                    View detail
+                    View Detail
                   </Link>
                 </DropdownMenuItem>
               ) : null}
@@ -207,7 +207,7 @@ export default function IntakeRowActions({
                   }}
                 >
                   <SendHorizontal className='size-3.5 shrink-0' />
-                  Send contract
+                  Send Contract
                 </DropdownMenuItem>
               ) : null}
             </>

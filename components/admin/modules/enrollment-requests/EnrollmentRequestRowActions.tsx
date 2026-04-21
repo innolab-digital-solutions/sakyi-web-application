@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  BanIcon,
   ClipboardCopyIcon,
   ClipboardListIcon,
   EyeIcon,
@@ -40,6 +41,11 @@ function canMarkAsContacted(request: EnrollmentRequestResource): boolean {
   return request.status === 'pending';
 }
 
+function canCancelRequest(request: EnrollmentRequestResource): boolean {
+  if (request.onboarding_intake) return false;
+  return request.status === 'pending' || request.status === 'contacted';
+}
+
 function getRequestReference(request: EnrollmentRequestResource): string {
   const code = request.code?.trim();
   if (code) return code;
@@ -59,6 +65,7 @@ export type EnrollmentRequestRowActionsProps = {
   request: EnrollmentRequestResource;
   onStartIntake: () => void;
   onMarkContacted: () => void;
+  onCancelRequest: () => void;
   isStartingIntake: boolean;
   isUpdatingStatus: boolean;
 };
@@ -70,16 +77,19 @@ export default function EnrollmentRequestRowActions({
   request,
   onStartIntake,
   onMarkContacted,
+  onCancelRequest,
   isStartingIntake,
   isUpdatingStatus,
 }: EnrollmentRequestRowActionsProps) {
   const showStartIntake = canStartIntake(request);
   const showMarkContacted = canMarkAsContacted(request);
+  const showCancelRequest = canCancelRequest(request);
   const primary: PrimaryAction = showStartIntake ? 'startIntake' : 'viewDetail';
   const referenceText = getRequestReference(request);
 
   const showViewDetailInMenu = primary === 'startIntake';
-  const hasMenuAfterCopy = showViewDetailInMenu || showMarkContacted;
+  const hasMenuAfterCopy =
+    showViewDetailInMenu || showMarkContacted || showCancelRequest;
 
   const handleCopyReference = () => {
     void (async () => {
@@ -104,7 +114,7 @@ export default function EnrollmentRequestRowActions({
           onClick={() => onStartIntake()}
         >
           <ClipboardListIcon className='size-3.5 shrink-0' />
-          Start intake
+          Start Intake
         </Button>
       ) : (
         <Button
@@ -120,7 +130,7 @@ export default function EnrollmentRequestRowActions({
             className='inline-flex items-center gap-1.5'
           >
             <EyeIcon className='size-3.5 shrink-0' />
-            View detail
+            View Detail
           </Link>
         </Button>
       )}
@@ -161,7 +171,7 @@ export default function EnrollmentRequestRowActions({
                     )}
                   >
                     <EyeIcon className='size-3.5 shrink-0' />
-                    View detail
+                    View Detail
                   </Link>
                 </DropdownMenuItem>
               ) : null}
@@ -173,6 +183,16 @@ export default function EnrollmentRequestRowActions({
                 >
                   <PhoneCallIcon className='size-3.5 shrink-0' />
                   Mark as contacted
+                </DropdownMenuItem>
+              ) : null}
+              {showCancelRequest ? (
+                <DropdownMenuItem
+                  className='text-destructive focus:text-destructive flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                  disabled={isUpdatingStatus}
+                  onClick={() => onCancelRequest()}
+                >
+                  <BanIcon className='text-destructive size-3.5 shrink-0' />
+                  Cancel request
                 </DropdownMenuItem>
               ) : null}
             </>

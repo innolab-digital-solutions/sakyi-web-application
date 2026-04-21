@@ -5,14 +5,23 @@ import {
   ArrowLeftIcon,
   CheckCircle2Icon,
   ChevronRightIcon,
+  PhoneCallIcon,
   SaveIcon,
   XCircleIcon,
 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
 import { trackOnboardingEvent } from '@/domains/intake-assessments/analytics';
@@ -23,6 +32,8 @@ import {
   getRequiredFieldErrorsForSection,
   hydrateDraftAnswersFromSections,
   mapSectionFieldErrorsFromApi,
+  saveSectionPayloadFingerprint,
+  type SectionDraftAnswers,
 } from '@/domains/intake-assessments/mappers/admin';
 import { OnboardingCancelIntakeSchema } from '@/domains/intake-assessments/schemas';
 import {
@@ -39,7 +50,12 @@ import { useForm } from '@/lib/form';
 import type { ApiError } from '@/types/api';
 
 import IntakeCancelConfirmation from './IntakeCancelConfirmation';
+import OnboardingCompleteConfirmation from './OnboardingCompleteConfirmation';
 import OnboardingQuestionField from './OnboardingQuestionField';
+
+/** Bump `v1` if guidance copy changes enough to warrant showing the banner again. */
+const ONBOARDING_INTAKE_GUIDANCE_DISMISSED_STORAGE_KEY =
+  'sakyi:admin:onboarding-intake:guidance-dismissed:v1';
 
 type OnboardingWizardProps = {
   intakeId: number;
@@ -47,6 +63,8 @@ type OnboardingWizardProps = {
 
 type SaveSectionMutationInput = {
   section: OnboardingIntakeSection;
+  /** Draft used for the request and for post-save fingerprinting (avoid stale closures). */
+  draftSnapshot: SectionDraftAnswers;
   silentSuccessToast?: boolean;
 };
 
@@ -65,7 +83,37 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
     null,
   );
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [completeConfirmationOpen, setCompleteConfirmationOpen] =
+    useState(false);
+  const [intakeGuidanceDismissed, setIntakeGuidanceDismissed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return (
+        window.localStorage.getItem(ONBOARDING_INTAKE_GUIDANCE_DISMISSED_STORAGE_KEY) ===
+        '1'
+      );
+    } catch {
+      return false;
+    }
+  });
+
+  const dismissIntakeGuidancePermanently = useCallback(() => {
+    try {
+      window.localStorage.setItem(
+        ONBOARDING_INTAKE_GUIDANCE_DISMISSED_STORAGE_KEY,
+        '1',
+      );
+    } catch {
+      /* storage unavailable (private mode, quota, etc.) */
+    }
+    setIntakeGuidanceDismissed(true);
+  }, []);
+
   const hasRedirectedOnReadonly = useRef(false);
+  const persistedSectionSaveFingerprintRef = useRef<Record<number, string>>({});
+  const persistedFingerprintIntakeIdRef = useRef(intakeId);
+  /** Prevents overlapping forward navigation (e.g. double tab clicks) from firing multiple saves. */
+  const forwardNavigationLockRef = useRef(false);
 
   const cancelForm = useForm(
     { cancellation_note: '' },
@@ -113,6 +161,30 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
     );
   }, [draftOverrides, hydratedDraftBySection]);
 
+  useLayoutEffect(() => {
+    if (persistedFingerprintIntakeIdRef.current !== intakeId) {
+      persistedSectionSaveFingerprintRef.current = {};
+      persistedFingerprintIntakeIdRef.current = intakeId;
+    }
+    if (!sections.length) return;
+    const ref = persistedSectionSaveFingerprintRef.current;
+    for (const section of sections) {
+      if (ref[section.id] !== undefined) continue;
+      const draft = hydratedDraftBySection[section.id] ?? {};
+      ref[section.id] = saveSectionPayloadFingerprint(section, draft);
+    }
+  }, [hydratedDraftBySection, intakeId, sections]);
+
+  const isSectionDraftDirty = useCallback(
+    (section: OnboardingIntakeSection, draft: SectionDraftAnswers) => {
+      const current = saveSectionPayloadFingerprint(section, draft);
+      const persisted = persistedSectionSaveFingerprintRef.current[section.id];
+      if (persisted === undefined) return true;
+      return current !== persisted;
+    },
+    [],
+  );
+
   const activeSectionId = useMemo(() => {
     if (selectedSectionId != null) return selectedSectionId;
     if (!sections.length) return null;
@@ -158,9 +230,8 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
   };
 
   const saveMutation = useMutation({
-    mutationFn: async ({ section }: SaveSectionMutationInput) => {
-      const draft = draftBySection[section.id] ?? {};
-      const payload = buildSaveSectionPayload(section, draft);
+    mutationFn: async ({ section, draftSnapshot }: SaveSectionMutationInput) => {
+      const payload = buildSaveSectionPayload(section, draftSnapshot);
       saveForm.setData('answers', payload.answers);
       return saveOnboardingIntakeSection(intakeId, section.id, payload);
     },
@@ -190,9 +261,42 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
         sectionId: section.id,
         status: response.status,
       });
-      await revalidateIntakeQueries();
+
+      await queryClient.refetchQueries({
+        queryKey: ['onboarding', 'intake', intakeId],
+      });
+
+      setDraftOverrides((prev) => {
+        if (!(section.id in prev)) return prev;
+        const next = { ...prev };
+        delete next[section.id];
+        return next;
+      });
+
+      const cached = queryClient.getQueryData<OnboardingIntakeResponse>([
+        'onboarding',
+        'intake',
+        intakeId,
+      ]);
+      if (cached?.status === 'success') {
+        const freshSections = [...(cached.data.template?.sections ?? [])].sort(
+          (a, b) => a.sort_order - b.sort_order,
+        );
+        const freshSection = freshSections.find((s) => s.id === section.id);
+        if (freshSection) {
+          const freshHydrated =
+            hydrateDraftAnswersFromSections(freshSections)[section.id] ?? {};
+          persistedSectionSaveFingerprintRef.current[section.id] =
+            saveSectionPayloadFingerprint(freshSection, freshHydrated);
+        }
+      }
+
+      void queryClient.invalidateQueries({
+        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST],
+      });
+
       if (!silentSuccessToast) {
-        toast.success('Section responses saved successfully.');
+        toast.success('Section responses have been saved successfully.');
       }
     },
     onError: () => {
@@ -367,14 +471,24 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
       return;
     }
 
-    // Block moving forward when required fields are missing.
-    const isValid = validateCurrentSectionRequired(activeSection);
-    if (!isValid) return;
+    if (forwardNavigationLockRef.current) return;
+    forwardNavigationLockRef.current = true;
+    try {
+      const isValid = validateCurrentSectionRequired(activeSection);
+      if (!isValid) return;
 
-    // Keep save-per-step behavior when progressing to future steps.
-    const response = await saveMutation.mutateAsync({ section: activeSection });
-    if (response.status === 'error') return;
-    setSelectedSectionId(targetSection.id);
+      const forwardDraft = draftBySection[activeSection.id] ?? {};
+      if (isSectionDraftDirty(activeSection, forwardDraft)) {
+        const response = await saveMutation.mutateAsync({
+          section: activeSection,
+          draftSnapshot: forwardDraft,
+        });
+        if (response.status === 'error') return;
+      }
+      setSelectedSectionId(targetSection.id);
+    } finally {
+      forwardNavigationLockRef.current = false;
+    }
   };
 
   return (
@@ -385,7 +499,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
             <div className='flex flex-wrap items-center justify-between gap-3'>
               <div className='space-y-1.5'>
                 <p className='text-muted-foreground text-[10px]! font-semibold tracking-wide uppercase'>
-                  Assessment Template
+                  Intake Assessment Template
                 </p>
                 <h3 className='text-sm font-semibold tracking-normal'>
                   {intakeRecord.template?.title?.trim() || 'Unknown template'}{' '}
@@ -436,41 +550,75 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
         )}
 
         <div className='space-y-4'>
-          <div className='flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'>
-            {sections.map((section, index) => {
-              const isActive = section.id === activeSection.id;
-              const isPassed = index < sectionIndex;
-              return (
-                <button
-                  key={section.id}
+          {!isReadonly && !intakeGuidanceDismissed ? (
+            <div
+              className='bg-background border-border flex items-start gap-3 rounded-md border p-3'
+              role='region'
+              aria-label='Phone intake guidance'
+            >
+              <div className='bg-primary/10 border-primary/20 text-primary mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-md border'>
+                <PhoneCallIcon className='size-4 shrink-0' aria-hidden />
+              </div>
+              <div className='min-w-0 flex-1 space-y-2'>
+                <p className='text-foreground text-[13px] font-semibold'>
+                  Complete this intake template with the client on the call
+                </p>
+                <p className='text-muted-foreground text-[13px] font-medium leading-snug'>
+                  The questions match that template: enter what the client
+                  shares and move section by section so required fields are
+                  covered. Before you submit, use the numbered tabs to review
+                  earlier sections. Completed assessments are read-only. Use{' '}
+                  <span className='text-foreground font-semibold'>
+                    Save as In Progress
+                  </span>{' '}
+                  if you need to pause without finalizing.
+                </p>
+                <Button
                   type='button'
-                  onClick={() => void handleStepClick(section, index)}
-                  className={`group flex min-w-fit cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium transition md:text-[13px] ${
-                    isActive
-                      ? 'bg-primary/10 border-primary text-primary'
-                      : isPassed
-                        ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'
-                        : 'bg-background hover:bg-muted border-border text-muted-foreground hover:text-foreground'
-                  }`}
+                  variant='outline'
+                  size='sm'
+                  className='bg-background hover:bg-muted mt-0.5 h-8 border-neutral-300 px-3 text-[12px]! font-semibold'
+                  onClick={dismissIntakeGuidancePermanently}
                 >
-                  <span
-                    className={`inline-flex size-5 items-center justify-center rounded-full border text-[10px] font-semibold ${
-                      isActive
-                        ? 'border-primary bg-primary text-white'
-                        : isPassed
-                          ? 'border-emerald-500 bg-emerald-500 text-white'
-                          : 'border-border bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    {index + 1}
+                  Don&apos;t show this again
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
+          <Tabs
+            value={String(activeSection.id)}
+            onValueChange={(value) => {
+              if (value === String(activeSection.id)) return;
+              const id = Number.parseInt(value, 10);
+              if (!Number.isInteger(id)) return;
+              const section = sections.find((s) => s.id === id);
+              const index = sections.findIndex((s) => s.id === id);
+              if (!section || index < 0) return;
+              void handleStepClick(section, index);
+            }}
+          >
+            <TabsList
+              variant='line'
+              className='bg-muted! border-border mb-4 w-full min-w-0 flex-nowrap justify-start overflow-x-auto border [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+            >
+              {sections.map((section, index) => (
+                <TabsTrigger
+                  key={section.id}
+                  value={String(section.id)}
+                  disabled={isReadonly}
+                  className='shrink-0 gap-2 text-[13px] font-semibold'
+                >
+                  <span className='shrink-0 tabular-nums text-inherit'>
+                    {index + 1}.
                   </span>
-                  <span className='font-medium whitespace-nowrap'>
+                  <span className='min-w-0 wrap-break-word text-inherit'>
                     {section.title}
                   </span>
-                </button>
-              );
-            })}
-          </div>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
 
           {activeSection.description && (
             <p className='text-muted-foreground text-[13px] font-medium'>
@@ -571,12 +719,63 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
             </>
           )}
 
+          <OnboardingCompleteConfirmation
+            open={completeConfirmationOpen}
+            isSubmitting={
+              completeConfirmationOpen &&
+              (saveMutation.isPending || completeMutation.isPending)
+            }
+            intakeReference={
+              intakeRecord
+                ? intakeRecord.code?.trim() || `#${intakeRecord.id}`
+                : undefined
+            }
+            onOpenChange={(open) => {
+              if (
+                !open &&
+                !saveMutation.isPending &&
+                !completeMutation.isPending
+              ) {
+                setCompleteConfirmationOpen(false);
+              }
+            }}
+            onConfirm={() => {
+              void (async () => {
+                if (forwardNavigationLockRef.current) return;
+                forwardNavigationLockRef.current = true;
+                try {
+                  const completeDraft = draftBySection[activeSection.id] ?? {};
+                  if (isSectionDraftDirty(activeSection, completeDraft)) {
+                    const saveResponse = await saveMutation.mutateAsync({
+                      section: activeSection,
+                      draftSnapshot: completeDraft,
+                      silentSuccessToast: true,
+                    });
+                    if (saveResponse.status === 'error') return;
+                  }
+                  const completeResponse = await completeMutation.mutateAsync();
+                  if (completeResponse.status === 'error') return;
+                  setCompleteConfirmationOpen(false);
+                } finally {
+                  forwardNavigationLockRef.current = false;
+                }
+              })();
+            }}
+          />
+
           <Button
             type='button'
             variant='outline'
             disabled={isReadonly || saveMutation.isPending}
             className='bg-background hover:bg-muted h-10 shrink-0 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
-            onClick={() => saveMutation.mutate({ section: activeSection })}
+            onClick={() => {
+              const draft = draftBySection[activeSection.id] ?? {};
+              if (!isSectionDraftDirty(activeSection, draft)) return;
+              saveMutation.mutate({
+                section: activeSection,
+                draftSnapshot: draft,
+              });
+            }}
           >
             <SaveIcon className='size-3.5' />
             Save as In Progress
@@ -599,14 +798,24 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
               disabled={isReadonly || saveMutation.isPending || !canGoNext}
               className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
               onClick={async () => {
-                const isValid = validateCurrentSectionRequired(activeSection);
-                if (!isValid) return;
+                if (forwardNavigationLockRef.current) return;
+                forwardNavigationLockRef.current = true;
+                try {
+                  const isValid = validateCurrentSectionRequired(activeSection);
+                  if (!isValid) return;
 
-                const response = await saveMutation.mutateAsync({
-                  section: activeSection,
-                });
-                if (response.status === 'error') return;
-                setSelectedSectionId(sections[sectionIndex + 1].id);
+                  const continueDraft = draftBySection[activeSection.id] ?? {};
+                  if (isSectionDraftDirty(activeSection, continueDraft)) {
+                    const response = await saveMutation.mutateAsync({
+                      section: activeSection,
+                      draftSnapshot: continueDraft,
+                    });
+                    if (response.status === 'error') return;
+                  }
+                  setSelectedSectionId(sections[sectionIndex + 1].id);
+                } finally {
+                  forwardNavigationLockRef.current = false;
+                }
               }}
             >
               Continue
@@ -622,17 +831,10 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
                 completeMutation.isPending
               }
               className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
-              onClick={async () => {
+              onClick={() => {
                 const isValid = validateCurrentSectionRequired(activeSection);
                 if (!isValid) return;
-
-                const saveResponse = await saveMutation.mutateAsync({
-                  section: activeSection,
-                  silentSuccessToast: true,
-                });
-                if (saveResponse.status === 'error') return;
-
-                completeMutation.mutate();
+                setCompleteConfirmationOpen(true);
               }}
             >
               <CheckCircle2Icon className='size-3.5' />

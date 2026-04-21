@@ -151,7 +151,7 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
             className='inline-flex items-center gap-1.5'
           >
             <EyeIcon className='size-3.5 shrink-0' />
-            View detail
+            View Detail
           </Link>
         </Button>
 

@@ -236,8 +236,18 @@ function ComboboxField(props: ComboboxFieldProps) {
       ? (value as string[]).includes(optionValue)
       : (value as string | null) === optionValue;
 
-  const searchKeywordsFor = (option: ComboboxOption) =>
-    [option.label, option.value, ...(option.keywords ?? [])].filter(Boolean);
+  const searchKeywordsFor = (option: ComboboxOption): string[] => {
+    const raw = [option.label, option.value, ...(option.keywords ?? [])];
+    return raw
+      .map((entry) =>
+        typeof entry === 'string'
+          ? entry.trim()
+          : entry == null
+            ? ''
+            : String(entry).trim(),
+      )
+      .filter((entry) => entry.length > 0);
+  };
 
   return (
     <div className={cn('space-y-2', className)}>
