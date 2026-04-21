@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
+import EnrollmentContactedConfirmation from '@/components/admin/modules/enrollment-requests/EnrollmentContactedConfirmation';
 import EnrollmentIntakeConfirmation from '@/components/admin/modules/enrollment-requests/EnrollmentIntakeConfirmation';
 import EnrollmentRequestFilters from '@/components/admin/modules/enrollment-requests/EnrollmentRequestFilters';
 import EnrollmentRequestRowActions from '@/components/admin/modules/enrollment-requests/EnrollmentRequestRowActions';
@@ -256,6 +257,8 @@ export default function EnrollmentRequestListTable() {
   const queryClient = useQueryClient();
   const [startIntakeRequest, setStartIntakeRequest] =
     useState<EnrollmentRequestResource | null>(null);
+  const [markContactedRequest, setMarkContactedRequest] =
+    useState<EnrollmentRequestResource | null>(null);
   const [visibleColumnKeys, setVisibleColumnKeys] = useState<
     EnrollmentColumnKey[]
   >(() => {
@@ -372,6 +375,10 @@ export default function EnrollmentRequestListTable() {
     },
   });
   const updatingId = isUpdatingStatus ? (variables?.id ?? null) : null;
+  const isMarkingSelectedRequestAsContacted =
+    markContactedRequest != null &&
+    isUpdatingStatus &&
+    updatingId === markContactedRequest.id;
   const { query } = controls;
   const showSkeleton = query.isPending && !query.data;
   const errorMessage =
@@ -538,19 +545,19 @@ export default function EnrollmentRequestListTable() {
                   ) : null}
                   {showColumn('requestedProgram') ? (
                     <TableCell>
-                      <div className='flex items-start gap-3'>
+                      <div className='flex min-w-0 items-start gap-3'>
                         <ProgramThumbnail
                           thumbnailUrl={request.program?.thumbnail_url}
                         />
                         <div className='min-w-0 flex-1 space-y-1'>
-                          <p className='text-foreground text-[13px] font-semibold'>
+                          <p className='text-foreground text-[13px] font-semibold wrap-break-word'>
                             {programLabel !== '—' ? (
                               programLabel
                             ) : (
                               <TableCellEmpty label='No program linked' />
                             )}
                           </p>
-                          <p className='text-muted-foreground text-xs font-medium'>
+                          <p className='text-muted-foreground text-xs font-medium wrap-break-word'>
                             {programCode !== '—' ? (
                               programCode
                             ) : (
@@ -562,7 +569,7 @@ export default function EnrollmentRequestListTable() {
                     </TableCell>
                   ) : null}
                   {showColumn('contactPhone') ? (
-                    <TableCell>
+                    <TableCell className='align-top whitespace-nowrap'>
                       {request.phone?.trim() ? (
                         request.phone.trim()
                       ) : (
@@ -642,12 +649,7 @@ export default function EnrollmentRequestListTable() {
                       <EnrollmentRequestRowActions
                         request={request}
                         onStartIntake={() => setStartIntakeRequest(request)}
-                        onMarkContacted={() => {
-                          mutateStatus({
-                            id: request.id,
-                            payload: { status: 'contacted' },
-                          });
-                        }}
+                        onMarkContacted={() => setMarkContactedRequest(request)}
                         isStartingIntake={
                           isStartingIntake &&
                           startingIntakeRequest?.id === request.id
@@ -675,6 +677,34 @@ export default function EnrollmentRequestListTable() {
         onConfirm={() => {
           if (!startIntakeRequest) return;
           startIntake(startIntakeRequest);
+        }}
+      />
+      <EnrollmentContactedConfirmation
+        open={markContactedRequest != null}
+        isSubmitting={Boolean(isMarkingSelectedRequestAsContacted)}
+        requestReference={
+          markContactedRequest
+            ? getRequestReference(markContactedRequest)
+            : undefined
+        }
+        onOpenChange={(open) => {
+          if (!open && !isMarkingSelectedRequestAsContacted) {
+            setMarkContactedRequest(null);
+          }
+        }}
+        onConfirm={() => {
+          if (!markContactedRequest) return;
+          mutateStatus(
+            {
+              id: markContactedRequest.id,
+              payload: { status: 'contacted' },
+            },
+            {
+              onSuccess: () => {
+                setMarkContactedRequest(null);
+              },
+            },
+          );
         }}
       />
     </TableListShell>
