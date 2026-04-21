@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CheckCircle2Icon } from 'lucide-react';
+import { ClipboardPlusIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
@@ -93,9 +93,7 @@ export default function CarePlanCreateModal({
       const code = row.code?.trim() || `#${row.id}`;
       const clientName = row.client?.name?.trim() || 'Unknown client';
       const programTitle =
-        row.program?.title?.trim() ||
-        row.program?.code?.trim() ||
-        'No program';
+        row.program?.title?.trim() || row.program?.code?.trim() || 'No program';
       return {
         value: String(row.id),
         label: `${code} - ${clientName}`,
@@ -204,10 +202,8 @@ export default function CarePlanCreateModal({
             className={wizardPrimaryButtonClass}
             onClick={handleCreate}
           >
-            <CheckCircle2Icon className='size-3.5 shrink-0' />
-            {createMutation.isPending
-              ? 'Creating…'
-              : 'Create draft care plan'}
+            <ClipboardPlusIcon className='size-3.5 shrink-0' />
+            {createMutation.isPending ? 'Creating…' : 'Create draft care plan'}
           </Button>
         </DialogFooter>
       </DialogContent>

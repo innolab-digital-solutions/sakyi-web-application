@@ -87,6 +87,7 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
   const canEdit = status === 'draft';
   const canActivate = status === 'draft';
   const canCreateRevision = status === 'active' || status === 'completed' || status === 'cancelled';
+  const hasMenuAfterCopy = canEdit || canActivate || canCreateRevision;
 
   const { mutate: activatePlan, isPending: activatePending } = useMutation({
     mutationFn: async () => {
@@ -179,37 +180,39 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
               <ClipboardCopyIcon className='size-3.5 shrink-0' />
               Copy reference
             </DropdownMenuItem>
-            {canEdit ? (
-              <DropdownMenuItem asChild>
-                <Link
-                  className='flex items-center gap-2 text-[13px]! font-medium'
-                  href={ROUTES.ADMIN.MODULES.CARE_PLANS.BUILDER(String(row.id))}
-                >
-                  <FilePenLineIcon className='size-3.5 shrink-0' />
-                  Edit care plan
-                </Link>
-              </DropdownMenuItem>
-            ) : null}
-            {canActivate ? (
-              <DropdownMenuItem
-                className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-                onClick={() => setActivateOpen(true)}
-              >
-                <CheckCircle2Icon className='size-3.5 shrink-0' />
-                Activate care plan
-              </DropdownMenuItem>
-            ) : null}
-            {canCreateRevision ? (
+            {hasMenuAfterCopy ? (
               <>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  disabled={revisionPending}
-                  className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-                  onClick={() => createRevision()}
-                >
-                  <GitBranchPlusIcon className='size-3.5 shrink-0' />
-                  {revisionPending ? 'Creating revision…' : 'Create revision'}
-                </DropdownMenuItem>
+                {canEdit ? (
+                  <DropdownMenuItem asChild>
+                    <Link
+                      className='flex items-center gap-2 text-[13px]! font-medium'
+                      href={ROUTES.ADMIN.MODULES.CARE_PLANS.BUILDER(String(row.id))}
+                    >
+                      <FilePenLineIcon className='size-3.5 shrink-0' />
+                      Edit care plan
+                    </Link>
+                  </DropdownMenuItem>
+                ) : null}
+                {canActivate ? (
+                  <DropdownMenuItem
+                    className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                    onClick={() => setActivateOpen(true)}
+                  >
+                    <CheckCircle2Icon className='size-3.5 shrink-0' />
+                    Activate care plan
+                  </DropdownMenuItem>
+                ) : null}
+                {canCreateRevision ? (
+                  <DropdownMenuItem
+                    disabled={revisionPending}
+                    className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                    onClick={() => createRevision()}
+                  >
+                    <GitBranchPlusIcon className='size-3.5 shrink-0' />
+                    {revisionPending ? 'Creating revision…' : 'Create revision'}
+                  </DropdownMenuItem>
+                ) : null}
               </>
             ) : null}
           </DropdownMenuContent>
