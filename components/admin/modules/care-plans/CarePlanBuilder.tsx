@@ -334,7 +334,9 @@ function toSectionSavePayload(
     }
 
     const resolvedTargetUnitId =
-      toNullableInteger(item.target_unit) ?? resolveUnitId?.(item.target_unit) ?? null;
+      toNullableInteger(item.target_unit) ??
+      resolveUnitId?.(item.target_unit) ??
+      null;
 
     return {
       title: item.title,
@@ -1063,7 +1065,6 @@ export default function CarePlanBuilder({
       setSectionSaveError(undefined);
       toast.success(
         `The ${SECTIONS.find((x) => x.key === activeSection)?.label?.toLowerCase() ?? ''} section has been saved successfully.`,
-   
       );
       invalidateBuilder();
     },
@@ -1230,7 +1231,11 @@ export default function CarePlanBuilder({
     if (!skipSave) {
       await sectionSaveMutation.mutateAsync({
         dayId,
-        items: toSectionSavePayload(normalizedLocalItems, activeSection, resolveUnitId),
+        items: toSectionSavePayload(
+          normalizedLocalItems,
+          activeSection,
+          resolveUnitId,
+        ),
       });
     }
     try {
@@ -1992,7 +1997,9 @@ export default function CarePlanBuilder({
                                       searchPlaceholder='Search unit…'
                                       emptyMessage='No units found.'
                                       options={unitOptions}
-                                      value={resolveUnitComboboxValue(item.target_unit)}
+                                      value={resolveUnitComboboxValue(
+                                        item.target_unit,
+                                      )}
                                       onChange={(value) =>
                                         setItemField(
                                           index,

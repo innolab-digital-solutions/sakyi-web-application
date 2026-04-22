@@ -21,12 +21,21 @@ Typical examples:
 Request body:
 
 ```json
-{}
+{
+  "cancellation_note": "Reason for cancelling this plan"
+}
 ```
+
+Validation:
+
+- `cancellation_note` is required
+- must be a string
+- maximum 2000 characters
 
 Response:
 
 - Returns the updated care plan resource with `status = "cancelled"`.
+- Returns persisted `cancellation_note` for audit/history display.
 
 ## Status transition rules
 
@@ -69,6 +78,7 @@ Hide/disable cancel action when:
 ## Frontend UX recommendations
 
 - Show confirmation modal before cancel.
+- Require cancellation note text input in the confirmation modal.
 - Use strong warning text for active plans:
   - "This will deactivate the current active plan for this enrollment."
 - After successful cancel:

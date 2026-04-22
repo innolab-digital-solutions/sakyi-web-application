@@ -120,6 +120,7 @@ export const ADMIN_ENDPOINTS = {
         `${BASE}/care-plans/${id}/days/${dayId}/sections/${section}/items`,
       VALIDATE: (id: string) => `${BASE}/care-plans/${id}/validate`,
       ACTIVATE: (id: string) => `${BASE}/care-plans/${id}/activate`,
+      CANCEL: (id: string) => `${BASE}/care-plans/${id}/cancel`,
       REVISION: (id: string) => `${BASE}/care-plans/${id}/revision`,
       DAY_NOTES_UPDATE: (id: string, dayId: string) =>
         `${BASE}/care-plans/${id}/days/${dayId}/notes`,

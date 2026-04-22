@@ -534,7 +534,7 @@ export default function EnrollmentRecordRowActions({
   const handleConfirmCancelEnrollment = () => {
     const trimmed = cancellationNote.trim();
     if (!trimmed) {
-      setCancellationNoteError('A cancellation note is required.');
+      setCancellationNoteError('The cancellation note field is required.');
       return;
     }
     setCancellationNoteError(undefined);

@@ -3,28 +3,21 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   CheckCircle2Icon,
-  CircleQuestionMark,
   ClipboardCopyIcon,
   EyeIcon,
   FilePenLineIcon,
   GitBranchPlusIcon,
   MoreHorizontalIcon,
+  XCircleIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import CarePlanActivateConfirmation from '@/components/admin/modules/care-plans/CarePlanActivateConfirmation';
+import CarePlanCancelConfirmation from '@/components/admin/modules/care-plans/CarePlanCancelConfirmation';
+import CarePlanRevisionConfirmation from '@/components/admin/modules/care-plans/CarePlanRevisionConfirmation';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -38,6 +31,7 @@ import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
 import {
   postCarePlanActivate,
+  postCarePlanCancel,
   postCarePlanRevision,
 } from '@/domains/care-plans/services';
 import type {
@@ -85,6 +79,12 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [activateOpen, setActivateOpen] = React.useState(false);
+  const [revisionOpen, setRevisionOpen] = React.useState(false);
+  const [cancelOpen, setCancelOpen] = React.useState(false);
+  const [cancellationNote, setCancellationNote] = React.useState('');
+  const [cancelNoteError, setCancelNoteError] = React.useState<
+    string | undefined
+  >();
   const status = normalizeStatus(row.status);
   const reference = getReference(row);
 
@@ -94,9 +94,11 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
 
   const canEdit = status === 'draft';
   const canActivate = status === 'draft';
+  const canCancel = status === 'draft' || status === 'active';
   const canCreateRevision =
     status === 'active' || status === 'completed' || status === 'cancelled';
-  const hasMenuAfterCopy = canEdit || canActivate || canCreateRevision;
+  const hasMenuAfterCopy =
+    canEdit || canActivate || canCreateRevision || canCancel;
 
   const { mutate: activatePlan, isPending: activatePending } = useMutation({
     mutationFn: async () => {
@@ -137,6 +139,59 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
       toast.error(error.message ?? 'Could not create revision.');
     },
   });
+
+  const { mutate: cancelPlan, isPending: cancelPending } = useMutation({
+    mutationFn: async () => {
+      const note = cancellationNote.trim();
+      if (!note) {
+        throw new Error('Please provide a cancellation note.');
+      }
+      const response = await postCarePlanCancel(row.id, {
+        cancellation_note: note,
+      });
+      if (response.status === 'error') {
+        const fieldMessage = response.errors?.cancellation_note;
+        if (typeof fieldMessage === 'string' && fieldMessage.trim()) {
+          throw new Error(fieldMessage.trim());
+        }
+        if (Array.isArray(fieldMessage)) {
+          const first = fieldMessage.find(
+            (entry) => typeof entry === 'string' && entry.trim(),
+          );
+          if (typeof first === 'string') throw new Error(first.trim());
+        }
+        throw new Error(response.message ?? 'Could not cancel care plan.');
+      }
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success('The care plan has been cancelled successfully.');
+      setCancelOpen(false);
+      setCancellationNote('');
+      setCancelNoteError(undefined);
+      invalidateList();
+    },
+    onError: (error: Error) => {
+      const msg = error.message ?? 'Could not cancel care plan.';
+      if (
+        msg.toLowerCase().includes('cancellation note') ||
+        msg.toLowerCase().includes('cancellation_note')
+      ) {
+        setCancelNoteError(msg);
+        return;
+      }
+      toast.error(msg);
+    },
+  });
+
+  const handleConfirmCancel = () => {
+    const note = cancellationNote.trim();
+    if (!note) {
+      setCancelNoteError('The cancellation note field is required.');
+      return;
+    }
+    cancelPlan();
+  };
 
   const handleCopyReference = () => {
     void (async () => {
@@ -220,10 +275,22 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
                   <DropdownMenuItem
                     disabled={revisionPending}
                     className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-                    onClick={() => createRevision()}
+                    onClick={() => setRevisionOpen(true)}
                   >
                     <GitBranchPlusIcon className='size-3.5 shrink-0' />
                     {revisionPending ? 'Creating revision…' : 'Create revision'}
+                  </DropdownMenuItem>
+                ) : null}
+                {canCancel ? (
+                  <DropdownMenuItem
+                    className='text-destructive focus:text-destructive flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                    onClick={() => {
+                      setCancelOpen(true);
+                      setCancelNoteError(undefined);
+                    }}
+                  >
+                    <XCircleIcon className='size-3.5 shrink-0 text-destructive' />
+                    Cancel care plan
                   </DropdownMenuItem>
                 ) : null}
               </>
@@ -232,49 +299,42 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
         </DropdownMenu>
       </div>
 
-      <AlertDialog open={activateOpen} onOpenChange={setActivateOpen}>
-        <AlertDialogContent className='gap-0 overflow-hidden p-0 sm:max-w-md'>
-          <AlertDialogHeader className='border-border border-b p-6'>
-            <div className='flex items-start gap-3'>
-              <div className='bg-primary/10 border-primary/20 text-primary mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-md border'>
-                <CircleQuestionMark className='size-5' aria-hidden />
-              </div>
-              <div className='space-y-1.5'>
-                <AlertDialogTitle className='text-foreground/90 text-sm font-bold capitalize'>
-                  Activate care plan?
-                </AlertDialogTitle>
-                <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
-                  This moves{' '}
-                  <span className='text-primary text-xs font-semibold'>
-                    {reference}
-                  </span>{' '}
-                  to active. After activation, major changes should be done
-                  through revision mode.
-                </AlertDialogDescription>
-              </div>
-            </div>
-          </AlertDialogHeader>
-          <AlertDialogFooter className='bg-muted/30 border-border gap-2 border-t p-4 sm:justify-end'>
-            <AlertDialogCancel
-              disabled={activatePending}
-              className='text-foreground bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
-            >
-              Not now
-            </AlertDialogCancel>
-            <AlertDialogAction
-              disabled={activatePending}
-              className='h-10 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
-              onClick={(event) => {
-                event.preventDefault();
-                activatePlan();
-              }}
-            >
-              <CheckCircle2Icon className='size-3.5' aria-hidden />
-              {activatePending ? 'Activating…' : 'Activate'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <CarePlanActivateConfirmation
+        open={activateOpen}
+        isSubmitting={activatePending}
+        carePlanReference={reference}
+        onOpenChange={setActivateOpen}
+        onConfirm={() => activatePlan()}
+      />
+
+      <CarePlanRevisionConfirmation
+        open={revisionOpen}
+        isSubmitting={revisionPending}
+        carePlanReference={reference}
+        onOpenChange={setRevisionOpen}
+        onConfirm={() => createRevision()}
+      />
+
+      <CarePlanCancelConfirmation
+        open={cancelOpen}
+        onOpenChange={(open) => {
+          setCancelOpen(open);
+          if (!open) {
+            setCancelNoteError(undefined);
+            setCancellationNote('');
+          }
+        }}
+        isSubmitting={cancelPending}
+        carePlanReference={reference}
+        isActivePlan={status === 'active'}
+        cancellationNote={cancellationNote}
+        onCancellationNoteChange={(value) => {
+          setCancellationNote(value);
+          if (cancelNoteError) setCancelNoteError(undefined);
+        }}
+        noteError={cancelNoteError}
+        onConfirmCancel={handleConfirmCancel}
+      />
     </>
   );
 }

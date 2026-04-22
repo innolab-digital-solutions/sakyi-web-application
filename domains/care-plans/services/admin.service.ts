@@ -29,6 +29,10 @@ export type UpdateCarePlanDayNotesPayload = {
   general_notes: string | null;
 };
 
+export type CancelCarePlanPayload = {
+  cancellation_note: string;
+};
+
 export async function postCarePlanActivate(
   id: number,
 ): Promise<ApiResponse<AdminCarePlan>> {
@@ -44,6 +48,16 @@ export async function postCarePlanRevision(
   return http.post<AdminCarePlan>(
     ENDPOINTS.ADMIN.MODULES.CARE_PLANS.REVISION(String(id)),
     {},
+  );
+}
+
+export async function postCarePlanCancel(
+  id: number,
+  body: CancelCarePlanPayload,
+): Promise<ApiResponse<AdminCarePlan>> {
+  return http.post<AdminCarePlan>(
+    ENDPOINTS.ADMIN.MODULES.CARE_PLANS.CANCEL(String(id)),
+    body,
   );
 }
 

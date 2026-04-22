@@ -15,6 +15,7 @@ export interface AdminCarePlan {
   status: string;
   starts_on: string | null;
   ends_on: string | null;
+  cancellation_note?: string | null;
   counts?: {
     days?: number | null;
   };

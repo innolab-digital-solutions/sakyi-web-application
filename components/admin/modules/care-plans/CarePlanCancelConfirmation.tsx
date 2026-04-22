@@ -14,29 +14,29 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 
-export type IntakeCancelConfirmationProps = {
+export type CarePlanCancelConfirmationProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isSubmitting: boolean;
-  /** Intake reference (e.g. code or `#id`) shown in the description, like enrollment cancel. */
-  intakeReference?: string;
+  carePlanReference?: string;
+  isActivePlan?: boolean;
   cancellationNote: string;
   onCancellationNoteChange: (value: string) => void;
   noteError?: string;
   onConfirmCancel: () => void;
 };
 
-/** Confirmation dialog for cancelling an in-progress intake assessment interview. */
-export default function IntakeCancelConfirmation({
+export default function CarePlanCancelConfirmation({
   open,
   onOpenChange,
   isSubmitting,
-  intakeReference,
+  carePlanReference,
+  isActivePlan = false,
   cancellationNote,
   onCancellationNoteChange,
   noteError,
   onConfirmCancel,
-}: IntakeCancelConfirmationProps) {
+}: CarePlanCancelConfirmationProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className='gap-0 overflow-hidden p-0 sm:max-w-md'>
@@ -47,18 +47,19 @@ export default function IntakeCancelConfirmation({
             </div>
             <div className='space-y-1.5'>
               <AlertDialogTitle className='text-foreground/90 text-sm font-bold capitalize'>
-                Cancel this intake assessment?
+                Cancel care plan?
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
-                Cancelling will immediately stop this intake assessment
-                interview for{' '}
+                This will cancel{' '}
                 <span className='text-destructive text-xs font-semibold'>
-                  {intakeReference?.trim() || 'this intake'}
-                </span>{' '}
-                and change the status of both the intake and the associated
-                enrollment request to “cancelled.” Please provide a brief note
-                to ensure your team has clear context for this action on the
-                intake record.
+                  {carePlanReference?.trim() || 'this care plan'}
+                </span>
+                .{' '}
+                {isActivePlan
+                  ? 'This will deactivate the current active plan for this enrollment.'
+                  : 'This draft care plan will no longer be used.'}{' '}
+                Please add a brief note so your team has clear context on the
+                care plan record.
               </AlertDialogDescription>
             </div>
           </div>
@@ -75,6 +76,11 @@ export default function IntakeCancelConfirmation({
             placeholder='Please provide a reason for cancellation'
             className='text-[13px]!'
           />
+          <div className='flex items-center justify-end'>
+            <p className='text-muted-foreground text-[11px] font-medium'>
+              {cancellationNote.length}/2000
+            </p>
+          </div>
         </div>
 
         <AlertDialogFooter className='bg-muted/30 border-border gap-2 border-t p-4 sm:justify-end'>
@@ -82,7 +88,7 @@ export default function IntakeCancelConfirmation({
             disabled={isSubmitting}
             className='text-foreground bg-background hover:bg-muted h-10 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
           >
-            Continue Interview
+            Keep plan
           </AlertDialogCancel>
           <Button
             type='button'
@@ -91,8 +97,8 @@ export default function IntakeCancelConfirmation({
             className='border-destructive/45 h-10 cursor-pointer gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
             onClick={onConfirmCancel}
           >
-            <Ban className='size-3.5' />
-            {isSubmitting ? 'Cancelling…' : 'Cancel Intake'}
+            <Ban className='size-3.5' aria-hidden />
+            {isSubmitting ? 'Cancelling…' : 'Cancel care plan'}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

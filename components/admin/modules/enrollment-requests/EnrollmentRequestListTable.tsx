@@ -331,11 +331,11 @@ export default function EnrollmentRequestListTable() {
     },
     onSuccess: (_response, variables) => {
       if (variables.payload.status === 'contacted') {
-        toast.success('Enrollment request marked as contacted successfully.');
+        toast.success('The enrollment request has been marked as contacted successfully.');
       } else if (variables.payload.status === 'cancelled') {
-        toast.success('Enrollment request cancelled successfully.');
+        toast.success('The enrollment request has been cancelled successfully.');
       } else {
-        toast.success('Enrollment request status updated successfully.');
+        toast.success('The enrollment request status has been updated successfully.');
       }
 
       queryClient.invalidateQueries({
@@ -752,7 +752,7 @@ export default function EnrollmentRequestListTable() {
           if (!cancelRequest) return;
           const note = cancelRequestNote.trim();
           if (!note) {
-            setCancelRequestNoteError('Cancellation note is required.');
+            setCancelRequestNoteError('The cancellation note field is required.');
             return;
           }
           mutateStatus(

@@ -13,6 +13,7 @@ export {
   patchCarePlanBasics,
   patchCarePlanDayNotes,
   postCarePlanActivate,
+  postCarePlanCancel,
   postCarePlanGenerateDays,
   postCarePlanRevision,
   postCarePlanValidate,
