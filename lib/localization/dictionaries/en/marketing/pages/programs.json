@@ -16,7 +16,9 @@
       "black": "Explore Our",
       "gradient": "Programs"
     },
-    "description": "Discover our carefully curated wellness programs, supported by the Sa Kyi team to guide safe, sustainable progress toward your personal health and lifestyle goals."
+    "description": "Discover our carefully curated wellness programs, supported by the Sa Kyi team to guide safe, sustainable progress toward your personal health and lifestyle goals.",
+    "show-all": "Show All :count Programs",
+    "show-less": "Show Less"
   },
   "program-card": {
     "cta": "Learn More"

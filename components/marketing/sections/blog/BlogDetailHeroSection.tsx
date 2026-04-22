@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
+import { useLanguage } from '@/context/LanguageContext';
 import type { BlogPost } from '@/domains/blogs/types';
 
 type BlogDetailHeroSectionProps = {
@@ -12,6 +13,7 @@ type BlogDetailHeroSectionProps = {
 };
 
 const BlogDetailHeroSection = ({ post }: BlogDetailHeroSectionProps) => {
+  const { language } = useLanguage();
   const hasThumbnail = post.thumbnail_url && post.thumbnail_url.trim() !== '';
   const [imageError, setImageError] = useState(false);
   const thumbnailSource =
@@ -64,7 +66,7 @@ const BlogDetailHeroSection = ({ post }: BlogDetailHeroSectionProps) => {
         <div className='mb-8' data-aos='fade-up' data-aos-delay='200'>
           {/* Title */}
           <h1
-            className='mb-6 text-3xl leading-tight font-bold text-slate-900 sm:text-4xl lg:text-5xl'
+            className={`mb-6 text-3xl font-bold text-slate-900 sm:text-4xl lg:text-5xl ${language === 'my' ? 'leading-relaxed sm:leading-relaxed lg:leading-relaxed' : 'leading-tight sm:leading-tight lg:leading-tight'}`}
             style={{ fontFamily: 'Poppins, sans-serif' }}
           >
             {post.title}
@@ -86,7 +88,7 @@ const BlogDetailHeroSection = ({ post }: BlogDetailHeroSectionProps) => {
               </div>
             )}
 
-            {post.timestamps.published_at && (
+            {post.timestamps?.published_at && (
               <div className='flex items-center gap-2'>
                 <Calendar className='h-4 w-4' />
                 <span style={{ fontFamily: 'Inter, sans-serif' }}>

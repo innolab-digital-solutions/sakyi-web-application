@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
+import { useLanguage } from '@/context/LanguageContext';
 import type { BlogPost } from '@/domains/blogs/types';
 
 type BlogCardProps = {
@@ -14,6 +15,7 @@ type BlogCardProps = {
 };
 
 const BlogCard = ({ post, index = 0, className = '' }: BlogCardProps) => {
+  const { language } = useLanguage();
   const hasThumbnail = post.thumbnail_url && post.thumbnail_url.trim() !== '';
   const [imageError, setImageError] = useState(false);
   const thumbnailSource =
@@ -63,7 +65,7 @@ const BlogCard = ({ post, index = 0, className = '' }: BlogCardProps) => {
               {post.category.name}
             </span>
           )}
-          {post.timestamps.published_at && (
+          {post.timestamps?.published_at && (
             <span
               className='text-sm text-slate-500'
               style={{ fontFamily: 'Inter, sans-serif' }}
@@ -82,7 +84,7 @@ const BlogCard = ({ post, index = 0, className = '' }: BlogCardProps) => {
 
         {/* Title */}
         <h3
-          className='text-2xl leading-tight font-bold text-slate-900'
+          className={`text-2xl font-bold text-slate-900 ${language === 'my' ? 'leading-relaxed' : 'leading-tight'}`}
           style={{ fontFamily: 'Poppins, sans-serif' }}
         >
           {post.title}

@@ -14,7 +14,11 @@ export type Program = {
   features: string[];
   ideals: string[];
   expectations: string[];
-  structures: string[];
+  structures: {
+    period: string;
+    title: string;
+    description: string;
+  }[];
   thumbnail_url: string;
   duration: string;
   price: {

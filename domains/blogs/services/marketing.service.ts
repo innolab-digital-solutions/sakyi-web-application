@@ -16,7 +16,7 @@ export const getBlogPosts = async (
   });
 
   return http.get<BlogPost[]>(
-    ENDPOINTS.MARKETING.BLOGS + `?${params.toString()}`,
+    ENDPOINTS.MARKETING.BLOGS.LIST + `?${params.toString()}`,
   );
 };
 
@@ -25,6 +25,6 @@ export const getBlogPostBySlug = async (
   language: SupportedLanguage,
 ): Promise<ApiResponse<BlogPost>> => {
   return http.get<BlogPost>(
-    ENDPOINTS.MARKETING.BLOGS + `/${slug}?locale=${language}`,
+    ENDPOINTS.MARKETING.BLOGS.DETAIL(slug) + `?locale=${language}`,
   );
 };

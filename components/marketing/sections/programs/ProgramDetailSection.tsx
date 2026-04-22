@@ -84,7 +84,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                 ) : (
                   <>
                     <h1
-                      className='text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl'
+                      className={`text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl ${language === 'my' ? 'leading-relaxed sm:leading-relaxed lg:leading-relaxed' : 'leading-tight sm:leading-tight lg:leading-tight'}`}
                       style={{ fontFamily: 'Poppins, sans-serif' }}
                     >
                       {program?.title}
@@ -377,12 +377,30 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                     <div className='flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-linear-to-r from-[#35bec5] to-[#0c96c4] font-bold text-white transition-all duration-300 group-hover:scale-105'>
                       {index + 1}
                     </div>
-                    <p
-                      className='text-xl font-semibold text-slate-900'
-                      style={{ fontFamily: 'Poppins, sans-serif' }}
-                    >
-                      {Array.isArray(phase) ? phase.join(', ') : phase}
-                    </p>
+                    <div className='space-y-1'>
+                      {phase.period && (
+                        <p
+                          className='text-sm font-medium text-[#35bec5]'
+                          style={{ fontFamily: 'Inter, sans-serif' }}
+                        >
+                          {phase.period}
+                        </p>
+                      )}
+                      <p
+                        className='text-xl font-semibold text-slate-900'
+                        style={{ fontFamily: 'Poppins, sans-serif' }}
+                      >
+                        {phase.title}
+                      </p>
+                      {phase.description && (
+                        <p
+                          className='text-slate-600'
+                          style={{ fontFamily: 'Inter, sans-serif' }}
+                        >
+                          {phase.description}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 ))}
           </div>
