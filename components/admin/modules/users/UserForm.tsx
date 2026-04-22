@@ -4,7 +4,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 
-import SelectField from '@/components/shared/form/SelectField';
 import TextField from '@/components/shared/form/TextField';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -14,15 +13,6 @@ import { UserCreateSchema, UserUpdateSchema } from '@/domains/user/schemas';
 import { getAdminUserById } from '@/domains/user/services';
 import type { User } from '@/domains/user/types';
 import { useForm } from '@/lib/form';
-
-const STATUS_OPTIONS = [
-  { value: 'pending', label: 'Pending' },
-  { value: 'active', label: 'Active' },
-  { value: 'suspended', label: 'Suspended' },
-  { value: 'archived', label: 'Archived' },
-];
-
-type Status = 'pending' | 'active' | 'suspended' | 'archived';
 
 type CreateProps = { mode: 'create'; onSuccess?: () => void };
 type EditProps = { mode: 'edit'; userId: number; onSuccess?: () => void };
@@ -51,7 +41,6 @@ function UserFormFields({
         name: user.name ?? '',
         email: user.email ?? '',
         is_admin: isAdminRole(user),
-        status: (user.status ?? 'pending') as Status,
         password: '',
         password_confirmation: '',
       };
@@ -62,7 +51,6 @@ function UserFormFields({
       password: '',
       password_confirmation: '',
       is_admin: false,
-      status: 'pending' as Status,
     };
   }, [isEdit, user]);
 
@@ -76,7 +64,6 @@ function UserFormFields({
       name: user.name ?? '',
       email: user.email ?? '',
       is_admin: isAdminRole(user),
-      status: (user.status ?? 'pending') as Status,
       password: '',
       password_confirmation: '',
     });
@@ -192,18 +179,6 @@ function UserFormFields({
             className='cursor-pointer'
           />
         </div>
-
-        <SelectField
-          label='Status'
-          required
-          placeholder='Select status…'
-          options={STATUS_OPTIONS}
-          value={String(form.fields.status ?? 'pending')}
-          onChange={(val) =>
-            form.setData('status', (val ?? 'pending') as Status)
-          }
-          error={form.errors.status}
-        />
 
         <div className='flex flex-nowrap items-center justify-end gap-2'>
           <Button
