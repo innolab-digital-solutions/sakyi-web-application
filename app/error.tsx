@@ -1,10 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { reportClientError } from '@/lib/sentry/client';
 
 type AppErrorProps = {
   error: Error & { digest?: string };
@@ -12,10 +10,6 @@ type AppErrorProps = {
 };
 
 export default function AppError({ error, reset }: AppErrorProps) {
-  useEffect(() => {
-    reportClientError(error, { digest: error.digest, segment: 'app' });
-  }, [error]);
-
   return (
     <div className='bg-background flex min-h-[50vh] flex-col items-center justify-center gap-6 px-4 py-16'>
       <div className='max-w-md space-y-2 text-center'>

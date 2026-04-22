@@ -1,11 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
-
-import { reportClientError } from '@/lib/sentry/client';
-
 type GlobalErrorProps = {
-  error: Error & { digest?: string };
   reset: () => void;
 };
 
@@ -13,11 +8,7 @@ type GlobalErrorProps = {
  * Catches errors in the root layout. Must include `html` and `body`.
  * @see https://nextjs.org/docs/app/api-reference/file-conventions/error
  */
-export default function GlobalError({ error, reset }: GlobalErrorProps) {
-  useEffect(() => {
-    reportClientError(error, { digest: error.digest, segment: 'global' });
-  }, [error]);
-
+export default function GlobalError({ reset }: GlobalErrorProps) {
   return (
     <html lang='en'>
       <body className='font-sans antialiased'>

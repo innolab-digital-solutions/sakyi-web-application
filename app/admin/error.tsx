@@ -1,22 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/config/routes';
-import { reportClientError } from '@/lib/sentry/client';
 
 type AdminErrorProps = {
-  error: Error & { digest?: string };
   reset: () => void;
 };
 
-export default function AdminError({ error, reset }: AdminErrorProps) {
-  useEffect(() => {
-    reportClientError(error, { digest: error.digest, segment: 'admin' });
-  }, [error]);
-
+export default function AdminError({ reset }: AdminErrorProps) {
   return (
     <div className='flex min-h-[40vh] flex-col items-center justify-center gap-6 px-4 py-12'>
       <div className='max-w-md space-y-2 text-center'>
