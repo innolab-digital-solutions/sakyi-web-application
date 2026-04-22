@@ -112,7 +112,7 @@ export default function CarePlanFinalizeConfirmation({
           ) : validationResult.is_valid ? (
             <div className='rounded-md border border-emerald-200 bg-emerald-50 p-4'>
               <div className='flex items-start gap-2.5'>
-                <div className='bg-white/80 text-emerald-700 inline-flex size-7 shrink-0 items-center justify-center rounded-md border border-emerald-200'>
+                <div className='inline-flex size-7 shrink-0 items-center justify-center rounded-md border border-emerald-200 bg-white/80 text-emerald-700'>
                   <CheckCircle2Icon className='size-3.5' aria-hidden />
                 </div>
                 <div className='space-y-1'>
@@ -130,7 +130,7 @@ export default function CarePlanFinalizeConfirmation({
             <div className='space-y-3'>
               <div className='rounded-md border border-amber-200 bg-amber-50 p-4'>
                 <div className='flex items-start gap-2.5'>
-                  <div className='bg-white/80 text-amber-700 inline-flex size-7 shrink-0 items-center justify-center rounded-md border border-amber-200'>
+                  <div className='inline-flex size-7 shrink-0 items-center justify-center rounded-md border border-amber-200 bg-white/80 text-amber-700'>
                     <ShieldAlertIcon className='size-3.5' aria-hidden />
                   </div>
                   <div className='space-y-1'>
@@ -151,26 +151,25 @@ export default function CarePlanFinalizeConfirmation({
                 ))}
               </ul>
 
-              <div className="px-5">
-
-              {hiddenIssueCount > 0 ? (
-                <button
-                  type='button'
-                  className='text-primary hover:text-primary/80 text-xs font-semibold underline-offset-2 hover:underline'
-                  onClick={() => setShowAllIssues(true)}
-                >
-                  Show {hiddenIssueCount} more reminder
-                  {hiddenIssueCount === 1 ? '' : 's'}
-                </button>
-              ) : validationResult.issues.length > 3 ? (
-                <button
-                  type='button'
-                  className='text-primary hover:text-primary/80 text-xs font-semibold underline-offset-2 hover:underline'
-                  onClick={() => setShowAllIssues(false)}
-                >
-                  Show fewer reminders
-                </button>
-              ) : null}
+              <div className='px-5'>
+                {hiddenIssueCount > 0 ? (
+                  <button
+                    type='button'
+                    className='text-primary hover:text-primary/80 text-xs font-semibold underline-offset-2 hover:underline'
+                    onClick={() => setShowAllIssues(true)}
+                  >
+                    Show {hiddenIssueCount} more reminder
+                    {hiddenIssueCount === 1 ? '' : 's'}
+                  </button>
+                ) : validationResult.issues.length > 3 ? (
+                  <button
+                    type='button'
+                    className='text-primary hover:text-primary/80 text-xs font-semibold underline-offset-2 hover:underline'
+                    onClick={() => setShowAllIssues(false)}
+                  >
+                    Show fewer reminders
+                  </button>
+                ) : null}
               </div>
             </div>
           )}

@@ -56,9 +56,9 @@ export default function CarePlanDayNoteModal({
               Day Note for Client
             </DialogTitle>
             <DialogDescription className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
-              Add optional guidance for <span className='font-semibold'>{dayLabel}</span>.
-              This note helps the client understand day-level context beyond
-              section tasks.
+              Add optional guidance for{' '}
+              <span className='font-semibold'>{dayLabel}</span>. This note helps
+              the client understand day-level context beyond section tasks.
             </DialogDescription>
           </DialogHeader>
 

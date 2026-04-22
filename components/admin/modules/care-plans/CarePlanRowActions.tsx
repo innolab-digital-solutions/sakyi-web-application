@@ -289,7 +289,7 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
                       setCancelNoteError(undefined);
                     }}
                   >
-                    <XCircleIcon className='size-3.5 shrink-0 text-destructive' />
+                    <XCircleIcon className='text-destructive size-3.5 shrink-0' />
                     Cancel care plan
                   </DropdownMenuItem>
                 ) : null}
