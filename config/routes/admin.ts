@@ -98,5 +98,10 @@ export const ADMIN_ROUTES = {
       WORKSPACE: (id: string) => `${BASE}/care-plans/${id}/workspace`,
       DETAIL: (id: string) => `${BASE}/care-plans/${id}`,
     },
+    USERS: {
+      LIST: `${BASE}/users`,
+      CREATE: `${BASE}/users/create`,
+      EDIT: (id: string) => `${BASE}/users/${id}/edit`,
+    },
   },
 } as const;

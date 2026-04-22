@@ -124,6 +124,12 @@ export const ADMIN_ENDPOINTS = {
       REVISION: (id: string) => `${BASE}/care-plans/${id}/revision`,
       DAY_NOTES_UPDATE: (id: string, dayId: string) =>
         `${BASE}/care-plans/${id}/days/${dayId}/notes`,
+    USERS: {
+      LIST: `${BASE}/users`,
+      CREATE: `${BASE}/users`,
+      DETAIL: (id: string) => `${BASE}/users/${id}`,
+      UPDATE: (id: string) => `${BASE}/users/${id}`,
+      DELETE: (id: string) => `${BASE}/users/${id}`,
     },
     INTAKE_ASSESSMENTS: {
       TEMPLATE: (version: number) => `${BASE}/onboarding/templates/${version}`,

@@ -39,7 +39,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
   {
     name: 'User Accounts',
     icon: UserCog,
-    path: '#',
+    path: ADMIN_ROUTES.MODULES.USERS.LIST,
     subitems: [],
   },
   {
