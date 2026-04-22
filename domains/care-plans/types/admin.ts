@@ -55,10 +55,11 @@ export type CarePlanSectionItem = {
   notes?: string | null;
   target_value?: number | string | null;
   target_unit?: string | null;
+  target_unit_id?: number | string | null;
   movement_exercise_id?: number | string | null;
   exercise_id?: number | string | null;
   exercises?: Array<{
-    movement_exercise_id: number | string;
+    movement_exercise_id: number | string | null;
     sets?: number | string | null;
     reps?: number | string | null;
     rest_seconds?: number | string | null;

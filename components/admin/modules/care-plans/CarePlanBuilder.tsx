@@ -10,17 +10,22 @@ import {
   CheckCircle2Icon,
   ChevronRightIcon,
   DumbbellIcon,
+  FileCheck2Icon,
+  FilePlus2Icon,
   FootprintsIcon,
   HeartPulseIcon,
+  PencilLineIcon,
   PlusIcon,
   RefreshCwIcon,
   Trash2Icon,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { type ComponentType } from 'react';
 import { toast } from 'sonner';
 
-import CarePlanCompleteConfirmation from '@/components/admin/modules/care-plans/CarePlanCompleteConfirmation';
+import CarePlanDayNoteModal from '@/components/admin/modules/care-plans/CarePlanDayNoteModal';
+import CarePlanFinalizeConfirmation from '@/components/admin/modules/care-plans/CarePlanFinalizeConfirmation';
 import CarePlanGenerateDaysModal from '@/components/admin/modules/care-plans/CarePlanGenerateDaysModal';
 import ComboboxField, {
   type ComboboxOption,
@@ -33,6 +38,7 @@ import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
 import { ROUTES } from '@/config/routes';
 import {
   getCarePlanBuilderById,
+  patchCarePlanDayNotes,
   postCarePlanGenerateDays,
   postCarePlanRevision,
   postCarePlanValidate,
@@ -133,7 +139,13 @@ function toEditableSectionItems(
       typeof item.target_value === 'string'
         ? item.target_value
         : '',
-    target_unit: typeof item.target_unit === 'string' ? item.target_unit : '',
+    target_unit:
+      typeof item.target_unit === 'string'
+        ? item.target_unit
+        : typeof item.target_unit_id === 'number' ||
+            typeof item.target_unit_id === 'string'
+          ? String(item.target_unit_id)
+          : '',
     movement_exercise_id:
       typeof item.movement_exercise_id === 'number' ||
       typeof item.movement_exercise_id === 'string'
@@ -216,6 +228,13 @@ function normalizeValue(value: unknown): string {
   return String(value).trim();
 }
 
+function toNullableInteger(value: string): number | null {
+  const normalized = normalizeValue(value);
+  if (!normalized) return null;
+  const parsed = Number.parseInt(normalized, 10);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
 function normalizeMovementExercise(
   exercise: MovementExerciseSource | undefined,
 ): MovementExerciseInput {
@@ -289,20 +308,41 @@ function normalizeSectionItemsForSave(
 
 function toSectionSavePayload(
   items: NormalizedSectionItem[],
+  section: CarePlanSectionKey,
+  resolveUnitId?: (value: string) => number | null,
 ): CarePlanSectionItem[] {
-  return items.map((item) => ({
-    title: item.title,
-    guidance: item.guidance,
-    target_value: item.target_value,
-    target_unit: item.target_unit,
-    movement_exercise_id: item.movement_exercise_id,
-    exercises: item.exercises.map((exercise) => ({
-      movement_exercise_id: exercise.movement_exercise_id,
-      sets: exercise.sets === '' ? null : exercise.sets,
-      reps: exercise.reps === '' ? null : exercise.reps,
-      rest_seconds: exercise.rest_seconds === '' ? null : exercise.rest_seconds,
-    })),
-  }));
+  return items.map((item) => {
+    const baseItem: CarePlanSectionItem = {
+      title: item.title,
+      guidance: item.guidance,
+      target_value: item.target_value,
+      exercises: item.exercises.map((exercise) => ({
+        movement_exercise_id: toNullableInteger(exercise.movement_exercise_id),
+        sets: exercise.sets === '' ? null : exercise.sets,
+        reps: exercise.reps === '' ? null : exercise.reps,
+        rest_seconds:
+          exercise.rest_seconds === '' ? null : exercise.rest_seconds,
+      })),
+    };
+
+    if (section === 'movement') {
+      baseItem.movement_exercise_id = toNullableInteger(
+        item.movement_exercise_id,
+      );
+      baseItem.target_unit = item.target_unit;
+      return baseItem;
+    }
+
+    const resolvedTargetUnitId =
+      toNullableInteger(item.target_unit) ?? resolveUnitId?.(item.target_unit) ?? null;
+
+    return {
+      title: item.title,
+      guidance: item.guidance,
+      target_value: item.target_value,
+      target_unit_id: resolvedTargetUnitId,
+    };
+  });
 }
 
 function areNormalizedItemsEqual(
@@ -355,7 +395,36 @@ function parseCarePlanSectionItemsApiErrors(
 
   if (!errors) return { itemFields, movementRows };
 
-  for (const [key, raw] of Object.entries(errors)) {
+  const flattenValidationEntries = (
+    input: unknown,
+    prefix = '',
+  ): Array<[string, unknown]> => {
+    if (Array.isArray(input)) {
+      const isMessageArray = input.every(
+        (entry) =>
+          entry == null ||
+          typeof entry === 'string' ||
+          typeof entry === 'number' ||
+          typeof entry === 'boolean',
+      );
+      if (isMessageArray) return prefix ? [[prefix, input]] : [];
+      return input.flatMap((entry, idx) =>
+        flattenValidationEntries(
+          entry,
+          prefix ? `${prefix}.${idx}` : String(idx),
+        ),
+      );
+    }
+    if (input && typeof input === 'object') {
+      return Object.entries(input as Record<string, unknown>).flatMap(
+        ([key, value]) =>
+          flattenValidationEntries(value, prefix ? `${prefix}.${key}` : key),
+      );
+    }
+    return prefix ? [[prefix, input]] : [];
+  };
+
+  for (const [key, raw] of flattenValidationEntries(errors)) {
     const msg = firstApiValidationMessage(raw);
     if (!msg) continue;
 
@@ -419,6 +488,10 @@ function parseCarePlanSectionItemsApiErrors(
   return { itemFields, movementRows, section, itemsRoot };
 }
 
+function toLookupToken(value: unknown): string {
+  return normalizeValue(value).toLowerCase();
+}
+
 function hasCarePlanSectionItemsFieldErrors(parsed: {
   itemFields: CarePlanItemFieldErrorsState;
   movementRows: CarePlanMovementRowErrorsState;
@@ -450,10 +523,21 @@ class CarePlanSectionItemsValidationError extends Error {
   }
 }
 
+class CarePlanDayNotesValidationError extends Error {
+  readonly fieldError?: string;
+
+  constructor(message: string, fieldError?: string) {
+    super(message);
+    this.name = 'CarePlanDayNotesValidationError';
+    this.fieldError = fieldError;
+  }
+}
+
 export default function CarePlanBuilder({
   carePlanId,
   mode,
 }: CarePlanBuilderProps) {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const isDetailMode = mode === 'detail';
   const [selectedDayId, setSelectedDayId] = React.useState<number | null>(null);
@@ -473,6 +557,12 @@ export default function CarePlanBuilder({
     starts_on?: string;
     ends_on?: string;
   }>({});
+  const [dayNotesModalOpen, setDayNotesModalOpen] = React.useState(false);
+  const [dayNotesDraft, setDayNotesDraft] = React.useState('');
+  const [dayNotesSavedValue, setDayNotesSavedValue] = React.useState('');
+  const [dayNotesError, setDayNotesError] = React.useState<
+    string | undefined
+  >();
   const [sectionSaveError, setSectionSaveError] = React.useState<
     string | undefined
   >();
@@ -522,11 +612,42 @@ export default function CarePlanBuilder({
   const unitOptions = React.useMemo<ComboboxOption[]>(() => {
     const rows = unitsLookupQuery.data ?? [];
     return rows.map((row) => ({
-      value: row.abbreviation,
+      value: String(row.id),
       label: `${row.name} (${row.abbreviation})`,
       keywords: [row.name, row.abbreviation],
     }));
   }, [unitsLookupQuery.data]);
+
+  const unitIdByToken = React.useMemo(() => {
+    const map = new Map<string, number>();
+    const rows = unitsLookupQuery.data ?? [];
+    rows.forEach((row) => {
+      map.set(String(row.id), row.id);
+      map.set(toLookupToken(row.id), row.id);
+      map.set(toLookupToken(row.abbreviation), row.id);
+      map.set(toLookupToken(row.name), row.id);
+    });
+    return map;
+  }, [unitsLookupQuery.data]);
+
+  const resolveUnitId = React.useCallback(
+    (value: string): number | null => {
+      const direct = toNullableInteger(value);
+      if (direct != null) return direct;
+      return unitIdByToken.get(toLookupToken(value)) ?? null;
+    },
+    [unitIdByToken],
+  );
+
+  const resolveUnitComboboxValue = React.useCallback(
+    (value: unknown): string | null => {
+      const raw = normalizeValue(value);
+      if (!raw) return null;
+      const resolved = resolveUnitId(raw);
+      return resolved != null ? String(resolved) : null;
+    },
+    [resolveUnitId],
+  );
 
   const movementExerciseOptions = React.useMemo<ComboboxOption[]>(() => {
     const rows = movementExercisesLookupQuery.data ?? [];
@@ -580,6 +701,13 @@ export default function CarePlanBuilder({
     () => builder?.days.find((day) => day.id === selectedDayId) ?? null,
     [builder, selectedDayId],
   );
+  React.useEffect(() => {
+    const next = String(selectedDay?.general_notes ?? '');
+    setDayNotesDraft(next);
+    setDayNotesSavedValue(next);
+    setDayNotesError(undefined);
+  }, [selectedDay?.id, selectedDay?.general_notes]);
+
   const activeSectionIndex = React.useMemo(
     () => SECTIONS.findIndex((section) => section.key === activeSection),
     [activeSection],
@@ -619,18 +747,17 @@ export default function CarePlanBuilder({
         );
         return;
       }
-      const firstMovementItem = sectionItems[0];
-      setLocalItems([
-        {
-          ...firstMovementItem,
+      setLocalItems(
+        sectionItems.map((movementItem) => ({
+          ...movementItem,
           exercises:
             editable &&
-            (!Array.isArray(firstMovementItem.exercises) ||
-              firstMovementItem.exercises.length === 0)
+            (!Array.isArray(movementItem.exercises) ||
+              movementItem.exercises.length === 0)
               ? [createEmptyMovementExercise()]
-              : (firstMovementItem.exercises ?? []),
-        },
-      ]);
+              : (movementItem.exercises ?? []),
+        })),
+      );
       return;
     }
     if (editable && sectionItems.length === 0) {
@@ -750,6 +877,38 @@ export default function CarePlanBuilder({
     },
   });
 
+  const dayNotesMutation = useMutation({
+    mutationFn: async (payload: {
+      dayId: number;
+      general_notes: string | null;
+    }) => {
+      const response = await patchCarePlanDayNotes(
+        carePlanId,
+        payload.dayId,
+        payload,
+      );
+      if (response.status === 'error') {
+        const fieldError = firstApiValidationMessage(
+          response.errors?.general_notes,
+        );
+        throw new CarePlanDayNotesValidationError(
+          response.message ?? 'Could not save day notes.',
+          fieldError,
+        );
+      }
+      return response.data;
+    },
+    onError: (error: Error) => {
+      if (error instanceof CarePlanDayNotesValidationError) {
+        if (error.fieldError) {
+          setDayNotesError(error.fieldError);
+          return;
+        }
+      }
+      toast.error(error.message ?? 'Could not save day notes.');
+    },
+  });
+
   const openGenerateDayModal = () => {
     setGenerateDayModalForm({
       starts_on: basicsForm.starts_on.trim(),
@@ -806,6 +965,75 @@ export default function CarePlanBuilder({
     setGenerateDayModalOpen(false);
   };
 
+  const saveDayNotesIfNeeded = async (dayId: number): Promise<boolean> => {
+    const nextValue = dayNotesDraft.trim();
+    const savedValue = dayNotesSavedValue.trim();
+    if (nextValue === savedValue) return false;
+    setDayNotesError(undefined);
+    await dayNotesMutation.mutateAsync({
+      dayId,
+      general_notes: nextValue.length > 0 ? nextValue : null,
+    });
+    setDayNotesSavedValue(nextValue);
+    return true;
+  };
+
+  const openDayNotesModal = (dayId: number) => {
+    if (selectedDayId !== dayId) setSelectedDayId(dayId);
+    setDayNotesModalOpen(true);
+  };
+
+  const getDayNoteVisual = (day: {
+    id: number;
+    day_number: number;
+    general_notes?: string | null;
+  }) => {
+    const hasSavedNote = String(day.general_notes ?? '').trim().length > 0;
+    const isSelectedDay = selectedDayId === day.id;
+    const hasUnsavedNoteDraft =
+      isSelectedDay && dayNotesDraft.trim() !== dayNotesSavedValue.trim();
+
+    if (hasUnsavedNoteDraft) {
+      return {
+        icon: PencilLineIcon,
+        label: 'Edit note',
+        toneClass:
+          'text-primary border-primary/30 bg-primary/10 hover:bg-primary/15',
+      };
+    }
+    if (hasSavedNote) {
+      return {
+        icon: FileCheck2Icon,
+        label: 'View note',
+        toneClass:
+          'text-primary border-primary/25 bg-primary/8 hover:bg-primary/12',
+      };
+    }
+    return {
+      icon: FilePlus2Icon,
+      label: 'Add note',
+      toneClass:
+        'text-muted-foreground border-border/70 bg-background hover:bg-muted/70',
+    };
+  };
+
+  const handleSaveDayNotesFromModal = async () => {
+    if (!selectedDay) return;
+    try {
+      const didSave = await saveDayNotesIfNeeded(selectedDay.id);
+      if (didSave) {
+        const dayLabel =
+          selectedDay?.day_number != null
+            ? `Day ${selectedDay.day_number}`
+            : 'Day';
+        toast.success(`${dayLabel} note has been successfully saved.`);
+      }
+      setDayNotesModalOpen(false);
+    } catch {
+      // Mutation onError already handles inline messages and toast fallback.
+    }
+  };
+
   const sectionSaveMutation = useMutation({
     mutationFn: async (payload: {
       dayId: number;
@@ -834,7 +1062,8 @@ export default function CarePlanBuilder({
       setMovementRowErrors({});
       setSectionSaveError(undefined);
       toast.success(
-        `${SECTIONS.find((x) => x.key === activeSection)?.label} section saved.`,
+        `The ${SECTIONS.find((x) => x.key === activeSection)?.label?.toLowerCase() ?? ''} section has been saved successfully.`,
+   
       );
       invalidateBuilder();
     },
@@ -987,9 +1216,9 @@ export default function CarePlanBuilder({
     }
   };
 
-  const handleSaveSection = async (moveForward = false) => {
+  const saveCurrentSectionIfNeeded = async (): Promise<number | null> => {
     const dayId = validateSectionBeforeSave();
-    if (!dayId) return;
+    if (!dayId) return null;
     const normalizedLocalItems = normalizeSectionItemsForSave(
       localItems,
       activeSection,
@@ -1001,9 +1230,22 @@ export default function CarePlanBuilder({
     if (!skipSave) {
       await sectionSaveMutation.mutateAsync({
         dayId,
-        items: toSectionSavePayload(normalizedLocalItems),
+        items: toSectionSavePayload(normalizedLocalItems, activeSection, resolveUnitId),
       });
     }
+    try {
+      await saveDayNotesIfNeeded(dayId);
+    } catch {
+      setDayNotesModalOpen(true);
+      return null;
+    }
+
+    return dayId;
+  };
+
+  const handleSaveSection = async (moveForward = false) => {
+    const dayId = await saveCurrentSectionIfNeeded();
+    if (!dayId) return;
 
     if (moveForward) moveToNextStep();
   };
@@ -1019,11 +1261,9 @@ export default function CarePlanBuilder({
       return response.data;
     },
     onSuccess: (data) => {
-      toast.success('Care plan revision created.');
+      toast.success('The care plan revision has been created successfully.');
       if (data?.id != null) {
-        window.location.href = ROUTES.ADMIN.MODULES.CARE_PLANS.WORKSPACE(
-          String(data.id),
-        );
+        router.push(ROUTES.ADMIN.MODULES.CARE_PLANS.WORKSPACE(String(data.id)));
       }
     },
     onError: (error: Error) => {
@@ -1054,6 +1294,14 @@ export default function CarePlanBuilder({
       toast.error(error.message ?? 'Could not validate care plan.');
     },
   });
+
+  const handleFinalizeFromModal = async () => {
+    const dayId = await saveCurrentSectionIfNeeded();
+    if (!dayId) return;
+
+    setFinishModalOpen(false);
+    router.push(ROUTES.ADMIN.MODULES.CARE_PLANS.DETAIL(String(carePlanId)));
+  };
 
   const setItemField = (
     index: number,
@@ -1194,7 +1442,8 @@ export default function CarePlanBuilder({
     const start = parseYmdLocal(generateDayModalForm.starts_on);
     const end = parseYmdLocal(generateDayModalForm.ends_on);
     if (!start || !end) return undefined;
-    const diffInDays = Math.floor((end.getTime() - start.getTime()) / 86400000) + 1;
+    const diffInDays =
+      Math.floor((end.getTime() - start.getTime()) / 86400000) + 1;
     if (diffInDays <= 0) return undefined;
     return `${diffInDays} day${diffInDays === 1 ? '' : 's'} selected`;
   }, [generateDayModalForm.starts_on, generateDayModalForm.ends_on]);
@@ -1206,13 +1455,21 @@ export default function CarePlanBuilder({
       generateDayModalForm.ends_on.trim() !== (builder?.ends_on ?? '').trim());
 
   const addItem = () => {
-    if (activeSection === 'movement') return;
+    if (activeSection === 'movement') {
+      setLocalItems((prev) => [
+        ...prev,
+        {
+          ...createEmptySectionItem(),
+          exercises: [createEmptyMovementExercise()],
+        },
+      ]);
+      return;
+    }
     setLocalItems((prev) => [...prev, createEmptySectionItem()]);
   };
 
   const removeItem = (index: number) => {
     setLocalItems((prev) => {
-      if (activeSection === 'movement') return prev;
       if (prev.length <= 1) return prev;
       return prev.filter((_, itemIndex) => itemIndex !== index);
     });
@@ -1315,12 +1572,12 @@ export default function CarePlanBuilder({
                   <CalendarIcon className='size-4' aria-hidden />
                 )}
               </div>
-              <p className='text-foreground capitalize text-sm font-semibold'>
+              <p className='text-foreground text-sm font-semibold capitalize'>
                 No day plans are currently available.
               </p>
               <p className='text-muted-foreground mt-1 text-[13px] font-medium'>
-                Generate a day schedule first, then define section tasks for each
-                day across nutrition, movement, activity, and recovery.
+                Generate a day schedule first, then define section tasks for
+                each day across nutrition, movement, activity, and recovery.
               </p>
               {editable ? (
                 <Button
@@ -1342,41 +1599,77 @@ export default function CarePlanBuilder({
         ) : (
           <div className='space-y-4'>
             <div className='grid grid-cols-1 gap-4 lg:grid-cols-12'>
-              <div className='border-border bg-background overflow-hidden rounded-md border shadow-xs lg:col-span-3'>
-                <div className='border-border bg-muted/40 border-b p-3 text-[13px] font-semibold capitalize'>
-                  Days Schedule
+              <div className='border-border bg-card overflow-hidden rounded-md border shadow-xs lg:col-span-3'>
+                <div className='border-border bg-muted/35 border-b px-3 py-2.5'>
+                  <span className='text-foreground/90 text-[13px] font-semibold'>
+                    Day Schedule
+                  </span>
+                  <p className='text-muted-foreground mt-0.5 text-[11px] font-medium'>
+                    Select a day and manage section tasks
+                  </p>
                 </div>
-                <div className='space-y-1 p-2'>
+                <div className='space-y-1.5 p-2.5'>
                   {builder.days.length === 0 ? (
                     <p className='text-muted-foreground p-2 text-sm'>
                       No days generated yet.
                     </p>
                   ) : (
-                    builder.days.map((day) => (
-                      <button
-                        key={day.id}
-                        type='button'
-                        className={`w-full rounded-md px-2.5 py-2 text-left transition-colors ${
-                          selectedDayId === day.id
-                            ? 'bg-primary text-primary-foreground shadow-xs'
-                            : 'text-foreground hover:bg-muted'
-                        }`}
-                        onClick={() => setSelectedDayId(day.id)}
-                      >
-                        <span className='block text-[13px] font-semibold'>
-                          Day {day.day_number}
-                        </span>
-                        <span
-                          className={`block text-[11px] font-medium ${
-                            selectedDayId === day.id
-                              ? 'text-primary-foreground/80'
-                              : 'text-muted-foreground'
-                          }`}
-                        >
-                          {formatTargetDateLabel(day.target_date)}
-                        </span>
-                      </button>
-                    ))
+                    builder.days.map((day) => {
+                      const noteVisual = getDayNoteVisual(day);
+                      const NoteIcon = noteVisual.icon;
+                      return (
+                        <div key={day.id} className='relative'>
+                          <button
+                            type='button'
+                            className={`w-full min-w-0 rounded-md border px-3 py-2.5 pr-12 text-left transition-colors ${
+                              selectedDayId === day.id
+                                ? 'bg-primary/95 border-primary text-primary-foreground shadow-xs'
+                                : 'text-foreground/90 hover:border-border hover:bg-muted/70 border-transparent'
+                            }`}
+                            onClick={() => setSelectedDayId(day.id)}
+                          >
+                            <span className='block text-[12.5px] font-semibold tracking-tight'>
+                              Day {day.day_number}
+                            </span>
+                            <span
+                              className={`mt-0.5 block text-[11px] font-medium ${
+                                selectedDayId === day.id
+                                  ? 'text-primary-foreground/85'
+                                  : 'text-muted-foreground'
+                              }`}
+                            >
+                              {formatTargetDateLabel(day.target_date)}
+                            </span>
+                          </button>
+                          {editable ? (
+                            <span
+                              role='button'
+                              tabIndex={0}
+                              aria-label={`${noteVisual.label} for day ${day.day_number}`}
+                              className={`absolute top-1/2 right-2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-md border transition-colors focus-visible:ring-2 focus-visible:outline-hidden ${selectedDayId === day.id ? 'bg-background/95 text-foreground hover:bg-background ring-primary-foreground/30 border-white/60' : `${noteVisual.toneClass}`} ${dayNotesMutation.isPending ? 'pointer-events-none opacity-60' : ''}`}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                if (dayNotesMutation.isPending) return;
+                                openDayNotesModal(day.id);
+                              }}
+                              onKeyDown={(event) => {
+                                if (
+                                  event.key === 'Enter' ||
+                                  event.key === ' '
+                                ) {
+                                  event.preventDefault();
+                                  event.stopPropagation();
+                                  if (dayNotesMutation.isPending) return;
+                                  openDayNotesModal(day.id);
+                                }
+                              }}
+                            >
+                              <NoteIcon className='size-3.5' />
+                            </span>
+                          ) : null}
+                        </div>
+                      );
+                    })
                   )}
                 </div>
               </div>
@@ -1387,313 +1680,346 @@ export default function CarePlanBuilder({
                     Select a day to manage section items.
                   </div>
                 ) : (
-                  <Tabs
-                    value={activeSection}
-                    onValueChange={(value) =>
-                      setActiveSection(value as CarePlanSectionKey)
-                    }
-                  >
-                    <TabsList
-                      variant='line'
-                      className='bg-muted! border-border w-full border'
+                  <div className='space-y-4'>
+                    <Tabs
+                      value={activeSection}
+                      onValueChange={(value) =>
+                        setActiveSection(value as CarePlanSectionKey)
+                      }
                     >
+                      <TabsList
+                        variant='line'
+                        className='bg-muted! border-border w-full border'
+                      >
+                        {SECTIONS.map((section) => (
+                          <TabsTrigger
+                            key={section.key}
+                            value={section.key}
+                            className='flex-1 gap-1.5 text-[13px] font-semibold'
+                          >
+                            <section.icon className='size-3.5 shrink-0' />
+                            {section.label}
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+
+                      <p className='text-muted-foreground my-1.5 text-[13px] font-medium'>
+                        {SECTION_GUIDANCE[activeSection]}
+                      </p>
+
                       {SECTIONS.map((section) => (
-                        <TabsTrigger
+                        <TabsContent
                           key={section.key}
                           value={section.key}
-                          className='flex-1 gap-1.5 text-[13px] font-semibold'
+                          className='space-y-5'
                         >
-                          <section.icon className='size-3.5 shrink-0' />
-                          {section.label}
-                        </TabsTrigger>
-                      ))}
-                    </TabsList>
+                          {localItems.length === 0 ? (
+                            <p className='text-muted-foreground text-sm'>
+                              There are currently no items in this section.
+                            </p>
+                          ) : null}
 
-                    <p className='text-muted-foreground my-1.5 text-[13px] font-medium'>
-                      {SECTION_GUIDANCE[activeSection]}
-                    </p>
-
-                    {SECTIONS.map((section) => (
-                      <TabsContent
-                        key={section.key}
-                        value={section.key}
-                        className='space-y-4'
-                      >
-                        {localItems.length === 0 ? (
-                          <p className='text-muted-foreground text-sm'>
-                            There are currently no items in this section.
-                          </p>
-                        ) : null}
-
-                        {localItems.map((item, index) => (
-                          <div
-                            key={`${index}-${item.id ?? 'new'}`}
-                            className='border-border/80 rounded-md border p-4 md:p-5'
-                          >
-                            <div className='space-y-4'>
-                              <div className='grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto] sm:items-start'>
-                                <TextField
-                                  label='Task Title'
-                                  placeholder={
-                                    activeSection === 'nutrition'
-                                      ? 'e.g. Breakfast'
-                                      : activeSection === 'movement'
-                                        ? 'e.g. Mobility routine'
-                                        : activeSection === 'activity'
-                                          ? 'e.g. Morning walk'
-                                          : 'e.g. Evening wind-down'
-                                  }
-                                  value={String(item.title ?? '')}
+                          {localItems.map((item, index) => (
+                            <div
+                              key={`${index}-${item.id ?? 'new'}`}
+                              className='border-border/80 bg-card rounded-lg border p-4 shadow-xs md:p-5'
+                            >
+                              <div className='space-y-4.5'>
+                                <div className='border-border/70 bg-muted/30 flex items-center justify-between rounded-md border px-3 py-2'>
+                                  <p className='text-foreground text-[12px] font-semibold tracking-wide uppercase'>
+                                    {activeSection === 'movement'
+                                      ? 'Movement Plan'
+                                      : `Plan Item ${index + 1}`}
+                                  </p>
+                                  <span className='text-muted-foreground text-[11px] font-medium'>
+                                    {activeSection === 'movement'
+                                      ? 'Exercises and targets'
+                                      : 'Task and target details'}
+                                  </span>
+                                </div>
+                                <div className='grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto] sm:items-start'>
+                                  <TextField
+                                    label='Task Title'
+                                    placeholder={
+                                      activeSection === 'nutrition'
+                                        ? 'e.g. Breakfast'
+                                        : activeSection === 'movement'
+                                          ? 'e.g. Mobility routine'
+                                          : activeSection === 'activity'
+                                            ? 'e.g. Morning walk'
+                                            : 'e.g. Evening wind-down'
+                                    }
+                                    value={String(item.title ?? '')}
+                                    onChange={(event) =>
+                                      setItemField(
+                                        index,
+                                        'title',
+                                        event.target.value,
+                                      )
+                                    }
+                                    error={itemFieldErrors[index]?.title}
+                                    disabled={!editable}
+                                  />
+                                  {editable ? (
+                                    <Button
+                                      type='button'
+                                      variant='outline'
+                                      size='icon'
+                                      className='text-foreground bg-background hover:bg-muted mt-7 h-11 w-11 shrink-0 border-neutral-300'
+                                      onClick={() => removeItem(index)}
+                                      aria-label='Remove item'
+                                      disabled={localItems.length <= 1}
+                                    >
+                                      <Trash2Icon className='size-4' />
+                                    </Button>
+                                  ) : null}
+                                </div>
+                                <TextAreaField
+                                  label='Guidance'
+                                  rows={3}
+                                  placeholder='Write step-by-step directions the client can follow on their own.'
+                                  value={String(item.guidance ?? '')}
                                   onChange={(event) =>
                                     setItemField(
                                       index,
-                                      'title',
+                                      'guidance',
                                       event.target.value,
                                     )
                                   }
-                                  error={itemFieldErrors[index]?.title}
+                                  error={itemFieldErrors[index]?.guidance}
                                   disabled={!editable}
                                 />
-                                {editable && activeSection !== 'movement' ? (
-                                  <Button
-                                    type='button'
-                                    variant='outline'
-                                    size='icon'
-                                    className='text-foreground bg-background hover:bg-muted mt-7 h-11 w-11 shrink-0 border-neutral-300'
-                                    onClick={() => removeItem(index)}
-                                    aria-label='Remove item'
-                                  >
-                                    <Trash2Icon className='size-4' />
-                                  </Button>
-                                ) : null}
-                              </div>
-                              <TextAreaField
-                                label='Guidance'
-                                rows={3}
-                                placeholder='Write step-by-step directions the client can follow on their own.'
-                                value={String(item.guidance ?? '')}
-                                onChange={(event) =>
-                                  setItemField(
-                                    index,
-                                    'guidance',
-                                    event.target.value,
-                                  )
-                                }
-                                error={itemFieldErrors[index]?.guidance}
-                                disabled={!editable}
-                              />
-                              {activeSection === 'movement' ? (
-                                <>
-                                  <div className='space-y-3'>
-                                    {(item.exercises ?? []).map(
-                                      (exercise, exerciseIndex) => {
-                                        const exerciseId = String(
-                                          exercise.movement_exercise_id ?? '',
-                                        ).trim();
-                                        return (
-                                          <div
-                                            key={`${exerciseId || 'new'}-${exerciseIndex}`}
-                                            className='border-border space-y-3 rounded-md border p-5'
-                                          >
-                                            <div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
-                                              <div className='min-w-0 flex-1'>
-                                                <ComboboxField
-                                                  label='Movement Exercise'
-                                                  placeholder='Select exercise…'
-                                                  searchPlaceholder='Search exercise…'
-                                                  emptyMessage='No exercises found.'
-                                                  options={
-                                                    movementExerciseOptions
-                                                  }
-                                                  value={exerciseId || null}
-                                                  onChange={(value) =>
-                                                    setMovementExerciseSelection(
+                                {activeSection === 'movement' ? (
+                                  <>
+                                    <div className='space-y-3'>
+                                      {(item.exercises ?? []).map(
+                                        (exercise, exerciseIndex) => {
+                                          const exerciseId = String(
+                                            exercise.movement_exercise_id ?? '',
+                                          ).trim();
+                                          const selectedExerciseIds = new Set(
+                                            (item.exercises ?? [])
+                                              .map((row, rowIndex) =>
+                                                rowIndex === exerciseIndex
+                                                  ? ''
+                                                  : String(
+                                                      row.movement_exercise_id ??
+                                                        '',
+                                                    ).trim(),
+                                              )
+                                              .filter((value) => value !== ''),
+                                          );
+                                          const movementExerciseOptionsForRow =
+                                            movementExerciseOptions.filter(
+                                              (option) =>
+                                                !selectedExerciseIds.has(
+                                                  String(option.value).trim(),
+                                                ) ||
+                                                String(option.value).trim() ===
+                                                  exerciseId,
+                                            );
+                                          return (
+                                            <div
+                                              key={`${exerciseId || 'new'}-${exerciseIndex}`}
+                                              className='border-border space-y-3 rounded-md border p-5'
+                                            >
+                                              <div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+                                                <div className='min-w-0 flex-1'>
+                                                  <ComboboxField
+                                                    label='Movement Exercise'
+                                                    placeholder='Select exercise…'
+                                                    searchPlaceholder='Search exercise…'
+                                                    emptyMessage='No exercises found.'
+                                                    options={
+                                                      movementExerciseOptionsForRow
+                                                    }
+                                                    value={exerciseId || null}
+                                                    onChange={(value) =>
+                                                      setMovementExerciseSelection(
+                                                        index,
+                                                        exerciseIndex,
+                                                        value ?? '',
+                                                      )
+                                                    }
+                                                    error={
+                                                      movementRowErrors[
+                                                        `${index}-${exerciseIndex}`
+                                                      ]?.exercise
+                                                    }
+                                                    disabled={
+                                                      !editable ||
+                                                      movementExercisesLookupQuery.isLoading
+                                                    }
+                                                  />
+                                                </div>
+                                                {editable ? (
+                                                  <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    size='icon'
+                                                    className='text-foreground bg-background hover:bg-muted h-11 w-11 shrink-0 self-end border-neutral-300 sm:mt-7 sm:self-start'
+                                                    onClick={() =>
+                                                      removeMovementExerciseRow(
+                                                        index,
+                                                        exerciseIndex,
+                                                      )
+                                                    }
+                                                    aria-label='Remove exercise row'
+                                                  >
+                                                    <Trash2Icon className='size-4' />
+                                                  </Button>
+                                                ) : null}
+                                              </div>
+
+                                              <div className='mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3'>
+                                                <TextField
+                                                  label='Sets'
+                                                  type='number'
+                                                  min={1}
+                                                  max={1000}
+                                                  placeholder='e.g. 3'
+                                                  value={String(
+                                                    exercise.sets ?? '',
+                                                  )}
+                                                  onChange={(event) =>
+                                                    setMovementExerciseField(
                                                       index,
                                                       exerciseIndex,
-                                                      value ?? '',
+                                                      'sets',
+                                                      event.target.value,
                                                     )
                                                   }
                                                   error={
                                                     movementRowErrors[
                                                       `${index}-${exerciseIndex}`
-                                                    ]?.exercise
+                                                    ]?.sets
                                                   }
-                                                  disabled={
-                                                    !editable ||
-                                                    movementExercisesLookupQuery.isLoading
-                                                  }
+                                                  disabled={!editable}
                                                 />
-                                              </div>
-                                              {editable ? (
-                                                <Button
-                                                  type='button'
-                                                  variant='outline'
-                                                  size='icon'
-                                                  className='text-foreground bg-background hover:bg-muted h-11 w-11 shrink-0 self-end border-neutral-300 sm:mt-7 sm:self-start'
-                                                  onClick={() =>
-                                                    removeMovementExerciseRow(
+                                                <TextField
+                                                  label='Reps'
+                                                  type='number'
+                                                  min={1}
+                                                  max={1000}
+                                                  placeholder='e.g. 12'
+                                                  value={String(
+                                                    exercise.reps ?? '',
+                                                  )}
+                                                  onChange={(event) =>
+                                                    setMovementExerciseField(
                                                       index,
                                                       exerciseIndex,
+                                                      'reps',
+                                                      event.target.value,
                                                     )
                                                   }
-                                                  aria-label='Remove exercise row'
-                                                >
-                                                  <Trash2Icon className='size-4' />
-                                                </Button>
-                                              ) : null}
+                                                  error={
+                                                    movementRowErrors[
+                                                      `${index}-${exerciseIndex}`
+                                                    ]?.reps
+                                                  }
+                                                  disabled={!editable}
+                                                />
+                                                <TextField
+                                                  label='Rest (Seconds)'
+                                                  type='number'
+                                                  min={0}
+                                                  max={7200}
+                                                  placeholder='e.g. 60'
+                                                  value={String(
+                                                    exercise.rest_seconds ?? '',
+                                                  )}
+                                                  onChange={(event) =>
+                                                    setMovementExerciseField(
+                                                      index,
+                                                      exerciseIndex,
+                                                      'rest_seconds',
+                                                      event.target.value,
+                                                    )
+                                                  }
+                                                  error={
+                                                    movementRowErrors[
+                                                      `${index}-${exerciseIndex}`
+                                                    ]?.rest_seconds
+                                                  }
+                                                  disabled={!editable}
+                                                />
+                                              </div>
                                             </div>
-
-                                            <div className='mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3'>
-                                              <TextField
-                                                label='Sets'
-                                                type='number'
-                                                min={1}
-                                                max={1000}
-                                                placeholder='e.g. 3'
-                                                value={String(
-                                                  exercise.sets ?? '',
-                                                )}
-                                                onChange={(event) =>
-                                                  setMovementExerciseField(
-                                                    index,
-                                                    exerciseIndex,
-                                                    'sets',
-                                                    event.target.value,
-                                                  )
-                                                }
-                                                error={
-                                                  movementRowErrors[
-                                                    `${index}-${exerciseIndex}`
-                                                  ]?.sets
-                                                }
-                                                disabled={!editable}
-                                              />
-                                              <TextField
-                                                label='Reps'
-                                                type='number'
-                                                min={1}
-                                                max={1000}
-                                                placeholder='e.g. 12'
-                                                value={String(
-                                                  exercise.reps ?? '',
-                                                )}
-                                                onChange={(event) =>
-                                                  setMovementExerciseField(
-                                                    index,
-                                                    exerciseIndex,
-                                                    'reps',
-                                                    event.target.value,
-                                                  )
-                                                }
-                                                error={
-                                                  movementRowErrors[
-                                                    `${index}-${exerciseIndex}`
-                                                  ]?.reps
-                                                }
-                                                disabled={!editable}
-                                              />
-                                              <TextField
-                                                label='Rest (Seconds)'
-                                                type='number'
-                                                min={0}
-                                                max={7200}
-                                                placeholder='e.g. 60'
-                                                value={String(
-                                                  exercise.rest_seconds ?? '',
-                                                )}
-                                                onChange={(event) =>
-                                                  setMovementExerciseField(
-                                                    index,
-                                                    exerciseIndex,
-                                                    'rest_seconds',
-                                                    event.target.value,
-                                                  )
-                                                }
-                                                error={
-                                                  movementRowErrors[
-                                                    `${index}-${exerciseIndex}`
-                                                  ]?.rest_seconds
-                                                }
-                                                disabled={!editable}
-                                              />
-                                            </div>
+                                          );
+                                        },
+                                      )}
+                                      {editable ? (
+                                        <div className='pt-1'>
+                                          <div className='flex justify-end'>
+                                            <Button
+                                              type='button'
+                                              variant='outline'
+                                              className='text-foreground bg-background hover:bg-muted h-9 gap-1.5 border-neutral-300 px-2.5 text-[12px]! font-semibold'
+                                              onClick={() =>
+                                                addMovementExerciseRow(index)
+                                              }
+                                            >
+                                              <PlusIcon className='size-3.5' />
+                                              Add Exercise
+                                            </Button>
                                           </div>
-                                        );
-                                      },
-                                    )}
-                                    {editable ? (
-                                      <div className='pt-1'>
-                                        <div className='flex justify-end'>
-                                          <Button
-                                            type='button'
-                                            variant='outline'
-                                            className='text-foreground bg-background hover:bg-muted h-9 gap-1.5 border-neutral-300 px-2.5 text-[12px]! font-semibold'
-                                            onClick={() =>
-                                              addMovementExerciseRow(index)
-                                            }
-                                          >
-                                            <PlusIcon className='size-3.5' />
-                                            Add Exercise
-                                          </Button>
                                         </div>
-                                      </div>
-                                    ) : null}
+                                      ) : null}
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                                    <TextField
+                                      label='Target Value'
+                                      placeholder='e.g. 30'
+                                      value={String(item.target_value ?? '')}
+                                      onChange={(event) =>
+                                        setItemField(
+                                          index,
+                                          'target_value',
+                                          event.target.value,
+                                        )
+                                      }
+                                      error={
+                                        itemFieldErrors[index]?.target_value
+                                      }
+                                      disabled={!editable}
+                                    />
+                                    <ComboboxField
+                                      label='Target Unit'
+                                      placeholder='Select unit…'
+                                      searchPlaceholder='Search unit…'
+                                      emptyMessage='No units found.'
+                                      options={unitOptions}
+                                      value={resolveUnitComboboxValue(item.target_unit)}
+                                      onChange={(value) =>
+                                        setItemField(
+                                          index,
+                                          'target_unit',
+                                          value ?? '',
+                                        )
+                                      }
+                                      error={
+                                        itemFieldErrors[index]?.target_unit
+                                      }
+                                      disabled={!editable}
+                                    />
                                   </div>
-                                </>
-                              ) : (
-                                <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-                                  <TextField
-                                    label='Target Value'
-                                    placeholder='e.g. 30'
-                                    value={String(item.target_value ?? '')}
-                                    onChange={(event) =>
-                                      setItemField(
-                                        index,
-                                        'target_value',
-                                        event.target.value,
-                                      )
-                                    }
-                                    error={itemFieldErrors[index]?.target_value}
-                                    disabled={!editable}
-                                  />
-                                  <ComboboxField
-                                    label='Target Unit'
-                                    placeholder='Select unit…'
-                                    searchPlaceholder='Search unit…'
-                                    emptyMessage='No units found.'
-                                    options={unitOptions}
-                                    value={
-                                      typeof item.target_unit === 'string' &&
-                                      item.target_unit.trim() !== ''
-                                        ? item.target_unit
-                                        : null
-                                    }
-                                    onChange={(value) =>
-                                      setItemField(
-                                        index,
-                                        'target_unit',
-                                        value ?? '',
-                                      )
-                                    }
-                                    error={itemFieldErrors[index]?.target_unit}
-                                    disabled={!editable}
-                                  />
-                                </div>
-                              )}
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
 
-                        {editable ? (
-                          <div className='border-border/70 space-y-3 border-t pt-4'>
-                            {sectionSaveError ? (
-                              <p className='text-destructive text-[13px] font-medium'>
-                                {sectionSaveError}
-                              </p>
-                            ) : null}
-                            <div className='flex flex-wrap items-center justify-between gap-3'>
-                              <div className='flex flex-wrap items-center gap-2'>
-                                {activeSection !== 'movement' ? (
+                          {editable ? (
+                            <div className='border-border/70 space-y-3 border-t pt-4'>
+                              {sectionSaveError ? (
+                                <p className='text-destructive text-[13px] font-medium'>
+                                  {sectionSaveError}
+                                </p>
+                              ) : null}
+                              <div className='flex flex-wrap items-center justify-between gap-3'>
+                                <div className='flex flex-wrap items-center gap-2'>
                                   <Button
                                     type='button'
                                     variant='outline'
@@ -1703,57 +2029,83 @@ export default function CarePlanBuilder({
                                     <PlusIcon className='size-3.5' />
                                     Add Item
                                   </Button>
-                                ) : null}
-                              </div>
-                              <div className='flex flex-wrap items-center justify-end gap-2'>
-                                <Button
-                                  type='button'
-                                  variant='outline'
-                                  className='text-foreground bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
-                                  onClick={moveToPreviousStep}
-                                  disabled={
-                                    !canGoBack || sectionSaveMutation.isPending
-                                  }
-                                >
-                                  <ArrowLeftIcon className='size-3.5' />
-                                  Previous
-                                </Button>
-                                <Button
-                                  type='button'
-                                  className='h-10 gap-1.5 px-3 text-[13px]! font-semibold'
-                                  disabled={sectionSaveMutation.isPending}
-                                  onClick={() => void handleSaveSection(true)}
-                                >
-                                  {!sectionSaveMutation.isPending &&
-                                  isLastSection &&
-                                  isLastDay ? (
-                                    <CheckCircle2Icon className='size-3.5' />
-                                  ) : null}
-                                  {sectionSaveMutation.isPending
-                                    ? 'Saving…'
-                                    : isLastSection
-                                      ? isLastDay
-                                        ? 'Complete Care Plan'
-                                        : 'Continue to Next Day'
-                                      : 'Continue'}
-                                  {!sectionSaveMutation.isPending &&
-                                  !(isLastSection && isLastDay) ? (
-                                    <ChevronRightIcon className='size-3.5' />
-                                  ) : null}
-                                </Button>
+                                </div>
+                                <div className='flex flex-wrap items-center justify-end gap-2'>
+                                  <Button
+                                    type='button'
+                                    variant='outline'
+                                    className='text-foreground bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+                                    onClick={moveToPreviousStep}
+                                    disabled={
+                                      !canGoBack ||
+                                      sectionSaveMutation.isPending ||
+                                      dayNotesMutation.isPending
+                                    }
+                                  >
+                                    <ArrowLeftIcon className='size-3.5' />
+                                    Previous
+                                  </Button>
+                                  <Button
+                                    type='button'
+                                    className='h-10 gap-1.5 px-3 text-[13px]! font-semibold'
+                                    disabled={
+                                      sectionSaveMutation.isPending ||
+                                      dayNotesMutation.isPending
+                                    }
+                                    onClick={() => void handleSaveSection(true)}
+                                  >
+                                    {!sectionSaveMutation.isPending &&
+                                    !dayNotesMutation.isPending &&
+                                    isLastSection &&
+                                    isLastDay ? (
+                                      <CheckCircle2Icon className='size-3.5' />
+                                    ) : null}
+                                    {sectionSaveMutation.isPending ||
+                                    dayNotesMutation.isPending
+                                      ? 'Saving…'
+                                      : isLastSection
+                                        ? isLastDay
+                                          ? 'Finalize Care Plan'
+                                          : 'Continue to Next Day'
+                                        : 'Continue'}
+                                    {!sectionSaveMutation.isPending &&
+                                    !dayNotesMutation.isPending &&
+                                    !(isLastSection && isLastDay) ? (
+                                      <ChevronRightIcon className='size-3.5' />
+                                    ) : null}
+                                  </Button>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ) : null}
-                      </TabsContent>
-                    ))}
-                  </Tabs>
+                          ) : null}
+                        </TabsContent>
+                      ))}
+                    </Tabs>
+                  </div>
                 )}
               </div>
             </div>
           </div>
         )}
       </section>
+
+      <CarePlanDayNoteModal
+        open={dayNotesModalOpen}
+        dayLabel={
+          selectedDay
+            ? `Day ${selectedDay.day_number} (${formatTargetDateLabel(selectedDay.target_date)})`
+            : 'Selected day'
+        }
+        notes={dayNotesDraft}
+        error={dayNotesError}
+        isSaving={dayNotesMutation.isPending}
+        onOpenChange={setDayNotesModalOpen}
+        onNotesChange={(value) => {
+          setDayNotesDraft(value);
+          if (dayNotesError) setDayNotesError(undefined);
+        }}
+        onSave={() => void handleSaveDayNotesFromModal()}
+      />
 
       <CarePlanGenerateDaysModal
         open={generateDayModalOpen}
@@ -1774,21 +2126,14 @@ export default function CarePlanBuilder({
         onSubmit={handleGenerateFromModal}
       />
 
-      <CarePlanCompleteConfirmation
+      <CarePlanFinalizeConfirmation
         open={finishModalOpen}
         isValidating={validateMutation.isPending}
         planReference={builder?.code?.trim() || `#${carePlanId}`}
         validationResult={finishValidationResult}
         onOpenChange={setFinishModalOpen}
         onValidate={() => validateMutation.mutate()}
-        onViewDetail={() => {
-          window.location.href = ROUTES.ADMIN.MODULES.CARE_PLANS.DETAIL(
-            String(carePlanId),
-          );
-        }}
-        onBackToList={() => {
-          window.location.href = ROUTES.ADMIN.MODULES.CARE_PLANS.LIST;
-        }}
+        onFinalize={() => void handleFinalizeFromModal()}
       />
     </div>
   );

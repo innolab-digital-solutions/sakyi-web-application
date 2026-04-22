@@ -25,6 +25,10 @@ export type GenerateCarePlanDaysPayload = {
   replace_existing?: boolean;
 };
 
+export type UpdateCarePlanDayNotesPayload = {
+  general_notes: string | null;
+};
+
 export async function postCarePlanActivate(
   id: number,
 ): Promise<ApiResponse<AdminCarePlan>> {
@@ -102,5 +106,19 @@ export async function postCarePlanValidate(
   return http.post<CarePlanValidationResult>(
     ENDPOINTS.ADMIN.MODULES.CARE_PLANS.VALIDATE(String(id)),
     {},
+  );
+}
+
+export async function patchCarePlanDayNotes(
+  carePlanId: number,
+  dayId: number,
+  body: UpdateCarePlanDayNotesPayload,
+): Promise<ApiResponse<AdminCarePlanBuilder>> {
+  return http.patch<AdminCarePlanBuilder>(
+    ENDPOINTS.ADMIN.MODULES.CARE_PLANS.DAY_NOTES_UPDATE(
+      String(carePlanId),
+      String(dayId),
+    ),
+    body,
   );
 }

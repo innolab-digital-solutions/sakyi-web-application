@@ -121,6 +121,8 @@ export const ADMIN_ENDPOINTS = {
       VALIDATE: (id: string) => `${BASE}/care-plans/${id}/validate`,
       ACTIVATE: (id: string) => `${BASE}/care-plans/${id}/activate`,
       REVISION: (id: string) => `${BASE}/care-plans/${id}/revision`,
+      DAY_NOTES_UPDATE: (id: string, dayId: string) =>
+        `${BASE}/care-plans/${id}/days/${dayId}/notes`,
     },
     INTAKE_ASSESSMENTS: {
       TEMPLATE: (version: number) => `${BASE}/onboarding/templates/${version}`,

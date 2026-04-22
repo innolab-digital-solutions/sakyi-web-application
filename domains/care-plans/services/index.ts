@@ -11,6 +11,7 @@ export type {
 export {
   getCarePlanBuilderById,
   patchCarePlanBasics,
+  patchCarePlanDayNotes,
   postCarePlanActivate,
   postCarePlanGenerateDays,
   postCarePlanRevision,

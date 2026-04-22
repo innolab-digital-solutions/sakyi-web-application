@@ -107,7 +107,7 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
       return response.data;
     },
     onSuccess: () => {
-      toast.success('Care plan activated successfully.');
+      toast.success('The care plan has been activated successfully.');
       setActivateOpen(false);
       invalidateList();
     },
@@ -125,7 +125,7 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
       return response.data;
     },
     onSuccess: (nextPlan) => {
-      toast.success('Care plan revision created successfully.');
+      toast.success('The care plan revision has been created successfully.');
       invalidateList();
       if (nextPlan?.id != null) {
         router.push(
