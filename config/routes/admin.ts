@@ -92,5 +92,10 @@ export const ADMIN_ROUTES = {
       LIST: `${BASE}/client-profiles`,
       DETAIL: (id: string) => `${BASE}/client-profiles/${id}`,
     },
+    USERS: {
+      LIST: `${BASE}/users`,
+      CREATE: `${BASE}/users/create`,
+      EDIT: (id: string) => `${BASE}/users/${id}/edit`,
+    },
   },
 } as const;
