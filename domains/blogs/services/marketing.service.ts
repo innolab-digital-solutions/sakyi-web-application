@@ -2,7 +2,7 @@ import { ENDPOINTS } from '@/config/api/endpoints';
 import type { SupportedLanguage } from '@/config/languages';
 import { ApiResponse, http } from '@/lib/api/client';
 
-import type { BlogPost } from '../types/marketing';
+import type { BlogCategory, BlogPost } from '../types/marketing';
 
 export const getBlogPosts = async (
   language: SupportedLanguage,
@@ -17,6 +17,14 @@ export const getBlogPosts = async (
 
   return http.get<BlogPost[]>(
     ENDPOINTS.MARKETING.BLOGS.LIST + `?${params.toString()}`,
+  );
+};
+
+export const getBlogCategories = async (
+  language: SupportedLanguage,
+): Promise<ApiResponse<BlogCategory[]>> => {
+  return http.get<BlogCategory[]>(
+    ENDPOINTS.MARKETING.BLOGS.CATEGORIES + `?locale=${language}`,
   );
 };
 
