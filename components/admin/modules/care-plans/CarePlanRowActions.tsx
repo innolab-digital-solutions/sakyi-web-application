@@ -16,6 +16,7 @@ import * as React from 'react';
 import { toast } from 'sonner';
 
 import CarePlanActivateConfirmation from '@/components/admin/modules/care-plans/CarePlanActivateConfirmation';
+import CarePlanActivateEnrollmentPrerequisiteDialog from '@/components/admin/modules/care-plans/CarePlanActivateEnrollmentPrerequisiteDialog';
 import CarePlanCancelConfirmation from '@/components/admin/modules/care-plans/CarePlanCancelConfirmation';
 import CarePlanRevisionConfirmation from '@/components/admin/modules/care-plans/CarePlanRevisionConfirmation';
 import { Button } from '@/components/ui/button';
@@ -71,6 +72,26 @@ function getReference(row: AdminCarePlan): string {
   return `#${row.id}`;
 }
 
+function normalizeEnrollmentStatus(
+  value: string | null | undefined,
+): string {
+  return (value ?? '').trim().toLowerCase();
+}
+
+function isProgramEnrollmentScheduled(row: AdminCarePlan): boolean {
+  return (
+    normalizeEnrollmentStatus(row.enrollment?.status) === 'scheduled'
+  );
+}
+
+function getEnrollmentReferenceForRow(row: AdminCarePlan): string {
+  const code = row.enrollment?.code?.trim();
+  if (code) return code;
+  if (row.enrollment?.id != null) return `#${row.enrollment.id}`;
+  if (row.enrollment_id != null) return `#${row.enrollment_id}`;
+  return '';
+}
+
 export type CarePlanRowActionsProps = {
   row: AdminCarePlan;
 };
@@ -79,6 +100,8 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [activateOpen, setActivateOpen] = React.useState(false);
+  const [enrollmentPrerequisiteOpen, setEnrollmentPrerequisiteOpen] =
+    React.useState(false);
   const [revisionOpen, setRevisionOpen] = React.useState(false);
   const [cancelOpen, setCancelOpen] = React.useState(false);
   const [cancellationNote, setCancellationNote] = React.useState('');
@@ -87,6 +110,8 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
   >();
   const status = normalizeStatus(row.status);
   const reference = getReference(row);
+  const enrollmentId = row.enrollment?.id ?? row.enrollment_id;
+  const enrollmentRefLabel = getEnrollmentReferenceForRow(row);
 
   const invalidateList = React.useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: [...LIST_QUERY_KEY] });
@@ -265,7 +290,13 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
                 {canActivate ? (
                   <DropdownMenuItem
                     className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-                    onClick={() => setActivateOpen(true)}
+                    onClick={() => {
+                      if (isProgramEnrollmentScheduled(row)) {
+                        setEnrollmentPrerequisiteOpen(true);
+                        return;
+                      }
+                      setActivateOpen(true);
+                    }}
                   >
                     <CheckCircle2Icon className='size-3.5 shrink-0' />
                     Activate care plan
@@ -298,6 +329,14 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <CarePlanActivateEnrollmentPrerequisiteDialog
+        open={enrollmentPrerequisiteOpen}
+        onOpenChange={setEnrollmentPrerequisiteOpen}
+        carePlanReference={reference}
+        enrollmentReference={enrollmentRefLabel || undefined}
+        enrollmentId={enrollmentId}
+      />
 
       <CarePlanActivateConfirmation
         open={activateOpen}

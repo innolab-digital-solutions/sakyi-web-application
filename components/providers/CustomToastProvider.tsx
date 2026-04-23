@@ -156,7 +156,7 @@ const renderHeadlessToast = (
   const durationMs =
     typeof options?.duration === 'number'
       ? Math.max(0, options.duration)
-      : 4200;
+      : 3000;
 
   const { title, description: messageDescription } = normalizeInput(
     message,

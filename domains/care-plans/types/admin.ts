@@ -22,6 +22,8 @@ export interface AdminCarePlan {
   enrollment?: {
     id: number;
     code: string | null;
+    /** Program enrollment status (e.g. `scheduled`, `active`) when included by the API. */
+    status?: string | null;
     client?: {
       id: number;
       name: string | null;
