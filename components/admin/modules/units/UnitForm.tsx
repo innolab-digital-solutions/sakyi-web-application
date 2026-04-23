@@ -93,7 +93,7 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
           queryClient.invalidateQueries({
             queryKey: ['table', ENDPOINTS.ADMIN.MODULES.UNITS.LIST],
           });
-          toast.success('Measurement has been updated successfully.');
+          toast.success('The measurement has been updated successfully.');
           if (onSuccess) onSuccess();
           else router.push(ROUTES.ADMIN.MODULES.UNITS.LIST);
         },
@@ -109,7 +109,7 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
         queryClient.invalidateQueries({
           queryKey: ['table', ENDPOINTS.ADMIN.MODULES.UNITS.LIST],
         });
-        toast.success('Measurement has been created successfully.');
+        toast.success('The measurement has been created successfully.');
         if (onSuccess) onSuccess();
         else router.push(ROUTES.ADMIN.MODULES.UNITS.LIST);
       },

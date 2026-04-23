@@ -871,7 +871,7 @@ export default function CarePlanBuilder({
       return response.data;
     },
     onSuccess: () => {
-      toast.success('Care plan days generated successfully.');
+      toast.success('The plan days have been generated successfully.');
       invalidateBuilder();
     },
     onError: (error: Error) => {
@@ -1026,8 +1026,8 @@ export default function CarePlanBuilder({
       if (didSave) {
         const dayLabel =
           selectedDay?.day_number != null
-            ? `Day ${selectedDay.day_number}`
-            : 'Day';
+            ? `The day ${selectedDay.day_number}`
+            : 'The day';
         toast.success(`${dayLabel} note has been successfully saved.`);
       }
       setDayNotesModalOpen(false);
@@ -1290,7 +1290,7 @@ export default function CarePlanBuilder({
         issues: Array.isArray(data?.issues) ? data.issues : [],
       });
       if (data?.is_valid) {
-        toast.success('Care plan is valid and ready for activation.');
+        toast.success('The care plan is valid and ready for activation.');
       } else {
         toast.error('Care plan has validation issues. Please review.');
       }

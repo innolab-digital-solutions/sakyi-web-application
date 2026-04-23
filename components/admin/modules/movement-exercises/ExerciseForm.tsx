@@ -183,7 +183,7 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
                 exercise.id,
               ],
             });
-            toast.success('Exercise has been updated successfully.');
+            toast.success('The exercise has been updated successfully.');
             if (onSuccess) onSuccess();
             else router.push(ROUTES.ADMIN.MODULES.MOVEMENT_EXERCISES.LIST);
           },
@@ -200,7 +200,7 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
         queryClient.invalidateQueries({
           queryKey: ['table', ENDPOINTS.ADMIN.MODULES.MOVEMENT_EXERCISES.LIST],
         });
-        toast.success('Exercise has been created successfully.');
+        toast.success('The exercise has been created successfully.');
         if (onSuccess) onSuccess();
         else router.push(ROUTES.ADMIN.MODULES.MOVEMENT_EXERCISES.LIST);
       },

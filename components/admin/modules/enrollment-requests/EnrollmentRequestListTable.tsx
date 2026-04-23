@@ -376,7 +376,7 @@ export default function EnrollmentRequestListTable() {
     },
     onSuccess: async (intakeId) => {
       setStartIntakeRequest(null);
-      toast.success('Intake assessment created successfully.');
+      toast.success('The intake assessment has been created successfully.');
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: ['table', ENDPOINTS.ADMIN.MODULES.ENROLLMENT_REQUESTS.LIST],

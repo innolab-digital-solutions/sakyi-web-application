@@ -120,7 +120,7 @@ export default function NutritionItemForm({ mode, item, onSuccess }: Props) {
             queryClient.invalidateQueries({
               queryKey: ['table', ENDPOINTS.ADMIN.MODULES.NUTRITION_ITEMS.LIST],
             });
-            toast.success('Food item has been updated successfully.');
+            toast.success('The food item has been updated successfully.');
             if (onSuccess) onSuccess();
             else router.push(ROUTES.ADMIN.MODULES.NUTRITION_ITEMS.LIST);
           },
@@ -137,7 +137,7 @@ export default function NutritionItemForm({ mode, item, onSuccess }: Props) {
         queryClient.invalidateQueries({
           queryKey: ['table', ENDPOINTS.ADMIN.MODULES.NUTRITION_ITEMS.LIST],
         });
-        toast.success('Food item has been created successfully.');
+        toast.success('The food item has been created successfully.');
         if (onSuccess) onSuccess();
         else router.push(ROUTES.ADMIN.MODULES.NUTRITION_ITEMS.LIST);
       },

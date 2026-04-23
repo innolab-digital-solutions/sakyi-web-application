@@ -96,7 +96,7 @@ export default function IntakeCreateForm() {
             ? String(response.data.id)
             : null;
 
-        toast.success('Intake created.');
+        toast.success('The intake assessment has been created successfully.');
         if (!intakeId) {
           router.push(ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST);
           return;

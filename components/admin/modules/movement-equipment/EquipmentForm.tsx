@@ -84,7 +84,7 @@ export default function MovementEquipmentForm({
             queryClient.invalidateQueries({
               queryKey: ['lookup', LOOKUP_ENDPOINTS.MOVEMENT_EQUIPMENT],
             });
-            toast.success('Equipment has been updated successfully.');
+            toast.success('The equipment has been updated successfully.');
             if (onSuccess) onSuccess();
             else router.push(ROUTES.ADMIN.MODULES.MOVEMENT_EQUIPMENT.LIST);
           },
@@ -104,7 +104,7 @@ export default function MovementEquipmentForm({
         queryClient.invalidateQueries({
           queryKey: ['lookup', LOOKUP_ENDPOINTS.MOVEMENT_EQUIPMENT],
         });
-        toast.success('Equipment has been created successfully.');
+        toast.success('The equipment has been created successfully.');
         if (onSuccess) onSuccess();
         else router.push(ROUTES.ADMIN.MODULES.MOVEMENT_EQUIPMENT.LIST);
       },

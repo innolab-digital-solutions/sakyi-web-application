@@ -113,7 +113,7 @@ export default function UserListTable() {
       }
     },
     onSuccess: () => {
-      toast.success('The user account was removed.');
+      toast.success('The user account has been removed successfully.');
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.USERS.LIST],
       });

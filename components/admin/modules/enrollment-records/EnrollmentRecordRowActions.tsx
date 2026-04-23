@@ -450,7 +450,7 @@ export default function EnrollmentRecordRowActions({
       return res.data;
     },
     onSuccess: () => {
-      toast.success('The enrollment has been marked as complete.');
+      toast.success('The enrollment has been marked as completed successfully.');
       setMarkCompleteOpen(false);
       invalidateList();
     },
@@ -475,7 +475,7 @@ export default function EnrollmentRecordRowActions({
       return res.data;
     },
     onSuccess: () => {
-      toast.success('The enrollment has been cancelled.');
+      toast.success('The enrollment has been cancelled successfully.');
       setCancelEnrollmentOpen(false);
       setCancellationNote('');
       setCancellationNoteError(undefined);

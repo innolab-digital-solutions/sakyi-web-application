@@ -116,7 +116,7 @@ export default function NutritionCategoryForm({
             queryClient.invalidateQueries({
               queryKey: nutritionCategoryParentPickerQueryKey,
             });
-            toast.success('Food category has been updated successfully.');
+            toast.success('The food category has been updated successfully.');
             if (onSuccess) onSuccess();
             else router.push(ROUTES.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST);
           },
@@ -142,7 +142,7 @@ export default function NutritionCategoryForm({
         queryClient.invalidateQueries({
           queryKey: nutritionCategoryParentPickerQueryKey,
         });
-        toast.success('Food category has been created successfully.');
+        toast.success('The food category has been created successfully.');
         if (onSuccess) onSuccess();
         else router.push(ROUTES.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST);
       },

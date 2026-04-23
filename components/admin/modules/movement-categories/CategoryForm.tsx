@@ -114,7 +114,7 @@ export default function MovementCategoryForm({
             queryClient.invalidateQueries({
               queryKey: movementCategoryParentPickerQueryKey,
             });
-            toast.success('Movement category has been updated successfully.');
+            toast.success('The movement category has been updated successfully.');
             if (onSuccess) onSuccess();
             else router.push(ROUTES.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST);
           },
@@ -137,7 +137,7 @@ export default function MovementCategoryForm({
         queryClient.invalidateQueries({
           queryKey: movementCategoryParentPickerQueryKey,
         });
-        toast.success('Movement category has been created successfully.');
+        toast.success('The movement category has been created successfully.');
         if (onSuccess) onSuccess();
         else router.push(ROUTES.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST);
       },

@@ -90,8 +90,8 @@ function UserFormFields({
         }
         toast.success(
           isEdit
-            ? 'User account updated successfully.'
-            : 'User account created successfully.',
+            ? 'The user account has been updated successfully.'
+            : 'The user account has been created successfully.',
         );
         onSuccess?.();
       },

@@ -300,7 +300,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
       });
 
       if (!silentSuccessToast) {
-        toast.success('Section responses have been saved successfully.');
+        toast.success('The section responses have been saved successfully.');
       }
     },
     onError: () => {
@@ -325,7 +325,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
         status: response.status,
       });
       await revalidateIntakeQueries();
-      toast.success('Intake assessment completed successfully.');
+      toast.success('The intake assessment completed successfully.');
       router.push(
         ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(String(intakeId)),
       );
@@ -359,7 +359,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
       });
       await revalidateIntakeQueries();
       setCancelDialogOpen(false);
-      toast.success('Intake assessment cancelled successfully.');
+      toast.success('The intake assessment cancelled successfully.');
       router.push(
         ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(String(intakeId)),
       );
