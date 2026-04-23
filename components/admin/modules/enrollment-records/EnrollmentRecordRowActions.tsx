@@ -450,7 +450,9 @@ export default function EnrollmentRecordRowActions({
       return res.data;
     },
     onSuccess: () => {
-      toast.success('The enrollment has been marked as completed successfully.');
+      toast.success(
+        'The enrollment has been marked as completed successfully.',
+      );
       setMarkCompleteOpen(false);
       invalidateList();
     },

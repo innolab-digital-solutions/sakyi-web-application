@@ -19,7 +19,6 @@ export default function UnitListPage() {
         description='Manage shared measurement references used across care plans, operational logs, and reporting so quantities are recorded clearly and consistently.'
         actions={<UnitSheet mode='create' />}
       />
-
       <Suspense
         fallback={
           <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>

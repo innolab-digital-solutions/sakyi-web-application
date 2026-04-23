@@ -114,7 +114,9 @@ export default function MovementCategoryForm({
             queryClient.invalidateQueries({
               queryKey: movementCategoryParentPickerQueryKey,
             });
-            toast.success('The movement category has been updated successfully.');
+            toast.success(
+              'The movement category has been updated successfully.',
+            );
             if (onSuccess) onSuccess();
             else router.push(ROUTES.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST);
           },
