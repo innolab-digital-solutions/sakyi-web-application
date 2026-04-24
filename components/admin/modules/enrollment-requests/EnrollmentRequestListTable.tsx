@@ -34,6 +34,7 @@ import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
 import {
+  cancelEnrollmentRequest,
   updateEnrollmentRequestStatus,
   type UpdateEnrollmentRequestStatusPayload,
 } from '@/domains/enrollment-requests/services';
@@ -334,10 +335,6 @@ export default function EnrollmentRequestListTable() {
         toast.success(
           'The enrollment request has been marked as contacted successfully.',
         );
-      } else if (variables.payload.status === 'cancelled') {
-        toast.success(
-          'The enrollment request has been cancelled successfully.',
-        );
       } else {
         toast.success(
           'The enrollment request status has been updated successfully.',
@@ -350,6 +347,35 @@ export default function EnrollmentRequestListTable() {
     },
     onError: (error) => {
       toast.error(error.message ?? 'Failed to update status.');
+    },
+  });
+  const {
+    mutate: mutateCancelRequest,
+    isPending: isCancellingRequest,
+    variables: cancellingRequestVariables,
+  } = useMutation({
+    mutationFn: async ({
+      id,
+      cancellationNotes,
+    }: {
+      id: number;
+      cancellationNotes: string;
+    }) => {
+      const response = await cancelEnrollmentRequest(id, {
+        cancellation_notes: cancellationNotes,
+      });
+      if (response.status === 'error') {
+        throw new Error(response.message || 'Failed to cancel request.');
+      }
+    },
+    onSuccess: () => {
+      toast.success('The enrollment request has been cancelled successfully.');
+      queryClient.invalidateQueries({
+        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.ENROLLMENT_REQUESTS.LIST],
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message ?? 'Failed to cancel request.');
     },
   });
   const {
@@ -400,8 +426,8 @@ export default function EnrollmentRequestListTable() {
     updatingId === markContactedRequest.id;
   const isCancellingSelectedRequest =
     cancelRequest != null &&
-    isUpdatingStatus &&
-    updatingId === cancelRequest.id;
+    isCancellingRequest &&
+    (cancellingRequestVariables?.id ?? null) === cancelRequest.id;
   const { query } = controls;
   const showSkeleton = query.isPending && !query.data;
   const errorMessage =
@@ -763,10 +789,10 @@ export default function EnrollmentRequestListTable() {
             );
             return;
           }
-          mutateStatus(
+          mutateCancelRequest(
             {
               id: cancelRequest.id,
-              payload: { status: 'cancelled', cancellation_note: note },
+              cancellationNotes: note,
             },
             {
               onSuccess: () => {
@@ -777,7 +803,7 @@ export default function EnrollmentRequestListTable() {
               onError: (error) => {
                 const message =
                   error.message ?? 'Failed to cancel enrollment request.';
-                if (/cancellation[_\s]?note/i.test(message)) {
+                if (/cancellation[_\s]?notes?/i.test(message)) {
                   setCancelRequestNoteError(message);
                 } else {
                   setCancelRequestNoteError(undefined);

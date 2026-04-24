@@ -48,12 +48,12 @@ export default function EnrollmentRequestCancelConfirmation({
                 Cancel this enrollment request?
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
-                This will mark{' '}
+                Cancelling will immediately stop follow-up for{' '}
                 <span className='text-destructive text-xs font-semibold'>
                   {requestReference?.trim() || 'this enrollment request'}
                 </span>{' '}
-                as cancelled and remove it from active follow-up. Please provide
-                a cancellation note so your team has clear context.
+                and change its status to “cancelled.” Please provide a brief
+                note to ensure your team has clear context for this action.
               </AlertDialogDescription>
             </div>
           </div>
@@ -77,7 +77,7 @@ export default function EnrollmentRequestCancelConfirmation({
             disabled={isSubmitting}
             className='text-foreground bg-background hover:bg-muted h-10 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
           >
-            Keep request
+            Continue Follow-up
           </AlertDialogCancel>
           <Button
             type='button'

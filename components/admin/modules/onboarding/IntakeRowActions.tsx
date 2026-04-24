@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  BanIcon,
   ClipboardCopyIcon,
   EyeIcon,
   MoreHorizontalIcon,
@@ -38,6 +39,10 @@ function canSendContract(intake: OnboardingIntakeData): boolean {
   );
 }
 
+function canCancelIntake(intake: OnboardingIntakeData): boolean {
+  return intake.status !== 'completed' && intake.status !== 'cancelled';
+}
+
 const viewDetailButtonClass =
   'normal-case bg-background hover:bg-muted text-foreground h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold';
 
@@ -50,7 +55,9 @@ const moreTriggerClass =
 export type IntakeRowActionsProps = {
   intake: OnboardingIntakeData;
   onSendContract: () => void;
+  onCancelIntake: () => void;
   isSendingContract: boolean;
+  isCancellingIntake: boolean;
 };
 
 type PrimaryAction = 'continue' | 'send' | 'view';
@@ -65,12 +72,15 @@ function getPrimaryAction(intake: OnboardingIntakeData): PrimaryAction {
 export default function IntakeRowActions({
   intake,
   onSendContract,
+  onCancelIntake,
   isSendingContract,
+  isCancellingIntake,
 }: IntakeRowActionsProps) {
   const referenceText = getIntakeReference(intake);
   const primary = getPrimaryAction(intake);
   const showContinue = canContinueInterview(intake);
   const showSend = canSendContract(intake);
+  const showCancel = canCancelIntake(intake);
   const enrollmentRequestId = intake.enrollment_request?.id ?? null;
   const sendDisabled = enrollmentRequestId == null || isSendingContract;
 
@@ -88,8 +98,9 @@ export default function IntakeRowActions({
   const showViewInMenu = primary !== 'view';
   const showContinueInMenu = primary !== 'continue' && showContinue;
   const showSendInMenu = primary !== 'send' && showSend;
+  const showCancelInMenu = showCancel;
   const hasMenuAfterCopy =
-    showViewInMenu || showContinueInMenu || showSendInMenu;
+    showViewInMenu || showContinueInMenu || showSendInMenu || showCancelInMenu;
 
   return (
     <div className='flex items-center justify-end gap-1.5'>
@@ -208,6 +219,16 @@ export default function IntakeRowActions({
                 >
                   <SendHorizontal className='size-3.5 shrink-0' />
                   Send Contract
+                </DropdownMenuItem>
+              ) : null}
+              {showCancelInMenu ? (
+                <DropdownMenuItem
+                  className='text-destructive focus:text-destructive flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                  disabled={isCancellingIntake}
+                  onClick={() => onCancelIntake()}
+                >
+                  <BanIcon className='text-destructive size-3.5 shrink-0' />
+                  Cancel Intake
                 </DropdownMenuItem>
               ) : null}
             </>

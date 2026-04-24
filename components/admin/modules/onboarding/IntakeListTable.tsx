@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import IntakeAssessmentFilters from '@/components/admin/modules/onboarding/IntakeAssessmentFilters';
+import IntakeCancelConfirmation from '@/components/admin/modules/onboarding/IntakeCancelConfirmation';
 import IntakeRowActions from '@/components/admin/modules/onboarding/IntakeRowActions';
 import SendContractConfirmation from '@/components/admin/modules/onboarding/SendContractConfirmation';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
@@ -30,6 +31,8 @@ import {
 import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { assignEnrollmentRequestContract } from '@/domains/enrollment-requests/services';
+import { OnboardingCancelIntakeSchema } from '@/domains/onboarding/schemas';
+import { cancelOnboardingIntake } from '@/domains/onboarding/services';
 import type { OnboardingIntakeData } from '@/domains/intake-assessments/types';
 import { useTable } from '@/lib/table';
 import { getInitials } from '@/lib/utils/string';
@@ -252,6 +255,12 @@ export default function IntakeListTable() {
     variant: 'first' | 'resend';
     applicantName: string | null;
   } | null>(null);
+  const [cancelIntakeDialog, setCancelIntakeDialog] =
+    useState<OnboardingIntakeData | null>(null);
+  const [cancelIntakeNote, setCancelIntakeNote] = useState('');
+  const [cancelIntakeNoteError, setCancelIntakeNoteError] = useState<
+    string | undefined
+  >(undefined);
   const { rows, controls } = useTable<OnboardingIntakeData>(
     ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST,
     {
@@ -313,6 +322,32 @@ export default function IntakeListTable() {
         );
       },
     });
+  const {
+    mutate: mutateCancelIntake,
+    isPending: isCancellingIntake,
+    variables: cancellingIntakeId,
+  } = useMutation({
+    mutationFn: async (args: { intakeId: number; cancellationNote: string }) => {
+      const response = await cancelOnboardingIntake(args.intakeId, {
+        cancellation_note: args.cancellationNote,
+      });
+      if (response.status === 'error') {
+        throw new Error(response.message || 'Could not cancel intake.');
+      }
+    },
+    onSuccess: () => {
+      toast.success('The intake assessment has been cancelled successfully.');
+      queryClient.invalidateQueries({
+        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.ENROLLMENT_REQUESTS.LIST],
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message ?? 'Could not cancel intake.');
+    },
+  });
 
   const confirmSendContract = () => {
     if (!sendContractDialog) return;
@@ -598,10 +633,19 @@ export default function IntakeListTable() {
                             applicantName: intake.client?.name?.trim() ?? null,
                           });
                         }}
+                        onCancelIntake={() => {
+                          setCancelIntakeDialog(intake);
+                          setCancelIntakeNote('');
+                          setCancelIntakeNoteError(undefined);
+                        }}
                         isSendingContract={
                           isAssigningContract &&
                           enrollmentRequestId != null &&
                           assigningEnrollmentRequestId === enrollmentRequestId
+                        }
+                        isCancellingIntake={
+                          isCancellingIntake &&
+                          cancellingIntakeId?.intakeId === intake.id
                         }
                       />
                     </TableCell>
@@ -626,6 +670,54 @@ export default function IntakeListTable() {
         variant={sendContractDialog?.variant ?? 'first'}
         applicantName={sendContractDialog?.applicantName}
         onConfirm={confirmSendContract}
+      />
+      <IntakeCancelConfirmation
+        open={cancelIntakeDialog != null}
+        onOpenChange={(open) => {
+          if (!open && !isCancellingIntake) {
+            setCancelIntakeDialog(null);
+            setCancelIntakeNote('');
+            setCancelIntakeNoteError(undefined);
+          }
+        }}
+        isSubmitting={isCancellingIntake}
+        intakeReference={
+          cancelIntakeDialog
+            ? cancelIntakeDialog.code?.trim() || `#${cancelIntakeDialog.id}`
+            : undefined
+        }
+        cancellationNote={cancelIntakeNote}
+        onCancellationNoteChange={(value) => {
+          setCancelIntakeNote(value);
+          if (cancelIntakeNoteError) setCancelIntakeNoteError(undefined);
+        }}
+        noteError={cancelIntakeNoteError}
+        onConfirmCancel={() => {
+          if (!cancelIntakeDialog) return;
+          const validation = OnboardingCancelIntakeSchema.safeParse({
+            cancellation_note: cancelIntakeNote,
+          });
+          if (!validation.success) {
+            setCancelIntakeNoteError(
+              validation.error.flatten().fieldErrors.cancellation_note?.[0],
+            );
+            return;
+          }
+          setCancelIntakeNoteError(undefined);
+          mutateCancelIntake(
+            {
+              intakeId: cancelIntakeDialog.id,
+              cancellationNote: validation.data.cancellation_note,
+            },
+            {
+              onSuccess: () => {
+                setCancelIntakeDialog(null);
+                setCancelIntakeNote('');
+                setCancelIntakeNoteError(undefined);
+              },
+            },
+          );
+        }}
       />
     </TableListShell>
   );
