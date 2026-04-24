@@ -279,6 +279,53 @@ function getProgramPriceAmount(
   return price?.amount ?? 0;
 }
 
+type ProgramChangeSnapshot = {
+  duration: string;
+  price: number;
+  goalIds: number[];
+  status: typeof STATUS.DRAFT | typeof STATUS.PUBLISHED | typeof STATUS.ARCHIVED;
+  translations: Array<{
+    locale: 'en' | 'my';
+    title: string;
+    tagline: string;
+    excerpt: string;
+    about: string;
+    features: string[];
+    ideals: string[];
+    expectations: string[];
+    structures: ProgramStructureItem[];
+  }>;
+};
+
+function buildProgramChangeSnapshot(input: {
+  duration: string;
+  price: number;
+  goalIds: number[];
+  status: typeof STATUS.DRAFT | typeof STATUS.PUBLISHED | typeof STATUS.ARCHIVED;
+  translations: TranslationData[];
+}): ProgramChangeSnapshot {
+  return {
+    duration: input.duration.trim(),
+    price: Number.isFinite(input.price) ? input.price : 0,
+    goalIds: [...new Set(input.goalIds)].sort((a, b) => a - b),
+    status: input.status,
+    translations: input.translations
+      .filter((t) => t.locale === 'en' || t.locale === 'my')
+      .map((t) => ({
+        locale: t.locale,
+        title: t.title.trim(),
+        tagline: t.tagline.trim(),
+        excerpt: t.excerpt.trim(),
+        about: normalizeRichTextValue(t.about),
+        features: t.features.map((s) => s.trim()).filter(Boolean),
+        ideals: t.ideals.map((s) => s.trim()).filter(Boolean),
+        expectations: t.expectations.map((s) => s.trim()).filter(Boolean),
+        structures: normalizeStructureRows(t.structures),
+      }))
+      .sort((a, b) => a.locale.localeCompare(b.locale)),
+  };
+}
+
 export default function ProgramWizard({
   mode,
   program,
@@ -288,6 +335,7 @@ export default function ProgramWizard({
   const router = useRouter();
   const queryClient = useQueryClient();
   const isEdit = mode === 'edit';
+  const formRef = React.useRef<HTMLFormElement | null>(null);
 
   const [activeLocale, setActiveLocale] = React.useState<'en' | 'my'>('en');
   const [errors, setErrors] = React.useState<FieldErrors>({});
@@ -343,6 +391,48 @@ export default function ProgramWizard({
       }),
   );
 
+  const initialChangeSnapshot = React.useMemo<ProgramChangeSnapshot>(() => {
+    if (!isEdit || !program) {
+      return buildProgramChangeSnapshot({
+        duration: '',
+        price: 0,
+        goalIds: [],
+        status: STATUS.DRAFT,
+        translations: [emptyTranslation('en'), emptyTranslation('my')],
+      });
+    }
+
+    return buildProgramChangeSnapshot({
+      duration: program.duration ?? '',
+      price: getProgramPriceAmount(program.price),
+      goalIds: program.goals?.map((g) => Number(g.id)) ?? [],
+      status:
+        program.status === STATUS.HIDDEN
+          ? STATUS.ARCHIVED
+          : program.status === STATUS.PUBLISHED
+            ? STATUS.PUBLISHED
+            : program.status === STATUS.ARCHIVED
+              ? STATUS.ARCHIVED
+              : STATUS.DRAFT,
+      translations: LANGUAGES.map((lang) => {
+        const src = lang.code === 'en' ? enTranslation : myTranslation;
+        if (!src) return emptyTranslation(lang.code);
+        return {
+          locale: lang.code,
+          title: src.title ?? '',
+          tagline: src.tagline ?? '',
+          excerpt: src.excerpt ?? '',
+          about: src.about ?? '',
+          features: src.features ?? [],
+          ideals: src.ideals ?? [],
+          expectations: src.expectations ?? [],
+          structures:
+            src.structures?.length > 0 ? src.structures.map((s) => ({ ...s })) : [],
+        };
+      }),
+    });
+  }, [isEdit, program, enTranslation, myTranslation]);
+
   const { data: goalsData } = useQuery({
     queryKey: ['lookup', LOOKUP_ENDPOINTS.GOALS],
     queryFn: async () => {
@@ -391,6 +481,32 @@ export default function ProgramWizard({
   const hasLocaleFieldErrors = (locale: string) =>
     Object.keys(errors).some((k) => k.startsWith(`translations.${locale}.`));
 
+  const scrollToFirstInvalidField = React.useCallback(() => {
+    const formEl = formRef.current;
+    if (!formEl) return;
+
+    requestAnimationFrame(() => {
+      const invalidEl = formEl.querySelector<HTMLElement>(
+        '[aria-invalid="true"]',
+      );
+
+      if (invalidEl) {
+        invalidEl.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest',
+        });
+        if (typeof invalidEl.focus === 'function') {
+          invalidEl.focus({ preventScroll: true });
+        }
+        return;
+      }
+
+      // Fallback to form top when no invalid control exposes aria-invalid.
+      formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, []);
+
   const mutation = useMutation({
     mutationFn: async () => {
       setErrors({});
@@ -424,6 +540,7 @@ export default function ProgramWizard({
         ) {
           setActiveLocale('my');
         }
+        scrollToFirstInvalidField();
         throw new Error('Fix the highlighted fields and try again.');
       }
 
@@ -472,6 +589,7 @@ export default function ProgramWizard({
           ) {
             setActiveLocale('my');
           }
+          scrollToFirstInvalidField();
           throw new ServerFieldValidationError();
         }
         throw new Error(saveRes.message ?? 'Failed to save program.');
@@ -504,6 +622,23 @@ export default function ProgramWizard({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isEdit) {
+      const currentSnapshot = buildProgramChangeSnapshot({
+        duration,
+        price,
+        goalIds,
+        status,
+        translations,
+      });
+      const changedValues =
+        JSON.stringify(currentSnapshot) !== JSON.stringify(initialChangeSnapshot);
+      const thumbnailChanged = thumbnailFile !== null;
+
+      if (!changedValues && !thumbnailChanged) {
+        toast.info('There are no changes to save.');
+        return;
+      }
+    }
     mutation.mutate();
   };
 
@@ -511,7 +646,7 @@ export default function ProgramWizard({
   const isPublished = status === STATUS.PUBLISHED;
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
+    <form ref={formRef} onSubmit={handleSubmit} noValidate>
       <div className='grid min-w-0 gap-6 lg:grid-cols-3 lg:items-start'>
         <section className='border-border min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:col-span-2'>
           <div className='space-y-6'>
@@ -573,8 +708,8 @@ export default function ProgramWizard({
                         required
                         placeholder={
                           lang.code === 'en'
-                            ? 'e.g. Weight Loss & Wellness'
-                            : 'ခေါင်းစဉ်…'
+                            ? 'Enter program title (e.g. Weight Loss & Wellness)'
+                            : 'ပရိုဂရမ် ခေါင်းစဉ်ကို ထည့်ပါ (ဥပမာ ကိုယ်အလေးချိန် လျှော့ချခြင်းနှင့် ကျန်းမာခြင်း)'
                         }
                         value={t.title}
                         onChange={(e) =>
@@ -585,7 +720,11 @@ export default function ProgramWizard({
                       <TextField
                         label='Tagline'
                         required
-                        placeholder='Short phrase for cards'
+                        placeholder={
+                          lang.code === 'en'
+                            ? 'Enter program tagline (e.g. Transform Your Life)'
+                            : 'ပရိုဂရမ် tagline ကိုထည့်ပါ (ဥပမာ၊ သင့်ဘဝကို ပြောင်းလဲပါ)'
+                        }
                         value={t.tagline}
                         onChange={(e) =>
                           updateTranslation(
@@ -599,7 +738,11 @@ export default function ProgramWizard({
                       <TextAreaField
                         label='Excerpt'
                         required
-                        placeholder='Summary for listings'
+                        placeholder={
+                          lang.code === 'en'
+                            ? 'Enter a short summary for this program'
+                            : 'ဤပရိုဂရမ်အတွက် အတိုချုံးကို ထည့်ပါ'
+                        }
                         rows={4}
                         value={t.excerpt}
                         onChange={(e) =>
@@ -614,6 +757,11 @@ export default function ProgramWizard({
                       <RichTextField
                         label='About'
                         required
+                        placeholder={
+                          lang.code === 'en'
+                            ? 'Enter a detailed description for this program'
+                            : 'ဤပရိုဂရမ်အတွက် အကြောင်းအရာအပြည့်အစုံကို ထည့်သွင်းပါ'
+                        }
                         value={t.about}
                         onChange={(val) =>
                           updateTranslation(lang.code, 'about', val)
@@ -635,6 +783,11 @@ export default function ProgramWizard({
                           label='Key Features'
                           description='List the core features and benefits participants will receive from this program.'
                           value={t.features}
+                          placeholder={
+                            lang.code === 'en'
+                              ? 'Enter a key feature for this program'
+                              : 'ပရိုဂရမ်အတွက် သော့ချက်အင်္ဂါရပ်ကို ထည့်သွင်းပါ'
+                          }
                           onChange={(val) =>
                             updateTranslation(lang.code, 'features', val)
                           }
@@ -644,6 +797,11 @@ export default function ProgramWizard({
                           label='Ideal Participants'
                           description='Specify the target audience who would benefit the most from this program.'
                           value={t.ideals}
+                          placeholder={
+                            lang.code === 'en'
+                              ? 'Enter an ideal audience for this program'
+                              : 'ဤပရိုဂရမ်အတွက် သင့်လျော်သောပါဝင်သူများကို ထည့်သွင်းပါ'
+                          }
                           onChange={(val) =>
                             updateTranslation(lang.code, 'ideals', val)
                           }
@@ -662,6 +820,7 @@ export default function ProgramWizard({
                           label='Program Structure'
                           description='Define each program phase. For each phase, specify a period label, a title, and a descriptive summary to clearly outline the participant journey.'
                           value={t.structures}
+                          locale={lang.code}
                           onChange={(val) =>
                             updateTranslation(lang.code, 'structures', val)
                           }
@@ -720,7 +879,7 @@ export default function ProgramWizard({
               <FileUploadField
                 label='Thumbnail'
                 required
-                accept='image/*'
+                accept='.jpg,.jpeg,.png'
                 maxFileSize={5 * 1024 * 1024}
                 existingFiles={existingThumbnail}
                 onExistingFilesChange={(files) => {
@@ -740,7 +899,7 @@ export default function ProgramWizard({
                     return n;
                   });
                 }}
-                emptyHint='Click or drag image here (max 5 MB)'
+                emptyHint='Browse'
                 error={errors.thumbnail}
               />
             </div>
@@ -749,7 +908,7 @@ export default function ProgramWizard({
               <TextField
                 label='Duration'
                 required
-                placeholder='e.g. 8 weeks'
+                placeholder='Enter program duration (e.g. 8 weeks)'
                 value={duration}
                 onChange={(e) => {
                   setDuration(e.target.value);
@@ -784,11 +943,11 @@ export default function ProgramWizard({
 
             <div className='border-border border-t pt-4'>
               <ComboboxField
-                label='Goals'
+                label='Related Goals'
                 required
                 multiple
-                placeholder='Select goals…'
-                searchPlaceholder='Search goals…'
+                placeholder='Please select related goals'
+                searchPlaceholder='Search related goals…'
                 emptyMessage='No goals found.'
                 options={goalOptions}
                 value={goalIds.map((id) => String(id))}

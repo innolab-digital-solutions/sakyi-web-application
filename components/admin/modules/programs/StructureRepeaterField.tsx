@@ -14,6 +14,7 @@ type Props = {
   description?: string;
   value: ProgramStructureItem[];
   onChange: (value: ProgramStructureItem[]) => void;
+  locale?: 'en' | 'my';
   error?: string;
   disabled?: boolean;
 };
@@ -29,6 +30,7 @@ export default function StructureRepeaterField({
   description,
   value,
   onChange,
+  locale = 'en',
   error,
   disabled = false,
 }: Props) {
@@ -122,9 +124,13 @@ export default function StructureRepeaterField({
 
       <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
         <TextField
-          label='Period'
+          label='Phase Period'
           disabled={disabled}
-          placeholder='e.g. Week 1-2'
+          placeholder={
+            locale === 'en'
+              ? 'Enter period (e.g. Week 1-2)'
+              : 'ကာလအပိုင်းကို ထည့်ပါ (ဥပမာ - အပတ် ၁-၂)'
+          }
           value={draftRow.period}
           onChange={(e) =>
             setDraftRow((prev) => ({ ...prev, period: e.target.value }))
@@ -135,7 +141,9 @@ export default function StructureRepeaterField({
           <TextField
             label='Title'
             disabled={disabled}
-            placeholder='Phase title'
+            placeholder={
+              locale === 'en' ? 'Enter phase title' : 'အဆင့်ခေါင်းစဉ်ကို ထည့်ပါ'
+            }
             value={draftRow.title}
             onChange={(e) =>
               setDraftRow((prev) => ({ ...prev, title: e.target.value }))
@@ -147,7 +155,11 @@ export default function StructureRepeaterField({
           <TextAreaField
             label='Description'
             disabled={disabled}
-            placeholder='What happens in this phase'
+            placeholder={
+              locale === 'en'
+                ? 'Enter a description for this phase'
+                : 'ဤအဆင့်အတွက် ဖော်ပြချက်ကို ထည့်ပါ'
+            }
             value={draftRow.description}
             onChange={(e) =>
               setDraftRow((prev) => ({ ...prev, description: e.target.value }))

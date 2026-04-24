@@ -20,6 +20,7 @@ import ProgramFilters, {
   type ProgramListLocale,
   type ProgramTableStatusFilter,
 } from '@/components/admin/modules/programs/ProgramFilters';
+import ProgramRemovalBlockedAlert from '@/components/admin/modules/programs/ProgramRemovalBlockedAlert';
 import RemoveProgramConfirmation from '@/components/admin/modules/programs/RemoveProgramConfirmation';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
@@ -194,6 +195,9 @@ function listLocaleFromParams(raw: string | undefined): ProgramListLocale {
 export default function ProgramListTable() {
   const queryClient = useQueryClient();
   const [deleteTarget, setDeleteTarget] = useState<Program | null>(null);
+  const [blockedDeleteTarget, setBlockedDeleteTarget] = useState<Program | null>(
+    null,
+  );
 
   const { mutateAsync: confirmDelete, isPending: isDeleting } = useMutation({
     mutationFn: async (id: number) => {
@@ -221,6 +225,14 @@ export default function ProgramListTable() {
     } catch {
       // onError already toasts; swallow so unhandled rejection is avoided
     }
+  };
+
+  const handleDeleteClick = (program: Program) => {
+    if (program.actions.deletable) {
+      setDeleteTarget(program);
+      return;
+    }
+    setBlockedDeleteTarget(program);
   };
 
   const { rows, controls } = useTable<Program>(
@@ -415,7 +427,7 @@ export default function ProgramListTable() {
                           type='button'
                           variant='outline'
                           className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-                          onClick={() => setDeleteTarget(program)}
+                          onClick={() => handleDeleteClick(program)}
                         >
                           <Trash2Icon className='size-3.5' />
                           Delete
@@ -441,6 +453,22 @@ export default function ProgramListTable() {
         }
         onConfirm={handleDelete}
         isRemoving={isDeleting}
+      />
+      <ProgramRemovalBlockedAlert
+        open={blockedDeleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setBlockedDeleteTarget(null);
+        }}
+        programName={
+          blockedDeleteTarget?.title?.trim() ||
+          blockedDeleteTarget?.code ||
+          (blockedDeleteTarget
+            ? `program #${blockedDeleteTarget.id}`
+            : undefined)
+        }
+        reason={
+          blockedDeleteTarget?.actions.delete_block_reason ?? undefined
+        }
       />
     </>
   );

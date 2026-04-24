@@ -47,6 +47,10 @@ export type Program = {
         currency: string;
       };
   status: (typeof STATUS)[keyof typeof STATUS];
+  actions: {
+    deletable: boolean;
+    delete_block_reason?: string | null;
+  };
   timestamps: {
     published_at: string | null;
     archived_at: string | null;
