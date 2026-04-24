@@ -88,6 +88,11 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
 
   const submit = async () => {
     if (isEdit) {
+      if (!form.isDirty) {
+        toast.info('There are no changes to save.');
+        return;
+      }
+
       await form.patch(ENDPOINTS.ADMIN.MODULES.UNITS.DETAIL(String(unit.id)), {
         onSuccess: () => {
           queryClient.invalidateQueries({
@@ -140,7 +145,7 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
         <TextField
           label='Measurement Name'
           required
-          placeholder='e.g. Kilogram'
+          placeholder='Enter measurement name (e.g., Kilograms)'
           value={String(form.fields.name ?? '')}
           onChange={(e) => form.setData('name', e.target.value)}
           error={form.errors.name}
@@ -148,7 +153,7 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
         <TextField
           label='Abbreviation'
           required
-          placeholder='e.g. kg'
+          placeholder='Enter short label (e.g., kg)'
           value={String(form.fields.abbreviation ?? '')}
           onChange={(e) => form.setData('abbreviation', e.target.value)}
           error={form.errors.abbreviation}
@@ -162,7 +167,7 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
           label='Measurement Type'
           name='type'
           required
-          placeholder='Select a type…'
+          placeholder='Choose measurement group'
           options={UNIT_TYPE_OPTIONS}
           value={typeSelectValue}
           onChange={(val) =>

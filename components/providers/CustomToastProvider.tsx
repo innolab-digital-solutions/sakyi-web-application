@@ -94,7 +94,12 @@ const ToastCard = ({
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className='flex items-start gap-3 pr-7'>
+      <div
+        className={cn(
+          'flex gap-3 pr-7',
+          description ? 'items-start' : 'items-center',
+        )}
+      >
         <div
           className={cn(
             'flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-md',
@@ -104,7 +109,12 @@ const ToastCard = ({
           {toastIcons[variant]}
         </div>
         <div className='min-w-0 flex-1'>
-          <p className='mb-1 text-[13px] font-semibold text-neutral-800'>
+          <p
+            className={cn(
+              'text-[13px] font-semibold text-neutral-800',
+              description ? 'mb-1' : '',
+            )}
+          >
             {title}
           </p>
           {description ? (
