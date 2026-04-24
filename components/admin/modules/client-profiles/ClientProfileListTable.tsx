@@ -1,11 +1,14 @@
 'use client';
 
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { CircleDotIcon, MarsIcon, VenusIcon } from 'lucide-react';
 import { type ComponentType, useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import ClientProfileFilters from '@/components/admin/modules/client-profiles/ClientProfileFilters';
+import ClientProfileMediaUploadDialog from '@/components/admin/modules/client-profiles/ClientProfileMediaUploadDialog';
 import ClientProfileRowActions from '@/components/admin/modules/client-profiles/ClientProfileRowActions';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
@@ -21,6 +24,7 @@ import {
 import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
+import { uploadClientProfileMedia } from '@/domains/client-profiles/services';
 import type { ClientProfile } from '@/domains/client-profiles/types/admin';
 import { useTable } from '@/lib/table';
 import { getInitials } from '@/lib/utils/string';
@@ -183,6 +187,7 @@ function resolveProfilePictureUrl(
 }
 
 export default function ClientProfileListTable() {
+  const queryClient = useQueryClient();
   const [visibleColumnKeys, setVisibleColumnKeys] = useState<
     ClientProfileColumnKey[]
   >(() => {
@@ -210,6 +215,11 @@ export default function ClientProfileListTable() {
       return fallback;
     }
   });
+  const [uploadTarget, setUploadTarget] = useState<ClientProfile | null>(null);
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
+  const [mediaLabel, setMediaLabel] = useState('');
+  const [mediaFileError, setMediaFileError] = useState<string | undefined>();
+  const [mediaLabelError, setMediaLabelError] = useState<string | undefined>();
 
   const { rows, controls } = useTable<ClientProfile>(LIST_ENDPOINT, {
     params: {
@@ -272,6 +282,36 @@ export default function ClientProfileListTable() {
   };
 
   const showColumn = (key: ClientProfileColumnKey) => visibleColumnSet.has(key);
+  const { mutate: mutateUploadMedia, isPending: isUploadingMedia } = useMutation({
+    mutationFn: async (args: { id: number; files: File[]; label?: string }) => {
+      const response = await uploadClientProfileMedia(args.id, {
+        files: args.files,
+        label: args.label,
+      });
+      if (response.status === 'error') {
+        throw new Error(response.message || 'Could not upload files.');
+      }
+    },
+    onSuccess: () => {
+      toast.success('Files have been uploaded to the client profile.');
+      queryClient.invalidateQueries({
+        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.CLIENT_PROFILES.LIST],
+      });
+      if (uploadTarget) {
+        queryClient.invalidateQueries({
+          queryKey: ['client-profile', uploadTarget.id],
+        });
+      }
+      setUploadTarget(null);
+      setMediaFiles([]);
+      setMediaLabel('');
+      setMediaFileError(undefined);
+      setMediaLabelError(undefined);
+    },
+    onError: (error) => {
+      toast.error(error.message ?? 'Could not upload files.');
+    },
+  });
 
   return (
     <TableListShell
@@ -427,7 +467,16 @@ export default function ClientProfileListTable() {
                   ) : null}
                   {showColumn('actions') ? (
                     <TableCell className='align-center text-end whitespace-nowrap'>
-                      <ClientProfileRowActions row={row} />
+                      <ClientProfileRowActions
+                        row={row}
+                        onUploadMedia={() => {
+                          setUploadTarget(row);
+                          setMediaFiles([]);
+                          setMediaLabel('');
+                          setMediaFileError(undefined);
+                          setMediaLabelError(undefined);
+                        }}
+                      />
                     </TableCell>
                   ) : null}
                 </TableRow>
@@ -435,6 +484,54 @@ export default function ClientProfileListTable() {
             })}
         </TableBody>
       </Table>
+      <ClientProfileMediaUploadDialog
+        open={uploadTarget != null}
+        onOpenChange={(open) => {
+          if (!open && !isUploadingMedia) {
+            setUploadTarget(null);
+            setMediaFiles([]);
+            setMediaLabel('');
+            setMediaFileError(undefined);
+            setMediaLabelError(undefined);
+          }
+        }}
+        profileName={uploadTarget?.name}
+        files={mediaFiles}
+        onFilesChange={(files) => {
+          setMediaFiles(files);
+          if (mediaFileError) setMediaFileError(undefined);
+        }}
+        label={mediaLabel}
+        onLabelChange={(value) => {
+          setMediaLabel(value);
+          if (mediaLabelError) setMediaLabelError(undefined);
+        }}
+        isSubmitting={isUploadingMedia}
+        fileError={mediaFileError}
+        labelError={mediaLabelError}
+        onConfirmUpload={() => {
+          if (!uploadTarget) return;
+
+          if (mediaFiles.length === 0) {
+            setMediaFileError('Please upload at least one file.');
+            return;
+          }
+          if (mediaFiles.length > 10) {
+            setMediaFileError('You can upload up to 10 files per request.');
+            return;
+          }
+          if (mediaLabel.trim().length > 120) {
+            setMediaLabelError('Label must be 120 characters or less.');
+            return;
+          }
+
+          mutateUploadMedia({
+            id: uploadTarget.id,
+            files: mediaFiles,
+            label: mediaLabel.trim() || undefined,
+          });
+        }}
+      />
     </TableListShell>
   );
 }
