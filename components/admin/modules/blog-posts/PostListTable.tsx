@@ -15,6 +15,7 @@ import { type ComponentType, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
+import BlogPostRemovalBlockedAlert from '@/components/admin/modules/blog-posts/BlogPostRemovalBlockedAlert';
 import BlogPostFilters, {
   type BlogPostListLocale,
 } from '@/components/admin/modules/blog-posts/PostFilters';
@@ -134,6 +135,8 @@ function formatDateCell(iso: string | null | undefined): string | null {
 export default function BlogPostListTable() {
   const queryClient = useQueryClient();
   const [deletePost, setDeletePost] = useState<AdminBlogPost | null>(null);
+  const [blockedDeletePost, setBlockedDeletePost] =
+    useState<AdminBlogPost | null>(null);
 
   const { mutateAsync: confirmDelete, isPending: isDeleting } = useMutation({
     mutationFn: async (id: number) => {
@@ -161,6 +164,15 @@ export default function BlogPostListTable() {
     } catch {
       // onError already toasts
     }
+  };
+
+  const handleDeleteClick = (post: AdminBlogPost) => {
+    if (post.actions.deletable) {
+      setDeletePost(post);
+      return;
+    }
+
+    setBlockedDeletePost(post);
   };
 
   const { rows, controls } = useTable<AdminBlogPost>(BLOG_POST_LIST_ENDPOINT, {
@@ -227,7 +239,7 @@ export default function BlogPostListTable() {
           <TableBody>
             {showSkeleton && (
               <TableSkeletonRows
-                rowCount={3}
+                rowCount={15}
                 columnCount={COLUMN_COUNT}
                 cellWidths={[...SKELETON_WIDTHS]}
               />
@@ -323,7 +335,7 @@ export default function BlogPostListTable() {
                           type='button'
                           variant='outline'
                           className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-                          onClick={() => setDeletePost(post)}
+                          onClick={() => handleDeleteClick(post)}
                         >
                           <Trash2Icon className='size-3.5' />
                           Remove
@@ -345,6 +357,14 @@ export default function BlogPostListTable() {
         postTitle={deletePost?.title}
         isRemoving={isDeleting}
         onConfirm={handleDelete}
+      />
+      <BlogPostRemovalBlockedAlert
+        open={!!blockedDeletePost}
+        onOpenChange={(o) => {
+          if (!o) setBlockedDeletePost(null);
+        }}
+        postTitle={blockedDeletePost?.title}
+        reason={blockedDeletePost?.actions.delete_block_reason ?? undefined}
       />
     </>
   );

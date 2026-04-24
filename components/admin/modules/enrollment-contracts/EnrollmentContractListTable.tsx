@@ -326,7 +326,7 @@ export default function EnrollmentContractListTable() {
           <TableBody>
             {showSkeleton && (
               <TableSkeletonRows
-                rowCount={3}
+                rowCount={15}
                 columnCount={visibleColumnCount}
                 cellWidths={visibleSkeletonWidths}
               />

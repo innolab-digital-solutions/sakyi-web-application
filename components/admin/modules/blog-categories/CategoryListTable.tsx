@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
+import BlogCategoryRemovalBlockedAlert from '@/components/admin/modules/blog-categories/BlogCategoryRemovalBlockedAlert';
 import BlogCategoryFilters, {
   type BlogCategoryListLocale,
 } from '@/components/admin/modules/blog-categories/CategoryFilters';
@@ -46,6 +47,8 @@ export default function BlogCategoryListTable() {
   const [deleteCategory, setDeleteCategory] = useState<BlogCategory | null>(
     null,
   );
+  const [blockedDeleteCategory, setBlockedDeleteCategory] =
+    useState<BlogCategory | null>(null);
 
   const { mutateAsync: confirmDelete, isPending: isDeleting } = useMutation({
     mutationFn: async (id: number) => {
@@ -76,6 +79,15 @@ export default function BlogCategoryListTable() {
     } catch {
       // onError already toasts
     }
+  };
+
+  const handleDeleteClick = (category: BlogCategory) => {
+    if (category.actions.deletable) {
+      setDeleteCategory(category);
+      return;
+    }
+
+    setBlockedDeleteCategory(category);
   };
 
   const { rows, controls } = useTable<BlogCategory>(
@@ -126,7 +138,7 @@ export default function BlogCategoryListTable() {
           <TableBody>
             {showSkeleton && (
               <TableSkeletonRows
-                rowCount={3}
+                rowCount={15}
                 columnCount={COLUMN_COUNT}
                 cellWidths={[...SKELETON_WIDTHS]}
               />
@@ -192,7 +204,7 @@ export default function BlogCategoryListTable() {
                         type='button'
                         variant='outline'
                         className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-                        onClick={() => setDeleteCategory(category)}
+                        onClick={() => handleDeleteClick(category)}
                       >
                         <Trash2Icon className='size-3.5' />
                         Remove
@@ -224,6 +236,14 @@ export default function BlogCategoryListTable() {
         categoryName={deleteCategory?.name}
         isRemoving={isDeleting}
         onConfirm={handleDelete}
+      />
+      <BlogCategoryRemovalBlockedAlert
+        open={!!blockedDeleteCategory}
+        onOpenChange={(o) => {
+          if (!o) setBlockedDeleteCategory(null);
+        }}
+        categoryName={blockedDeleteCategory?.name}
+        reason={blockedDeleteCategory?.actions.delete_block_reason ?? undefined}
       />
     </>
   );

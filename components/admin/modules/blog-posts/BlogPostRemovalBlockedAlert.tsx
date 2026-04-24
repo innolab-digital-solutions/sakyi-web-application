@@ -12,23 +12,23 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 
-type UnitRemovalBlockedAlertProps = {
+type BlogPostRemovalBlockedAlertProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  measurementName: string | undefined;
+  postTitle: string | undefined;
   reason: string | undefined;
 };
 
-export default function UnitRemovalBlockedAlert({
+export default function BlogPostRemovalBlockedAlert({
   open,
   onOpenChange,
-  measurementName,
+  postTitle,
   reason,
-}: UnitRemovalBlockedAlertProps) {
-  const displayName = measurementName?.trim() || 'This entry';
+}: BlogPostRemovalBlockedAlertProps) {
+  const displayTitle = postTitle?.trim() || 'This post';
   const detail =
     reason?.trim() ||
-    'This measurement is currently referenced in active records and cannot be removed.';
+    'This post is currently linked to published content and cannot be removed.';
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -40,11 +40,11 @@ export default function UnitRemovalBlockedAlert({
             </div>
             <div className='space-y-1.5'>
               <AlertDialogTitle className='text-foreground text-sm font-bold capitalize'>
-                Measurement Removal Blocked
+                Blog Post Removal Blocked
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
                 <strong className='font-semibold text-amber-600'>
-                  {displayName}
+                  {displayTitle}
                 </strong>{' '}
                 cannot be removed right now. {detail}
               </AlertDialogDescription>

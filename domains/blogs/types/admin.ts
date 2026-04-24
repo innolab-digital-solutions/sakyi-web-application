@@ -9,6 +9,10 @@ export type AdminBlogPost = {
   slug: string;
   excerpt: string | null;
   content: string;
+  actions: {
+    deletable: boolean;
+    delete_block_reason?: string | null;
+  };
   timestamps: {
     published_at: string | null;
     archived_at: string | null;

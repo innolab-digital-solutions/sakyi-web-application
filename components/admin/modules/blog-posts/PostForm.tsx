@@ -84,6 +84,20 @@ type BlogPostFormFieldsProps =
       myPost: AdminBlogPost;
     };
 
+type ComparableBlogPostState = {
+  status: string;
+  blog_category_id: number | null;
+  thumbnail_url: string | null;
+  has_existing_thumbnail: boolean;
+  has_new_thumbnail: boolean;
+  translations: Array<{
+    locale: string;
+    title: string;
+    excerpt: string;
+    content: string;
+  }>;
+};
+
 function normalizeRichTextValue(value: string): string {
   const plainText = value
     .replace(/<[^>]*>/g, '')
@@ -105,6 +119,33 @@ function buildTranslationsFromPosts(
       content: src.content ?? '',
     };
   });
+}
+
+function buildComparableBlogPostState(args: {
+  status: unknown;
+  blogCategoryId: unknown;
+  thumbnailUrl: unknown;
+  existingThumbnailCount: number;
+  hasNewThumbnail: boolean;
+  translations: BlogPostTranslationInput[];
+}): ComparableBlogPostState {
+  return {
+    status: String(args.status ?? 'draft'),
+    blog_category_id:
+      typeof args.blogCategoryId === 'number' ? args.blogCategoryId : null,
+    thumbnail_url:
+      typeof args.thumbnailUrl === 'string' && args.thumbnailUrl.trim()
+        ? args.thumbnailUrl.trim()
+        : null,
+    has_existing_thumbnail: args.existingThumbnailCount > 0,
+    has_new_thumbnail: args.hasNewThumbnail,
+    translations: args.translations.map((translation) => ({
+      locale: translation.locale,
+      title: (translation.title ?? '').trim(),
+      excerpt: (translation.excerpt ?? '').trim(),
+      content: normalizeRichTextValue(translation.content ?? '').trim(),
+    })),
+  };
 }
 
 function BlogPostEditFormLoader({ postId }: { postId: number }) {
@@ -263,6 +304,38 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
     );
 
   const submit = async () => {
+    if (isEdit) {
+      if (!form.isDirty) {
+        toast.info('There are no changes to save.');
+        return;
+      }
+
+      const initialComparable = buildComparableBlogPostState({
+        status: enPost?.status ?? 'draft',
+        blogCategoryId: enPost?.blog_category?.id ?? null,
+        thumbnailUrl: enPost?.thumbnail ?? null,
+        existingThumbnailCount: enPost?.thumbnail?.trim() ? 1 : 0,
+        hasNewThumbnail: false,
+        translations: buildTranslationsFromPosts(
+          enPost as AdminBlogPost,
+          myPost as AdminBlogPost,
+        ),
+      });
+      const currentComparable = buildComparableBlogPostState({
+        status: form.fields.status,
+        blogCategoryId: form.fields.blog_category_id,
+        thumbnailUrl: form.fields.thumbnail_url,
+        existingThumbnailCount: existingThumbnail.length,
+        hasNewThumbnail: form.fields.thumbnail instanceof File,
+        translations,
+      });
+
+      if (JSON.stringify(initialComparable) === JSON.stringify(currentComparable)) {
+        toast.info('There are no changes to save.');
+        return;
+      }
+    }
+
     const callbacks = {
       onSuccess: () => {
         queryClient.invalidateQueries({

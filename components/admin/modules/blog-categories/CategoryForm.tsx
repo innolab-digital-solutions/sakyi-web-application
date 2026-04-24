@@ -105,6 +105,34 @@ function mapServerErrorsToFormErrors(
   return mapped;
 }
 
+function createPayloadFromFields(
+  fields: FormState,
+  isActive: boolean,
+): {
+  is_active: boolean;
+  translations: Array<{
+    locale: 'en' | 'my';
+    name: string;
+    description: string | null;
+  }>;
+} {
+  return {
+    is_active: isActive,
+    translations: [
+      {
+        locale: 'en',
+        name: fields.en.name.trim(),
+        description: fields.en.description.trim() || null,
+      },
+      {
+        locale: 'my',
+        name: fields.my.name.trim(),
+        description: fields.my.description.trim() || null,
+      },
+    ],
+  };
+}
+
 function BlogCategoryEditFormLoader({
   category,
   onSuccess,
@@ -206,6 +234,9 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [activeLocale, setActiveLocale] = useState<'en' | 'my'>('en');
+  const initialPayload = isEdit
+    ? createPayloadFromFields(props.initialFields, category?.is_active ?? true)
+    : null;
 
   const setTranslation = (
     locale: 'en' | 'my',
@@ -235,21 +266,11 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
     return ok;
   };
 
-  const buildPayload = () => ({
-    is_active: isEdit && category ? category.is_active : true,
-    translations: [
-      {
-        locale: 'en' as const,
-        name: fields.en.name.trim(),
-        description: fields.en.description.trim() || null,
-      },
-      {
-        locale: 'my' as const,
-        name: fields.my.name.trim(),
-        description: fields.my.description.trim() || null,
-      },
-    ],
-  });
+  const buildPayload = () =>
+    createPayloadFromFields(
+      fields,
+      isEdit && category ? category.is_active : true,
+    );
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: async () => {
@@ -293,6 +314,13 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validate()) return;
+    if (isEdit && initialPayload) {
+      const currentPayload = buildPayload();
+      if (JSON.stringify(currentPayload) === JSON.stringify(initialPayload)) {
+        toast.info('There are no changes to save.');
+        return;
+      }
+    }
     mutateAsync().catch(() => {
       // field errors are already mapped to input error props
     });
