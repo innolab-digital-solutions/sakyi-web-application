@@ -44,22 +44,22 @@ export default function UserSheet({ mode, user, open, onOpenChange }: Props) {
         <SheetTrigger asChild>
           <Button
             type='button'
-            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
           >
             <PlusIcon className='size-3.5' />
-            Add User
+            Add Account
           </Button>
         </SheetTrigger>
       )}
       <SheetContent className='overflow-y-auto px-6 sm:max-w-md [&>button]:cursor-pointer'>
         <SheetHeader className='px-0'>
-          <SheetTitle className='text-foreground text-md font-bold'>
-            {isEdit ? 'Edit User' : 'Add User'}
+          <SheetTitle className='text-foreground text-[15.5px] font-bold capitalize'>
+            {isEdit ? 'Edit User Account' : 'Create User Account'}
           </SheetTitle>
-          <SheetDescription className='text-muted-foreground text-sm font-medium'>
+          <SheetDescription className='text-muted-foreground text-[13.5px] font-medium'>
             {isEdit
-              ? 'Update the name, email, role, and status for this account.'
-              : 'Create a new account with credentials, role, and an initial status.'}
+              ? 'Update this user account, role assignment, and access status so platform permissions stay accurate across daily operations.'
+              : 'Add a user account with identity details, credentials, role assignment, and an initial access status to support secure operations.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (
