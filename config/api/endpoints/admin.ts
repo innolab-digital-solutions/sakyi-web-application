@@ -82,6 +82,7 @@ export const ADMIN_ENDPOINTS = {
       DETAIL: (id: string) => `${BASE}/enrollment-requests/${id}`,
       ASSIGN_CONTRACT: (id: string) =>
         `${BASE}/enrollment-requests/${id}/assign-contract`,
+      CANCEL: (id: string) => `${BASE}/enrollment-requests/${id}/cancel`,
     },
     ENROLLMENT_CONTRACTS: {
       LIST: `${BASE}/enrollment-contracts`,
@@ -108,6 +109,7 @@ export const ADMIN_ENDPOINTS = {
     CLIENT_PROFILES: {
       LIST: `${BASE}/client-profiles`,
       DETAIL: (id: string) => `${BASE}/client-profiles/${id}`,
+      MEDIA_UPLOAD: (id: string) => `${BASE}/client-profiles/${id}/media`,
     },
     CARE_PLANS: {
       LIST: `${BASE}/care-plans`,
