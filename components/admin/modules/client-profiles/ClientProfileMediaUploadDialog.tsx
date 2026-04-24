@@ -1,19 +1,29 @@
 'use client';
 
-import { AlertTriangleIcon, UploadIcon } from 'lucide-react';
+import { UploadIcon } from 'lucide-react';
 
-import FileUploadField from '@/components/shared/form/FileUploadField';
-import TextField from '@/components/shared/form/TextField';
 import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+  enrollmentWizardDialogContentClass,
+  enrollmentWizardDialogFooterClass,
+  wizardOutlineButtonClass,
+  wizardPrimaryButtonClass,
+} from '@/components/admin/modules/enrollmentWizardModalUi';
+import FileUploadField from '@/components/shared/form/FileUploadField';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { cn } from '@/lib/utils/styles';
+
+const ACCEPT =
+  '.jpg,.jpeg,.png,.webp,.gif,.pdf,.csv,.txt,.doc,.docx,.xls,.xlsx';
+const MAX_FILES = 10;
+const MAX_FILE_BYTES = 20 * 1024 * 1024;
 
 type ClientProfileMediaUploadDialogProps = {
   open: boolean;
@@ -21,11 +31,8 @@ type ClientProfileMediaUploadDialogProps = {
   profileName?: string;
   files: File[];
   onFilesChange: (files: File[]) => void;
-  label: string;
-  onLabelChange: (value: string) => void;
   isSubmitting: boolean;
   fileError?: string;
-  labelError?: string;
   onConfirmUpload: () => void;
 };
 
@@ -35,82 +42,73 @@ export default function ClientProfileMediaUploadDialog({
   profileName,
   files,
   onFilesChange,
-  label,
-  onLabelChange,
   isSubmitting,
   fileError,
-  labelError,
   onConfirmUpload,
 }: ClientProfileMediaUploadDialogProps) {
-  const displayName = profileName?.trim() || 'this client profile';
+  const displayName = profileName?.trim() || 'this client';
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className='gap-0 overflow-hidden p-0 sm:max-w-lg'>
-        <AlertDialogHeader className='border-border border-b p-6'>
-          <div className='flex items-start gap-3'>
-            <div className='mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-md border border-blue-500/30 bg-blue-500/10 text-blue-700'>
-              <AlertTriangleIcon className='size-5' aria-hidden />
-            </div>
-            <div className='space-y-1.5'>
-              <AlertDialogTitle className='text-foreground/90 text-sm font-bold capitalize'>
-                Upload client media
-              </AlertDialogTitle>
-              <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
-                Upload one or more files for{' '}
-                <span className='text-foreground text-xs font-semibold'>
-                  {displayName}
-                </span>{' '}
-                to keep important documents and supporting evidence attached to
-                this profile.
-              </AlertDialogDescription>
-            </div>
-          </div>
-        </AlertDialogHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        showCloseButton={!isSubmitting}
+        className={cn(enrollmentWizardDialogContentClass, 'min-h-0')}
+      >
+        <div className='border-border flex min-h-0 flex-1 flex-col overflow-hidden'>
+          <DialogHeader className='border-border shrink-0 border-b px-6 pt-6 pb-4 text-left'>
+            <DialogTitle className='text-foreground text-[15.5px] font-bold capitalize'>
+              Save files & documents
+            </DialogTitle>
+            <DialogDescription className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
+              Upload one or more files for{' '}
+              <span className='text-foreground font-semibold'>{displayName}</span>
+              {' '}
+              to keep important documents and supporting evidence attached to this
+              profile.
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className='border-border/60 space-y-3 border-b px-6 py-4'>
-          <FileUploadField
-            label='Files'
-            required
-            multiple
-            maxFiles={10}
-            maxFileSize={20 * 1024 * 1024}
-            accept='.jpg,.jpeg,.png,.webp,.gif,.pdf,.csv,.txt,.doc,.docx,.xls,.xlsx'
-            description='Accepted: JPG, PNG, WEBP, GIF, PDF, CSV, TXT, DOC, DOCX, XLS, XLSX (max 10 files, 20MB each).'
-            initialFiles={files}
-            onFilesChange={onFilesChange}
-            error={fileError}
-            disabled={isSubmitting}
-            emptyHint='Drag files here or browse'
-          />
-          <TextField
-            label='Label'
-            placeholder='Optional label (e.g. Lab Report, Progress Photos)'
-            value={label}
-            onChange={(event) => onLabelChange(event.target.value)}
-            error={labelError}
-            disabled={isSubmitting}
-          />
+          <div className='min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-6 py-4'>
+            <FileUploadField
+              label='Files & Documents'
+              required
+              multiple
+              maxFiles={MAX_FILES}
+              maxFileSize={MAX_FILE_BYTES}
+              accept={ACCEPT}
+              initialFiles={files}
+              onFilesChange={onFilesChange}
+              error={fileError}
+              disabled={isSubmitting}
+              emptyHint='Drag files here or browse'
+            />
+          </div>
         </div>
 
-        <AlertDialogFooter className='bg-muted/30 border-border gap-2 border-t p-4 sm:justify-end'>
-          <AlertDialogCancel
-            disabled={isSubmitting}
-            className='text-foreground bg-background hover:bg-muted h-10 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
-          >
-            Cancel
-          </AlertDialogCancel>
+        <DialogFooter
+          className={cn(enrollmentWizardDialogFooterClass, 'shrink-0')}
+        >
           <Button
             type='button'
+            variant='outline'
             disabled={isSubmitting}
-            className='h-10 cursor-pointer gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
+            className={wizardOutlineButtonClass}
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            type='button'
+            variant='default'
+            disabled={isSubmitting}
+            className={wizardPrimaryButtonClass}
             onClick={onConfirmUpload}
           >
-            <UploadIcon className='size-3.5' />
-            {isSubmitting ? 'Uploading…' : 'Upload Files'}
+            <UploadIcon className='size-3.5 shrink-0' />
+            {isSubmitting ? 'Uploading…' : 'Upload files'}
           </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

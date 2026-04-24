@@ -14,7 +14,6 @@ export async function getClientProfileById(
 
 export type UploadClientProfileMediaPayload = {
   files: File[];
-  label?: string;
 };
 
 export async function uploadClientProfileMedia(
@@ -25,8 +24,6 @@ export async function uploadClientProfileMedia(
   for (const file of payload.files) {
     body.append('files[]', file);
   }
-  const label = payload.label?.trim();
-  if (label) body.append('label', label);
 
   return http.post<ClientProfile>(
     ENDPOINTS.ADMIN.MODULES.CLIENT_PROFILES.MEDIA_UPLOAD(String(id)),

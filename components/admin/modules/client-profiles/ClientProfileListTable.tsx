@@ -7,7 +7,9 @@ import { type ComponentType, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
-import ClientProfileFilters from '@/components/admin/modules/client-profiles/ClientProfileFilters';
+import ClientProfileFilters, {
+  type ClientProfileGenderValue,
+} from '@/components/admin/modules/client-profiles/ClientProfileFilters';
 import ClientProfileMediaUploadDialog from '@/components/admin/modules/client-profiles/ClientProfileMediaUploadDialog';
 import ClientProfileRowActions from '@/components/admin/modules/client-profiles/ClientProfileRowActions';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
@@ -217,9 +219,7 @@ export default function ClientProfileListTable() {
   });
   const [uploadTarget, setUploadTarget] = useState<ClientProfile | null>(null);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
-  const [mediaLabel, setMediaLabel] = useState('');
   const [mediaFileError, setMediaFileError] = useState<string | undefined>();
-  const [mediaLabelError, setMediaLabelError] = useState<string | undefined>();
 
   const { rows, controls } = useTable<ClientProfile>(LIST_ENDPOINT, {
     params: {
@@ -227,6 +227,14 @@ export default function ClientProfileListTable() {
       writeInitialToUrl: true,
     },
   });
+
+  const genderFilter = useMemo((): 'all' | ClientProfileGenderValue => {
+    const value = controls.params.values.gender;
+    if (value === 'male' || value === 'female' || value === 'other') {
+      return value;
+    }
+    return 'all';
+  }, [controls.params.values.gender]);
 
   const { query } = controls;
   const showSkeleton = query.isPending && !query.data;
@@ -283,17 +291,16 @@ export default function ClientProfileListTable() {
 
   const showColumn = (key: ClientProfileColumnKey) => visibleColumnSet.has(key);
   const { mutate: mutateUploadMedia, isPending: isUploadingMedia } = useMutation({
-    mutationFn: async (args: { id: number; files: File[]; label?: string }) => {
+    mutationFn: async (args: { id: number; files: File[] }) => {
       const response = await uploadClientProfileMedia(args.id, {
         files: args.files,
-        label: args.label,
       });
       if (response.status === 'error') {
         throw new Error(response.message || 'Could not upload files.');
       }
     },
     onSuccess: () => {
-      toast.success('Files have been uploaded to the client profile.');
+      toast.success('The files have been uploaded to the client profile successfully.');
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.CLIENT_PROFILES.LIST],
       });
@@ -304,9 +311,7 @@ export default function ClientProfileListTable() {
       }
       setUploadTarget(null);
       setMediaFiles([]);
-      setMediaLabel('');
       setMediaFileError(undefined);
-      setMediaLabelError(undefined);
     },
     onError: (error) => {
       toast.error(error.message ?? 'Could not upload files.');
@@ -319,6 +324,9 @@ export default function ClientProfileListTable() {
       searchPlaceholder='Search ...'
       filters={
         <ClientProfileFilters
+          genderFilter={genderFilter}
+          onClearGender={() => controls.params.clear(['gender'])}
+          onSetGender={(gender) => controls.params.set({ gender })}
           columns={CLIENT_PROFILE_COLUMNS}
           visibleColumnKeys={visibleColumnKeys}
           onToggleColumn={toggleColumn}
@@ -472,9 +480,7 @@ export default function ClientProfileListTable() {
                         onUploadMedia={() => {
                           setUploadTarget(row);
                           setMediaFiles([]);
-                          setMediaLabel('');
                           setMediaFileError(undefined);
-                          setMediaLabelError(undefined);
                         }}
                       />
                     </TableCell>
@@ -490,9 +496,7 @@ export default function ClientProfileListTable() {
           if (!open && !isUploadingMedia) {
             setUploadTarget(null);
             setMediaFiles([]);
-            setMediaLabel('');
             setMediaFileError(undefined);
-            setMediaLabelError(undefined);
           }
         }}
         profileName={uploadTarget?.name}
@@ -501,14 +505,8 @@ export default function ClientProfileListTable() {
           setMediaFiles(files);
           if (mediaFileError) setMediaFileError(undefined);
         }}
-        label={mediaLabel}
-        onLabelChange={(value) => {
-          setMediaLabel(value);
-          if (mediaLabelError) setMediaLabelError(undefined);
-        }}
         isSubmitting={isUploadingMedia}
         fileError={mediaFileError}
-        labelError={mediaLabelError}
         onConfirmUpload={() => {
           if (!uploadTarget) return;
 
@@ -520,15 +518,17 @@ export default function ClientProfileListTable() {
             setMediaFileError('You can upload up to 10 files per request.');
             return;
           }
-          if (mediaLabel.trim().length > 120) {
-            setMediaLabelError('Label must be 120 characters or less.');
+
+          const maxBytes = 20 * 1024 * 1024;
+          const tooLarge = mediaFiles.find((f) => f.size > maxBytes);
+          if (tooLarge) {
+            setMediaFileError('Each file must be 20MB or less.');
             return;
           }
 
           mutateUploadMedia({
             id: uploadTarget.id,
             files: mediaFiles,
-            label: mediaLabel.trim() || undefined,
           });
         }}
       />

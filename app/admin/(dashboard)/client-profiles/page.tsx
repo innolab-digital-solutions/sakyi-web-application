@@ -7,7 +7,7 @@ import ClientProfileListTable from '@/components/admin/modules/client-profiles/C
 export const metadata: Metadata = {
   title: 'Client Profiles | SaKyi Admin',
   description:
-    'Browse and manage client profiles with quick access to account details, contact information, and follow-up actions so client support stays organized.',
+    'Review client profiles with contact details, demographics, and client reference codes, and upload supporting files and documents to each record so support and care teams can coordinate with accurate, shared context.',
 };
 
 export default function ClientProfilesPage() {
@@ -15,7 +15,7 @@ export default function ClientProfilesPage() {
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Client Profiles'
-        description='Browse and manage client profiles with quick access to account details, contact information, and follow-up actions so client support stays organized.'
+        description='Review client profiles with contact details, demographics, and client reference codes, and upload supporting files and documents to each record so support and care teams can coordinate with accurate, shared context.'
       />
 
       <Suspense
