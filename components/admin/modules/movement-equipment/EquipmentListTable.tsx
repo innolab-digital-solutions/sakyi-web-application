@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
+import MovementEquipmentRemovalBlockedAlert from '@/components/admin/modules/movement-equipment/MovementEquipmentRemovalBlockedAlert';
 import MovementEquipmentSheet from '@/components/admin/modules/movement-equipment/EquipmentSheet';
 import RemoveEquipmentConfirmation from '@/components/admin/modules/movement-equipment/RemoveEquipmentConfirmation';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
@@ -37,6 +38,8 @@ export default function MovementEquipmentListTable() {
   );
   const [deleteEquipment, setDeleteEquipment] =
     useState<MovementEquipment | null>(null);
+  const [blockedDeleteEquipment, setBlockedDeleteEquipment] =
+    useState<MovementEquipment | null>(null);
 
   const { mutateAsync: confirmDelete, isPending: isDeleting } = useMutation({
     mutationFn: async (id: number) => {
@@ -67,6 +70,14 @@ export default function MovementEquipmentListTable() {
     } catch {
       // onError already toasts
     }
+  };
+
+  const handleDeleteClick = (item: MovementEquipment) => {
+    if (item.actions.deletable) {
+      setDeleteEquipment(item);
+      return;
+    }
+    setBlockedDeleteEquipment(item);
   };
 
   const { rows, controls } = useTable<MovementEquipment>(
@@ -156,7 +167,7 @@ export default function MovementEquipmentListTable() {
                         type='button'
                         variant='outline'
                         className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-                        onClick={() => setDeleteEquipment(item)}
+                        onClick={() => handleDeleteClick(item)}
                       >
                         <Trash2Icon className='size-3.5' />
                         Remove
@@ -188,6 +199,14 @@ export default function MovementEquipmentListTable() {
         equipmentName={deleteEquipment?.name}
         isRemoving={isDeleting}
         onConfirm={handleDelete}
+      />
+      <MovementEquipmentRemovalBlockedAlert
+        open={!!blockedDeleteEquipment}
+        onOpenChange={(o) => {
+          if (!o) setBlockedDeleteEquipment(null);
+        }}
+        equipmentName={blockedDeleteEquipment?.name}
+        reason={blockedDeleteEquipment?.actions.delete_block_reason ?? undefined}
       />
     </>
   );

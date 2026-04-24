@@ -98,6 +98,11 @@ export default function MovementCategoryForm({
 
   const submit = async () => {
     if (isEdit) {
+      if (!form.isDirty) {
+        toast.info('There are no changes to save.');
+        return;
+      }
+
       await form.patch(
         ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.DETAIL(String(category.id)),
         {
@@ -163,7 +168,7 @@ export default function MovementCategoryForm({
         <TextField
           label='Category Name'
           required
-          placeholder='e.g. Strength Training'
+          placeholder='Enter category name (e.g. Strength Training)'
           value={String(form.fields.name ?? '')}
           onChange={(e) => form.setData('name', e.target.value)}
           error={form.errors.name}
@@ -171,17 +176,17 @@ export default function MovementCategoryForm({
         <TextAreaField
           label='Description'
           name='description'
-          placeholder='Optional description for this movement category…'
+          placeholder='Enter a brief description for this category'
           rows={3}
           value={String(form.fields.description ?? '')}
           onChange={(e) => form.setData('description', e.target.value)}
           error={form.errors.description}
         />
         <ComboboxField
-          label='Parent movement category'
-          placeholder='Select a top-level movement category…'
-          searchPlaceholder='Search top-level movement categories…'
-          emptyMessage='No top-level movement categories found.'
+          label='Parent Category'
+          placeholder='Please select a root category'
+          searchPlaceholder='Search root categories…'
+          emptyMessage='No categories found.'
           options={parentOptions}
           value={form.fields.parent_id ? String(form.fields.parent_id) : null}
           onChange={(val) =>

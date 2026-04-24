@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
+import MovementCategoryRemovalBlockedAlert from '@/components/admin/modules/movement-categories/MovementCategoryRemovalBlockedAlert';
 import MovementCategorySheet from '@/components/admin/modules/movement-categories/CategorySheet';
 import RemoveMovementCategoryConfirmation from '@/components/admin/modules/movement-categories/RemoveMovementCategoryConfirmation';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
@@ -41,6 +42,8 @@ export default function MovementCategoryListTable() {
   const [deleteCategory, setDeleteCategory] = useState<MovementCategory | null>(
     null,
   );
+  const [blockedDeleteCategory, setBlockedDeleteCategory] =
+    useState<MovementCategory | null>(null);
 
   const { mutateAsync: confirmDelete, isPending: isDeleting } = useMutation({
     mutationFn: async (id: number) => {
@@ -76,6 +79,14 @@ export default function MovementCategoryListTable() {
     } catch {
       // onError already toasts
     }
+  };
+
+  const handleDeleteClick = (category: MovementCategory) => {
+    if (category.actions.deletable) {
+      setDeleteCategory(category);
+      return;
+    }
+    setBlockedDeleteCategory(category);
   };
 
   const { rows, controls } = useTable<MovementCategory>(
@@ -184,7 +195,7 @@ export default function MovementCategoryListTable() {
                         type='button'
                         variant='outline'
                         className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-                        onClick={() => setDeleteCategory(category)}
+                        onClick={() => handleDeleteClick(category)}
                       >
                         <Trash2Icon className='size-3.5' />
                         Remove
@@ -216,6 +227,14 @@ export default function MovementCategoryListTable() {
         categoryName={deleteCategory?.name}
         isRemoving={isDeleting}
         onConfirm={handleDelete}
+      />
+      <MovementCategoryRemovalBlockedAlert
+        open={!!blockedDeleteCategory}
+        onOpenChange={(o) => {
+          if (!o) setBlockedDeleteCategory(null);
+        }}
+        categoryName={blockedDeleteCategory?.name}
+        reason={blockedDeleteCategory?.actions.delete_block_reason ?? undefined}
       />
     </>
   );

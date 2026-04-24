@@ -330,7 +330,9 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
         translations,
       });
 
-      if (JSON.stringify(initialComparable) === JSON.stringify(currentComparable)) {
+      if (
+        JSON.stringify(initialComparable) === JSON.stringify(currentComparable)
+      ) {
         toast.info('There are no changes to save.');
         return;
       }
@@ -457,8 +459,8 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
                         required
                         placeholder={
                           lang.code === 'en'
-                            ? 'e.g. Getting Started with Wellness'
-                            : 'ဥပမာ — ကျန်းမာရေးနှင့် ကောင်းကျိုး'
+                            ? 'Enter post title (e.g. Getting Started with Wellness)'
+                            : 'ပို့စ်ခေါင်းစဉ်ကို ထည့်ပါ (ဥပမာ- ကျန်းမာရေးနှင့် ကောင်းကျိုးများအကြောင်း)'
                         }
                         value={t?.title ?? ''}
                         onChange={(e) =>
@@ -468,7 +470,11 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
                       />
                       <TextAreaField
                         label='Excerpt'
-                        placeholder='Short summary shown in post listings…'
+                        placeholder={
+                          lang.code === 'en'
+                            ? 'Enter a short summary for this post'
+                            : 'ဤပို့စ်အတွက် အတိုချုံးကို ထည့်ပါ။'
+                        }
                         rows={3}
                         value={t?.excerpt ?? ''}
                         onChange={(e) =>
@@ -483,6 +489,11 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
                       <RichTextField
                         label='Content'
                         required
+                        placeholder={
+                          lang.code === 'en'
+                            ? 'Enter the complete content for this post'
+                            : 'ဤပို့စ်အတွက် အကြောင်းအရာအပြည့်အစုံကို ထည့်သွင်းပါ။'
+                        }
                         value={t?.content ?? ''}
                         onChange={(val) =>
                           updateTranslation(lang.code, 'content', val)
@@ -544,8 +555,9 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
             <div className='border-border space-y-2 border-t pt-4'>
               <FileUploadField
                 label='Thumbnail'
-                accept='image/*'
+                accept='.jpg,.jpeg,.png'
                 required
+                maxFiles={1}
                 maxFileSize={5 * 1024 * 1024}
                 existingFiles={existingThumbnail}
                 onExistingFilesChange={(files) => {
@@ -559,7 +571,7 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
                   form.setData('thumbnail', file);
                   if (file) form.setData('thumbnail_url', null);
                 }}
-                emptyHint='Click or drag image here'
+                emptyHint='Browse'
                 error={
                   (form.errors.thumbnail ?? form.errors.thumbnail_url) as
                     | string
@@ -572,7 +584,7 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
               <ComboboxField
                 label='Category'
                 required
-                placeholder='Select category…'
+                placeholder='Please select a blog category'
                 searchPlaceholder='Search categories…'
                 emptyMessage='No categories found.'
                 options={categoryOptions}

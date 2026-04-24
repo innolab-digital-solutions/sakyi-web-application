@@ -369,7 +369,7 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
             <TextField
               label='Category Name'
               required
-              placeholder='e.g. Health & Nutrition'
+              placeholder='Enter category name (e.g. Health & Nutrition)'
               value={fields.en.name}
               onChange={(e) => setTranslation('en', 'name', e.target.value)}
               error={errors['en_name']}
@@ -377,7 +377,7 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
             <TextAreaField
               label='Description'
               name='en_description'
-              placeholder='Optional description…'
+              placeholder='Enter a brief description for this category'
               rows={3}
               value={fields.en.description}
               onChange={(e) =>
@@ -390,7 +390,7 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
             <TextField
               label='Category Name'
               required
-              placeholder='e.g. ကျန်းမာရေးနှင့် အာဟာရ'
+              placeholder='အမျိုးအစားအမည် (ဥပမာ ကျန်းမာရေးနှင့် အာဟာရ) ထည့်ပါ'
               value={fields.my.name}
               onChange={(e) => setTranslation('my', 'name', e.target.value)}
               error={errors['my_name']}
@@ -398,7 +398,7 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
             <TextAreaField
               label='Description'
               name='my_description'
-              placeholder='Optional description…'
+              placeholder='ဤအမျိုးအစားအတွက် အတိုချုံးဖော်ပြချက်ကို ထည့်ပါ။'
               rows={3}
               value={fields.my.description}
               onChange={(e) =>

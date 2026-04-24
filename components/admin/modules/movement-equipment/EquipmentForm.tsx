@@ -71,6 +71,11 @@ export default function MovementEquipmentForm({
 
   const submit = async () => {
     if (isEdit) {
+      if (!form.isDirty) {
+        toast.info('There are no changes to save.');
+        return;
+      }
+
       await form.patch(
         ENDPOINTS.ADMIN.MODULES.MOVEMENT_EQUIPMENT.DETAIL(String(equipment.id)),
         {

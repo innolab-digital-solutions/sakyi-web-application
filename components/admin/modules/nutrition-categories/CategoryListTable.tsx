@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
+import NutritionCategoryRemovalBlockedAlert from '@/components/admin/modules/nutrition-categories/NutritionCategoryRemovalBlockedAlert';
 import NutritionCategorySheet from '@/components/admin/modules/nutrition-categories/CategorySheet';
 import RemoveFoodCategoryConfirmation from '@/components/admin/modules/nutrition-categories/RemoveFoodCategoryConfirmation';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
@@ -40,6 +41,8 @@ export default function NutritionCategoryListTable() {
   );
   const [deleteCategory, setDeleteCategory] =
     useState<NutritionCategory | null>(null);
+  const [blockedDeleteCategory, setBlockedDeleteCategory] =
+    useState<NutritionCategory | null>(null);
 
   const { mutateAsync: confirmDelete, isPending: isDeleting } = useMutation({
     mutationFn: async (id: number) => {
@@ -73,6 +76,14 @@ export default function NutritionCategoryListTable() {
     } catch {
       // onError already toasts
     }
+  };
+
+  const handleDeleteClick = (category: NutritionCategory) => {
+    if (category.actions.deletable) {
+      setDeleteCategory(category);
+      return;
+    }
+    setBlockedDeleteCategory(category);
   };
 
   const { rows, controls } = useTable<NutritionCategory>(
@@ -181,7 +192,7 @@ export default function NutritionCategoryListTable() {
                         type='button'
                         variant='outline'
                         className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-                        onClick={() => setDeleteCategory(category)}
+                        onClick={() => handleDeleteClick(category)}
                       >
                         <Trash2Icon className='size-3.5' />
                         Remove
@@ -213,6 +224,14 @@ export default function NutritionCategoryListTable() {
         categoryName={deleteCategory?.name}
         isRemoving={isDeleting}
         onConfirm={handleDelete}
+      />
+      <NutritionCategoryRemovalBlockedAlert
+        open={!!blockedDeleteCategory}
+        onOpenChange={(o) => {
+          if (!o) setBlockedDeleteCategory(null);
+        }}
+        categoryName={blockedDeleteCategory?.name}
+        reason={blockedDeleteCategory?.actions.delete_block_reason ?? undefined}
       />
     </>
   );

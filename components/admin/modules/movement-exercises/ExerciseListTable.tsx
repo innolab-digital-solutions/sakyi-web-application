@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import ExerciseFilters from '@/components/admin/modules/movement-exercises/ExerciseFilters';
+import MovementExerciseRemovalBlockedAlert from '@/components/admin/modules/movement-exercises/MovementExerciseRemovalBlockedAlert';
 import ExerciseSheet from '@/components/admin/modules/movement-exercises/ExerciseSheet';
 import RemoveExerciseConfirmation from '@/components/admin/modules/movement-exercises/RemoveExerciseConfirmation';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
@@ -92,6 +93,8 @@ export default function ExerciseListTable() {
   const [deleteExercise, setDeleteExercise] = useState<MovementExercise | null>(
     null,
   );
+  const [blockedDeleteExercise, setBlockedDeleteExercise] =
+    useState<MovementExercise | null>(null);
 
   const { mutateAsync: confirmDelete, isPending: isDeleting } = useMutation({
     mutationFn: async (id: number) => {
@@ -125,6 +128,14 @@ export default function ExerciseListTable() {
     } catch {
       // onError already toasts
     }
+  };
+
+  const handleDeleteClick = (exercise: MovementExercise) => {
+    if (exercise.actions.deletable) {
+      setDeleteExercise(exercise);
+      return;
+    }
+    setBlockedDeleteExercise(exercise);
   };
 
   const { rows, controls } = useTable<MovementExercise>(
@@ -282,7 +293,7 @@ export default function ExerciseListTable() {
                         type='button'
                         variant='outline'
                         className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-                        onClick={() => setDeleteExercise(exercise)}
+                        onClick={() => handleDeleteClick(exercise)}
                       >
                         <Trash2Icon className='size-3.5' />
                         Remove
@@ -314,6 +325,14 @@ export default function ExerciseListTable() {
         exerciseName={deleteExercise?.name}
         isRemoving={isDeleting}
         onConfirm={handleDelete}
+      />
+      <MovementExerciseRemovalBlockedAlert
+        open={!!blockedDeleteExercise}
+        onOpenChange={(o) => {
+          if (!o) setBlockedDeleteExercise(null);
+        }}
+        exerciseName={blockedDeleteExercise?.name}
+        reason={blockedDeleteExercise?.actions.delete_block_reason ?? undefined}
       />
     </>
   );

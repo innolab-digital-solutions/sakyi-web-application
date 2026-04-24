@@ -98,6 +98,11 @@ export default function NutritionCategoryForm({
 
   const submit = async () => {
     if (isEdit) {
+      if (!form.isDirty) {
+        toast.info('There are no changes to save.');
+        return;
+      }
+
       await form.patch(
         ENDPOINTS.ADMIN.MODULES.NUTRITION_CATEGORIES.DETAIL(
           String(category.id),
@@ -166,7 +171,7 @@ export default function NutritionCategoryForm({
         <TextField
           label='Category Name'
           required
-          placeholder='e.g. Macronutrients'
+          placeholder='Enter category name (e.g. Macronutrients)'
           value={String(form.fields.name ?? '')}
           onChange={(e) => form.setData('name', e.target.value)}
           error={form.errors.name}
@@ -174,7 +179,7 @@ export default function NutritionCategoryForm({
         <TextAreaField
           label='Description'
           name='description'
-          placeholder='Optional description for this category…'
+          placeholder='Enter a brief description for this category'
           rows={3}
           value={String(form.fields.description ?? '')}
           onChange={(e) => form.setData('description', e.target.value)}
@@ -182,9 +187,9 @@ export default function NutritionCategoryForm({
         />
         <ComboboxField
           label='Parent Category'
-          placeholder='Select a top-level category…'
-          searchPlaceholder='Search top-level categories…'
-          emptyMessage='No top-level categories found.'
+          placeholder='Please select a root category'
+          searchPlaceholder='Search root categories…'
+          emptyMessage='No categories found.'
           options={parentOptions}
           value={form.fields.parent_id ? String(form.fields.parent_id) : null}
           onChange={(val) =>

@@ -44,7 +44,7 @@ export default function RemoveBlogCategoryConfirmation({
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
                 This will permanently remove{' '}
-                <strong className='text-foreground font-semibold'>
+                <strong className='text-destructive font-semibold'>
                   {displayName}
                 </strong>{' '}
                 from your blog category library. This action cannot be undone.

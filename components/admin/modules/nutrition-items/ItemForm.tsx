@@ -111,8 +111,29 @@ export default function NutritionItemForm({ mode, item, onSuccess }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, item]);
 
+  useEffect(() => {
+    const currentCategoryId = form.fields.nutrition_category_id;
+    if (!currentCategoryId) return;
+
+    const hasMatchingCategory = categoryOptions.some(
+      (option) => option.value === String(currentCategoryId),
+    );
+
+    // Prevent stale/deleted category ids from rendering as raw numeric values (e.g. "7").
+    if (!hasMatchingCategory) {
+      form.setData('nutrition_category_id', null);
+    }
+    // Intentionally omit `form` to avoid unnecessary effect loops.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryOptions, form.fields.nutrition_category_id]);
+
   const submit = async () => {
     if (isEdit) {
+      if (!form.isDirty) {
+        toast.info('There are no changes to save.');
+        return;
+      }
+
       await form.patch(
         ENDPOINTS.ADMIN.MODULES.NUTRITION_ITEMS.DETAIL(String(item.id)),
         {
@@ -159,9 +180,9 @@ export default function NutritionItemForm({ mode, item, onSuccess }: Props) {
     >
       <div className='space-y-6'>
         <TextField
-          label='Item Name'
+          label='Food Name'
           required
-          placeholder='e.g. Chicken Breast'
+          placeholder='Enter food name (e.g. Chicken Breast)'
           value={String(form.fields.name ?? '')}
           onChange={(e) => form.setData('name', e.target.value)}
           error={form.errors.name}
@@ -169,7 +190,7 @@ export default function NutritionItemForm({ mode, item, onSuccess }: Props) {
         <TextAreaField
           label='Description'
           name='description'
-          placeholder='Optional description for this item…'
+          placeholder='Enter a brief description for this food item'
           rows={3}
           value={String(form.fields.description ?? '')}
           onChange={(e) => form.setData('description', e.target.value)}
@@ -177,8 +198,8 @@ export default function NutritionItemForm({ mode, item, onSuccess }: Props) {
         />
         <ComboboxField
           label='Category'
-          placeholder='Select a category…'
-          searchPlaceholder='Search categories…'
+          placeholder='Please select a food category'
+          searchPlaceholder='Search food categories…'
           emptyMessage='No categories found.'
           required
           options={categoryOptions}
@@ -194,9 +215,9 @@ export default function NutritionItemForm({ mode, item, onSuccess }: Props) {
         />
         <ComboboxField
           label='Measurement'
-          placeholder='Select a measurement'
-          searchPlaceholder='Search by name or abbreviation…'
-          emptyMessage='No measurements found in the catalog.'
+          placeholder='Please select a measurement'
+          searchPlaceholder='Search measurements…'
+          emptyMessage='No measurements found.'
           options={unitOptions}
           value={
             form.fields.default_unit_id

@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
+import NutritionItemRemovalBlockedAlert from '@/components/admin/modules/nutrition-items/NutritionItemRemovalBlockedAlert';
 import NutritionItemSheet from '@/components/admin/modules/nutrition-items/ItemSheet';
 import RemoveFoodItemConfirmation from '@/components/admin/modules/nutrition-items/RemoveFoodItemConfirmation';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
@@ -33,6 +34,8 @@ export default function NutritionItemListTable() {
   const queryClient = useQueryClient();
   const [editItem, setEditItem] = useState<NutritionItem | null>(null);
   const [deleteItem, setDeleteItem] = useState<NutritionItem | null>(null);
+  const [blockedDeleteItem, setBlockedDeleteItem] =
+    useState<NutritionItem | null>(null);
 
   const { mutateAsync: confirmDelete, isPending: isDeleting } = useMutation({
     mutationFn: async (id: number) => {
@@ -60,6 +63,14 @@ export default function NutritionItemListTable() {
     } catch {
       // onError already toasts
     }
+  };
+
+  const handleDeleteClick = (nutritionItem: NutritionItem) => {
+    if (nutritionItem.actions.deletable) {
+      setDeleteItem(nutritionItem);
+      return;
+    }
+    setBlockedDeleteItem(nutritionItem);
   };
 
   const { rows, controls } = useTable<NutritionItem>(
@@ -182,7 +193,7 @@ export default function NutritionItemListTable() {
                         type='button'
                         variant='outline'
                         className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-                        onClick={() => setDeleteItem(nutritionItem)}
+                        onClick={() => handleDeleteClick(nutritionItem)}
                       >
                         <Trash2Icon className='size-3.5' />
                         Remove
@@ -214,6 +225,14 @@ export default function NutritionItemListTable() {
         itemName={deleteItem?.name}
         isRemoving={isDeleting}
         onConfirm={handleDelete}
+      />
+      <NutritionItemRemovalBlockedAlert
+        open={!!blockedDeleteItem}
+        onOpenChange={(o) => {
+          if (!o) setBlockedDeleteItem(null);
+        }}
+        itemName={blockedDeleteItem?.name}
+        reason={blockedDeleteItem?.actions.delete_block_reason ?? undefined}
       />
     </>
   );

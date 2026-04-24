@@ -165,6 +165,11 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
 
   const submit = async () => {
     if (isEdit) {
+      if (!form.isDirty) {
+        toast.info('There are no changes to save.');
+        return;
+      }
+
       await form.patch(
         ENDPOINTS.ADMIN.MODULES.MOVEMENT_EXERCISES.DETAIL(String(exercise.id)),
         {
@@ -241,7 +246,7 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
           <TextField
             label='Exercise Name'
             required
-            placeholder='e.g. Barbell Back Squat'
+            placeholder='Enter exercise name (e.g. Barbell Back Squat)'
             value={String(form.fields.name ?? '')}
             onChange={(e) => form.setData('name', e.target.value)}
             error={form.errors.name}
@@ -249,7 +254,7 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
           <TextAreaField
             label='Description'
             name='description'
-            placeholder='Optional description for this exercise…'
+            placeholder='Enter a brief description for this exercise'
             rows={3}
             value={String(form.fields.description ?? '')}
             onChange={(e) => form.setData('description', e.target.value)}
@@ -261,7 +266,7 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
                 className='min-w-0'
                 label='Category'
                 required
-                placeholder='Select category…'
+                placeholder='Please select a category'
                 searchPlaceholder='Search categories…'
                 emptyMessage='No categories found.'
                 options={categoryOptions}
@@ -281,7 +286,7 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
                 className='min-w-0'
                 label='Difficulty'
                 required
-                placeholder='Select difficulty…'
+                placeholder='Please select a difficulty'
                 options={DIFFICULTY_OPTIONS}
                 value={
                   form.fields.difficulty != null

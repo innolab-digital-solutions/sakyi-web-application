@@ -44,7 +44,7 @@ export default function RemoveBlogPostConfirmation({
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
                 This will permanently delete{' '}
-                <strong className='text-foreground font-semibold'>
+                <strong className='text-destructive font-semibold'>
                   {displayTitle}
                 </strong>{' '}
                 from your library. This action cannot be undone.

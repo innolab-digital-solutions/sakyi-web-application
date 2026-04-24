@@ -13,6 +13,10 @@ export type NutritionItem = {
     name: string;
     abbreviation: string;
   } | null;
+  actions: {
+    deletable: boolean;
+    delete_block_reason?: string | null;
+  };
   created_at: string;
   updated_at: string;
 };

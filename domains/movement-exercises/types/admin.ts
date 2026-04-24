@@ -16,6 +16,10 @@ export type MovementExercise = {
   movement_category: { id: number; name: string } | null;
   media: MovementExerciseMedia[];
   equipments: { id: number; name: string }[];
+  actions: {
+    deletable: boolean;
+    delete_block_reason?: string | null;
+  };
   timestamps: {
     created_at: string;
     updated_at: string;
