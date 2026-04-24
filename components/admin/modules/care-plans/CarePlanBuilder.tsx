@@ -685,18 +685,20 @@ export default function CarePlanBuilder({
 
   React.useEffect(() => {
     if (!builder) return;
-    setBasicsForm({
-      starts_on: builder.starts_on ?? '',
-      ends_on: builder.ends_on ?? '',
-    });
-    if (builder.days.length > 0) {
-      setSelectedDayId((current) => {
-        const stillExists = builder.days.some((day) => day.id === current);
-        return stillExists ? current : builder.days[0].id;
+    queueMicrotask(() => {
+      setBasicsForm({
+        starts_on: builder.starts_on ?? '',
+        ends_on: builder.ends_on ?? '',
       });
-    } else {
-      setSelectedDayId(null);
-    }
+      if (builder.days.length > 0) {
+        setSelectedDayId((current) => {
+          const stillExists = builder.days.some((day) => day.id === current);
+          return stillExists ? current : builder.days[0].id;
+        });
+      } else {
+        setSelectedDayId(null);
+      }
+    });
   }, [builder]);
 
   const selectedDay = React.useMemo(
@@ -705,9 +707,11 @@ export default function CarePlanBuilder({
   );
   React.useEffect(() => {
     const next = String(selectedDay?.general_notes ?? '');
-    setDayNotesDraft(next);
-    setDayNotesSavedValue(next);
-    setDayNotesError(undefined);
+    queueMicrotask(() => {
+      setDayNotesDraft(next);
+      setDayNotesSavedValue(next);
+      setDayNotesError(undefined);
+    });
   }, [selectedDay?.id, selectedDay?.general_notes]);
 
   const activeSectionIndex = React.useMemo(
@@ -739,40 +743,44 @@ export default function CarePlanBuilder({
 
   const [localItems, setLocalItems] = React.useState<CarePlanSectionItem[]>([]);
   React.useEffect(() => {
-    if (activeSection === 'movement') {
-      if (sectionItems.length === 0) {
-        const baseItem = createEmptySectionItem();
+    queueMicrotask(() => {
+      if (activeSection === 'movement') {
+        if (sectionItems.length === 0) {
+          const baseItem = createEmptySectionItem();
+          setLocalItems(
+            editable
+              ? [{ ...baseItem, exercises: [createEmptyMovementExercise()] }]
+              : [],
+          );
+          return;
+        }
         setLocalItems(
-          editable
-            ? [{ ...baseItem, exercises: [createEmptyMovementExercise()] }]
-            : [],
+          sectionItems.map((movementItem) => ({
+            ...movementItem,
+            exercises:
+              editable &&
+              (!Array.isArray(movementItem.exercises) ||
+                movementItem.exercises.length === 0)
+                ? [createEmptyMovementExercise()]
+                : (movementItem.exercises ?? []),
+          })),
         );
         return;
       }
-      setLocalItems(
-        sectionItems.map((movementItem) => ({
-          ...movementItem,
-          exercises:
-            editable &&
-            (!Array.isArray(movementItem.exercises) ||
-              movementItem.exercises.length === 0)
-              ? [createEmptyMovementExercise()]
-              : (movementItem.exercises ?? []),
-        })),
-      );
-      return;
-    }
-    if (editable && sectionItems.length === 0) {
-      setLocalItems([createEmptySectionItem()]);
-      return;
-    }
-    setLocalItems(sectionItems);
+      if (editable && sectionItems.length === 0) {
+        setLocalItems([createEmptySectionItem()]);
+        return;
+      }
+      setLocalItems(sectionItems);
+    });
   }, [activeSection, editable, sectionItems]);
 
   React.useEffect(() => {
-    setSectionSaveError(undefined);
-    setItemFieldErrors({});
-    setMovementRowErrors({});
+    queueMicrotask(() => {
+      setSectionSaveError(undefined);
+      setItemFieldErrors({});
+      setMovementRowErrors({});
+    });
   }, [selectedDayId, activeSection]);
 
   const clearItemFieldError = React.useCallback(

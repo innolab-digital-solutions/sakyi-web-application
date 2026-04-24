@@ -42,7 +42,7 @@ export default function CarePlanActivateEnrollmentPrerequisiteDialog({
       <AlertDialogContent className='gap-0 overflow-hidden p-0 sm:max-w-md'>
         <AlertDialogHeader className='border-border border-b p-6'>
           <div className='flex items-start gap-3'>
-            <div className='bg-amber-500/10 text-amber-700 border-amber-500/25 mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-md border'>
+            <div className='mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-md border border-amber-500/25 bg-amber-500/10 text-amber-700'>
               <CalendarClockIcon className='size-5' aria-hidden />
             </div>
             <div className='space-y-1.5'>

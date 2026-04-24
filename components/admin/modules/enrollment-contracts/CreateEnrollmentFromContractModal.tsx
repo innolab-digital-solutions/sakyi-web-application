@@ -163,12 +163,14 @@ export default function CreateEnrollmentFromContractModal({
 
   React.useEffect(() => {
     if (!open || contractId == null) return;
-    setStep(1);
-    setStartDate(startOfDay(new Date()));
-    setEndDate(undefined);
-    setNotes('');
-    setRows([newRow()]);
-    setErrors({});
+    queueMicrotask(() => {
+      setStep(1);
+      setStartDate(startOfDay(new Date()));
+      setEndDate(undefined);
+      setNotes('');
+      setRows([newRow()]);
+      setErrors({});
+    });
   }, [open, contractId]);
 
   const { data: teamMembers = [], isLoading: teamMembersLoading } = useQuery({

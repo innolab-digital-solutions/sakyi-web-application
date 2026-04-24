@@ -127,6 +127,10 @@ export const ADMIN_ENDPOINTS = {
       DAY_NOTES_UPDATE: (id: string, dayId: string) =>
         `${BASE}/care-plans/${id}/days/${dayId}/notes`,
     },
+    CARE_PLAN_LOGS: {
+      LIST: `${BASE}/care-plan-logs`,
+      DETAIL: (id: string) => `${BASE}/care-plan-logs/${id}`,
+    },
     USERS: {
       LIST: `${BASE}/users`,
       CREATE: `${BASE}/users`,

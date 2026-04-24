@@ -67,13 +67,16 @@ export default function CarePlanCreateModal({
   const [enrollmentError, setEnrollmentError] = React.useState<
     string | undefined
   >();
-
-  React.useEffect(() => {
-    if (!open) {
-      setEnrollmentId(null);
-      setEnrollmentError(undefined);
-    }
-  }, [open]);
+  const handleOpenChange = React.useCallback(
+    (nextOpen: boolean) => {
+      if (!nextOpen) {
+        setEnrollmentId(null);
+        setEnrollmentError(undefined);
+      }
+      onOpenChange(nextOpen);
+    },
+    [onOpenChange],
+  );
 
   const enrollmentLookupQuery = useQuery({
     queryKey: ['lookup', LOOKUP_ENDPOINTS.ENROLLMENTS],
@@ -130,7 +133,7 @@ export default function CarePlanCreateModal({
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.CARE_PLANS.LIST],
       });
-      onOpenChange(false);
+      handleOpenChange(false);
       router.push(ROUTES.ADMIN.MODULES.CARE_PLANS.WORKSPACE(String(data.id)));
     },
     onError: (error: Error) => {
@@ -148,7 +151,7 @@ export default function CarePlanCreateModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton={!createMutation.isPending}
         className={enrollmentWizardDialogContentClass}
@@ -192,7 +195,7 @@ export default function CarePlanCreateModal({
             variant='outline'
             disabled={createMutation.isPending}
             className={wizardOutlineButtonClass}
-            onClick={() => onOpenChange(false)}
+            onClick={() => handleOpenChange(false)}
           >
             Cancel
           </Button>

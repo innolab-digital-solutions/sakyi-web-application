@@ -1,6 +1,12 @@
 'use client';
 
-import { AlertCircle, CheckCircle2, Info, TriangleAlert, X } from 'lucide-react';
+import {
+  AlertCircle,
+  CheckCircle2,
+  Info,
+  TriangleAlert,
+  X,
+} from 'lucide-react';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { toast, Toaster } from 'sonner';
 
@@ -71,7 +77,8 @@ const ToastCard = ({
   }, [durationMs, isPaused]);
 
   useEffect(() => {
-    if (durationMs <= 0 || closeTriggeredRef.current || elapsedMs < durationMs) return;
+    if (durationMs <= 0 || closeTriggeredRef.current || elapsedMs < durationMs)
+      return;
     closeTriggeredRef.current = true;
     onClose?.();
   }, [durationMs, elapsedMs, onClose]);
@@ -101,9 +108,7 @@ const ToastCard = ({
             {title}
           </p>
           {description ? (
-            <p className='text-xs font-medium text-slate-600'>
-              {description}
-            </p>
+            <p className='text-xs font-medium text-slate-600'>{description}</p>
           ) : null}
         </div>
         <button

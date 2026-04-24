@@ -211,15 +211,19 @@ export default function EnrollmentRecordRowActions({
 
   React.useLayoutEffect(() => {
     if (!scheduleOpen) return;
-    setStartsAt(toDateInputValue(row.starts_at));
-    setEndsAt(toDateInputValue(row.ends_at));
-    setScheduleErrors({});
+    queueMicrotask(() => {
+      setStartsAt(toDateInputValue(row.starts_at));
+      setEndsAt(toDateInputValue(row.ends_at));
+      setScheduleErrors({});
+    });
   }, [scheduleOpen, row.id, row.starts_at, row.ends_at]);
 
   React.useEffect(() => {
     if (!notesOpen) return;
-    setNotesBody(row.notes?.trim() ?? '');
-    setNotesError(undefined);
+    queueMicrotask(() => {
+      setNotesBody(row.notes?.trim() ?? '');
+      setNotesError(undefined);
+    });
   }, [notesOpen, row.id, row.notes]);
 
   const { data: teamMembers = [], isLoading: teamLoading } = useQuery({
@@ -251,8 +255,10 @@ export default function EnrollmentRecordRowActions({
   React.useEffect(() => {
     if (!careTeamOpen || !detailEnrollment) return;
     const roster = rosterFromEnrollment(detailEnrollment);
-    setTeamRows(rosterToRows(roster));
-    setCareErrors({});
+    queueMicrotask(() => {
+      setTeamRows(rosterToRows(roster));
+      setCareErrors({});
+    });
   }, [careTeamOpen, detailEnrollment]);
 
   const clientId = row.client?.id;

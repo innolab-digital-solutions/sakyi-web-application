@@ -49,11 +49,17 @@ export default function CarePlanFinalizeConfirmation({
   const [showAllIssues, setShowAllIssues] = React.useState(false);
 
   React.useEffect(() => {
-    if (!open) setShowAllIssues(false);
+    if (!open) {
+      queueMicrotask(() => {
+        setShowAllIssues(false);
+      });
+    }
   }, [open]);
 
   React.useEffect(() => {
-    setShowAllIssues(false);
+    queueMicrotask(() => {
+      setShowAllIssues(false);
+    });
   }, [validationResult?.is_valid, validationResult?.issues.length]);
 
   const visibleIssues =

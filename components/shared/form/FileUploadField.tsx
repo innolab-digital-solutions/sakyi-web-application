@@ -189,7 +189,9 @@ function ImageThumbWithFallback({
   );
 
   React.useEffect(() => {
-    setPhase('primary');
+    queueMicrotask(() => {
+      setPhase('primary');
+    });
   }, [src]);
 
   if (phase === 'icon') {
@@ -238,7 +240,9 @@ function AvatarImageWithFallback({
   );
 
   React.useEffect(() => {
-    setPhase('primary');
+    queueMicrotask(() => {
+      setPhase('primary');
+    });
   }, [src]);
 
   if (phase === 'gone') return null;
@@ -310,9 +314,11 @@ function useObjectUrlsForFiles(files: File[]) {
         next[fileKey(file)] = URL.createObjectURL(file);
       }
     });
-    setUrls((prev) => {
-      Object.values(prev).forEach((u) => URL.revokeObjectURL(u));
-      return next;
+    queueMicrotask(() => {
+      setUrls((prev) => {
+        Object.values(prev).forEach((u) => URL.revokeObjectURL(u));
+        return next;
+      });
     });
     return () => {
       Object.values(next).forEach((u) => URL.revokeObjectURL(u));

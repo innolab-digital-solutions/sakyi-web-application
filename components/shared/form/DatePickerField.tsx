@@ -172,7 +172,11 @@ function DatePickerField(props: DatePickerFieldProps) {
 
   React.useEffect(() => {
     if (isRange || !includeTime) return;
-    if (singleValue) setTimeStr(timeValueFromDate(singleValue));
+    if (singleValue) {
+      queueMicrotask(() => {
+        setTimeStr(timeValueFromDate(singleValue));
+      });
+    }
   }, [isRange, includeTime, singleValue]);
 
   const responsiveTriggerClass = cn(

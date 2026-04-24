@@ -72,16 +72,12 @@ function getReference(row: AdminCarePlan): string {
   return `#${row.id}`;
 }
 
-function normalizeEnrollmentStatus(
-  value: string | null | undefined,
-): string {
+function normalizeEnrollmentStatus(value: string | null | undefined): string {
   return (value ?? '').trim().toLowerCase();
 }
 
 function isProgramEnrollmentScheduled(row: AdminCarePlan): boolean {
-  return (
-    normalizeEnrollmentStatus(row.enrollment?.status) === 'scheduled'
-  );
+  return normalizeEnrollmentStatus(row.enrollment?.status) === 'scheduled';
 }
 
 function getEnrollmentReferenceForRow(row: AdminCarePlan): string {
