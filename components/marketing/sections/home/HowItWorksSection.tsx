@@ -83,7 +83,12 @@ const HowItWorksSection = () => {
       {/* Steps Grid: Visual guide for the 3-step process */}
       <div className='mt-12 grid min-w-0 gap-6 lg:mt-16 lg:grid-cols-3 lg:gap-8'>
         {steps.map((step, index) => (
-          <div key={index} data-aos='fade-up' data-aos-delay={`${index * 100}`}>
+          <div
+            key={index}
+            data-aos='fade-up'
+            data-aos-delay={`${index * 100}`}
+            className='h-full'
+          >
             <HowItWorksStepCard
               step={step.step}
               title={step.title}
