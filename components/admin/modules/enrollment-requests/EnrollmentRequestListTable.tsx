@@ -362,7 +362,7 @@ export default function EnrollmentRequestListTable() {
       cancellationNotes: string;
     }) => {
       const response = await cancelEnrollmentRequest(id, {
-        cancellation_notes: cancellationNotes,
+        cancellation_note: cancellationNotes,
       });
       if (response.status === 'error') {
         throw new Error(response.message || 'Failed to cancel request.');
@@ -553,7 +553,7 @@ export default function EnrollmentRequestListTable() {
               return (
                 <TableRow key={request.id}>
                   {showColumn('reference') ? (
-                    <TableCell>
+                    <TableCell className='min-w-42'>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {getRequestReference(request)}
                       </p>
@@ -593,7 +593,7 @@ export default function EnrollmentRequestListTable() {
                     </TableCell>
                   ) : null}
                   {showColumn('requestedProgram') ? (
-                    <TableCell>
+                    <TableCell className='min-w-52'>
                       <div className='flex min-w-0 items-start gap-3'>
                         <ProgramThumbnail
                           thumbnailUrl={request.program?.thumbnail_url}
@@ -649,7 +649,7 @@ export default function EnrollmentRequestListTable() {
                     </TableCell>
                   ) : null}
                   {showColumn('handledBy') ? (
-                    <TableCell>
+                    <TableCell className='min-w-58'>
                       {request.handler ? (
                         <div className='flex items-start gap-3'>
                           <Avatar
@@ -687,9 +687,9 @@ export default function EnrollmentRequestListTable() {
                     </TableCell>
                   ) : null}
                   {showColumn('contactedAt') ? (
-                    <TableCell>
+                    <TableCell className='min-w-40'>
                       {contactedAt ?? (
-                        <TableCellEmpty label='Not Contact Yet' />
+                        <TableCellEmpty label='Not contacted yet' />
                       )}
                     </TableCell>
                   ) : null}

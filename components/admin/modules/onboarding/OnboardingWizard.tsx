@@ -111,8 +111,10 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
   }, []);
 
   const hasRedirectedOnReadonly = useRef(false);
+  const wizardSectionRef = useRef<HTMLElement | null>(null);
   const persistedSectionSaveFingerprintRef = useRef<Record<number, string>>({});
   const persistedFingerprintIntakeIdRef = useRef(intakeId);
+  const previousActiveSectionIdRef = useRef<number | null>(null);
   /** Prevents overlapping forward navigation (e.g. double tab clicks) from firing multiple saves. */
   const forwardNavigationLockRef = useRef(false);
 
@@ -218,6 +220,40 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
       ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(String(intakeId)),
     );
   }, [intakeId, isReadonly, router]);
+
+  const scrollToWizardTop = useCallback(() => {
+    const root = wizardSectionRef.current;
+    if (!root) return;
+    root.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+  }, []);
+
+  const scrollToFirstInvalidField = useCallback(() => {
+    const root = wizardSectionRef.current;
+    if (!root) return;
+
+    requestAnimationFrame(() => {
+      const invalidEl = root.querySelector<HTMLElement>('[aria-invalid="true"]');
+      if (invalidEl) {
+        invalidEl.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest',
+        });
+        if (typeof invalidEl.focus === 'function') {
+          invalidEl.focus({ preventScroll: true });
+        }
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (activeSectionId == null) return;
+    const previous = previousActiveSectionIdRef.current;
+    if (previous != null && previous !== activeSectionId) {
+      scrollToWizardTop();
+    }
+    previousActiveSectionIdRef.current = activeSectionId;
+  }, [activeSectionId, scrollToWizardTop]);
 
   const revalidateIntakeQueries = async () => {
     await Promise.all([
@@ -418,6 +454,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
         [section.id]:
           'Please fill all required fields before moving to the next step.',
       }));
+      scrollToFirstInvalidField();
       return false;
     }
 
@@ -496,7 +533,10 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
   };
 
   return (
-    <section className='border-border max-w-full min-w-0 space-y-5 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:p-6'>
+    <section
+      ref={wizardSectionRef}
+      className='border-border max-w-full min-w-0 space-y-5 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:p-6'
+    >
       <div className='border-border space-y-4 border-b pb-5'>
         {intakeRecord && (
           <div className='space-y-4'>
@@ -774,7 +814,10 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
             className='bg-background hover:bg-muted h-10 shrink-0 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
             onClick={() => {
               const draft = draftBySection[activeSection.id] ?? {};
-              if (!isSectionDraftDirty(activeSection, draft)) return;
+              if (!isSectionDraftDirty(activeSection, draft)) {
+                toast.success('The section responses have been saved successfully.');
+                return;
+              }
               saveMutation.mutate({
                 section: activeSection,
                 draftSnapshot: draft,

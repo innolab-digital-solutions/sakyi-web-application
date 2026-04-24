@@ -21,7 +21,7 @@ export type UpdateEnrollmentRequestStatusPayload = {
 };
 
 export type CancelEnrollmentRequestPayload = {
-  cancellation_notes: string;
+  cancellation_note: string;
 };
 
 /**

@@ -4,8 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format, startOfDay } from 'date-fns';
 import {
   ArrowLeftIcon,
-  CheckCircle2Icon,
   ChevronRightIcon,
+  FileSignatureIcon,
   PlusIcon,
   Trash2Icon,
   XIcon,
@@ -21,8 +21,6 @@ import {
 import {
   enrollmentWizardDialogContentClass,
   enrollmentWizardDialogFooterClass,
-  enrollmentWizardStepBodyCardClass,
-  STEP_BODY_HEIGHT_CLASS,
   wizardOutlineButtonClass,
   wizardPrimaryButtonClass,
 } from '@/components/admin/modules/enrollmentWizardModalUi';
@@ -377,9 +375,9 @@ export default function CreateEnrollmentFromContractModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={!isPending}
-        className={enrollmentWizardDialogContentClass}
+        className={cn(enrollmentWizardDialogContentClass, 'overflow-visible')}
       >
-        <div className='border-border flex min-h-0 flex-1 flex-col overflow-hidden'>
+        <div className='border-border flex min-h-0 flex-1 flex-col overflow-visible'>
           <DialogHeader className='border-border shrink-0 border-b px-6 pt-6 pb-4 text-left'>
             <DialogTitle className='text-foreground text-[15.5px] font-bold capitalize'>
               Create Enrollment from Contract
@@ -391,7 +389,7 @@ export default function CreateEnrollmentFromContractModal({
             </DialogDescription>
           </DialogHeader>
 
-          <div className='flex min-h-0 flex-1 flex-col overflow-hidden px-6 py-4'>
+          <div className='flex min-h-0 flex-1 flex-col px-6 py-4'>
             {contractLoading ? (
               <p className='text-muted-foreground py-8 text-center text-sm font-medium'>
                 Loading contract…
@@ -413,7 +411,7 @@ export default function CreateEnrollmentFromContractModal({
                 </Button>
               </div>
             ) : !eligible ? (
-              <div className='bg-muted/50 border-border rounded-lg border p-4 text-sm'>
+              <div className='bg-muted/50 border-border rounded-lg border py-4 text-sm'>
                 <p className='text-foreground font-medium'>
                   {contract.status !== 'signed'
                     ? 'This contract is not signed yet. Create an enrollment only after the client completes e-signature.'
@@ -421,7 +419,7 @@ export default function CreateEnrollmentFromContractModal({
                 </p>
               </div>
             ) : (
-              <div className='flex min-h-0 flex-1 flex-col gap-4 overflow-hidden'>
+              <div className='flex min-h-0 flex-1 flex-col gap-y-4'>
                 <ol
                   className='flex w-full shrink-0 gap-2'
                   aria-label='Enrollment setup steps'
@@ -469,18 +467,11 @@ export default function CreateEnrollmentFromContractModal({
                   {STEPS[step - 1]?.description}
                 </p>
 
-                <div
-                  className={cn(
-                    enrollmentWizardStepBodyCardClass,
-                    STEP_BODY_HEIGHT_CLASS,
-                  )}
-                >
+                <div className=''>
                   <div
                     className={cn(
-                      'min-h-0 flex-1 p-3 sm:p-4',
-                      step === 2
-                        ? 'flex flex-col overflow-hidden'
-                        : 'overflow-x-hidden overflow-y-auto',
+                      'min-h-0 flex-1',
+                      step === 2 ? 'flex flex-col' : 'overflow-visible',
                     )}
                   >
                     {step === 1 ? (
@@ -563,7 +554,7 @@ export default function CreateEnrollmentFromContractModal({
                           </Button>
                         </div>
                         <div
-                          className='border-border bg-background min-h-0 flex-1 overflow-x-hidden overflow-y-auto rounded-md border'
+                          className='border-border bg-background min-h-0 flex-1 overflow-y-auto rounded-md border'
                           role='group'
                           aria-labelledby='care-team-heading'
                         >
@@ -666,7 +657,7 @@ export default function CreateEnrollmentFromContractModal({
                     {step === 3 ? (
                       <TextAreaField
                         label='Internal Notes (Optional)'
-                        placeholder='Enter any relevant internal notes for this enrollment (visible to staff only)'
+                        placeholder='Enter any relevant internal notes for this enrollment'
                         value={notes}
                         onChange={(e) => {
                           setNotes(e.target.value);
@@ -731,7 +722,7 @@ export default function CreateEnrollmentFromContractModal({
                 className={wizardPrimaryButtonClass}
                 onClick={handleSubmit}
               >
-                <CheckCircle2Icon className='size-3.5 shrink-0' />
+                <FileSignatureIcon className='size-3.5 shrink-0' />
                 {isPending ? 'Creating…' : 'Create enrollment'}
               </Button>
             )}

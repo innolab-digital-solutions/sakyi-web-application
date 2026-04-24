@@ -633,7 +633,7 @@ export default function EnrollmentRecordRowActions({
                   onClick={() => setCreateCarePlanOpen(true)}
                 >
                   <FilePlus2Icon className='size-3.5 shrink-0' />
-                  Create care plan draft
+                  Create care plan
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {isActive ? (

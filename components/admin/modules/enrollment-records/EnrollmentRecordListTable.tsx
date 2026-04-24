@@ -136,7 +136,7 @@ const ENROLLMENT_RECORD_COLUMNS: readonly EnrollmentRecordColumnDefinition[] = [
   },
   {
     key: 'contract',
-    label: 'Contract',
+    label: 'Contract Reference',
     headerClassName: '',
     skeletonWidth: 'w-32',
   },
@@ -673,7 +673,7 @@ export default function EnrollmentRecordListTable() {
                     </TableCell>
                   ) : null}
                   {showColumn('intakeReference') ? (
-                    <TableCell>
+                    <TableCell className='min-w-42'>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {row.onboarding_intake?.code?.trim() ? (
                           row.onboarding_intake.code.trim()
@@ -684,7 +684,7 @@ export default function EnrollmentRecordListTable() {
                     </TableCell>
                   ) : null}
                   {showColumn('contract') ? (
-                    <TableCell>
+                    <TableCell className='min-w-42'>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {row.enrollment_contract?.code?.trim() ? (
                           row.enrollment_contract.code.trim()

@@ -46,8 +46,8 @@ export default function EnrollmentContactedConfirmation({
                 <span className='text-primary text-xs font-semibold'>
                   {requestReference || 'the selected enrollment request'}
                 </span>{' '}
-                to contacted so follow-up is visible to the team and intake can
-                proceed.
+                to “contacted” so follow-up is visible to the team and intake
+                can proceed.
               </AlertDialogDescription>
             </div>
           </div>

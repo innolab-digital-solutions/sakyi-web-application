@@ -115,7 +115,7 @@ export default function EnrollmentContractRowActions({
           onClick={() => onOpenCreateEnrollment(contract.id)}
         >
           <FileSignatureIcon className='size-3.5 shrink-0' />
-          Create enrollment
+          Create Enrollment
         </Button>
       ) : null}
 
@@ -178,7 +178,7 @@ export default function EnrollmentContractRowActions({
                   onClick={() => onOpenCreateEnrollment(contract.id)}
                 >
                   <FileSignatureIcon className='size-3.5 shrink-0' />
-                  Create enrollment
+                  Create Enrollment
                 </DropdownMenuItem>
               ) : null}
             </>

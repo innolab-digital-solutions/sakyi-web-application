@@ -9,9 +9,10 @@ export type EnrollmentRequestResource = {
   code: string;
   phone: string;
   status: EnrollmentRequestStatus;
-  notes?: string | null;
   cancellation_note: string | null;
-  contacted_at: string | null; // ISO 8601
+  contacted_at: string | null;
+  completed_at: string | null;
+  cancelled_at: string | null;
   client?: {
     id: number;
     name: string;
@@ -37,6 +38,7 @@ export type EnrollmentRequestResource = {
   onboarding_intake?: {
     id: number;
     code: string;
+    status: 'draft' | 'in_progress' | 'completed' | 'cancelled';
   } | null;
   timestamps: {
     created_at: string | null; // ISO 8601
