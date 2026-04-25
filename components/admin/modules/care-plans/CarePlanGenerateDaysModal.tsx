@@ -1,7 +1,12 @@
 'use client';
 
 import { format, startOfDay } from 'date-fns';
-import { AlertTriangleIcon, CalendarIcon, InfoIcon, TriangleAlertIcon } from 'lucide-react';
+import {
+  AlertTriangleIcon,
+  CalendarIcon,
+  InfoIcon,
+  TriangleAlertIcon,
+} from 'lucide-react';
 
 import {
   enrollmentWizardDialogContentClass,
@@ -180,8 +185,7 @@ export default function CarePlanGenerateDaysModal({
                         >
                           {isFullReset
                             ? 'Full Reset: All Existing Days Will Be Rebuilt'
-                            : 'Partial Reset: Overlapping Days Will Be Preserved'
-                          }
+                            : 'Partial Reset: Overlapping Days Will Be Preserved'}
                         </p>
                         <p
                           className={`text-[12px] font-medium ${
@@ -197,7 +201,7 @@ export default function CarePlanGenerateDaysModal({
                   </div>
                 ) : null}
                 {isRegenerate ? (
-                  <div className='border-input bg-background shadow-xs mt-3 rounded-md border px-3 py-2.5'>
+                  <div className='border-input bg-background mt-3 rounded-md border px-3 py-2.5 shadow-xs'>
                     <label className='flex cursor-pointer items-center gap-3'>
                       <Checkbox
                         className='border-border'

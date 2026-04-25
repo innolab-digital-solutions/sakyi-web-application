@@ -83,7 +83,7 @@ export default function CarePlanFinalizeConfirmation({
             </div>
             <div className='space-y-1.5'>
               <AlertDialogTitle className='text-foreground/90 text-sm font-bold'>
-                Finalize care plan draft?
+                Finalize This Care Plan?
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
                 You have reached the final day and section for{' '}
