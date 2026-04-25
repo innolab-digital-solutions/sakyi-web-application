@@ -87,14 +87,12 @@ const MobileAppSection = () => {
                 <div className='absolute top-24 -right-0.5 h-12 w-0.5 rounded-r-full bg-gray-600'></div>
                 {/* Screen */}
                 <div className='relative h-full w-full overflow-hidden rounded-[2rem]'>
-
                   <Image
                     src={mockup1Src}
                     alt='SaKyi App - Dashboard Screen'
                     fill
                     className='object-cover object-top'
                   />
-
                 </div>
               </div>
             </div>
@@ -113,14 +111,12 @@ const MobileAppSection = () => {
                 <div className='absolute top-24 -right-0.5 h-12 w-0.5 rounded-r-full bg-gray-600'></div>
                 {/* Screen */}
                 <div className='relative h-full w-full overflow-hidden rounded-[2rem]'>
-
                   <Image
                     src={mockup2Src}
                     alt='SaKyi App - Progress Screen'
                     fill
                     className='object-cover object-top'
                   />
-
                 </div>
               </div>
             </div>
