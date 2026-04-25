@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
 
+import CarePlanActivateActivePlanExistsDialog from '@/components/admin/modules/care-plans/CarePlanActivateActivePlanExistsDialog';
 import CarePlanActivateConfirmation from '@/components/admin/modules/care-plans/CarePlanActivateConfirmation';
 import CarePlanActivateEnrollmentPrerequisiteDialog from '@/components/admin/modules/care-plans/CarePlanActivateEnrollmentPrerequisiteDialog';
 import CarePlanCancelConfirmation from '@/components/admin/modules/care-plans/CarePlanCancelConfirmation';
@@ -81,6 +82,16 @@ function isProgramEnrollmentScheduled(row: AdminCarePlan): boolean {
   return normalizeEnrollmentStatus(row.enrollment?.status) === 'scheduled';
 }
 
+/**
+ * True when the enrollment already has an active care plan other than this row
+ * (list payload may include `enrollment.current_active_plan` from the API).
+ */
+function hasAnotherActivePlanOnEnrollment(row: AdminCarePlan): boolean {
+  const cap = row.enrollment?.current_active_plan;
+  if (cap == null || cap.id == null) return false;
+  return cap.id !== row.id;
+}
+
 function getEnrollmentReferenceForRow(row: AdminCarePlan): string {
   const code = row.enrollment?.code?.trim();
   if (code) return code;
@@ -98,6 +109,8 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
   const queryClient = useQueryClient();
   const [activateOpen, setActivateOpen] = React.useState(false);
   const [enrollmentPrerequisiteOpen, setEnrollmentPrerequisiteOpen] =
+    React.useState(false);
+  const [activePlanExistsOpen, setActivePlanExistsOpen] =
     React.useState(false);
   const [revisionOpen, setRevisionOpen] = React.useState(false);
   const [cancelOpen, setCancelOpen] = React.useState(false);
@@ -306,6 +319,10 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
                         setEnrollmentPrerequisiteOpen(true);
                         return;
                       }
+                      if (hasAnotherActivePlanOnEnrollment(row)) {
+                        setActivePlanExistsOpen(true);
+                        return;
+                      }
                       setActivateOpen(true);
                     }}
                   >
@@ -347,6 +364,14 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
         carePlanReference={reference}
         enrollmentReference={enrollmentRefLabel || undefined}
         enrollmentId={enrollmentId}
+      />
+
+      <CarePlanActivateActivePlanExistsDialog
+        open={activePlanExistsOpen}
+        onOpenChange={setActivePlanExistsOpen}
+        draftCarePlanReference={reference}
+        activePlan={row.enrollment?.current_active_plan ?? null}
+        enrollmentReference={enrollmentRefLabel || undefined}
       />
 
       <CarePlanActivateConfirmation

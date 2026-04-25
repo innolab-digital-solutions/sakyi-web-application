@@ -1,3 +1,5 @@
+import { AdminEnrollment } from '@/domains/enrollment-records/types/admin';
+
 export const CARE_PLAN_STATUSES = [
   'draft',
   'active',
@@ -19,24 +21,7 @@ export interface AdminCarePlan {
   counts?: {
     days?: number | null;
   };
-  enrollment?: {
-    id: number;
-    code: string | null;
-    /** Program enrollment status (e.g. `scheduled`, `active`) when included by the API. */
-    status?: string | null;
-    client?: {
-      id: number;
-      name: string | null;
-      email: string | null;
-      picture_url: string | null;
-    } | null;
-    program?: {
-      id: number;
-      code: string | null;
-      title: string | null;
-      thumbnail_url?: string | null;
-    } | null;
-  } | null;
+  enrollment?: AdminEnrollment | null;
   timestamps?: {
     created_at: string | null;
     updated_at: string | null;
