@@ -1,7 +1,7 @@
 'use client';
 
 import { format, startOfDay } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
+import { AlertTriangleIcon, CalendarIcon, InfoIcon, TriangleAlertIcon } from 'lucide-react';
 
 import {
   enrollmentWizardDialogContentClass,
@@ -13,6 +13,7 @@ import {
 } from '@/components/admin/modules/enrollmentWizardModalUi';
 import DatePickerField from '@/components/shared/form/DatePickerField';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,7 @@ type Props = {
   title: string;
   submitLabel: string;
   isRegenerate: boolean;
+  replaceStrategy: 'preserve_overlap' | 'full';
   startsOn: string;
   endsOn: string;
   startsOnError?: string;
@@ -40,6 +42,7 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   onStartsOnChange: (value: string) => void;
   onEndsOnChange: (value: string) => void;
+  onReplaceStrategyChange: (value: 'preserve_overlap' | 'full') => void;
   onSubmit: () => void;
 };
 
@@ -60,6 +63,7 @@ export default function CarePlanGenerateDaysModal({
   title,
   submitLabel,
   isRegenerate,
+  replaceStrategy,
   startsOn,
   endsOn,
   startsOnError,
@@ -73,11 +77,13 @@ export default function CarePlanGenerateDaysModal({
   onOpenChange,
   onStartsOnChange,
   onEndsOnChange,
+  onReplaceStrategyChange,
   onSubmit,
 }: Props) {
   const formId = 'care-plan-generate-days-form';
   const startLabel = formatYmdLabel(startsOn);
   const endLabel = formatYmdLabel(endsOn);
+  const isFullReset = replaceStrategy === 'full';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -92,8 +98,8 @@ export default function CarePlanGenerateDaysModal({
             </DialogTitle>
             <DialogDescription className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
               {isRegenerate
-                ? "Choose a new care timeline. Applying this update will replace the existing day schedule with a new schedule for the selected period."
-                : "Choose the care timeline to set up this plan period. After you apply the dates, day entries will be created for the selected window so you can configure section tasks."}
+                ? 'Choose the updated care timeline. By default, overlapping days keep their existing content, while days outside the new range are removed.'
+                : 'Choose the care timeline to set up this plan period. After you apply the dates, day entries will be created for the selected window so you can configure section tasks.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -145,15 +151,97 @@ export default function CarePlanGenerateDaysModal({
                 </div>
 
                 {showOverwriteWarning ? (
-                  <div className='mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[13px] font-medium text-amber-700'>
-                    Regenerating with a new date range will remove all currently
-                    generated day rows for this care plan and replace them with
-                    days from the selected start date to end date only.
+                  <div
+                    className={`mt-4 rounded-md border px-3 py-2.5 ${
+                      isFullReset
+                        ? 'border-rose-200 bg-rose-50'
+                        : 'border-amber-200 bg-amber-50'
+                    }`}
+                  >
+                    <div className='flex items-start gap-2.5'>
+                      <div
+                        className={`mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-md border ${
+                          isFullReset
+                            ? 'border-rose-300/70 bg-rose-100 text-rose-700'
+                            : 'border-amber-300/70 bg-amber-100 text-amber-700'
+                        }`}
+                      >
+                        {isFullReset ? (
+                          <AlertTriangleIcon className='size-4' aria-hidden />
+                        ) : (
+                          <TriangleAlertIcon className='size-4' aria-hidden />
+                        )}
+                      </div>
+                      <div className='space-y-0.5'>
+                        <p
+                          className={`text-[13px] font-semibold ${
+                            isFullReset ? 'text-rose-800' : 'text-amber-800'
+                          }`}
+                        >
+                          {isFullReset
+                            ? 'Full Reset: All Existing Days Will Be Rebuilt'
+                            : 'Partial Reset: Overlapping Days Will Be Preserved'
+                          }
+                        </p>
+                        <p
+                          className={`text-[12px] font-medium ${
+                            isFullReset ? 'text-rose-700' : 'text-amber-700'
+                          }`}
+                        >
+                          {isFullReset
+                            ? 'All existing days and day content will be removed and rebuilt from the selected timeline.'
+                            : 'Only days outside the new date range will be removed. Overlapping days and their content will be retained.'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+                {isRegenerate ? (
+                  <div className='border-input bg-background shadow-xs mt-3 rounded-md border px-3 py-2.5'>
+                    <label className='flex cursor-pointer items-center gap-3'>
+                      <Checkbox
+                        className='border-border'
+                        checked={replaceStrategy === 'full'}
+                        onCheckedChange={(checked) =>
+                          onReplaceStrategyChange(
+                            checked ? 'full' : 'preserve_overlap',
+                          )
+                        }
+                        disabled={isSubmitting}
+                        aria-label='Reset all day content'
+                      />
+                      <span className='flex flex-col gap-0.5'>
+                        <span className='text-foreground block text-[13px] font-semibold'>
+                          Reset all day content (Full Regenerate)
+                        </span>
+                        <span className='text-muted-foreground block text-[12px] font-medium'>
+                          Use this only when you want a complete rebuild and do
+                          not need to keep any existing day items.
+                        </span>
+                      </span>
+                    </label>
                   </div>
                 ) : null}
                 {showScheduledDraftDemotionWarning ? (
-                  <div className='mt-3 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-[13px] font-medium text-sky-800'>
-                    This plan is currently <span className='font-semibold'>scheduled</span>. Because the selected start date is today, applying this timeline will move the plan back to <span className='font-semibold'>draft</span> so the care team can continue editing before activation.
+                  <div className='mt-3 rounded-md border border-sky-200 bg-sky-50 px-3 py-2.5'>
+                    <div className='flex items-start gap-2.5'>
+                      <div className='mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-md border border-sky-300/70 bg-sky-100 text-sky-700'>
+                        <InfoIcon className='size-4' aria-hidden />
+                      </div>
+                      <div className='space-y-0.5'>
+                        <p className='text-[13px] font-semibold text-sky-800'>
+                          Scheduled Plan Will Return to Draft
+                        </p>
+                        <p className='text-[12.5px] font-medium text-sky-700'>
+                          This care plan is currently{' '}
+                          <span className='font-semibold'>scheduled</span>. If
+                          the selected start date is today, applying the
+                          timeline will move the plan to{' '}
+                          <span className='font-semibold'>draft</span> so the
+                          team can continue editing before activation.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 ) : null}
               </div>

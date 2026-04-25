@@ -583,6 +583,9 @@ export default function CarePlanBuilder({
     starts_on: '',
     ends_on: '',
   });
+  const [generateReplaceStrategy, setGenerateReplaceStrategy] = React.useState<
+    'preserve_overlap' | 'full'
+  >('preserve_overlap');
   const [generateDayModalErrors, setGenerateDayModalErrors] = React.useState<{
     starts_on?: string;
     ends_on?: string;
@@ -961,11 +964,13 @@ export default function CarePlanBuilder({
       starts_on: string;
       ends_on: string;
       replace_existing: boolean;
+      replace_strategy: 'preserve_overlap' | 'full';
     }) => {
       const response = await postCarePlanGenerateDays(carePlanId, {
         starts_on: payload.starts_on,
         ends_on: payload.ends_on,
         replace_existing: payload.replace_existing,
+        replace_strategy: payload.replace_strategy,
       });
       if (response.status === 'error') {
         throw new Error(response.message ?? 'Could not generate days.');
@@ -973,7 +978,7 @@ export default function CarePlanBuilder({
       return response.data;
     },
     onSuccess: () => {
-      toast.success('The plan days have been generated successfully.');
+      toast.success('The plan timeline has been generated successfully.');
       invalidateBuilder();
     },
     onError: (error: Error) => {
@@ -1019,6 +1024,7 @@ export default function CarePlanBuilder({
       ends_on: basicsForm.ends_on.trim(),
     });
     setGenerateDayModalErrors({});
+    setGenerateReplaceStrategy('preserve_overlap');
     setGenerateDayModalOpen(true);
   };
 
@@ -1052,6 +1058,19 @@ export default function CarePlanBuilder({
     });
   };
 
+  const submitGenerateDays = (
+    payload: { starts_on: string; ends_on: string },
+    replaceStrategy: 'preserve_overlap' | 'full',
+  ) => {
+    setBasicsForm(payload);
+    generateMutation.mutate({
+      ...payload,
+      replace_existing: true,
+      replace_strategy: hasGeneratedDays ? replaceStrategy : 'preserve_overlap',
+    });
+    setGenerateDayModalOpen(false);
+  };
+
   const handleGenerateFromModal = () => {
     const payload = {
       starts_on: generateDayModalForm.starts_on.trim(),
@@ -1061,12 +1080,21 @@ export default function CarePlanBuilder({
     setGenerateDayModalErrors(errors);
     if (Object.keys(errors).length > 0) return;
 
-    setBasicsForm(payload);
-    generateMutation.mutate({
-      ...payload,
-      replace_existing: true,
-    });
-    setGenerateDayModalOpen(false);
+    const currentStartsOn = (builder?.starts_on ?? '').trim();
+    const currentEndsOn = (builder?.ends_on ?? '').trim();
+    const isSameTimelineRange =
+      payload.starts_on === currentStartsOn && payload.ends_on === currentEndsOn;
+    const isNoopRegenerate =
+      hasGeneratedDays &&
+      isSameTimelineRange &&
+      generateReplaceStrategy === 'preserve_overlap';
+    if (isNoopRegenerate) {
+      toast.info('No changes detected in the selected timeline. No updates applied.');
+      setGenerateDayModalOpen(false);
+      return;
+    }
+
+    submitGenerateDays(payload, generateReplaceStrategy);
   };
 
   const saveDayNotesIfNeeded = async (dayId: number): Promise<boolean> => {
@@ -2336,6 +2364,7 @@ export default function CarePlanBuilder({
         title={generateDayModalTitle}
         submitLabel={generateDayButtonLabel}
         isRegenerate={hasGeneratedDays}
+        replaceStrategy={generateReplaceStrategy}
         startsOn={generateDayModalForm.starts_on}
         endsOn={generateDayModalForm.ends_on}
         startsOnError={generateDayModalErrors.starts_on}
@@ -2349,6 +2378,7 @@ export default function CarePlanBuilder({
         onOpenChange={setGenerateDayModalOpen}
         onStartsOnChange={handleGenerateModalStartsOnChange}
         onEndsOnChange={handleGenerateModalEndsOnChange}
+        onReplaceStrategyChange={setGenerateReplaceStrategy}
         onSubmit={handleGenerateFromModal}
       />
 

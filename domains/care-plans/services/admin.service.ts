@@ -31,6 +31,7 @@ export type GenerateCarePlanDaysPayload = {
   starts_on: string;
   ends_on: string;
   replace_existing?: boolean;
+  replace_strategy?: 'preserve_overlap' | 'full';
 };
 
 export type UpdateCarePlanDayNotesPayload = {
