@@ -2,6 +2,7 @@ import { AdminEnrollment } from '@/domains/enrollment-records/types/admin';
 
 export const CARE_PLAN_STATUSES = [
   'draft',
+  'scheduled',
   'active',
   'completed',
   'cancelled',
@@ -25,6 +26,7 @@ export interface AdminCarePlan {
   timestamps?: {
     created_at: string | null;
     updated_at: string | null;
+    scheduled_at?: string | null;
     activated_at?: string | null;
     completed_at?: string | null;
   };
@@ -63,6 +65,25 @@ export interface AdminCarePlanDay {
   sections: Record<CarePlanSectionKey, CarePlanSectionItem[]>;
 }
 
+/** Builder `GET` payload — client/program/enrollment are included on the care-plan builder response. */
+export type CarePlanBuilderClient = {
+  id: number;
+  code: string | null;
+  name: string | null;
+  picture_url: string | null;
+};
+
+export type CarePlanBuilderProgram = {
+  id: number;
+  code: string | null;
+  name: string | null;
+};
+
+export type CarePlanBuilderEnrollmentRef = {
+  id: number;
+  code: string | null;
+};
+
 export interface AdminCarePlanBuilder {
   id: number;
   code: string | null;
@@ -71,6 +92,11 @@ export interface AdminCarePlanBuilder {
   cycle_number: number | null;
   starts_on: string | null;
   ends_on: string | null;
+  scheduled_at?: string | null;
+  activated_at?: string | null;
+  client?: CarePlanBuilderClient | null;
+  program?: CarePlanBuilderProgram | null;
+  enrollment?: CarePlanBuilderEnrollmentRef | null;
   days: AdminCarePlanDay[];
 }
 

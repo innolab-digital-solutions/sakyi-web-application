@@ -38,16 +38,20 @@ export default function CarePlanActivateConfirmation({
             </div>
             <div className='space-y-1.5'>
               <AlertDialogTitle className='text-foreground/90 text-sm font-bold capitalize'>
-                Activate And Publish Care Plan
+                Confirm Care Plan Activation
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
-                This will activate and publish{' '}
+                This will submit{' '}
                 <span className='text-primary text-xs font-semibold'>
                   {carePlanReference || 'this care plan'}
                 </span>{' '}
-                as the current live plan for care delivery. After it is
-                published, major updates should be made through revision mode to
-                maintain a clear audit trail.
+                for activation. If the start date is in the future, it will be
+                set to <span className='text-foreground/90 font-semibold'>scheduled</span>{' '}
+                and auto-activated on the start date. If the start date is today
+                or earlier, it will become{' '}
+                <span className='text-foreground/90 font-semibold'>active</span>{' '}
+                immediately. After activation scheduling, major changes should be
+                made through revision mode to maintain a clear audit trail.
               </AlertDialogDescription>
             </div>
           </div>

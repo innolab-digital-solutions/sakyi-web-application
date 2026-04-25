@@ -176,7 +176,7 @@ const ENROLLMENT_STATUS_STYLES: Record<
   active: {
     icon: ActivityIcon,
     className:
-      'border-indigo-300/80 bg-indigo-50 text-indigo-800 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200',
+      'border-cyan-300/80 bg-cyan-50 text-cyan-800 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-200',
   },
   completed: {
     icon: CheckCircle2Icon,

@@ -4,6 +4,7 @@ import { format, parseISO } from 'date-fns';
 import {
   ActivityIcon,
   CheckCircle2Icon,
+  ClockIcon,
   FileTextIcon,
   XCircleIcon,
 } from 'lucide-react';
@@ -140,6 +141,7 @@ const CARE_PLAN_COLUMNS: readonly CarePlanColumnDefinition[] = [
 
 const STATUS_LABEL: Record<CarePlanStatus, string> = {
   draft: 'Draft',
+  scheduled: 'Scheduled',
   active: 'Active',
   completed: 'Completed',
   cancelled: 'Cancelled',
@@ -154,10 +156,15 @@ const CARE_PLAN_STATUS_STYLES: Record<
     className:
       'border-amber-300/80 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200',
   },
+  scheduled: {
+    icon: ClockIcon,
+    className:
+      'border-sky-300/80 bg-sky-50 text-sky-800 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-200',
+  },
   active: {
     icon: ActivityIcon,
     className:
-      'border-indigo-300/80 bg-indigo-50 text-indigo-800 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200',
+      'border-cyan-300/80 bg-cyan-50 text-cyan-800 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-200',
   },
   completed: {
     icon: CheckCircle2Icon,
@@ -222,6 +229,7 @@ function normalizeStatus(
   const status = (value ?? '').trim().toLowerCase();
   if (
     status === 'draft' ||
+    status === 'scheduled' ||
     status === 'active' ||
     status === 'completed' ||
     status === 'cancelled'

@@ -26,11 +26,13 @@ type Props = {
   open: boolean;
   title: string;
   submitLabel: string;
+  isRegenerate: boolean;
   startsOn: string;
   endsOn: string;
   startsOnError?: string;
   endsOnError?: string;
   showOverwriteWarning: boolean;
+  showScheduledDraftDemotionWarning?: boolean;
   isSubmitting: boolean;
   startDateDisabled?: { before: Date; after: Date };
   endDateDisabled?: { before: Date };
@@ -57,11 +59,13 @@ export default function CarePlanGenerateDaysModal({
   open,
   title,
   submitLabel,
+  isRegenerate,
   startsOn,
   endsOn,
   startsOnError,
   endsOnError,
   showOverwriteWarning,
+  showScheduledDraftDemotionWarning,
   isSubmitting,
   startDateDisabled,
   endDateDisabled,
@@ -87,9 +91,9 @@ export default function CarePlanGenerateDaysModal({
               {title}
             </DialogTitle>
             <DialogDescription className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
-              Choose the start and end dates to define your care plan&apos;s
-              days. When you apply a new range, any existing days will be
-              replaced with new ones for these dates.
+              {isRegenerate
+                ? "Choose a new care timeline. Applying this update will replace the existing day schedule with a new schedule for the selected period."
+                : "Choose the care timeline to set up this plan period. After you apply the dates, day entries will be created for the selected window so you can configure section tasks."}
             </DialogDescription>
           </DialogHeader>
 
@@ -147,6 +151,11 @@ export default function CarePlanGenerateDaysModal({
                     days from the selected start date to end date only.
                   </div>
                 ) : null}
+                {showScheduledDraftDemotionWarning ? (
+                  <div className='mt-3 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-[13px] font-medium text-sky-800'>
+                    This plan is currently <span className='font-semibold'>scheduled</span>. Because the selected start date is today, applying this timeline will move the plan back to <span className='font-semibold'>draft</span> so the care team can continue editing before activation.
+                  </div>
+                ) : null}
               </div>
 
               <div className='flex flex-wrap items-center justify-between gap-2 bg-transparent p-3 px-6'>
@@ -189,7 +198,7 @@ export default function CarePlanGenerateDaysModal({
             className={wizardPrimaryButtonClass}
           >
             <CalendarIcon className='size-3.5 shrink-0' />
-            {isSubmitting ? 'Generating days…' : submitLabel}
+            {isSubmitting ? 'Applying timeline…' : submitLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

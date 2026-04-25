@@ -23,6 +23,7 @@ import { CARE_PLAN_STATUSES } from '@/domains/care-plans/types/admin';
 
 const STATUS_LABEL: Record<CarePlanStatus, string> = {
   draft: 'Draft',
+  scheduled: 'Scheduled',
   active: 'Active',
   completed: 'Completed',
   cancelled: 'Cancelled',

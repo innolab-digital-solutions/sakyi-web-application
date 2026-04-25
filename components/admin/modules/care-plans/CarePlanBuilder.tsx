@@ -10,8 +10,8 @@ import {
   CheckCircle2Icon,
   ChevronRightIcon,
   DumbbellIcon,
-  FileCheck2Icon,
   FilePlus2Icon,
+  FileTextIcon,
   FootprintsIcon,
   HeartPulseIcon,
   PencilLineIcon,
@@ -32,8 +32,10 @@ import ComboboxField, {
 } from '@/components/shared/form/ComboBoxField';
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { base } from '@/config/api/base';
 import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
 import { ROUTES } from '@/config/routes';
 import {
@@ -52,6 +54,7 @@ import type {
 } from '@/domains/care-plans/types/admin';
 import { getUnitsLookup } from '@/domains/units/services';
 import { http } from '@/lib/api/client';
+import { cn } from '@/lib/utils/styles';
 
 const SECTIONS: ReadonlyArray<{
   key: CarePlanSectionKey;
@@ -73,6 +76,13 @@ const SECTION_GUIDANCE: Record<CarePlanSectionKey, string> = {
     'Add everyday activities the client should aim for (walking, stretching, errands, etc.) with a clear target and simple wording they can follow on their own.',
   recovery:
     'Describe rest, wind-down, and recovery habits for the client, including sleep windows, light mobility, breathing, or relaxation, so they can recover well between harder days.',
+};
+
+const SECTION_ADD_LABEL: Record<CarePlanSectionKey, string> = {
+  nutrition: 'Add Nutrition',
+  movement: 'Add Movement',
+  activity: 'Add Activity',
+  recovery: 'Add Recovery',
 };
 
 type CarePlanBuilderProps = {
@@ -97,6 +107,7 @@ function normalizeStatus(
   const status = (raw ?? '').trim().toLowerCase();
   if (
     status === 'draft' ||
+    status === 'scheduled' ||
     status === 'active' ||
     status === 'completed' ||
     status === 'cancelled'
@@ -120,6 +131,23 @@ function formatTargetDateLabel(ymd: string | null | undefined): string {
   const parsed = parse(ymd.trim(), 'yyyy-MM-dd', new Date());
   if (Number.isNaN(parsed.getTime())) return ymd.trim();
   return format(parsed, 'EEE, dd-MMM-yyyy');
+}
+
+function getNameInitials(value: string | null | undefined): string {
+  const text = (value ?? '').trim();
+  if (!text) return 'NA';
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return `${words[0][0] ?? ''}${words[1][0] ?? ''}`.toUpperCase();
+}
+
+function resolveClientPictureUrl(
+  raw: string | null | undefined,
+): string | undefined {
+  if (!raw?.trim()) return undefined;
+  const v = raw.trim();
+  if (v.startsWith('http')) return v;
+  return `${base.domainEndpoint}${v}`;
 }
 
 function toEditableSectionItems(
@@ -577,6 +605,7 @@ export default function CarePlanBuilder({
     React.useState<CarePlanItemFieldErrorsState>({});
   const [movementRowErrors, setMovementRowErrors] =
     React.useState<CarePlanMovementRowErrorsState>({});
+  const sectionItemsRootRef = React.useRef<HTMLDivElement | null>(null);
 
   const builderQuery = useQuery({
     queryKey: ['care-plan', carePlanId, 'builder'],
@@ -674,14 +703,16 @@ export default function CarePlanBuilder({
 
   const builder = builderQuery.data;
   const normalizedStatus = normalizeStatus(builder?.status);
-  const editable = !isDetailMode && normalizedStatus === 'draft';
+  const editable =
+    !isDetailMode &&
+    (normalizedStatus === 'draft' || normalizedStatus === 'scheduled');
   const hasGeneratedDays = (builder?.days.length ?? 0) > 0;
   const generateDayButtonLabel = hasGeneratedDays
-    ? 'Regenerate Day Plans'
-    : 'Generate Day Plans';
+    ? 'Change Timeline'
+    : 'Set Timeline';
   const generateDayModalTitle = hasGeneratedDays
-    ? 'Regenerate day plans'
-    : 'Generate day plans';
+    ? 'Change Care Timeline'
+    : 'Set Care Timeline';
 
   React.useEffect(() => {
     if (!builder) return;
@@ -828,6 +859,69 @@ export default function CarePlanBuilder({
       queryKey: ['table', '/web/admin/care-plans'],
     });
   }, [carePlanId, queryClient]);
+
+  const scrollToFirstInvalidField = React.useCallback(() => {
+    const root = sectionItemsRootRef.current;
+    if (!root) return;
+
+    requestAnimationFrame(() => {
+      const invalidEl = root.querySelector<HTMLElement>('[aria-invalid="true"]');
+      if (invalidEl) {
+        invalidEl.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest',
+        });
+        if (typeof invalidEl.focus === 'function') {
+          invalidEl.focus({ preventScroll: true });
+        }
+        return;
+      }
+
+      const errorText = root.querySelector<HTMLElement>('.text-destructive');
+      if (errorText) {
+        errorText.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest',
+        });
+      }
+    });
+  }, []);
+
+  const scrollToLastItemCard = React.useCallback(() => {
+    const root = sectionItemsRootRef.current;
+    if (!root) return;
+
+    requestAnimationFrame(() => {
+      const cards = root.querySelectorAll<HTMLElement>('[data-care-plan-item-card]');
+      const last = cards[cards.length - 1];
+      if (!last) return;
+      last.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+        inline: 'nearest',
+      });
+    });
+  }, []);
+
+  const scrollToLastExerciseRow = React.useCallback((itemIndex: number) => {
+    const root = sectionItemsRootRef.current;
+    if (!root) return;
+
+    requestAnimationFrame(() => {
+      const rows = root.querySelectorAll<HTMLElement>(
+        `[data-care-plan-exercise-row][data-item-index="${itemIndex}"]`,
+      );
+      const last = rows[rows.length - 1];
+      if (!last) return;
+      last.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'nearest',
+      });
+    });
+  }, []);
 
   const getDateRangeErrors = (payload: {
     starts_on: string;
@@ -984,6 +1078,20 @@ export default function CarePlanBuilder({
       dayId,
       general_notes: nextValue.length > 0 ? nextValue : null,
     });
+    queryClient.setQueryData(
+      ['care-plan', carePlanId, 'builder'],
+      (prev: typeof builderQuery.data) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          days: prev.days.map((day) =>
+            day.id === dayId
+              ? { ...day, general_notes: nextValue.length > 0 ? nextValue : null }
+              : day,
+          ),
+        };
+      },
+    );
     setDayNotesSavedValue(nextValue);
     return true;
   };
@@ -1013,7 +1121,7 @@ export default function CarePlanBuilder({
     }
     if (hasSavedNote) {
       return {
-        icon: FileCheck2Icon,
+        icon: FileTextIcon,
         label: 'View note',
         toneClass:
           'text-primary border-primary/25 bg-primary/8 hover:bg-primary/12',
@@ -1083,6 +1191,7 @@ export default function CarePlanBuilder({
         setSectionSaveError(
           error.parsed.section ?? error.parsed.itemsRoot ?? undefined,
         );
+        scrollToFirstInvalidField();
         return;
       }
       toast.error(error.message ?? 'Could not save section items.');
@@ -1192,6 +1301,7 @@ export default function CarePlanBuilder({
       Object.keys(itemFieldErrs).length > 0 ||
       Object.keys(movementRowErrs).length > 0
     ) {
+      scrollToFirstInvalidField();
       return null;
     }
 
@@ -1410,6 +1520,7 @@ export default function CarePlanBuilder({
           : entry,
       ),
     );
+    scrollToLastExerciseRow(itemIndex);
   };
 
   const removeMovementExerciseRow = (
@@ -1466,6 +1577,12 @@ export default function CarePlanBuilder({
     (generateDayModalForm.starts_on.trim() !==
       (builder?.starts_on ?? '').trim() ||
       generateDayModalForm.ends_on.trim() !== (builder?.ends_on ?? '').trim());
+  const isScheduledPlan = normalizedStatus === 'scheduled';
+  const selectedGenerateStartDate = parseYmdLocal(generateDayModalForm.starts_on);
+  const showScheduledDraftDemotionWarning =
+    isScheduledPlan &&
+    selectedGenerateStartDate != null &&
+    selectedGenerateStartDate.getTime() <= startOfDay(new Date()).getTime();
 
   const addItem = () => {
     if (activeSection === 'movement') {
@@ -1476,9 +1593,11 @@ export default function CarePlanBuilder({
           exercises: [createEmptyMovementExercise()],
         },
       ]);
+      scrollToLastItemCard();
       return;
     }
     setLocalItems((prev) => [...prev, createEmptySectionItem()]);
+    scrollToLastItemCard();
   };
 
   const removeItem = (index: number) => {
@@ -1508,34 +1627,122 @@ export default function CarePlanBuilder({
 
   if (!builder) return null;
 
+  const clientAvatarSrc = resolveClientPictureUrl(builder.client?.picture_url);
+
   return (
     <div className='space-y-6'>
       <section className='border-border max-w-full min-w-0 space-y-5 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:p-6'>
-        <div className='flex flex-wrap items-start justify-between gap-4'>
-          <div className='space-y-1.5'>
-            <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
-              Care Plan Reference
-            </p>
-            <p className='text-foreground/90 text-[13px] leading-relaxed font-semibold'>
-              {builder.code?.trim() || `Care Plan #${builder.id}`}
-            </p>
+        <div className='space-y-4'>
+          <div className='flex flex-wrap items-start justify-between gap-4'>
+            <div className='space-y-1.5'>
+              <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+                Care Plan Reference
+              </p>
+              <p className='text-foreground/90 text-[13px] leading-relaxed font-semibold'>
+                {builder.code?.trim() || `Care Plan #${builder.id}`}
+              </p>
+            </div>
+            <div className='flex flex-wrap items-center gap-2'>
+              {editable ? (
+                <Button
+                  type='button'
+                  className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
+                  disabled={generateMutation.isPending}
+                  onClick={openGenerateDayModal}
+                >
+                  {hasGeneratedDays ? (
+                    <RefreshCwIcon className='size-3.5' />
+                  ) : (
+                    <CalendarIcon className='size-3.5' />
+                  )}
+                  {generateDayButtonLabel}
+                </Button>
+              ) : null}
+            </div>
           </div>
-          <div className='flex flex-wrap items-center gap-2'>
-            {editable ? (
-              <Button
-                type='button'
-                className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
-                disabled={generateMutation.isPending}
-                onClick={openGenerateDayModal}
-              >
-                {hasGeneratedDays ? (
-                  <RefreshCwIcon className='size-3.5' />
-                ) : (
-                  <CalendarIcon className='size-3.5' />
-                )}
-                {generateDayButtonLabel}
-              </Button>
-            ) : null}
+
+          <div className='border-border/70 border-t' />
+
+          <div className='grid gap-2 sm:grid-cols-2 lg:grid-cols-4'>
+            <div className='bg-muted/50 border-border flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2'>
+              <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+                Client
+              </p>
+              <div className='mt-1 flex min-w-0 items-center gap-2.5'>
+                <Avatar
+                  className='border-border/60 bg-background size-9 border'
+                  size='default'
+                >
+                  {clientAvatarSrc ? (
+                    <AvatarImage
+                      src={clientAvatarSrc}
+                      alt=''
+                      className='object-cover'
+                    />
+                  ) : null}
+                  <AvatarFallback className='bg-primary/10 text-primary text-[11px] font-bold'>
+                    {getNameInitials(builder.client?.name ?? null)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className='min-w-0 flex-1'>
+                  <p className='text-foreground/90 line-clamp-1 text-[12.5px] font-semibold'>
+                    {builder.client?.name?.trim() || 'Not assigned'}
+                  </p>
+                  {builder.client?.code?.trim() ? (
+                    <p className='text-muted-foreground mt-0.5 truncate text-[11px] font-semibold tabular-nums'>
+                      {builder.client.code.trim()}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+
+            <div className='bg-muted/50 border-border flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2'>
+              <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+                Program
+              </p>
+              <p className='text-foreground/90 line-clamp-2 text-[12.5px] font-semibold'>
+                {builder.program?.name?.trim() || 'Not linked'}
+              </p>
+              {builder.program?.code?.trim() ? (
+                <p className='text-muted-foreground mt-0.5 truncate text-[11px] font-semibold tabular-nums'>
+                  {builder.program.code.trim()}
+                </p>
+              ) : null}
+            </div>
+
+            <div className='bg-muted/50 border-border flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2'>
+              <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+                Enrollment
+              </p>
+              <p className='text-foreground truncate text-[12.5px] font-semibold tabular-nums'>
+                {builder.enrollment?.code?.trim() ||
+                  (builder.enrollment_id != null
+                    ? `#${builder.enrollment_id}`
+                    : 'Not linked')}
+              </p>
+              <p className='text-muted-foreground mt-0.5 truncate text-[11px] font-semibold'>
+                Cycle {builder.cycle_number ?? '—'}
+              </p>
+            </div>
+
+            <div className='bg-muted/50 border-border/60 flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2'>
+              <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+                Plan Timeline
+              </p>
+              <p className='text-foreground text-[12.5px] font-semibold'>
+                Care Window
+              </p>
+              <p className='text-muted-foreground mt-0.5 truncate text-[11px] font-semibold'>
+                {builder.starts_on
+                  ? formatTargetDateLabel(builder.starts_on)
+                  : 'Start date not set'}
+                {'  '}→{'  '}
+                {builder.ends_on
+                  ? formatTargetDateLabel(builder.ends_on)
+                  : 'End date not set'}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -1562,18 +1769,6 @@ export default function CarePlanBuilder({
             </div>
           </div>
         ) : null}
-        {/* <div className='border-border mt-4 mb-4 flex flex-wrap items-start justify-between gap-3 border-t pt-4'>
-          <div className='space-y-1.5'>
-            <p className='text-foreground text-sm font-bold'>
-              Daily Plan Setup
-            </p>
-            <p className='text-muted-foreground text-[13px] font-medium'>
-              Organize day-by-day care instructions across nutrition, movement,
-              activity, and recovery. Generate days first, then complete each
-              section to prepare the plan for validation and activation.
-            </p>
-          </div>
-        </div> */}
 
         {!hasGeneratedDays ? (
           <div className='from-primary/5 to-background border-border relative overflow-hidden rounded-md border border-dashed bg-linear-to-br p-8'>
@@ -1612,88 +1807,105 @@ export default function CarePlanBuilder({
         ) : (
           <div className='space-y-4'>
             <div className='grid grid-cols-1 gap-4 lg:grid-cols-12'>
-              <div className='border-border bg-card overflow-hidden rounded-md border shadow-xs lg:col-span-3'>
-                <div className='border-border bg-muted/35 border-b px-3 py-2.5'>
+              <div className='border-border flex max-h-[min(78vh,640px)] flex-col overflow-hidden rounded-md border bg-white lg:col-span-3'>
+                <div className='border-border bg-card border-b px-3 py-2.5'>
                   <span className='text-foreground/90 text-[13px] font-semibold'>
-                    Day Schedule
+                    Day schedule
                   </span>
-                  <p className='text-muted-foreground mt-0.5 text-[11px] font-medium'>
-                    Select a day and manage section tasks
+                  <p className='text-muted-foreground mt-0.5 text-[11px] leading-snug font-medium'>
+                    Choose a day to edit nutrition, movement, activity, and
+                    recovery.
                   </p>
                 </div>
-                <div className='space-y-1.5 p-2.5'>
+                <div className='min-h-0 flex-1 overflow-y-auto bg-white p-1.5'>
                   {builder.days.length === 0 ? (
                     <p className='text-muted-foreground p-2 text-sm'>
                       No days generated yet.
                     </p>
                   ) : (
-                    builder.days.map((day) => {
-                      const noteVisual = getDayNoteVisual(day);
-                      const NoteIcon = noteVisual.icon;
-                      return (
-                        <div key={day.id} className='relative'>
-                          <button
-                            type='button'
-                            className={`w-full min-w-0 rounded-md border px-3 py-2.5 pr-12 text-left transition-colors ${
-                              selectedDayId === day.id
-                                ? 'bg-primary/95 border-primary text-primary-foreground shadow-xs'
-                                : 'text-foreground/90 hover:border-border hover:bg-muted/70 border-transparent'
-                            }`}
-                            onClick={() => setSelectedDayId(day.id)}
-                          >
-                            <span className='block text-[12.5px] font-semibold tracking-tight'>
-                              Day {day.day_number}
-                            </span>
-                            <span
-                              className={`mt-0.5 block text-[11px] font-medium ${
-                                selectedDayId === day.id
-                                  ? 'text-primary-foreground/85'
-                                  : 'text-muted-foreground'
-                              }`}
-                            >
-                              {formatTargetDateLabel(day.target_date)}
-                            </span>
-                          </button>
-                          {editable ? (
-                            <span
-                              role='button'
-                              tabIndex={0}
-                              aria-label={`${noteVisual.label} for day ${day.day_number}`}
-                              className={`absolute top-1/2 right-2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-md border transition-colors focus-visible:ring-2 focus-visible:outline-hidden ${selectedDayId === day.id ? 'bg-background/95 text-foreground hover:bg-background ring-primary-foreground/30 border-white/60' : `${noteVisual.toneClass}`} ${dayNotesMutation.isPending ? 'pointer-events-none opacity-60' : ''}`}
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                if (dayNotesMutation.isPending) return;
-                                openDayNotesModal(day.id);
+                    <ul className='flex flex-col gap-1'>
+                      {builder.days.map((day) => {
+                        const noteVisual = getDayNoteVisual(day);
+                        const NoteIcon = noteVisual.icon;
+                        const isSelected = selectedDayId === day.id;
+                        return (
+                          <li key={day.id} className='relative'>
+                            <button
+                              type='button'
+                              className={cn(
+                                'w-full min-w-0 rounded-md border px-3 py-2.5 pr-11 text-left transition-all',
+                                isSelected
+                                  ? 'bg-primary/8 border-primary/40 text-foreground shadow-xs'
+                                  : 'text-foreground/90 hover:border-border/70 hover:bg-background/80 border-transparent',
+                              )}
+                              onClick={() => {
+                                setSelectedDayId(day.id);
+                                setActiveSection('nutrition');
                               }}
-                              onKeyDown={(event) => {
-                                if (
-                                  event.key === 'Enter' ||
-                                  event.key === ' '
-                                ) {
-                                  event.preventDefault();
+                            >
+                              <span className='block text-[12.5px] font-semibold tracking-tight'>
+                                Day {day.day_number}
+                              </span>
+                              <span
+                                className={cn(
+                                  'mt-0.5 block text-[11px] font-medium',
+                                  isSelected
+                                    ? 'text-muted-foreground'
+                                    : 'text-muted-foreground/90',
+                                )}
+                              >
+                                {formatTargetDateLabel(day.target_date)}
+                              </span>
+                            </button>
+                            {editable ? (
+                              <span
+                                role='button'
+                                tabIndex={0}
+                                aria-label={`${noteVisual.label} for day ${day.day_number}`}
+                                className={cn(
+                                  'absolute top-1/2 right-2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-md border transition-colors focus-visible:ring-2 focus-visible:outline-hidden',
+                                  isSelected
+                                    ? 'border-primary/30 bg-primary/10 text-primary hover:bg-primary/15'
+                                    : noteVisual.toneClass,
+                                  dayNotesMutation.isPending
+                                    ? 'pointer-events-none opacity-60'
+                                    : '',
+                                )}
+                                onClick={(event) => {
                                   event.stopPropagation();
                                   if (dayNotesMutation.isPending) return;
                                   openDayNotesModal(day.id);
-                                }
-                              }}
-                            >
-                              <NoteIcon className='size-3.5' />
-                            </span>
-                          ) : null}
-                        </div>
-                      );
-                    })
+                                }}
+                                onKeyDown={(event) => {
+                                  if (
+                                    event.key === 'Enter' ||
+                                    event.key === ' '
+                                  ) {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    if (dayNotesMutation.isPending) return;
+                                    openDayNotesModal(day.id);
+                                  }
+                                }}
+                              >
+                                <NoteIcon className='size-3.5' />
+                              </span>
+                            ) : null}
+                          </li>
+                        );
+                      })}
+                    </ul>
                   )}
                 </div>
               </div>
 
-              <div className='lg:col-span-9'>
+              <div className='border-border rounded-md border p-4 lg:col-span-9'>
                 {!selectedDay ? (
                   <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
                     Select a day to manage section items.
                   </div>
                 ) : (
-                  <div className='space-y-4'>
+                  <div className='space-y-4' ref={sectionItemsRootRef}>
                     <Tabs
                       value={activeSection}
                       onValueChange={(value) =>
@@ -1735,32 +1947,22 @@ export default function CarePlanBuilder({
                           {localItems.map((item, index) => (
                             <div
                               key={`${index}-${item.id ?? 'new'}`}
-                              className='border-border/80 bg-card rounded-lg border p-4 shadow-xs md:p-5'
+                              data-care-plan-item-card
+                              className='border-border bg-muted/20 rounded-md border p-4 md:p-5'
                             >
                               <div className='space-y-4.5'>
-                                <div className='border-border/70 bg-muted/30 flex items-center justify-between rounded-md border px-3 py-2'>
-                                  <p className='text-foreground text-[12px] font-semibold tracking-wide uppercase'>
-                                    {activeSection === 'movement'
-                                      ? 'Movement Plan'
-                                      : `Plan Item ${index + 1}`}
-                                  </p>
-                                  <span className='text-muted-foreground text-[11px] font-medium'>
-                                    {activeSection === 'movement'
-                                      ? 'Exercises and targets'
-                                      : 'Task and target details'}
-                                  </span>
-                                </div>
                                 <div className='grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto] sm:items-start'>
                                   <TextField
-                                    label='Task Title'
+                                    label='Task'
+                               
                                     placeholder={
                                       activeSection === 'nutrition'
-                                        ? 'e.g. Breakfast'
+                                        ? 'Enter a task name (e.g. Breakfast)'
                                         : activeSection === 'movement'
-                                          ? 'e.g. Mobility routine'
+                                          ? 'Enter a task name (e.g. Strength Training Session)'
                                           : activeSection === 'activity'
-                                            ? 'e.g. Morning walk'
-                                            : 'e.g. Evening wind-down'
+                                            ? 'Enter a task name (e.g. Morning walk)'
+                                            : 'Enter a task name (e.g. Sleep)'
                                     }
                                     value={String(item.title ?? '')}
                                     onChange={(event) =>
@@ -1778,7 +1980,7 @@ export default function CarePlanBuilder({
                                       type='button'
                                       variant='outline'
                                       size='icon'
-                                      className='text-foreground bg-background hover:bg-muted mt-7 h-11 w-11 shrink-0 border-neutral-300'
+                                      className='text-foreground bg-background hover:text-destructive hover:border-destructive/50 hover:bg-destructive/5 mt-7 h-11 w-11 shrink-0 border-neutral-300'
                                       onClick={() => removeItem(index)}
                                       aria-label='Remove item'
                                       disabled={localItems.length <= 1}
@@ -1790,7 +1992,7 @@ export default function CarePlanBuilder({
                                 <TextAreaField
                                   label='Guidance'
                                   rows={3}
-                                  placeholder='Write step-by-step directions the client can follow on their own.'
+                                  placeholder='Provide clear, step-by-step instructions for the client to follow independently.'
                                   value={String(item.guidance ?? '')}
                                   onChange={(event) =>
                                     setItemField(
@@ -1834,13 +2036,15 @@ export default function CarePlanBuilder({
                                           return (
                                             <div
                                               key={`${exerciseId || 'new'}-${exerciseIndex}`}
+                                              data-care-plan-exercise-row
+                                              data-item-index={index}
                                               className='border-border space-y-3 rounded-md border p-5'
                                             >
                                               <div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
                                                 <div className='min-w-0 flex-1'>
                                                   <ComboboxField
-                                                    label='Movement Exercise'
-                                                    placeholder='Select exercise…'
+                                                    label='Exercise'
+                                                    placeholder='Please select an exercise…'
                                                     searchPlaceholder='Search exercise…'
                                                     emptyMessage='No exercises found.'
                                                     options={
@@ -1870,7 +2074,7 @@ export default function CarePlanBuilder({
                                                     type='button'
                                                     variant='outline'
                                                     size='icon'
-                                                    className='text-foreground bg-background hover:bg-muted h-11 w-11 shrink-0 self-end border-neutral-300 sm:mt-7 sm:self-start'
+                                                    className='text-foreground bg-background hover:text-destructive hover:border-destructive/50 hover:bg-destructive/5 h-11 w-11 shrink-0 self-end border-neutral-300 sm:mt-7 sm:self-start'
                                                     onClick={() =>
                                                       removeMovementExerciseRow(
                                                         index,
@@ -1878,6 +2082,10 @@ export default function CarePlanBuilder({
                                                       )
                                                     }
                                                     aria-label='Remove exercise row'
+                                                    disabled={
+                                                      (item.exercises?.length ??
+                                                        0) <= 1
+                                                    }
                                                   >
                                                     <Trash2Icon className='size-4' />
                                                   </Button>
@@ -1984,8 +2192,9 @@ export default function CarePlanBuilder({
                                 ) : (
                                   <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
                                     <TextField
-                                      label='Target Value'
-                                      placeholder='e.g. 30'
+                                      label='Target'                          
+                                      type='number'
+                                      placeholder='Enter a target value'
                                       value={String(item.target_value ?? '')}
                                       onChange={(event) =>
                                         setItemField(
@@ -2000,10 +2209,10 @@ export default function CarePlanBuilder({
                                       disabled={!editable}
                                     />
                                     <ComboboxField
-                                      label='Target Unit'
-                                      placeholder='Select unit…'
-                                      searchPlaceholder='Search unit…'
-                                      emptyMessage='No units found.'
+                                      label='Measurement'
+                                      placeholder='Please select a measurement unit…'
+                                      searchPlaceholder='Search measurement unit…'
+                                      emptyMessage='No measurement units found.'
                                       options={unitOptions}
                                       value={resolveUnitComboboxValue(
                                         item.target_unit,
@@ -2042,7 +2251,7 @@ export default function CarePlanBuilder({
                                     onClick={addItem}
                                   >
                                     <PlusIcon className='size-3.5' />
-                                    Add Item
+                                    {SECTION_ADD_LABEL[activeSection]}
                                   </Button>
                                 </div>
                                 <div className='flex flex-wrap items-center justify-end gap-2'>
@@ -2126,11 +2335,13 @@ export default function CarePlanBuilder({
         open={generateDayModalOpen}
         title={generateDayModalTitle}
         submitLabel={generateDayButtonLabel}
+        isRegenerate={hasGeneratedDays}
         startsOn={generateDayModalForm.starts_on}
         endsOn={generateDayModalForm.ends_on}
         startsOnError={generateDayModalErrors.starts_on}
         endsOnError={generateDayModalErrors.ends_on}
         showOverwriteWarning={hasGenerateOverwriteWarning}
+        showScheduledDraftDemotionWarning={showScheduledDraftDemotionWarning}
         isSubmitting={generateMutation.isPending}
         startDateDisabled={generateModalStartCalendarDisabled}
         endDateDisabled={generateModalEndCalendarDisabled}

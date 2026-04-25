@@ -59,6 +59,7 @@ function normalizeStatus(
   const value = (status ?? '').trim().toLowerCase();
   if (
     value === 'draft' ||
+    value === 'scheduled' ||
     value === 'active' ||
     value === 'completed' ||
     value === 'cancelled'
@@ -127,11 +128,12 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
     void queryClient.invalidateQueries({ queryKey: [...LIST_QUERY_KEY] });
   }, [queryClient]);
 
-  const canEdit = status === 'draft';
+  const canEdit = status === 'draft' || status === 'scheduled';
   const canActivate = status === 'draft';
-  const canCancel = status === 'draft' || status === 'active';
+  const canCancel =
+    status === 'draft' || status === 'scheduled' || status === 'active';
   const canCreateRevision =
-    status === 'active' || status === 'completed' || status === 'cancelled';
+    status === 'active' || status === 'cancelled';
   const canOpenPeriodReport = status === 'active' || status === 'completed';
   const hasMenuAfterCopy =
     canEdit || canActivate || canCreateRevision || canCancel || canOpenPeriodReport;
