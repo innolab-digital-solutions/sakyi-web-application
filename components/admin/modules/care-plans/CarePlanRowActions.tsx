@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   CheckCircle2Icon,
   ClipboardCopyIcon,
+  FileBarChartIcon,
   EyeIcon,
   FilePenLineIcon,
   GitBranchPlusIcon,
@@ -118,8 +119,9 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
   const canCancel = status === 'draft' || status === 'active';
   const canCreateRevision =
     status === 'active' || status === 'completed' || status === 'cancelled';
+  const canOpenPeriodReport = status === 'active' || status === 'completed';
   const hasMenuAfterCopy =
-    canEdit || canActivate || canCreateRevision || canCancel;
+    canEdit || canActivate || canCreateRevision || canCancel || canOpenPeriodReport;
 
   const { mutate: activatePlan, isPending: activatePending } = useMutation({
     mutationFn: async () => {
@@ -270,6 +272,19 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
             {hasMenuAfterCopy ? (
               <>
                 <DropdownMenuSeparator />
+                {canOpenPeriodReport ? (
+                  <DropdownMenuItem asChild>
+                    <Link
+                      className='flex items-center gap-2 text-[13px]! font-medium'
+                      href={ROUTES.ADMIN.MODULES.CARE_PLANS.REPORT(
+                        String(row.id),
+                      )}
+                    >
+                      <FileBarChartIcon className='size-3.5 shrink-0' />
+                      Period report
+                    </Link>
+                  </DropdownMenuItem>
+                ) : null}
                 {canEdit ? (
                   <DropdownMenuItem asChild>
                     <Link

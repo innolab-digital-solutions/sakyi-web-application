@@ -1,11 +1,15 @@
 'use client';
 
-import { CalendarClockIcon, InfoIcon } from 'lucide-react';
+import { AlertTriangleIcon, EyeIcon } from 'lucide-react';
 import Link from 'next/link';
 
 import {
+  wizardOutlineButtonClass,
+  wizardPrimaryButtonClass,
+} from '@/components/admin/modules/enrollmentWizardModalUi';
+import {
   AlertDialog,
-  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -43,23 +47,23 @@ export default function CarePlanActivateEnrollmentPrerequisiteDialog({
         <AlertDialogHeader className='border-border border-b p-6'>
           <div className='flex items-start gap-3'>
             <div className='mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-md border border-amber-500/25 bg-amber-500/10 text-amber-700'>
-              <CalendarClockIcon className='size-5' aria-hidden />
+              <AlertTriangleIcon className='size-5' aria-hidden />
             </div>
             <div className='space-y-1.5'>
               <AlertDialogTitle className='text-foreground/90 text-sm font-bold'>
-                Activate enrollment first
+                Enrollment Activation Required
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
-                <span className='text-primary text-xs font-semibold'>
+                <span className='text-xs font-semibold text-amber-600'>
                   {carePlanReference || 'This care plan'}
                 </span>{' '}
                 cannot be activated while the program enrollment is still
                 <span className='text-foreground/90 font-semibold'>
                   {' '}
-                  scheduled
+                  “scheduled”
                 </span>
                 . Activate{' '}
-                <span className='text-foreground/90 text-xs font-semibold'>
+                <span className='text-xs font-semibold text-amber-600'>
                   {enrollmentRef}
                 </span>{' '}
                 to active in the enrollment record, then return here to activate
@@ -70,44 +74,23 @@ export default function CarePlanActivateEnrollmentPrerequisiteDialog({
           </div>
         </AlertDialogHeader>
 
-        <div className='border-border/60 border-b px-6 py-4'>
-          <p className='text-muted-foreground flex items-start gap-2 text-[12.5px] font-medium'>
-            <InfoIcon
-              className='text-foreground/70 mt-0.5 size-3.5 shrink-0'
-              aria-hidden
-            />
-            A scheduled enrollment has not been started for the client yet; it
-            must be set to active before the care plan is published.
-          </p>
-        </div>
-
         <AlertDialogFooter className='bg-muted/30 border-border flex flex-col gap-2 border-t p-4 sm:flex-row sm:items-center sm:justify-end'>
+          <AlertDialogCancel className={wizardOutlineButtonClass}>
+            Got it
+          </AlertDialogCancel>
           {enrollmentId != null ? (
-            <Button
-              type='button'
-              variant='outline'
-              className='text-foreground bg-background hover:bg-muted h-10 w-full cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold sm:mr-auto sm:w-auto'
-              asChild
-            >
+            <Button type='button' className={wizardPrimaryButtonClass} asChild>
               <Link
                 href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(
                   String(enrollmentId),
                 )}
                 onClick={() => onOpenChange(false)}
               >
-                View enrollment
+                <EyeIcon className='size-3.5 shrink-0' />
+                View Enrollment
               </Link>
             </Button>
           ) : null}
-          <AlertDialogAction
-            className='h-10 w-full cursor-pointer gap-1.5 rounded-md px-3 text-[13px]! font-semibold sm:w-auto'
-            onClick={(event) => {
-              event.preventDefault();
-              onOpenChange(false);
-            }}
-          >
-            Got it
-          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

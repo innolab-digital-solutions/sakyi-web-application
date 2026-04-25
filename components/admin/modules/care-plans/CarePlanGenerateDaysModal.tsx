@@ -102,7 +102,7 @@ export default function CarePlanGenerateDaysModal({
               }}
               className='flex min-h-0 flex-1 flex-col gap-4 overflow-hidden'
             >
-              <div className='min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-6 pb-0'>
+              <div className='min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-6 pb-2'>
                 <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4'>
                   <DatePickerField
                     label='Start Date'
