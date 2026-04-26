@@ -1,7 +1,15 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CheckCircle2Icon, FileBarChartIcon, Loader2Icon } from 'lucide-react';
+import { format, parse } from 'date-fns';
+import {
+  CheckCircle2Icon,
+  ChevronDownIcon,
+  ClipboardListIcon,
+  FileBarChartIcon,
+  Loader2Icon,
+  NotebookPenIcon,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -14,6 +22,11 @@ import TextField from '@/components/shared/form/TextField';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Dialog,
   DialogContent,
@@ -44,16 +57,27 @@ import {
 } from '@/domains/care-plans/services';
 import type {
   CarePlanReportEvidenceDay,
+  CarePlanReportEvidenceItem,
   CarePlanReportRunSummary,
   ReportMetricDailyPoint,
   ReportRunFeedback,
   ReportRunMetric,
 } from '@/domains/care-plans/types/care-plan-report';
+import { getCarePlanSectionTab } from '@/lib/care-plans/carePlanSectionTabs';
 import { defaultReportPeriodForCarePlan } from '@/lib/care-plans/defaultReportPeriodRange';
+import { resolveOperationalLogForReportWorkspace } from '@/lib/care-plans/resolveOperationalLogForReportWorkspace';
 import { cn } from '@/lib/utils/styles';
 
 const WORKSPACE_QUERY_KEY = 'care-plan-report-workspace' as const;
 const RUNS_QUERY_KEY = 'care-plan-report-runs' as const;
+
+/** Same format as `CarePlanBuilder` day schedule (short weekday + date). */
+function formatTargetDateLabel(ymd: string | null | undefined): string {
+  if (!ymd?.trim()) return 'Date not set';
+  const parsed = parse(ymd.trim(), 'yyyy-MM-dd', new Date());
+  if (Number.isNaN(parsed.getTime())) return ymd.trim();
+  return format(parsed, 'EEE, dd-MMM-yyyy');
+}
 
 function resolveMediaUrl(raw: string | null | undefined): string | null {
   if (!raw?.trim()) return null;
@@ -75,6 +99,30 @@ function formatSectionLabel(sectionKey: string): string {
   return k.replace(/\b\w/g, (ch) => ch.toUpperCase());
 }
 
+/**
+ * Preserves first-seen section order (matches API item ordering within the day).
+ */
+function groupEvidenceItemsBySection(
+  items: CarePlanReportEvidenceItem[],
+): [string, CarePlanReportEvidenceItem[]][] {
+  const map = new Map<string, CarePlanReportEvidenceItem[]>();
+  for (const item of items) {
+    const list = map.get(item.section);
+    if (list) list.push(item);
+    else map.set(item.section, [item]);
+  }
+  return Array.from(map.entries());
+}
+
+function getEvidenceDayTaskLogCounts(
+  items: CarePlanReportEvidenceItem[],
+): { totalTasks: number; totalLogs: number } {
+  return {
+    totalTasks: items.length,
+    totalLogs: items.filter((i) => i.log != null).length,
+  };
+}
+
 type CarePlanReportWorkspaceProps = {
   carePlanId: number;
   /**
@@ -92,6 +140,28 @@ function getWorkspacePathForCarePlan(
   return location === 'operational-logs'
     ? ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.WORKSPACE(id)
     : ROUTES.ADMIN.MODULES.CARE_PLANS.REPORT(id);
+}
+
+/**
+ * Read-only metric row matching {@link OperationalLogWorkspaceContextBar} label/value
+ * hierarchy, sized closer to the daily breakdown trigger than the large header cards.
+ */
+function MetricSummaryStatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div
+      className={cn(
+        'bg-muted/50 border-border flex min-h-10 flex-col justify-center gap-0.5',
+        'rounded-md border px-2.5 py-1.5 sm:min-h-11 sm:py-2',
+      )}
+    >
+      <p className='text-muted-foreground text-[9px] font-semibold tracking-wide uppercase sm:text-[10px]'>
+        {label}
+      </p>
+      <p className='text-foreground/90 line-clamp-1 text-xs font-semibold tabular-nums sm:text-[12.5px]'>
+        {value}
+      </p>
+    </div>
+  );
 }
 
 export default function CarePlanReportWorkspace({
@@ -335,16 +405,21 @@ export default function CarePlanReportWorkspace({
     );
   }, [workspace]);
 
-  const operationalLog = workspace?.operational_log ?? null;
   const clientReport =
     workspace?.client_report ?? workspace?.report_run ?? null;
+
+  const operationalLog = React.useMemo(
+    () => resolveOperationalLogForReportWorkspace(workspace, carePlan),
+    [workspace, carePlan],
+  );
+
   const isPublished = clientReport?.status === 'published';
   const isArchived = clientReport?.status === 'archived';
   const canEditMetrics =
     operationalLog != null
       ? (operationalLog.status === 'draft' ||
           operationalLog.status === 'in_progress') &&
-        operationalLog.is_editable
+        operationalLog.is_editable !== false
       : !clientReport;
   const canEditFeedback =
     clientReport?.status === 'in_review' && clientReport.is_editable !== false;
@@ -353,17 +428,8 @@ export default function CarePlanReportWorkspace({
   const canSubmitForReview =
     operationalLog != null &&
     operationalLog.status === 'in_progress' &&
+    operationalLog.is_editable !== false &&
     !clientReport;
-
-  const metricsBySection = React.useMemo(() => {
-    const out = new Map<string, { metric: ReportRunMetric; index: number }[]>();
-    formMetrics.forEach((metric, index) => {
-      const key = (metric.section ?? 'other').toString().trim() || 'other';
-      if (!out.has(key)) out.set(key, []);
-      out.get(key)!.push({ metric, index });
-    });
-    return out;
-  }, [formMetrics]);
 
   const operationalLogsSummaryCardsProps = React.useMemo(() => {
     const enrollment = carePlan?.enrollment;
@@ -408,18 +474,6 @@ export default function CarePlanReportWorkspace({
             i === dayIndex ? { ...p, ...patch } : p,
           ),
         };
-        return next;
-      });
-    },
-    [],
-  );
-
-  const updateMetricField = React.useCallback(
-    (metricIndex: number, field: keyof ReportRunMetric, value: unknown) => {
-      setFormMetrics((prev) => {
-        const next = cloneMetrics(prev);
-        if (!next[metricIndex]) return prev;
-        (next[metricIndex] as Record<string, unknown>)[field] = value;
         return next;
       });
     },
@@ -632,163 +686,223 @@ export default function CarePlanReportWorkspace({
     },
   });
 
-  const renderMetricEditorCard = (metric: ReportRunMetric, mi: number) => (
+  const renderMetricEditorCard = (metric: ReportRunMetric, mi: number) => {
+    const sectionTab = getCarePlanSectionTab(metric.section);
+    const SectionIcon = sectionTab?.icon;
+
+    return (
     <div
       className={cn(
-        'space-y-3 rounded-md border p-3 sm:p-4',
+        'min-w-0 space-y-3 rounded-md border p-3 sm:p-4',
         isOperationalLogsWorkspace
-          ? 'border-border bg-white shadow-xs'
+          ? 'border-border bg-white'
           : 'bg-muted/30',
       )}
     >
-      <div className='flex flex-wrap items-center justify-between gap-2'>
-        <div>
-          <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
-            {metric.section}
-          </p>
-          <p className='text-foreground/90 mt-0.5 text-[12.5px] font-semibold'>
-            {metric.label}
-          </p>
-          <p className='text-muted-foreground mt-0.5 text-[11px] font-medium'>
-            {metric.metric_key}
-          </p>
-        </div>
-        <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
-          <TextField
+      <div className='flex items-start justify-between gap-2'>
+        <p className='text-foreground/90 min-w-0 text-[12.5px] font-semibold'>
+          {metric.label}
+        </p>
+        <Badge
+          variant='outline'
+          className='shrink-0 gap-1.5 text-[10px] font-bold tracking-wide uppercase [&>svg]:size-3.5'
+        >
+          {SectionIcon ? <SectionIcon aria-hidden className='size-3.5 shrink-0' /> : null}
+          {sectionTab?.label ?? formatSectionLabel(metric.section)}
+        </Badge>
+      </div>
+        <div className='grid w-full min-w-0 grid-cols-2 gap-1.5 sm:grid-cols-4 sm:gap-2'>
+          <MetricSummaryStatCard
             label='Target'
-            type='number'
             value={
-              metric.target_value == null ? '' : String(metric.target_value)
+              metric.target_value == null
+                ? '—'
+                : String(metric.target_value)
             }
-            onChange={(e) => {
-              const v = e.target.value;
-              updateMetricField(
-                mi,
-                'target_value',
-                v === '' ? null : Number(v),
-              );
-            }}
-            disabled={!canEditMetrics}
-            id={`m-${mi}-t`}
           />
-          <TextField
+          <MetricSummaryStatCard
             label='Actual'
-            type='number'
             value={
-              metric.actual_value == null ? '' : String(metric.actual_value)
+              metric.actual_value == null
+                ? '—'
+                : String(metric.actual_value)
             }
-            onChange={(e) => {
-              const v = e.target.value;
-              updateMetricField(
-                mi,
-                'actual_value',
-                v === '' ? null : Number(v),
-              );
-            }}
-            disabled={!canEditMetrics}
-            id={`m-${mi}-a`}
           />
-          <TextField
+          <MetricSummaryStatCard
             label='Unit'
-            value={metric.unit ?? ''}
-            onChange={(e) =>
-              updateMetricField(mi, 'unit', e.target.value || null)
-            }
-            disabled={!canEditMetrics}
-            id={`m-${mi}-u`}
+            value={metric.unit?.trim() || '—'}
           />
-          <TextField
+          <MetricSummaryStatCard
             label='On target days'
             value={`${metric.days_on_target}/${metric.days_total}`}
-            readOnly
-            tabIndex={-1}
-            id={`m-${mi}-d`}
           />
         </div>
-      </div>
-      <div
+
+      <Collapsible
         className={cn(
-          'overflow-x-auto rounded border',
-          isOperationalLogsWorkspace && 'border-border/80',
+          'group w-full rounded-md border border-border',
+          'bg-white dark:bg-card',
+          'shadow-none',
+          'transition-[background-color] duration-200 ease-out',
+          'data-[state=open]:bg-muted/20',
+          'data-[state=open]:dark:bg-muted/15',
         )}
+        defaultOpen
       >
-        <table className='w-full min-w-md text-left text-xs'>
-          <thead>
-            <tr className='bg-muted/50 border-b'>
-              {(['Day', 'Target', 'Actual', 'On target'] as const).map(
-                (label) => (
-                  <th
-                    key={label}
-                    className={cn(
-                      'p-2 text-left',
-                      isOperationalLogsWorkspace
-                        ? 'text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'
-                        : 'font-semibold',
-                    )}
+        <CollapsibleTrigger asChild>
+          <button
+            type='button'
+            className={cn(
+              'flex w-full min-w-0 cursor-pointer items-center',
+              'justify-between gap-2 px-3 py-2.5 text-left',
+              'text-foreground/90',
+              'border-0 border-transparent bg-transparent shadow-none',
+              'hover:bg-muted/50',
+              'group-data-[state=open]:hover:bg-muted/15',
+              'group-data-[state=open]:bg-transparent',
+              'focus-visible:ring-ring focus-visible:ring-2',
+              'focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+              'focus-visible:outline-hidden',
+              'transition-[background-color] duration-200',
+            )}
+            aria-label={`Daily Breakdown, ${metric.daily_points.length} day${metric.daily_points.length === 1 ? '' : 's'}. Toggle table.`}
+          >
+            <div className='min-w-0 pr-2'>
+              <div className='text-[12.5px] font-semibold tracking-tight'>
+                Daily Breakdown
+              </div>
+              <div className='text-muted-foreground/90 mt-0.5 text-[11px] font-medium tabular-nums'>
+                {metric.daily_points.length} day
+                {metric.daily_points.length === 1 ? '' : 's'}
+              </div>
+            </div>
+            <ChevronDownIcon
+              aria-hidden
+              className='text-muted-foreground/80 size-3.5 shrink-0 transition-transform duration-200 ease-out group-data-[state=open]:rotate-180'
+            />
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div
+            className={cn(
+              'border-border/70 dark:bg-black/5 overflow-x-auto rounded-b-md border-t',
+              'bg-muted/10',
+              'px-2.5 pt-2.5 pb-4 sm:px-3 sm:pt-3 sm:pb-5',
+            )}
+          >
+            <table className='w-full min-w-md text-left text-xs'>
+              <thead>
+                <tr className='border-border/50 border-b bg-transparent'>
+                  {(
+                    [
+                      { key: 'day', text: 'Day' },
+                      { key: 'target', text: 'Target' },
+                      { key: 'actual', text: 'Actual' },
+                      { key: 'on', text: 'On target' },
+                    ] as const
+                  ).map((col) => (
+                    <th
+                      key={col.key}
+                      className={cn(
+                        'text-muted-foreground bg-transparent py-2',
+                        'align-middle',
+                        'text-[10px] font-semibold tracking-wide uppercase',
+                        'whitespace-nowrap',
+                        col.key === 'day' &&
+                          'w-10 min-w-10 px-1.5 text-center sm:px-2',
+                        col.key === 'target' && 'px-2 text-left sm:px-2.5',
+                        col.key === 'actual' && 'px-2 text-left sm:px-2.5',
+                        col.key === 'on' &&
+                          'min-w-26 px-2.5 text-left last:pr-3 sm:min-w-24',
+                      )}
+                    >
+                      {col.text}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {metric.daily_points.map((dp, di) => (
+                  <tr
+                    key={di}
+                    className='border-border/40 hover:bg-muted/20 border-b align-middle last:border-b-0'
                   >
-                    {label}
-                  </th>
-                ),
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {metric.daily_points.map((dp, di) => (
-              <tr key={di} className='border-b last:border-0'>
-                <td className='p-1.5 tabular-nums'>{dp.day_number}</td>
-                <td className='p-0.5'>
-                  <TextField
-                    className='h-8'
-                    type='number'
-                    value={
-                      dp.target_value == null ? '' : String(dp.target_value)
-                    }
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      updateDailyPoint(mi, di, {
-                        target_value: v === '' ? null : Number(v),
-                      });
-                    }}
-                    disabled={!canEditMetrics}
-                    id={`m-${mi}-d-${di}-t`}
-                  />
-                </td>
-                <td className='p-0.5'>
-                  <TextField
-                    className='h-8'
-                    type='number'
-                    value={
-                      dp.actual_value == null ? '' : String(dp.actual_value)
-                    }
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      updateDailyPoint(mi, di, {
-                        actual_value: v === '' ? null : Number(v),
-                      });
-                    }}
-                    disabled={!canEditMetrics}
-                    id={`m-${mi}-d-${di}-a`}
-                  />
-                </td>
-                <td className='p-1.5'>
-                  <div className='flex items-center justify-center pt-0.5'>
-                    <Checkbox
-                      checked={dp.on_target}
-                      onCheckedChange={(c) =>
-                        updateDailyPoint(mi, di, { on_target: c === true })
-                      }
-                      disabled={!canEditMetrics}
-                      aria-label={`On target day ${dp.day_number}`}
-                    />
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                    <td className='w-10 min-w-10 max-w-10 px-1.5 text-center text-[11px] font-semibold tabular-nums sm:px-2'>
+                      {dp.day_number}
+                    </td>
+                    <td className='px-1.5 py-1.5 align-middle sm:px-2 sm:py-2'>
+                      <TextField
+                        type='number'
+                        variant='tableDense'
+                        className='w-full min-w-0'
+                        min={0}
+                        step='any'
+                        value={String(dp.target_value ?? 0)}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          if (v === '') {
+                            updateDailyPoint(mi, di, { target_value: 0 });
+                            return;
+                          }
+                          const n = Number(v);
+                          if (Number.isNaN(n)) return;
+                          updateDailyPoint(mi, di, {
+                            target_value: Math.max(0, n),
+                          });
+                        }}
+                        disabled={!canEditMetrics}
+                        id={`m-${mi}-d-${di}-t`}
+                        aria-label={`${metric.label} day ${dp.day_number} target`}
+                      />
+                    </td>
+                    <td className='px-1.5 py-1.5 align-middle sm:px-2 sm:py-2'>
+                      <TextField
+                        type='number'
+                        variant='tableDense'
+                        className='w-full min-w-0'
+                        min={0}
+                        step='any'
+                        value={String(dp.actual_value ?? 0)}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          if (v === '') {
+                            updateDailyPoint(mi, di, { actual_value: 0 });
+                            return;
+                          }
+                          const n = Number(v);
+                          if (Number.isNaN(n)) return;
+                          updateDailyPoint(mi, di, {
+                            actual_value: Math.max(0, n),
+                          });
+                        }}
+                        disabled={!canEditMetrics}
+                        id={`m-${mi}-d-${di}-a`}
+                        aria-label={`${metric.label} day ${dp.day_number} actual`}
+                      />
+                    </td>
+                    <td className='w-20 px-2 py-1.5 text-center align-middle sm:w-14 sm:py-2'>
+                      <div className='flex h-8.75 min-h-8.75 items-center justify-center py-0.5'>
+                        <Checkbox
+                          variant='tableDense'
+                          checked={dp.on_target}
+                          onCheckedChange={(c) =>
+                            updateDailyPoint(mi, di, { on_target: c === true })
+                          }
+                          disabled={!canEditMetrics}
+                          aria-label={`On target day ${dp.day_number}`}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
-  );
+    );
+  };
 
   if (carePlan && !canUseReports) {
     return (
@@ -884,28 +998,15 @@ export default function CarePlanReportWorkspace({
                   right. Report period is managed with the log on the server.
                 </p>
               </div>
-              <div className='grid grid-cols-1 items-start gap-5 lg:grid-cols-3 lg:gap-6'>
-                <div className='min-w-0 space-y-3 lg:col-span-1'>
-                  <div className='flex items-center justify-between gap-2'>
-                    <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
-                      Evidence
-                    </p>
-                    {workspaceFetching ? (
-                      <Loader2Icon className='text-muted-foreground size-4 animate-spin' />
-                    ) : null}
-                  </div>
-                  <div className='border-border/80 bg-muted/20 max-h-[min(70vh,880px)] overflow-y-auto rounded-md border p-3 sm:p-4'>
-                    <EvidenceList
-                      days={workspace.evidence}
-                      onOpenImage={setLightboxUrl}
-                    />
-                  </div>
+              <div className='grid min-h-0 grid-cols-1 items-start gap-5 lg:grid-cols-3 lg:gap-6'>
+                <div className='min-h-0 min-w-0 space-y-3 lg:col-span-1'>
+                  <EvidenceList
+                    days={workspace.evidence}
+                    onOpenImage={setLightboxUrl}
+                  />
                 </div>
 
                 <div className='min-w-0 space-y-4 lg:col-span-2'>
-                  <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
-                    Metrics worksheet
-                  </p>
                   {!formMetrics.length && !workspaceFetching ? (
                     <p className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
                       No suggested metrics for this range. You can still create
@@ -915,25 +1016,23 @@ export default function CarePlanReportWorkspace({
                     </p>
                   ) : null}
                   <div className='space-y-6'>
-                    {Array.from(metricsBySection.entries()).map(
-                      ([section, items]) => (
-                        <div key={section} className='space-y-3'>
-                          <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
-                            {formatSectionLabel(section)}
-                          </p>
-                          <div className='grid grid-cols-1 gap-4'>
-                            {items.map(({ metric, index: mi }) => (
-                              <React.Fragment
-                                key={`${metric.metric_key}-${section}-${mi}`}
-                              >
-                                {renderMetricEditorCard(metric, mi)}
-                              </React.Fragment>
-                            ))}
-                          </div>
-                        </div>
-                      ),
-                    )}
+                    {formMetrics.map((metric, mi) => (
+                      <React.Fragment key={`${metric.metric_key}-${mi}`}>
+                        {renderMetricEditorCard(metric, mi)}
+                      </React.Fragment>
+                    ))}
                   </div>
+                  {operationalLog && !canEditMetrics ? (
+                    <p className='text-muted-foreground text-xs leading-relaxed'>
+                      Metrics are read-only when this operational log is not in{' '}
+                      <span className='text-foreground font-medium'>draft</span> or{' '}
+                      <span className='text-foreground font-medium'>
+                        in progress
+                      </span>
+                      , or when the log is marked as not editable on the server
+                      (for example after submit or publish).
+                    </p>
+                  ) : null}
                 </div>
               </div>
               <div className='border-border/70 flex w-full max-w-full flex-wrap items-center gap-2 border-t pt-5'>
@@ -945,6 +1044,13 @@ export default function CarePlanReportWorkspace({
                     !canEditMetrics ||
                     saveMetricsMutation.isPending ||
                     !workspace
+                  }
+                  title={
+                    !canEditMetrics && operationalLog
+                      ? 'Only draft or in-progress editable logs can change metrics'
+                      : !workspace
+                        ? 'Workspace not loaded'
+                        : undefined
                   }
                 >
                   {saveMetricsMutation.isPending ? (
@@ -1043,19 +1149,7 @@ export default function CarePlanReportWorkspace({
 
       {!isOperationalLogsWorkspace && (
         <div className='grid grid-cols-1 gap-6 lg:grid-cols-12'>
-          <section className='lg:col-span-5'>
-            <div className='mb-2 flex items-center justify-between gap-2'>
-              <h3 className='text-foreground text-sm font-semibold'>
-                Evidence (plan vs. client logs)
-              </h3>
-              {workspaceFetching ? (
-                <Loader2Icon className='text-muted-foreground size-4 animate-spin' />
-              ) : null}
-            </div>
-            <p className='text-muted-foreground mb-3 text-xs'>
-              Targets and logged values from the care plan. Thumbnails open in a
-              lightbox; media is read-only.
-            </p>
+          <section className='min-h-0 lg:col-span-5'>
             {workspaceIsError && (
               <p className='text-destructive text-sm'>
                 {(workspaceError as Error)?.message}
@@ -1112,11 +1206,8 @@ export default function CarePlanReportWorkspace({
             </div>
 
             <div className='space-y-3 rounded-md border p-4'>
-              <div className='flex flex-wrap items-center justify-between gap-2'>
-                <h3 className='text-foreground text-sm font-semibold'>
-                  Metrics worksheet
-                </h3>
-                <div className='flex flex-wrap items-center gap-1.5'>
+              {operationalLog?.status || clientReport?.status ? (
+                <div className='flex flex-wrap items-center justify-end gap-1.5'>
                   {operationalLog?.status ? (
                     <Badge variant='outline' className='text-[10px] uppercase'>
                       Op log: {operationalLog.status}
@@ -1131,7 +1222,7 @@ export default function CarePlanReportWorkspace({
                     </Badge>
                   ) : null}
                 </div>
-              </div>
+              ) : null}
               {!formMetrics.length && !workspaceFetching ? (
                 <p className='text-muted-foreground text-sm'>
                   No suggested metrics for this range. You can still create an
@@ -1294,6 +1385,101 @@ export default function CarePlanReportWorkspace({
   );
 }
 
+function EvidenceLineItemCard({
+  item,
+  onOpenImage,
+}: {
+  item: CarePlanReportEvidenceItem;
+  onOpenImage: (url: string) => void;
+}) {
+  const targetDisplay = item.target
+    ? `${item.target.value ?? '—'} ${item.target.unit ?? ''}`.trim()
+    : '—';
+  const log = item.log;
+  const hasLog = log != null;
+  const logValueDisplay = hasLog
+    ? `${log.actual_value ?? '—'} ${log.unit ?? ''}`.trim()
+    : 'No log yet';
+  const noteText = hasLog
+    ? (() => {
+        const raw = log.notes;
+        if (raw == null) return '—';
+        const s = String(raw).trim();
+        return s.length > 0 ? s : '—';
+      })()
+    : null;
+  const media = log?.media?.length ? log.media : null;
+
+  return (
+    <div className='border-border space-y-2 rounded-md border bg-white px-3 pt-3 pb-4 dark:bg-card sm:px-3.5 sm:pt-3.5 sm:pb-5'>
+      <p className='text-foreground/90 text-[12.5px] font-semibold leading-tight tracking-tight'>
+        {item.title}
+      </p>
+
+      <div className='grid grid-cols-1 gap-2 md:grid-cols-2'>
+        <div className='bg-muted/15 border-border space-y-1 rounded-md border px-2.5 py-2'>
+          <p className='text-[10px] font-semibold tracking-wide text-emerald-700 uppercase dark:text-emerald-400'>
+            Target
+          </p>
+          <p className='text-foreground/90 text-[11px] font-medium leading-snug'>
+            {targetDisplay}
+          </p>
+        </div>
+        <div className='bg-muted/15 border-border space-y-1 rounded-md border px-2.5 py-2'>
+          <p className='text-[10px] font-semibold tracking-wide text-sky-700 uppercase dark:text-sky-400'>
+            Log
+          </p>
+          <p className='text-foreground/90 text-[11px] font-medium leading-snug'>
+            {logValueDisplay}
+          </p>
+        </div>
+      </div>
+
+      {hasLog ? (
+        <div className='bg-muted/15 border-border w-full min-w-0 space-y-1 rounded-md border px-2.5 py-2 sm:px-3 sm:py-2.5'>
+          <p className='text-[10px] font-semibold tracking-wide text-violet-700 uppercase dark:text-violet-400'>
+            Log note
+          </p>
+          <p className='text-foreground/90 text-[11px] font-medium wrap-break-word whitespace-pre-wrap leading-relaxed'>
+            {noteText}
+          </p>
+        </div>
+      ) : null}
+
+      {media && media.length > 0 ? (
+        <div className='bg-muted/15 border-border space-y-2 rounded-md border px-2.5 py-2 sm:px-3 sm:py-2.5'>
+          <p className='text-[10px] font-semibold tracking-wide text-amber-800 uppercase dark:text-amber-400'>
+            Log media
+          </p>
+          <div className='flex flex-wrap gap-2'>
+            {media.map((m, idx) => {
+              const u = resolveMediaUrl(m.url);
+              if (!u) return null;
+              return (
+                <button
+                  key={m.id ?? idx}
+                  type='button'
+                  onClick={() => onOpenImage(u)}
+                  className='border-border relative h-12 w-12 overflow-hidden rounded-md border bg-white dark:bg-background'
+                >
+                  <Image
+                    src={u}
+                    alt=''
+                    fill
+                    className='object-cover'
+                    unoptimized
+                  />
+                  <span className='sr-only'>Open image</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function EvidenceList({
   days,
   onOpenImage,
@@ -1310,82 +1496,124 @@ function EvidenceList({
     );
   }
   return (
-    <div className='max-h-[min(60vh,720px)] space-y-2 overflow-y-auto pr-1'>
-      {days.map((d) => (
-        <details
-          key={`${d.target_date}-${d.day_index}`}
-          className='group bg-card rounded-md border'
-        >
-          <summary
-            className={cn(
-              'hover:bg-muted/50 flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-sm font-medium',
-            )}
+    <ul className='flex flex-col gap-2.5'>
+      {days.map((d) => {
+        const sectionGroups = groupEvidenceItemsBySection(d.items);
+        const { totalTasks, totalLogs } = getEvidenceDayTaskLogCounts(d.items);
+        return (
+          <li
+            key={`${d.target_date}-${d.day_index}`}
+            className='relative z-0 isolate'
           >
-            <span>
-              Day {d.day_index}{' '}
-              <span className='text-muted-foreground font-normal tabular-nums'>
-                {d.target_date}
-              </span>
-            </span>
-            <span className='text-muted-foreground text-xs'>
-              {d.items.length} line item{d.items.length === 1 ? '' : 's'}
-            </span>
-          </summary>
-          <div className='space-y-2 border-t p-2'>
-            {d.items.map((item) => (
-              <div
-                key={`${d.target_date}-${item.item_id}-${item.section}`}
-                className='bg-muted/20 rounded p-2 text-xs'
-              >
-                <p className='text-foreground font-medium'>{item.title}</p>
-                <div className='text-muted-foreground mt-1 space-y-0.5'>
-                  <p>
-                    <span className='font-medium text-emerald-800 dark:text-emerald-200'>
-                      Target:{' '}
-                    </span>
-                    {item.target
-                      ? `${item.target.value ?? '—'} ${item.target.unit ?? ''}`.trim()
-                      : '—'}
-                  </p>
-                  <p>
-                    <span className='font-medium text-sky-800 dark:text-sky-200'>
-                      Log:{' '}
-                    </span>
-                    {item.log
-                      ? `${item.log.actual_value ?? '—'} ${item.log.unit ?? ''} — ${(item.log.notes ?? '—').toString().slice(0, 200)}${(item.log.notes?.length ?? 0) > 200 ? '…' : ''}`
-                      : 'No log yet'}
-                  </p>
-                </div>
-                {item.log?.media && item.log.media.length > 0 ? (
-                  <div className='mt-2 flex flex-wrap gap-1.5'>
-                    {item.log.media.map((m, idx) => {
-                      const u = resolveMediaUrl(m.url);
-                      if (!u) return null;
-                      return (
-                        <button
-                          key={m.id ?? idx}
-                          type='button'
-                          onClick={() => onOpenImage(u)}
-                          className='relative h-12 w-12 overflow-hidden rounded border'
-                        >
-                          <Image
-                            src={u}
-                            alt=''
-                            fill
-                            className='object-cover'
-                            unoptimized
-                          />
-                          <span className='sr-only'>Open image</span>
-                        </button>
-                      );
-                    })}
+            <Collapsible
+              className={cn(
+                'group w-full overflow-hidden rounded-md border border-border',
+                'bg-white dark:bg-card',
+                'shadow-none',
+                'transition-[background-color] duration-200 ease-out',
+                'data-[state=open]:bg-muted/20',
+                'data-[state=open]:dark:bg-muted/15',
+              )}
+            >
+              <CollapsibleTrigger asChild>
+                <button
+                  type='button'
+                  className={cn(
+                    'flex w-full min-w-0 cursor-pointer items-center',
+                    'justify-between gap-2 px-3 py-2.5 text-left',
+                    'text-foreground/90',
+                    'border-0 border-transparent bg-transparent shadow-none',
+                    'hover:bg-muted/50',
+                    'group-data-[state=open]:hover:bg-muted/15',
+                    'group-data-[state=open]:bg-transparent',
+                    'focus-visible:ring-ring focus-visible:ring-2',
+                    'focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                    'focus-visible:outline-hidden',
+                    'transition-[background-color] duration-200',
+                  )}
+                  aria-label={`Day ${d.day_index}, ${formatTargetDateLabel(d.target_date)}. ${totalTasks} tasks, ${totalLogs} logs. Toggle details.`}
+                >
+                  <div className='min-w-0 pr-2'>
+                    <div className='text-[12.5px] font-semibold tracking-tight'>
+                      Day {d.day_index}
+                    </div>
+                    <div className='text-muted-foreground/90 mt-0.5 text-[11px] font-medium tabular-nums'>
+                      {formatTargetDateLabel(d.target_date)}
+                    </div>
                   </div>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        </details>
-      ))}
-    </div>
+                  <div
+                    className='flex min-w-0 shrink-0 flex-wrap items-center justify-end gap-1.5 sm:gap-2'
+                    aria-hidden
+                  >
+                    <span className='border-border flex h-6 max-w-full items-center gap-1 rounded-md border border-solid bg-muted/35 px-2 text-[10px] font-medium leading-none'>
+                      <ClipboardListIcon
+                        className='text-foreground/65 size-3 shrink-0'
+                        aria-hidden
+                      />
+                      <span className='text-foreground/80 text-[10px] font-semibold max-[360px]:sr-only'>
+                        Tasks
+                      </span>
+                      <span className='text-foreground text-[11px] font-semibold tabular-nums'>
+                        {totalTasks}
+                      </span>
+                    </span>
+                    <span className='border-border flex h-6 max-w-full items-center gap-1 rounded-md border border-solid bg-muted/35 px-2 text-[10px] font-medium leading-none'>
+                      <NotebookPenIcon
+                        className='text-foreground/65 size-3 shrink-0'
+                        aria-hidden
+                      />
+                      <span className='text-foreground/80 text-[10px] font-semibold max-[360px]:sr-only'>
+                        Logs
+                      </span>
+                      <span className='text-foreground text-[11px] font-semibold tabular-nums'>
+                        {totalLogs}
+                      </span>
+                    </span>
+                    <ChevronDownIcon
+                      aria-hidden
+                      className='text-muted-foreground/80 size-3.5 shrink-0 transition-transform duration-200 ease-out group-data-[state=open]:rotate-180'
+                    />
+                  </div>
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent
+                className={cn(
+                  'min-h-0 overscroll-y-contain',
+                  '!max-h-[min(70dvh,30rem)] !overflow-y-auto !overflow-x-hidden',
+                  'sm:!max-h-[min(75vh,36rem)]',
+                )}
+              >
+                <div className='border-border/70 bg-muted/10 dark:bg-black/5 space-y-3 rounded-b-md border-t px-2.5 pt-2.5 pb-4 sm:px-3 sm:pt-3 sm:pb-5'>
+                  {sectionGroups.map(([sectionKey, items]) => (
+                    <div
+                      key={`${d.target_date}-${sectionKey}`}
+                      className='space-y-2'
+                    >
+                      <div className='flex items-baseline justify-between gap-2 pb-0.5'>
+                        <span className='text-foreground/90 text-[10px] font-bold tracking-wide uppercase'>
+                          {formatSectionLabel(sectionKey)}
+                        </span>
+                        <span className='text-foreground/85 text-[10px] font-semibold tabular-nums sm:text-[11px]'>
+                          {items.length} Task{items.length === 1 ? '' : 's'}
+                        </span>
+                      </div>
+                      <div className='space-y-2.5'>
+                        {items.map((item) => (
+                          <EvidenceLineItemCard
+                            key={`${d.target_date}-${item.item_id}-${item.section}`}
+                            item={item}
+                            onOpenImage={onOpenImage}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

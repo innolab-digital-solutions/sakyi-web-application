@@ -4,16 +4,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { addDays, format, parse, startOfDay } from 'date-fns';
 import {
   AlertTriangleIcon,
-  AppleIcon,
   ArrowLeftIcon,
   CalendarIcon,
   CheckCircle2Icon,
   ChevronRightIcon,
-  DumbbellIcon,
   FilePlus2Icon,
   FileTextIcon,
-  FootprintsIcon,
-  HeartPulseIcon,
   PencilLineIcon,
   PlusIcon,
   RefreshCwIcon,
@@ -21,7 +17,6 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
-import { type ComponentType } from 'react';
 import { toast } from 'sonner';
 
 import CarePlanDayNoteModal from '@/components/admin/modules/care-plans/CarePlanDayNoteModal';
@@ -60,18 +55,10 @@ import type {
 } from '@/domains/care-plans/types/admin';
 import { getUnitsLookup } from '@/domains/units/services';
 import { http } from '@/lib/api/client';
+import { CARE_PLAN_SECTION_TABS } from '@/lib/care-plans/carePlanSectionTabs';
 import { cn } from '@/lib/utils/styles';
 
-const SECTIONS: ReadonlyArray<{
-  key: CarePlanSectionKey;
-  label: string;
-  icon: ComponentType<{ className?: string }>;
-}> = [
-  { key: 'nutrition', label: 'Nutrition', icon: AppleIcon },
-  { key: 'movement', label: 'Movement', icon: DumbbellIcon },
-  { key: 'activity', label: 'Activity', icon: FootprintsIcon },
-  { key: 'recovery', label: 'Recovery', icon: HeartPulseIcon },
-];
+const SECTIONS = CARE_PLAN_SECTION_TABS;
 
 const SECTION_GUIDANCE: Record<CarePlanSectionKey, string> = {
   nutrition:

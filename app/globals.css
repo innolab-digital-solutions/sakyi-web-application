@@ -199,6 +199,12 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
+
+  /* Collapsible: admin sidebar sub-nav, care plan evidence + daily breakdown (see components/ui/collapsible.tsx) */
+  --animate-admin-collapsible-down: admin-collapsible-down 340ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-admin-collapsible-up: admin-collapsible-up 280ms
+    cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 @layer utilities {
@@ -272,10 +278,9 @@
 }
 
 /**
- * Radix Collapsible content: height is driven by `--radix-collapsible-content-height`
- * (set on the same element). Used by admin sidebar sub-nav and any other Collapsible.
+ * Radix Collapsible: height from `--radix-collapsible-content-height` (Radix). Theme: `--animate-admin-collapsible-*` in @theme, applied in `components/ui/collapsible.tsx` via Tailwind `data-[state=...]:animate-...` (admin sidebar, care plan report).
  */
-@keyframes sidebar-collapsible-down {
+@keyframes admin-collapsible-down {
   from {
     height: 0;
     opacity: 0;
@@ -286,7 +291,7 @@
   }
 }
 
-@keyframes sidebar-collapsible-up {
+@keyframes admin-collapsible-up {
   from {
     height: var(--radix-collapsible-content-height);
     opacity: 1;
@@ -294,22 +299,6 @@
   to {
     height: 0;
     opacity: 0;
-  }
-}
-
-@layer components {
-  [data-slot='collapsible-content'] {
-    overflow: hidden;
-    will-change: height, opacity;
-  }
-
-  [data-slot='collapsible-content'][data-state='open'] {
-    animation: sidebar-collapsible-down 340ms cubic-bezier(0.22, 1, 0.36, 1)
-      both;
-  }
-
-  [data-slot='collapsible-content'][data-state='closed'] {
-    animation: sidebar-collapsible-up 280ms cubic-bezier(0.4, 0, 0.2, 1) both;
   }
 }
 

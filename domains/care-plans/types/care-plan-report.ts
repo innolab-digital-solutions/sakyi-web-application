@@ -54,7 +54,13 @@ export type ReportRunMetric = {
   label: string;
   target_value: number | null;
   actual_value: number | null;
+  /** Short token for payloads (e.g. `kcal`, `steps`); use {@link unit_name} when present. */
   unit: string | null;
+  /**
+   * Full display label for the unit when the API provides it; preferred over
+   * {@link unit} in read-only UI when both exist.
+   */
+  unit_name?: string | null;
   days_on_target: number;
   days_total: number;
   display_order: number;
