@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
 
+import OperationalLogWorkspaceContextBar from '@/components/admin/modules/operational-logs/OperationalLogWorkspaceContextBar';
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +36,7 @@ import {
   getClientReportsFromListPayload,
   listCarePlanReportRuns,
   postCarePlanOperationalLog,
+  postCarePlanOperationalLogDraft,
   postCarePlanReportRunPublish,
   postOperationalLogSubmitForReview,
   putCarePlanOperationalLog,
@@ -66,6 +68,11 @@ function cloneMetrics(metrics: ReportRunMetric[]): ReportRunMetric[] {
 
 function emptyFeedback(): ReportRunFeedback {
   return { summary: '', focus_next_period: '', notes: '' };
+}
+
+function formatSectionLabel(sectionKey: string): string {
+  const k = sectionKey.replace(/_/g, ' ').trim() || 'other';
+  return k.replace(/\b\w/g, (ch) => ch.toUpperCase());
 }
 
 type CarePlanReportWorkspaceProps = {
@@ -111,9 +118,8 @@ export default function CarePlanReportWorkspace({
     () => periodEndFromUrl ?? '',
   );
   const [formMetrics, setFormMetrics] = React.useState<ReportRunMetric[]>([]);
-  const [formFeedback, setFormFeedback] = React.useState<ReportRunFeedback>(
-    emptyFeedback,
-  );
+  const [formFeedback, setFormFeedback] =
+    React.useState<ReportRunFeedback>(emptyFeedback);
   const [lightboxUrl, setLightboxUrl] = React.useState<string | null>(null);
   const defaultingPeriodRef = React.useRef(false);
   const workspaceFormKeyRef = React.useRef<string | null>(null);
@@ -129,11 +135,17 @@ export default function CarePlanReportWorkspace({
     },
   });
 
+  const isOperationalLogsWorkspace = workspaceLocation === 'operational-logs';
+
   const effectiveWorkspaceParams = React.useMemo(():
+    | { carePlanDefault: true }
     | { reportRunId: number }
     | { operationalLogId: number }
     | { periodStartsOn: string; periodEndsOn: string }
     | null => {
+    if (isOperationalLogsWorkspace) {
+      return { carePlanDefault: true };
+    }
     if (operationalLogIdFromUrl) {
       const n = Number.parseInt(operationalLogIdFromUrl, 10);
       if (Number.isFinite(n)) return { operationalLogId: n };
@@ -152,6 +164,7 @@ export default function CarePlanReportWorkspace({
     }
     return null;
   }, [
+    isOperationalLogsWorkspace,
     operationalLogIdFromUrl,
     runIdFromUrl,
     periodStartFromUrl,
@@ -161,16 +174,26 @@ export default function CarePlanReportWorkspace({
   ]);
 
   React.useEffect(() => {
+    if (isOperationalLogsWorkspace) return;
     if (runIdFromUrl || operationalLogIdFromUrl) return;
-    if (periodStartFromUrl) setPeriodStartInput(periodStartFromUrl);
-    if (periodEndFromUrl) setPeriodEndInput(periodEndFromUrl);
-  }, [operationalLogIdFromUrl, runIdFromUrl, periodStartFromUrl, periodEndFromUrl]);
+    queueMicrotask(() => {
+      if (periodStartFromUrl) setPeriodStartInput(periodStartFromUrl);
+      if (periodEndFromUrl) setPeriodEndInput(periodEndFromUrl);
+    });
+  }, [
+    isOperationalLogsWorkspace,
+    operationalLogIdFromUrl,
+    runIdFromUrl,
+    periodStartFromUrl,
+    periodEndFromUrl,
+  ]);
 
   const carePlan = carePlanResult;
   const status = (carePlan?.status ?? '').trim().toLowerCase();
   const canUseReports = status === 'active' || status === 'completed';
 
   React.useEffect(() => {
+    if (isOperationalLogsWorkspace) return;
     if (!carePlan || !canUseReports) return;
     if (
       runIdFromUrl ||
@@ -187,15 +210,19 @@ export default function CarePlanReportWorkspace({
     );
     if (!d) return;
     defaultingPeriodRef.current = true;
-    setPeriodStartInput(d.periodStartsOn);
-    setPeriodEndInput(d.periodEndsOn);
-    const next = new URLSearchParams(searchParams.toString());
-    next.set('period_starts_on', d.periodStartsOn);
-    next.set('period_ends_on', d.periodEndsOn);
-    next.delete('report_run_id');
-    next.delete('operational_log_id');
-    router.replace(`${workspacePath}?${next.toString()}`, { scroll: false });
+    queueMicrotask(() => {
+      setPeriodStartInput(d.periodStartsOn);
+      setPeriodEndInput(d.periodEndsOn);
+      const next = new URLSearchParams(searchParams.toString());
+      next.set('period_starts_on', d.periodStartsOn);
+      next.set('period_ends_on', d.periodEndsOn);
+      next.delete('report_run_id');
+      next.delete('operational_log_id');
+      next.delete('tab');
+      router.replace(`${workspacePath}?${next.toString()}`, { scroll: false });
+    });
   }, [
+    isOperationalLogsWorkspace,
     carePlan,
     canUseReports,
     runIdFromUrl,
@@ -207,6 +234,12 @@ export default function CarePlanReportWorkspace({
     searchParams,
     workspacePath,
   ]);
+
+  React.useEffect(() => {
+    if (!isOperationalLogsWorkspace) return;
+    if (searchParams.toString() === '') return;
+    router.replace(workspacePath, { scroll: false });
+  }, [isOperationalLogsWorkspace, router, searchParams, workspacePath]);
 
   const {
     data: workspaceResult,
@@ -225,6 +258,11 @@ export default function CarePlanReportWorkspace({
         throw new Error('No workspace parameters');
       }
       const res = await (async () => {
+        if ('carePlanDefault' in effectiveWorkspaceParams) {
+          return getCarePlanReportWorkspace(carePlanId, {
+            carePlanDefault: true,
+          });
+        }
         if ('reportRunId' in effectiveWorkspaceParams) {
           return getCarePlanReportWorkspace(carePlanId, {
             reportRunId: effectiveWorkspaceParams.reportRunId,
@@ -253,7 +291,7 @@ export default function CarePlanReportWorkspace({
 
   const { data: runsResult, refetch: refetchRuns } = useQuery({
     queryKey: [RUNS_QUERY_KEY, carePlanId] as const,
-    enabled: canUseReports,
+    enabled: canUseReports && workspaceLocation !== 'operational-logs',
     queryFn: async () => {
       const res = await listCarePlanReportRuns(carePlanId);
       if (res.status === 'error') {
@@ -266,10 +304,12 @@ export default function CarePlanReportWorkspace({
   const workspace = workspaceResult;
   const reportRuns: CarePlanReportRunSummary[] = runsResult ?? [];
 
-  const periodLocked = Boolean(
-    (runIdFromUrl && runIdFromUrl.length > 0) ||
-      (operationalLogIdFromUrl && operationalLogIdFromUrl.length > 0),
-  );
+  const periodLocked = isOperationalLogsWorkspace
+    ? false
+    : Boolean(
+        (runIdFromUrl && runIdFromUrl.length > 0) ||
+        (operationalLogIdFromUrl && operationalLogIdFromUrl.length > 0),
+      );
 
   React.useEffect(() => {
     if (!workspace) return;
@@ -296,7 +336,8 @@ export default function CarePlanReportWorkspace({
   }, [workspace]);
 
   const operationalLog = workspace?.operational_log ?? null;
-  const clientReport = workspace?.client_report ?? workspace?.report_run ?? null;
+  const clientReport =
+    workspace?.client_report ?? workspace?.report_run ?? null;
   const isPublished = clientReport?.status === 'published';
   const isArchived = clientReport?.status === 'archived';
   const canEditMetrics =
@@ -313,6 +354,43 @@ export default function CarePlanReportWorkspace({
     operationalLog != null &&
     operationalLog.status === 'in_progress' &&
     !clientReport;
+
+  const metricsBySection = React.useMemo(() => {
+    const out = new Map<string, { metric: ReportRunMetric; index: number }[]>();
+    formMetrics.forEach((metric, index) => {
+      const key = (metric.section ?? 'other').toString().trim() || 'other';
+      if (!out.has(key)) out.set(key, []);
+      out.get(key)!.push({ metric, index });
+    });
+    return out;
+  }, [formMetrics]);
+
+  const operationalLogsSummaryCardsProps = React.useMemo(() => {
+    const enrollment = carePlan?.enrollment;
+    const program = enrollment?.program;
+    const clientFromEnrollment = enrollment?.client;
+    return {
+      clientName: workspace?.client?.name ?? clientFromEnrollment?.name ?? null,
+      clientCode:
+        workspace?.client?.client_code ??
+        clientFromEnrollment?.client_code ??
+        null,
+      clientPictureUrl:
+        workspace?.client?.picture_url ??
+        clientFromEnrollment?.picture_url ??
+        null,
+      programName: program?.title?.trim() || program?.slug?.trim() || null,
+      programCode: program?.code?.trim() || null,
+      cycleNumber: carePlan?.cycle_number ?? null,
+      enrollmentCode: enrollment?.code?.trim() || null,
+      careWindowStartsOn:
+        workspace?.care_plan?.starts_on ?? carePlan?.starts_on ?? null,
+      careWindowEndsOn:
+        workspace?.care_plan?.ends_on ?? carePlan?.ends_on ?? null,
+    };
+  }, [carePlan, workspace]);
+
+  const opLogReferenceText = (operationalLog?.code ?? '').trim();
 
   const updateDailyPoint = React.useCallback(
     (
@@ -361,7 +439,7 @@ export default function CarePlanReportWorkspace({
     next.delete('report_run_id');
     next.delete('operational_log_id');
     router.push(`${workspacePath}?${next.toString()}`);
-  }, [carePlanId, periodStartInput, periodEndInput, router, workspacePath]);
+  }, [periodStartInput, periodEndInput, router, workspacePath]);
 
   const onSelectRun = (value: string) => {
     if (value === 'new') {
@@ -400,11 +478,9 @@ export default function CarePlanReportWorkspace({
       if (!workspace) throw new Error('Workspace not ready');
       const period = workspace.period;
       if (activeOpLogId != null) {
-        const res = await putCarePlanOperationalLog(
-          carePlanId,
-          activeOpLogId,
-          { metrics: formMetrics },
-        );
+        const res = await putCarePlanOperationalLog(carePlanId, activeOpLogId, {
+          metrics: formMetrics,
+        });
         if (res.status === 'error') {
           throw new Error(res.message ?? 'Could not save metrics.');
         }
@@ -421,11 +497,18 @@ export default function CarePlanReportWorkspace({
       return { mode: 'create' as const, data: res.data };
     },
     onSuccess: (result) => {
-      if (result.mode === 'create' && result.data?.id != null) {
+      if (
+        result.mode === 'create' &&
+        result.data?.id != null &&
+        !isOperationalLogsWorkspace
+      ) {
         const next = new URLSearchParams();
         next.set('operational_log_id', String(result.data.id));
         next.delete('report_run_id');
         router.replace(`${workspacePath}?${next.toString()}`);
+      }
+      if (result.mode === 'create' && isOperationalLogsWorkspace) {
+        router.replace(workspacePath, { scroll: false });
       }
       void queryClient.invalidateQueries({
         queryKey: [WORKSPACE_QUERY_KEY, carePlanId],
@@ -447,7 +530,8 @@ export default function CarePlanReportWorkspace({
       if (activeRunId == null) throw new Error('No client report to update.');
       const feedback: ReportRunFeedback = {
         summary: (formFeedback.summary ?? '').trim() || null,
-        focus_next_period: (formFeedback.focus_next_period ?? '').trim() || null,
+        focus_next_period:
+          (formFeedback.focus_next_period ?? '').trim() || null,
         notes: (formFeedback.notes ?? '').trim() || null,
       };
       const res = await putCarePlanReportRun(carePlanId, activeRunId, {
@@ -471,7 +555,8 @@ export default function CarePlanReportWorkspace({
 
   const submitForReviewMutation = useMutation({
     mutationFn: async () => {
-      if (activeOpLogId == null) throw new Error('No operational log to submit.');
+      if (activeOpLogId == null)
+        throw new Error('No operational log to submit.');
       const res = await postOperationalLogSubmitForReview(
         carePlanId,
         activeOpLogId,
@@ -486,13 +571,20 @@ export default function CarePlanReportWorkspace({
         queryKey: [WORKSPACE_QUERY_KEY, carePlanId],
       });
       void refetchRuns();
-      if (data?.id != null) {
+      if (data?.id != null && !isOperationalLogsWorkspace) {
         const next = new URLSearchParams();
         next.set('report_run_id', String(data.id));
         next.delete('operational_log_id');
         router.replace(`${workspacePath}?${next.toString()}`);
       }
-      toast.success('Submitted for review. You can add the client-facing narrative, then publish.');
+      if (isOperationalLogsWorkspace) {
+        router.replace(workspacePath, { scroll: false });
+      }
+      toast.success(
+        workspaceLocation === 'operational-logs'
+          ? 'Submitted for review.'
+          : 'Submitted for review. You can add the client-facing narrative, then publish.',
+      );
     },
     onError: (e: Error) => {
       toast.error(e.message);
@@ -520,11 +612,190 @@ export default function CarePlanReportWorkspace({
     },
   });
 
+  const createOperationalLogDraftMutation = useMutation({
+    mutationFn: async () => {
+      const res = await postCarePlanOperationalLogDraft(carePlanId, {});
+      if (res.status === 'error') {
+        throw new Error(
+          res.message ?? 'Could not create operational log draft.',
+        );
+      }
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: [WORKSPACE_QUERY_KEY, carePlanId],
+      });
+      toast.success('Operational log created. You can add metrics, then save.');
+    },
+    onError: (e: Error) => {
+      toast.error(e.message);
+    },
+  });
+
+  const renderMetricEditorCard = (metric: ReportRunMetric, mi: number) => (
+    <div
+      className={cn(
+        'space-y-3 rounded-md border p-3 sm:p-4',
+        isOperationalLogsWorkspace
+          ? 'border-border bg-white shadow-xs'
+          : 'bg-muted/30',
+      )}
+    >
+      <div className='flex flex-wrap items-center justify-between gap-2'>
+        <div>
+          <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+            {metric.section}
+          </p>
+          <p className='text-foreground/90 mt-0.5 text-[12.5px] font-semibold'>
+            {metric.label}
+          </p>
+          <p className='text-muted-foreground mt-0.5 text-[11px] font-medium'>
+            {metric.metric_key}
+          </p>
+        </div>
+        <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
+          <TextField
+            label='Target'
+            type='number'
+            value={
+              metric.target_value == null ? '' : String(metric.target_value)
+            }
+            onChange={(e) => {
+              const v = e.target.value;
+              updateMetricField(
+                mi,
+                'target_value',
+                v === '' ? null : Number(v),
+              );
+            }}
+            disabled={!canEditMetrics}
+            id={`m-${mi}-t`}
+          />
+          <TextField
+            label='Actual'
+            type='number'
+            value={
+              metric.actual_value == null ? '' : String(metric.actual_value)
+            }
+            onChange={(e) => {
+              const v = e.target.value;
+              updateMetricField(
+                mi,
+                'actual_value',
+                v === '' ? null : Number(v),
+              );
+            }}
+            disabled={!canEditMetrics}
+            id={`m-${mi}-a`}
+          />
+          <TextField
+            label='Unit'
+            value={metric.unit ?? ''}
+            onChange={(e) =>
+              updateMetricField(mi, 'unit', e.target.value || null)
+            }
+            disabled={!canEditMetrics}
+            id={`m-${mi}-u`}
+          />
+          <TextField
+            label='On target days'
+            value={`${metric.days_on_target}/${metric.days_total}`}
+            readOnly
+            tabIndex={-1}
+            id={`m-${mi}-d`}
+          />
+        </div>
+      </div>
+      <div
+        className={cn(
+          'overflow-x-auto rounded border',
+          isOperationalLogsWorkspace && 'border-border/80',
+        )}
+      >
+        <table className='w-full min-w-md text-left text-xs'>
+          <thead>
+            <tr className='bg-muted/50 border-b'>
+              {(['Day', 'Target', 'Actual', 'On target'] as const).map(
+                (label) => (
+                  <th
+                    key={label}
+                    className={cn(
+                      'p-2 text-left',
+                      isOperationalLogsWorkspace
+                        ? 'text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'
+                        : 'font-semibold',
+                    )}
+                  >
+                    {label}
+                  </th>
+                ),
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {metric.daily_points.map((dp, di) => (
+              <tr key={di} className='border-b last:border-0'>
+                <td className='p-1.5 tabular-nums'>{dp.day_number}</td>
+                <td className='p-0.5'>
+                  <TextField
+                    className='h-8'
+                    type='number'
+                    value={
+                      dp.target_value == null ? '' : String(dp.target_value)
+                    }
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      updateDailyPoint(mi, di, {
+                        target_value: v === '' ? null : Number(v),
+                      });
+                    }}
+                    disabled={!canEditMetrics}
+                    id={`m-${mi}-d-${di}-t`}
+                  />
+                </td>
+                <td className='p-0.5'>
+                  <TextField
+                    className='h-8'
+                    type='number'
+                    value={
+                      dp.actual_value == null ? '' : String(dp.actual_value)
+                    }
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      updateDailyPoint(mi, di, {
+                        actual_value: v === '' ? null : Number(v),
+                      });
+                    }}
+                    disabled={!canEditMetrics}
+                    id={`m-${mi}-d-${di}-a`}
+                  />
+                </td>
+                <td className='p-1.5'>
+                  <div className='flex items-center justify-center pt-0.5'>
+                    <Checkbox
+                      checked={dp.on_target}
+                      onCheckedChange={(c) =>
+                        updateDailyPoint(mi, di, { on_target: c === true })
+                      }
+                      disabled={!canEditMetrics}
+                      aria-label={`On target day ${dp.day_number}`}
+                    />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
   if (carePlan && !canUseReports) {
     return (
       <div className='rounded-md border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-100'>
-        Period reports are available when the care plan is <strong>active</strong> or <strong>completed</strong>. This plan
-        is <span className='font-semibold'>{status || 'not set'}</span>.
+        Period reports are available when the care plan is{' '}
+        <strong>active</strong> or <strong>completed</strong>. This plan is{' '}
+        <span className='font-semibold'>{status || 'not set'}</span>.
         <div className='mt-2'>
           <Button variant='outline' size='sm' asChild>
             <Link
@@ -542,432 +813,464 @@ export default function CarePlanReportWorkspace({
 
   return (
     <div className='space-y-6'>
-      <div className='bg-card sticky top-0 z-10 flex flex-col gap-3 rounded-md border p-4 shadow-sm md:flex-row md:items-end md:justify-between'>
-        <div className='min-w-0 space-y-1'>
-          <h2 className='text-foreground text-lg font-semibold tracking-tight'>
-            {workspace?.client?.name?.trim() || 'Client'} · Care plan{' '}
-            {workspace?.care_plan?.code ? (
-              <span className='text-muted-foreground font-mono text-base'>
-                {workspace.care_plan.code}
-              </span>
-            ) : (
-              `#${carePlanId}`
-            )}
-          </h2>
-          {workspace ? (
-            <p className='text-muted-foreground text-sm'>
-              Period:{' '}
-              <span className='text-foreground font-medium tabular-nums'>
-                {workspace.period.starts_on} → {workspace.period.ends_on}
-              </span>
-            </p>
-          ) : null}
-        </div>
-        <div className='flex flex-wrap items-end gap-2'>
-          <div className='grid w-full gap-1.5 sm:grid-cols-2 sm:gap-2'>
-            <div>
-              <Label className='text-[11px]! font-bold uppercase tracking-wide'>
-                Report history
-              </Label>
-              <Select
-                onValueChange={onSelectRun}
-                value={
-                  runIdFromUrl
-                    ? runIdFromUrl
-                    : clientReport
-                      ? String(clientReport.id)
-                      : activeOpLogId != null
-                        ? `op-${activeOpLogId}`
-                        : 'new'
-                }
-              >
-                <SelectTrigger className='h-9 w-full min-w-48 md:w-56'>
-                  <SelectValue placeholder='New period…' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='new'>New period (suggested metrics)</SelectItem>
-                  {activeOpLogId != null && !clientReport ? (
-                    <SelectItem value={`op-${activeOpLogId}`}>
-                      Current operational log (in progress)
-                    </SelectItem>
+      {isOperationalLogsWorkspace ? (
+        <section className='border-border max-w-full min-w-0 space-y-5 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:p-6'>
+          <div className='space-y-4'>
+            <div className='min-w-0 space-y-1.5'>
+              <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+                Operational Log Reference
+              </p>
+              <p className='text-foreground/90 font-mono text-[13px] leading-relaxed font-semibold'>
+                {opLogReferenceText || '—'}
+              </p>
+              {!opLogReferenceText ? (
+                <p className='text-muted-foreground text-[11px] font-medium'>
+                  Save metrics to create a reference
+                </p>
+              ) : null}
+            </div>
+            <div className='border-border/70 border-t' />
+            <OperationalLogWorkspaceContextBar
+              {...operationalLogsSummaryCardsProps}
+            />
+          </div>
+
+          {workspaceIsError ? (
+            <>
+              <div className='border-border/70 border-t' />
+              <div className='space-y-3 rounded-md border border-amber-200/80 bg-amber-50/80 p-4 sm:p-5 dark:border-amber-900/40 dark:bg-amber-950/25'>
+                <p className='text-foreground text-sm font-semibold'>
+                  Workspace could not be loaded
+                </p>
+                <p className='text-destructive text-sm'>
+                  {(workspaceError as Error)?.message ?? 'Unknown error.'}
+                </p>
+                <p className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
+                  Create an operational log draft for this care plan, then
+                  return to this workspace. The report period is set by the API
+                  from that log.
+                </p>
+                <Button
+                  type='button'
+                  className='h-10 text-[13px]! font-semibold'
+                  onClick={() => createOperationalLogDraftMutation.mutate()}
+                  disabled={createOperationalLogDraftMutation.isPending}
+                >
+                  {createOperationalLogDraftMutation.isPending ? (
+                    <Loader2Icon className='size-4 animate-spin' />
                   ) : null}
-                  {reportRuns.map((r) => (
-                    <SelectItem key={r.id} value={String(r.id)}>
-                      {r.code ?? `#${r.id}`} — {r.status} (
-                      {r.period?.starts_on ?? r.period_starts_on} →{' '}
-                      {r.period?.ends_on ?? r.period_ends_on})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  Create operational log draft
+                </Button>
+              </div>
+            </>
+          ) : !workspace && workspaceFetching ? (
+            <>
+              <div className='border-border/70 border-t' />
+              <div className='text-muted-foreground border-border/80 bg-muted/10 flex items-center justify-center gap-2 rounded-md border border-dashed p-10 text-sm'>
+                <Loader2Icon className='size-4 animate-spin' />
+                Loading workspace…
+              </div>
+            </>
+          ) : workspace ? (
+            <>
+              <div className='border-border/70 border-t' />
+              <div className='space-y-1.5'>
+                <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+                  Evidence & metrics
+                </p>
+                <p className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
+                  Compare log evidence to plan targets on the left; enter
+                  metrics for this care plan&apos;s operational log on the
+                  right. Report period is managed with the log on the server.
+                </p>
+              </div>
+              <div className='grid grid-cols-1 items-start gap-5 lg:grid-cols-3 lg:gap-6'>
+                <div className='min-w-0 space-y-3 lg:col-span-1'>
+                  <div className='flex items-center justify-between gap-2'>
+                    <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+                      Evidence
+                    </p>
+                    {workspaceFetching ? (
+                      <Loader2Icon className='text-muted-foreground size-4 animate-spin' />
+                    ) : null}
+                  </div>
+                  <div className='border-border/80 bg-muted/20 max-h-[min(70vh,880px)] overflow-y-auto rounded-md border p-3 sm:p-4'>
+                    <EvidenceList
+                      days={workspace.evidence}
+                      onOpenImage={setLightboxUrl}
+                    />
+                  </div>
+                </div>
+
+                <div className='min-w-0 space-y-4 lg:col-span-2'>
+                  <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+                    Metrics worksheet
+                  </p>
+                  {!formMetrics.length && !workspaceFetching ? (
+                    <p className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
+                      No suggested metrics for this range. You can still create
+                      an operational log when targets exist in range, or adjust
+                      the plan to include nutrition, activity, or recovery items
+                      in this period.
+                    </p>
+                  ) : null}
+                  <div className='space-y-6'>
+                    {Array.from(metricsBySection.entries()).map(
+                      ([section, items]) => (
+                        <div key={section} className='space-y-3'>
+                          <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+                            {formatSectionLabel(section)}
+                          </p>
+                          <div className='grid grid-cols-1 gap-4'>
+                            {items.map(({ metric, index: mi }) => (
+                              <React.Fragment
+                                key={`${metric.metric_key}-${section}-${mi}`}
+                              >
+                                {renderMetricEditorCard(metric, mi)}
+                              </React.Fragment>
+                            ))}
+                          </div>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className='border-border/70 flex w-full max-w-full flex-wrap items-center gap-2 border-t pt-5'>
+                <Button
+                  type='button'
+                  className='h-10 gap-1.5 text-[13px]! font-semibold'
+                  onClick={() => saveMetricsMutation.mutate()}
+                  disabled={
+                    !canEditMetrics ||
+                    saveMetricsMutation.isPending ||
+                    !workspace
+                  }
+                >
+                  {saveMetricsMutation.isPending ? (
+                    <Loader2Icon className='size-4 animate-spin' />
+                  ) : (
+                    <FileBarChartIcon className='size-4' />
+                  )}
+                  Save metrics
+                </Button>
+                {canSubmitForReview ? (
+                  <Button
+                    type='button'
+                    className='h-10 text-[13px]! font-semibold'
+                    variant='secondary'
+                    onClick={() => submitForReviewMutation.mutate()}
+                    disabled={submitForReviewMutation.isPending}
+                  >
+                    {submitForReviewMutation.isPending ? (
+                      <Loader2Icon className='size-4 animate-spin' />
+                    ) : null}
+                    Submit for review
+                  </Button>
+                ) : null}
+              </div>
+            </>
+          ) : null}
+        </section>
+      ) : (
+        <div className='bg-card sticky top-0 z-10 flex flex-col gap-3 rounded-md border p-4 shadow-sm'>
+          <div className='flex w-full flex-col gap-3 md:flex-row md:items-end md:justify-between'>
+            <div className='min-w-0 space-y-1'>
+              <h2 className='text-foreground text-lg font-semibold tracking-tight'>
+                {workspace?.client?.name?.trim() || 'Client'} · Care plan{' '}
+                {workspace?.care_plan?.code ? (
+                  <span className='text-muted-foreground font-mono text-base'>
+                    {workspace.care_plan.code}
+                  </span>
+                ) : (
+                  `#${carePlanId}`
+                )}
+              </h2>
+              {workspace ? (
+                <p className='text-muted-foreground text-sm'>
+                  Period:{' '}
+                  <span className='text-foreground font-medium tabular-nums'>
+                    {workspace.period.starts_on} → {workspace.period.ends_on}
+                  </span>
+                </p>
+              ) : null}
+            </div>
+            <div className='flex flex-wrap items-end gap-2'>
+              <div className='grid w-full gap-1.5 sm:grid-cols-2 sm:gap-2'>
+                <div>
+                  <Label className='text-[11px]! font-bold tracking-wide uppercase'>
+                    Report history
+                  </Label>
+                  <Select
+                    onValueChange={onSelectRun}
+                    value={
+                      runIdFromUrl
+                        ? runIdFromUrl
+                        : clientReport
+                          ? String(clientReport.id)
+                          : activeOpLogId != null
+                            ? `op-${activeOpLogId}`
+                            : 'new'
+                    }
+                  >
+                    <SelectTrigger className='h-9 w-full min-w-48 md:w-56'>
+                      <SelectValue placeholder='New period…' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='new'>
+                        New period (suggested metrics)
+                      </SelectItem>
+                      {activeOpLogId != null && !clientReport ? (
+                        <SelectItem value={`op-${activeOpLogId}`}>
+                          Current operational log (in progress)
+                        </SelectItem>
+                      ) : null}
+                      {reportRuns.map((r) => (
+                        <SelectItem key={r.id} value={String(r.id)}>
+                          {r.code ?? `#${r.id}`} — {r.status} (
+                          {r.period?.starts_on ?? r.period_starts_on} →{' '}
+                          {r.period?.ends_on ?? r.period_ends_on})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <div className='grid grid-cols-1 gap-6 lg:grid-cols-12'>
-        <section className='lg:col-span-5'>
-          <div className='mb-2 flex items-center justify-between gap-2'>
-            <h3 className='text-foreground text-sm font-semibold'>
-              Evidence (plan vs. client logs)
-            </h3>
-            {workspaceFetching ? (
-              <Loader2Icon className='text-muted-foreground size-4 animate-spin' />
-            ) : null}
-          </div>
-          <p className='text-muted-foreground mb-3 text-xs'>
-            Targets and logged values from the care plan. Thumbnails open in a lightbox; media is read-only.
-          </p>
-          {workspaceIsError && (
-            <p className='text-destructive text-sm'>{(workspaceError as Error)?.message}</p>
-          )}
-          {workspace && (
-            <EvidenceList
-              days={workspace.evidence}
-              onOpenImage={setLightboxUrl}
-            />
-          )}
-        </section>
+      {!isOperationalLogsWorkspace && (
+        <div className='grid grid-cols-1 gap-6 lg:grid-cols-12'>
+          <section className='lg:col-span-5'>
+            <div className='mb-2 flex items-center justify-between gap-2'>
+              <h3 className='text-foreground text-sm font-semibold'>
+                Evidence (plan vs. client logs)
+              </h3>
+              {workspaceFetching ? (
+                <Loader2Icon className='text-muted-foreground size-4 animate-spin' />
+              ) : null}
+            </div>
+            <p className='text-muted-foreground mb-3 text-xs'>
+              Targets and logged values from the care plan. Thumbnails open in a
+              lightbox; media is read-only.
+            </p>
+            {workspaceIsError && (
+              <p className='text-destructive text-sm'>
+                {(workspaceError as Error)?.message}
+              </p>
+            )}
+            {workspace && (
+              <EvidenceList
+                days={workspace.evidence}
+                onOpenImage={setLightboxUrl}
+              />
+            )}
+          </section>
 
-        <section className='space-y-6 lg:col-span-7'>
-          <div className='space-y-3 rounded-md border p-4'>
-            <h3 className='text-foreground text-sm font-semibold'>
-              Report period
-            </h3>
-            <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end'>
-              <TextField
-                label='Period start'
-                type='date'
-                value={periodStartInput}
-                onChange={(e) => setPeriodStartInput(e.target.value)}
-                disabled={periodLocked}
-                id='period-start'
+          <section className='space-y-6 lg:col-span-7'>
+            <div className='space-y-3 rounded-md border p-4'>
+              <h3 className='text-foreground text-sm font-semibold'>
+                Report period
+              </h3>
+              <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end'>
+                <TextField
+                  label='Period start'
+                  type='date'
+                  value={periodStartInput}
+                  onChange={(e) => setPeriodStartInput(e.target.value)}
+                  disabled={periodLocked}
+                  id='period-start'
+                />
+                <TextField
+                  label='Period end'
+                  type='date'
+                  value={periodEndInput}
+                  onChange={(e) => setPeriodEndInput(e.target.value)}
+                  disabled={periodLocked}
+                  id='period-end'
+                />
+                <div className='sm:col-span-2'>
+                  <Button
+                    type='button'
+                    variant='secondary'
+                    size='sm'
+                    onClick={applyPeriodToUrl}
+                    disabled={periodLocked}
+                  >
+                    Load this period
+                  </Button>
+                  {periodLocked ? (
+                    <p className='text-muted-foreground mt-1 text-xs'>
+                      Clear the saved operational log or client report (pick
+                      &quot;New&quot; in history) to change dates.
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+
+            <div className='space-y-3 rounded-md border p-4'>
+              <div className='flex flex-wrap items-center justify-between gap-2'>
+                <h3 className='text-foreground text-sm font-semibold'>
+                  Metrics worksheet
+                </h3>
+                <div className='flex flex-wrap items-center gap-1.5'>
+                  {operationalLog?.status ? (
+                    <Badge variant='outline' className='text-[10px] uppercase'>
+                      Op log: {operationalLog.status}
+                    </Badge>
+                  ) : null}
+                  {clientReport?.status ? (
+                    <Badge
+                      variant='secondary'
+                      className='text-[10px] uppercase'
+                    >
+                      Client report: {clientReport.status}
+                    </Badge>
+                  ) : null}
+                </div>
+              </div>
+              {!formMetrics.length && !workspaceFetching ? (
+                <p className='text-muted-foreground text-sm'>
+                  No suggested metrics for this range. You can still create an
+                  operational log when targets exist in range, or adjust the
+                  plan to include nutrition, activity, or recovery items in this
+                  period.
+                </p>
+              ) : null}
+              <div className='space-y-6'>
+                {formMetrics.map((metric, mi) => (
+                  <React.Fragment key={`${metric.metric_key}-${mi}`}>
+                    {renderMetricEditorCard(metric, mi)}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+
+            <div className='space-y-3 rounded-md border p-4'>
+              <h3 className='text-foreground text-sm font-semibold'>
+                Care team narrative
+              </h3>
+              {!clientReport ? (
+                <p className='text-muted-foreground text-sm'>
+                  Narrative fields unlock after you submit the operational log
+                  for review. Save metrics first, then use &quot;Submit for
+                  review&quot; to create the client report.
+                </p>
+              ) : null}
+              <TextAreaField
+                id='summary'
+                label='Summary (required to publish)'
+                value={formFeedback.summary ?? ''}
+                onChange={(e) =>
+                  setFormFeedback((f) => ({ ...f, summary: e.target.value }))
+                }
+                className='min-h-24'
+                disabled={!canEditFeedback}
               />
-              <TextField
-                label='Period end'
-                type='date'
-                value={periodEndInput}
-                onChange={(e) => setPeriodEndInput(e.target.value)}
-                disabled={periodLocked}
-                id='period-end'
+              <TextAreaField
+                id='focus'
+                label='Focus for next period'
+                value={formFeedback.focus_next_period ?? ''}
+                onChange={(e) =>
+                  setFormFeedback((f) => ({
+                    ...f,
+                    focus_next_period: e.target.value,
+                  }))
+                }
+                className='min-h-20'
+                disabled={!canEditFeedback}
               />
-              <div className='sm:col-span-2'>
+              <TextAreaField
+                id='notes'
+                label='Internal notes (optional)'
+                value={formFeedback.notes ?? ''}
+                onChange={(e) =>
+                  setFormFeedback((f) => ({ ...f, notes: e.target.value }))
+                }
+                className='min-h-20'
+                disabled={!canEditFeedback}
+              />
+            </div>
+
+            <div className='flex flex-wrap items-center gap-2'>
+              <Button
+                type='button'
+                onClick={() => saveMetricsMutation.mutate()}
+                disabled={
+                  !canEditMetrics || saveMetricsMutation.isPending || !workspace
+                }
+              >
+                {saveMetricsMutation.isPending ? (
+                  <Loader2Icon className='size-4 animate-spin' />
+                ) : (
+                  <FileBarChartIcon className='size-4' />
+                )}
+                Save metrics
+              </Button>
+              {canSubmitForReview ? (
                 <Button
                   type='button'
                   variant='secondary'
-                  size='sm'
-                  onClick={applyPeriodToUrl}
-                  disabled={periodLocked}
+                  onClick={() => submitForReviewMutation.mutate()}
+                  disabled={submitForReviewMutation.isPending}
                 >
-                  Load this period
+                  {submitForReviewMutation.isPending ? (
+                    <Loader2Icon className='size-4 animate-spin' />
+                  ) : null}
+                  Submit for review
                 </Button>
-                {periodLocked ? (
-                  <p className='text-muted-foreground mt-1 text-xs'>
-                    Clear the saved operational log or client report (pick &quot;New&quot; in history) to change dates.
-                  </p>
-                ) : null}
-              </div>
-            </div>
-          </div>
-
-          <div className='space-y-3 rounded-md border p-4'>
-            <div className='flex flex-wrap items-center justify-between gap-2'>
-              <h3 className='text-foreground text-sm font-semibold'>
-                Metrics worksheet
-              </h3>
-              <div className='flex flex-wrap items-center gap-1.5'>
-                {operationalLog?.status ? (
-                  <Badge variant='outline' className='text-[10px] uppercase'>
-                    Op log: {operationalLog.status}
-                  </Badge>
-                ) : null}
-                {clientReport?.status ? (
-                  <Badge variant='secondary' className='text-[10px] uppercase'>
-                    Client report: {clientReport.status}
-                  </Badge>
-                ) : null}
-              </div>
-            </div>
-            {!formMetrics.length && !workspaceFetching ? (
-              <p className='text-muted-foreground text-sm'>
-                No suggested metrics for this range. You can still create an operational log when targets exist in range,
-                or adjust the plan to include nutrition, activity, or recovery items in this period.
-              </p>
-            ) : null}
-            <div className='space-y-6'>
-              {formMetrics.map((metric, mi) => (
-                <div
-                  key={`${metric.metric_key}-${mi}`}
-                  className='bg-muted/30 space-y-2 rounded-md border p-3'
-                >
-                  <div className='flex flex-wrap items-center justify-between gap-2'>
-                    <div>
-                      <Badge variant='outline' className='text-[10px] uppercase'>
-                        {metric.section}
-                      </Badge>
-                      <p className='text-foreground mt-0.5 text-sm font-medium'>
-                        {metric.label}
-                      </p>
-                      <p className='text-muted-foreground text-[11px]'>
-                        {metric.metric_key}
-                      </p>
-                    </div>
-                    <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
-                      <TextField
-                        label='Target'
-                        type='number'
-                        value={
-                          metric.target_value == null
-                            ? ''
-                            : String(metric.target_value)
-                        }
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          updateMetricField(
-                            mi,
-                            'target_value',
-                            v === '' ? null : Number(v),
-                          );
-                        }}
-                        disabled={!canEditMetrics}
-                        id={`m-${mi}-t`}
-                      />
-                      <TextField
-                        label='Actual'
-                        type='number'
-                        value={
-                          metric.actual_value == null
-                            ? ''
-                            : String(metric.actual_value)
-                        }
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          updateMetricField(
-                            mi,
-                            'actual_value',
-                            v === '' ? null : Number(v),
-                          );
-                        }}
-                        disabled={!canEditMetrics}
-                        id={`m-${mi}-a`}
-                      />
-                      <TextField
-                        label='Unit'
-                        value={metric.unit ?? ''}
-                        onChange={(e) =>
-                          updateMetricField(mi, 'unit', e.target.value || null)
-                        }
-                        disabled={!canEditMetrics}
-                        id={`m-${mi}-u`}
-                      />
-                      <TextField
-                        label='On target days'
-                        value={`${metric.days_on_target}/${metric.days_total}`}
-                        readOnly
-                        tabIndex={-1}
-                        id={`m-${mi}-d`}
-                      />
-                    </div>
-                  </div>
-                  <div className='overflow-x-auto rounded border'>
-                    <table className='w-full min-w-md text-left text-xs'>
-                      <thead>
-                        <tr className='bg-muted/50 border-b'>
-                          <th className='p-2 font-semibold'>Day</th>
-                          <th className='p-2 font-semibold'>Target</th>
-                          <th className='p-2 font-semibold'>Actual</th>
-                          <th className='p-2 font-semibold'>On target</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {metric.daily_points.map((dp, di) => (
-                          <tr key={di} className='border-b last:border-0'>
-                            <td className='p-1.5 tabular-nums'>{dp.day_number}</td>
-                            <td className='p-0.5'>
-                              <TextField
-                                className='h-8'
-                                type='number'
-                                value={
-                                  dp.target_value == null
-                                    ? ''
-                                    : String(dp.target_value)
-                                }
-                                onChange={(e) => {
-                                  const v = e.target.value;
-                                  updateDailyPoint(mi, di, {
-                                    target_value:
-                                      v === '' ? null : Number(v),
-                                  });
-                                }}
-                                disabled={!canEditMetrics}
-                                id={`m-${mi}-d-${di}-t`}
-                              />
-                            </td>
-                            <td className='p-0.5'>
-                              <TextField
-                                className='h-8'
-                                type='number'
-                                value={
-                                  dp.actual_value == null
-                                    ? ''
-                                    : String(dp.actual_value)
-                                }
-                                onChange={(e) => {
-                                  const v = e.target.value;
-                                  updateDailyPoint(mi, di, {
-                                    actual_value:
-                                      v === '' ? null : Number(v),
-                                  });
-                                }}
-                                disabled={!canEditMetrics}
-                                id={`m-${mi}-d-${di}-a`}
-                              />
-                            </td>
-                            <td className='p-1.5'>
-                              <div className='flex items-center justify-center pt-0.5'>
-                                <Checkbox
-                                  checked={dp.on_target}
-                                  onCheckedChange={(c) =>
-                                    updateDailyPoint(mi, di, {
-                                      on_target: c === true,
-                                    })
-                                  }
-                                  disabled={!canEditMetrics}
-                                  aria-label={`On target day ${dp.day_number}`}
-                                />
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className='space-y-3 rounded-md border p-4'>
-            <h3 className='text-foreground text-sm font-semibold'>
-              Care team narrative
-            </h3>
-            {!clientReport ? (
-              <p className='text-muted-foreground text-sm'>
-                Narrative fields unlock after you submit the operational log for review. Save metrics first, then use
-                &quot;Submit for review&quot; to create the client report.
-              </p>
-            ) : null}
-            <TextAreaField
-              id='summary'
-              label='Summary (required to publish)'
-              value={formFeedback.summary ?? ''}
-              onChange={(e) =>
-                setFormFeedback((f) => ({ ...f, summary: e.target.value }))
-              }
-              className='min-h-24'
-              disabled={!canEditFeedback}
-            />
-            <TextAreaField
-              id='focus'
-              label='Focus for next period'
-              value={formFeedback.focus_next_period ?? ''}
-              onChange={(e) =>
-                setFormFeedback((f) => ({
-                  ...f,
-                  focus_next_period: e.target.value,
-                }))
-              }
-              className='min-h-20'
-              disabled={!canEditFeedback}
-            />
-            <TextAreaField
-              id='notes'
-              label='Internal notes (optional)'
-              value={formFeedback.notes ?? ''}
-              onChange={(e) =>
-                setFormFeedback((f) => ({ ...f, notes: e.target.value }))
-              }
-              className='min-h-20'
-              disabled={!canEditFeedback}
-            />
-          </div>
-
-          <div className='flex flex-wrap items-center gap-2'>
-            <Button
-              type='button'
-              onClick={() => saveMetricsMutation.mutate()}
-              disabled={
-                !canEditMetrics ||
-                saveMetricsMutation.isPending ||
-                !workspace
-              }
-            >
-              {saveMetricsMutation.isPending ? (
-                <Loader2Icon className='size-4 animate-spin' />
-              ) : (
-                <FileBarChartIcon className='size-4' />
-              )}
-              Save metrics
-            </Button>
-            {canSubmitForReview ? (
+              ) : null}
               <Button
                 type='button'
-                variant='secondary'
-                onClick={() => submitForReviewMutation.mutate()}
-                disabled={submitForReviewMutation.isPending}
+                variant='outline'
+                onClick={() => saveFeedbackMutation.mutate()}
+                disabled={
+                  !canEditFeedback ||
+                  saveFeedbackMutation.isPending ||
+                  activeRunId == null
+                }
               >
-                {submitForReviewMutation.isPending ? (
+                {saveFeedbackMutation.isPending ? (
                   <Loader2Icon className='size-4 animate-spin' />
                 ) : null}
-                Submit for review
+                Save narrative
               </Button>
-            ) : null}
-            <Button
-              type='button'
-              variant='outline'
-              onClick={() => saveFeedbackMutation.mutate()}
-              disabled={
-                !canEditFeedback ||
-                saveFeedbackMutation.isPending ||
-                activeRunId == null
-              }
-            >
-              {saveFeedbackMutation.isPending ? (
-                <Loader2Icon className='size-4 animate-spin' />
+              <Button
+                type='button'
+                variant='default'
+                className='gap-1.5 bg-emerald-600 text-white hover:bg-emerald-700'
+                onClick={() => publishMutation.mutate()}
+                disabled={
+                  clientReport?.status !== 'in_review' ||
+                  publishMutation.isPending ||
+                  activeRunId == null
+                }
+              >
+                {publishMutation.isPending ? (
+                  <Loader2Icon className='size-4 animate-spin' />
+                ) : (
+                  <CheckCircle2Icon className='size-4' />
+                )}
+                Publish
+              </Button>
+              {isPublished ? (
+                <p className='text-muted-foreground text-sm'>
+                  This report is published; the operational log is locked and
+                  cannot be edited here.
+                </p>
               ) : null}
-              Save narrative
-            </Button>
-            <Button
-              type='button'
-              variant='default'
-              className='gap-1.5 bg-emerald-600 text-white hover:bg-emerald-700'
-              onClick={() => publishMutation.mutate()}
-              disabled={
-                clientReport?.status !== 'in_review' ||
-                publishMutation.isPending ||
-                activeRunId == null
-              }
-            >
-              {publishMutation.isPending ? (
-                <Loader2Icon className='size-4 animate-spin' />
-              ) : (
-                <CheckCircle2Icon className='size-4' />
-              )}
-              Publish
-            </Button>
-            {isPublished ? (
-              <p className='text-muted-foreground text-sm'>
-                This report is published; the operational log is locked and cannot be edited here.
-              </p>
-            ) : null}
-            {isArchived ? (
-              <p className='text-muted-foreground text-sm'>
-                This report is archived (read-only in this view).
-              </p>
-            ) : null}
-          </div>
-        </section>
-      </div>
+              {isArchived ? (
+                <p className='text-muted-foreground text-sm'>
+                  This report is archived (read-only in this view).
+                </p>
+              ) : null}
+            </div>
+          </section>
+        </div>
+      )}
 
       <Dialog open={!!lightboxUrl} onOpenChange={() => setLightboxUrl(null)}>
         <DialogContent className='max-w-3xl'>
@@ -1001,7 +1304,8 @@ function EvidenceList({
   if (!days.length) {
     return (
       <p className='text-muted-foreground text-sm'>
-        No care-plan days in this period, or the client has not logged items yet.
+        No care-plan days in this period, or the client has not logged items
+        yet.
       </p>
     );
   }
@@ -1027,7 +1331,7 @@ function EvidenceList({
               {d.items.length} line item{d.items.length === 1 ? '' : 's'}
             </span>
           </summary>
-          <div className='border-t p-2 space-y-2'>
+          <div className='space-y-2 border-t p-2'>
             {d.items.map((item) => (
               <div
                 key={`${d.target_date}-${item.item_id}-${item.section}`}

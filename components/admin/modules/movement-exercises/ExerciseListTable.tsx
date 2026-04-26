@@ -14,8 +14,8 @@ import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import ExerciseFilters from '@/components/admin/modules/movement-exercises/ExerciseFilters';
-import MovementExerciseRemovalBlockedAlert from '@/components/admin/modules/movement-exercises/MovementExerciseRemovalBlockedAlert';
 import ExerciseSheet from '@/components/admin/modules/movement-exercises/ExerciseSheet';
+import MovementExerciseRemovalBlockedAlert from '@/components/admin/modules/movement-exercises/MovementExerciseRemovalBlockedAlert';
 import RemoveExerciseConfirmation from '@/components/admin/modules/movement-exercises/RemoveExerciseConfirmation';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';

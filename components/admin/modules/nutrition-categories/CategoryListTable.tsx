@@ -6,8 +6,8 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
-import NutritionCategoryRemovalBlockedAlert from '@/components/admin/modules/nutrition-categories/NutritionCategoryRemovalBlockedAlert';
 import NutritionCategorySheet from '@/components/admin/modules/nutrition-categories/CategorySheet';
+import NutritionCategoryRemovalBlockedAlert from '@/components/admin/modules/nutrition-categories/NutritionCategoryRemovalBlockedAlert';
 import RemoveFoodCategoryConfirmation from '@/components/admin/modules/nutrition-categories/RemoveFoodCategoryConfirmation';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';

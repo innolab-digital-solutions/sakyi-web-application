@@ -11,7 +11,7 @@ import { ROUTES } from '@/config/routes';
 export const metadata: Metadata = {
   title: 'Operational Logs Workspace | SaKyi Admin',
   description:
-    'For a care plan, move from log evidence and operational metrics to submit for review, care-team narrative, and publication of the client-facing period report.',
+    'Review evidence vs plan targets, edit the operational log metrics for this care plan, then submit for review when ready.',
 };
 
 type OperationalLogsWorkspacePageProps = {
@@ -28,35 +28,21 @@ export default async function OperationalLogsWorkspacePage({
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Operational logs workspace'
-        description='For this care plan, work from daily log evidence through operational metrics, submit for client review, complete the care-team narrative, and publish the client-visible period report when requirements are met.'
+        description='Evidence and metrics for this care plan’s operational log. Period is set on the server; save metrics, then submit for review when ready.'
         actions={
-          <div className='flex flex-wrap items-center gap-2'>
-            <Button
-              variant='outline'
-              asChild
-              className='bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+          <Button
+            variant='outline'
+            asChild
+            className='bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+          >
+            <Link
+              href={ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.LIST}
+              aria-label='Back to operational logs list'
             >
-              <Link
-                href={ROUTES.ADMIN.MODULES.CARE_PLAN_LOGS.LIST}
-                aria-label='Back to daily task logs'
-              >
-                <ArrowLeftIcon className='size-3.5' />
-                Daily task logs
-              </Link>
-            </Button>
-            <Button
-              variant='outline'
-              asChild
-              className='bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
-            >
-              <Link
-                href={ROUTES.ADMIN.MODULES.CARE_PLANS.DETAIL(String(id))}
-                aria-label='Back to care plan detail'
-              >
-                Care plan detail
-              </Link>
-            </Button>
-          </div>
+              <ArrowLeftIcon className='size-3.5' />
+              Back To Operational Logs
+            </Link>
+          </Button>
         }
       />
       <Suspense

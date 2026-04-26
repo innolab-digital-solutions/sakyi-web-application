@@ -1,12 +1,12 @@
+import { format, parseISO } from 'date-fns';
 import {
+  ActivityIcon,
   ArchiveIcon,
   CheckCircle2Icon,
-  CircleDashed,
-  FilePenLineIcon,
+  FileTextIcon,
   LockIcon,
   SendIcon,
 } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
 import { type ComponentType } from 'react';
 
 import { base } from '@/config/api/base';
@@ -23,22 +23,26 @@ export const OPERATIONAL_LOG_STATUS_STYLES: Record<
     label: string;
   }
 > = {
+  /**
+   * Tokens match care plan + enrollment list badges: `border-{hue}-300/80 bg-{hue}-50 text-{hue}-800` (+ dark pair).
+   * Draft = amber + file; in progress = cyan + activity (same as “active”); locked = violet + lock (read-only / sealed).
+   */
   draft: {
-    icon: CircleDashed,
+    icon: FileTextIcon,
     className:
-      'border-slate-300/80 bg-slate-50 text-slate-800 dark:border-slate-600 dark:bg-slate-900/50 dark:text-slate-200',
+      'border-amber-300/80 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200',
     label: 'Draft',
   },
   in_progress: {
-    icon: FilePenLineIcon,
+    icon: ActivityIcon,
     className:
-      'border-amber-300/80 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200',
+      'border-cyan-300/80 bg-cyan-50 text-cyan-800 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-200',
     label: 'In progress',
   },
   locked: {
     icon: LockIcon,
     className:
-      'border-neutral-300/80 bg-neutral-100 text-neutral-800 dark:border-neutral-700 dark:bg-neutral-900/50 dark:text-neutral-200',
+      'border-violet-300/80 bg-violet-50 text-violet-800 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-200',
     label: 'Locked',
   },
 };
@@ -134,24 +138,22 @@ export function normalizeClientReportStatus(
   return null;
 }
 
-/** Period reports workspace: resume by client report id. */
+/**
+ * Operational logs workspace: `GET` report-workspace with no query (care
+ * plan’s single operational log / period on the server). Ids are kept for
+ * call-site context only.
+ */
 export function buildReportWorkspaceHref(
   carePlanId: number,
-  reportRunId: number,
+  _reportRunId: number,
 ): string {
-  const path = ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.WORKSPACE(
-    String(carePlanId),
-  );
-  return `${path}?report_run_id=${reportRunId}`;
+  return ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.WORKSPACE(String(carePlanId));
 }
 
-/** Operational logs list: resume internal worksheet by operational log id. */
+/** Same as {@link buildReportWorkspaceHref} — list rows link to a clean path. */
 export function buildOperationalLogWorkspaceHref(
   carePlanId: number,
-  operationalLogId: number,
+  _operationalLogId: number,
 ): string {
-  const path = ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.WORKSPACE(
-    String(carePlanId),
-  );
-  return `${path}?operational_log_id=${operationalLogId}`;
+  return ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.WORKSPACE(String(carePlanId));
 }

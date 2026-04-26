@@ -1,20 +1,15 @@
 'use client';
 
-import { FileTextIcon } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
 import { useEffect, useMemo, useState } from 'react';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import OperationalLogListFilters from '@/components/admin/modules/operational-logs/OperationalLogListFilters';
 import OperationalLogRowActions from '@/components/admin/modules/operational-logs/OperationalLogRowActions';
 import {
-  CLIENT_REPORT_STATUS_STYLES,
-  formatDateTimeCell,
-  formatPeriodRange,
-  normalizeClientReportStatus,
   normalizeOperationalLogStatus,
   OPERATIONAL_LOG_STATUS_STYLES,
   resolveClientPictureUrl,
-  UNKNOWN_STATUS_BADGE_CLASS,
 } from '@/components/admin/modules/operational-logs/reportRunListHelpers';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
@@ -32,17 +27,16 @@ import { ENDPOINTS } from '@/config/api/endpoints';
 import type { OperationalLogListRow } from '@/domains/care-plans/types/operational-log-list';
 import { useTable } from '@/lib/table';
 import { getInitials } from '@/lib/utils/string';
-import { cn } from '@/lib/utils/styles';
 
 const LIST_ENDPOINT = ENDPOINTS.ADMIN.MODULES.OPERATIONAL_LOGS.LIST;
-const VISIBLE_STORAGE_KEY = 'sakyi:admin:operational-logs:visible-columns:v1';
+const VISIBLE_STORAGE_KEY = 'sakyi:admin:operational-logs:visible-columns:v2';
 
 const EXTRA_KEYS = ['status', 'care_plan_id'] as const;
 
 type ColumnKey =
+  | 'reference'
   | 'client'
   | 'carePlan'
-  | 'opLog'
   | 'period'
   | 'status'
   | 'adherence'
@@ -59,6 +53,12 @@ type ColumnDef = {
 
 const COLUMNS: readonly ColumnDef[] = [
   {
+    key: 'reference',
+    label: 'Reference',
+    headerClassName: '',
+    skeletonWidth: 'w-28',
+  },
+  {
     key: 'client',
     label: 'Client',
     headerClassName: '',
@@ -66,21 +66,15 @@ const COLUMNS: readonly ColumnDef[] = [
   },
   {
     key: 'carePlan',
-    label: 'Care Plan',
+    label: 'Linked Care Plan',
     headerClassName: '',
-    skeletonWidth: 'w-32',
-  },
-  {
-    key: 'opLog',
-    label: 'Op log',
-    headerClassName: '',
-    skeletonWidth: 'w-32',
+    skeletonWidth: 'w-36',
   },
   {
     key: 'period',
-    label: 'Period',
+    label: 'Log Period',
     headerClassName: '',
-    skeletonWidth: 'w-40',
+    skeletonWidth: 'w-44',
   },
   {
     key: 'status',
@@ -91,20 +85,20 @@ const COLUMNS: readonly ColumnDef[] = [
   {
     key: 'adherence',
     label: 'Adherence',
-    headerClassName: 'tabular-nums',
+    headerClassName: '',
     skeletonWidth: 'w-24',
   },
   {
     key: 'lastActivity',
-    label: 'Last Activity',
+    label: 'Last updated',
     headerClassName: 'tabular-nums',
-    skeletonWidth: 'w-36',
+    skeletonWidth: 'w-32',
   },
   {
     key: 'createdBy',
     label: 'Created by',
     headerClassName: '',
-    skeletonWidth: 'w-28',
+    skeletonWidth: 'w-32',
   },
   {
     key: 'actions',
@@ -125,16 +119,59 @@ const OPERATIONAL_LOG_STATUS_LABELS: Record<
   locked: 'Locked',
 };
 
+/** Core columns on first load; adherence, last updated, and created by are opt-in. */
 const DEFAULT_VISIBLE: readonly ColumnKey[] = [
+  'reference',
   'client',
   'carePlan',
-  'opLog',
   'period',
   'status',
-  'adherence',
-  'lastActivity',
   'actions',
 ];
+
+function getReference(row: OperationalLogListRow): string {
+  const code = row.code?.trim();
+  if (code) return code;
+  return `#${row.id}`;
+}
+
+function formatListDate(iso: string | null | undefined): string | null {
+  if (!iso?.trim()) return null;
+  try {
+    return format(parseISO(iso.trim()), 'dd-MMM-yyyy');
+  } catch {
+    return iso.trim();
+  }
+}
+
+function formatListDateTime(iso: string | null | undefined): string | null {
+  if (!iso?.trim()) return null;
+  try {
+    return format(parseISO(iso.trim()), 'dd-MMM-yyyy HH:mm');
+  } catch {
+    return iso.trim();
+  }
+}
+
+function formatPeriodRow(
+  start: string | null | undefined,
+  end: string | null | undefined,
+) {
+  const a = formatListDate(start);
+  const b = formatListDate(end);
+  if (a && b) {
+    return (
+      <>
+        {a}
+        <span className='text-muted-foreground mx-1'>&rarr;</span>
+        {b}
+      </>
+    );
+  }
+  if (a) return a;
+  if (b) return b;
+  return null;
+}
 
 export default function OperationalLogListTable() {
   const [visibleColumnKeys, setVisibleColumnKeys] = useState<ColumnKey[]>(
@@ -209,7 +246,6 @@ export default function OperationalLogListTable() {
     setVisibleColumnKeys((cur) => {
       const k = COLUMNS.find((c) => c.key === columnKey)?.key;
       if (!k) return cur;
-      if (k === 'actions') return cur;
       if (cur.includes(k)) {
         if (cur.length === 1) return cur;
         return cur.filter((x) => x !== k);
@@ -276,8 +312,8 @@ export default function OperationalLogListTable() {
           rows.length === 0 ? (
             <TableEmptyStateRow
               colSpan={colCount}
-              title='No Operational Logs Found'
-              description='No operational logs found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
+              title='No operational logs found'
+              description="No operational logs found. None may exist yet, or your filters may be hiding results. Adjust your filters or check back later."
             />
           ) : null}
 
@@ -289,18 +325,29 @@ export default function OperationalLogListTable() {
               const carePlan = row.care_plan;
               const pictureSrc = resolveClientPictureUrl(client?.picture_url);
               const clientName = client?.name?.trim();
-              const clientCode = client?.client_code?.trim();
               const clientEmail = client?.email?.trim();
               const opStatus = normalizeOperationalLogStatus(row.status);
-              const style = opStatus
+              const opStatusStyle = opStatus
                 ? OPERATIONAL_LOG_STATUS_STYLES[opStatus]
                 : null;
-              const StatusIcon = style?.icon ?? FileTextIcon;
-              const cr = row.client_report;
-              const crKey = cr ? normalizeClientReportStatus(cr.status) : null;
-              const crStyle = crKey ? CLIENT_REPORT_STATUS_STYLES[crKey] : null;
+              const StatusIcon = opStatusStyle?.icon;
+              const lastUpdatedAt = formatListDateTime(
+                row.timestamps?.updated_at,
+              );
+              const carePlanCode = carePlan?.code?.trim();
+              const periodContent = formatPeriodRow(
+                row.period?.starts_on,
+                row.period?.ends_on,
+              );
               return (
                 <TableRow key={row.id}>
+                  {show('reference') ? (
+                    <TableCell>
+                      <p className='text-foreground text-[13px] font-semibold'>
+                        {getReference(row)}
+                      </p>
+                    </TableCell>
+                  ) : null}
                   {show('client') ? (
                     <TableCell>
                       <div className='flex items-start gap-3'>
@@ -323,7 +370,7 @@ export default function OperationalLogListTable() {
                             )}
                           </p>
                           <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
-                            {clientCode || clientEmail || '—'}
+                            {clientEmail || 'No email on file'}
                           </p>
                         </div>
                       </div>
@@ -332,67 +379,28 @@ export default function OperationalLogListTable() {
                   {show('carePlan') ? (
                     <TableCell>
                       <p className='text-foreground text-[13px] font-semibold'>
-                        {carePlan?.code?.trim() || <TableCellEmpty label='—' />}
-                      </p>
-                    </TableCell>
-                  ) : null}
-                  {show('opLog') ? (
-                    <TableCell>
-                      <p className='text-foreground text-[13px] font-semibold'>
-                        {row.code?.trim() || `#${row.id}`}
-                      </p>
-                      {cr ? (
-                        <p className='text-muted-foreground mt-1 text-xs'>
-                          Client report:{' '}
-                          <span className='font-mono font-medium'>
-                            {cr.code?.trim() || `#${cr.id}`}
-                          </span>
-                          {crStyle ? (
-                            <span
-                              className={cn(
-                                'ml-1.5 inline-flex items-center gap-0.5 rounded border px-1.5 py-0.5 text-[10px] font-semibold',
-                                crStyle.className,
-                              )}
-                            >
-                              {crStyle.label}
-                            </span>
-                          ) : (
-                            <span className='ml-1'>{cr.status ?? '—'}</span>
-                          )}
-                        </p>
-                      ) : null}
-                    </TableCell>
-                  ) : null}
-                  {show('period') ? (
-                    <TableCell>
-                      <p className='text-[13px] font-medium tabular-nums'>
-                        {formatPeriodRange(
-                          row.period?.starts_on,
-                          row.period?.ends_on,
+                        {carePlanCode || (
+                          <TableCellEmpty label='Not linked' />
                         )}
                       </p>
                     </TableCell>
                   ) : null}
+                  {show('period') ? (
+                    <TableCell>
+                      {periodContent ?? <TableCellEmpty label='—' />}
+                    </TableCell>
+                  ) : null}
                   {show('status') ? (
                     <TableCell>
-                      {style ? (
+                      {opStatus && opStatusStyle && StatusIcon ? (
                         <span
-                          className={cn(
-                            'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold whitespace-nowrap',
-                            style.className,
-                          )}
+                          className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${opStatusStyle.className}`}
                         >
                           <StatusIcon className='size-3.5 shrink-0' />
-                          {style.label}
+                          {opStatusStyle.label}
                         </span>
                       ) : (
-                        <span
-                          className={cn(
-                            UNKNOWN_STATUS_BADGE_CLASS,
-                            'inline-flex',
-                          )}
-                        >
-                          <FileTextIcon className='size-3.5 shrink-0' />
+                        <span className='border-border bg-muted/60 text-foreground inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold whitespace-nowrap'>
                           {(row.status ?? 'unknown').trim() || '—'}
                         </span>
                       )}
@@ -411,14 +419,18 @@ export default function OperationalLogListTable() {
                   ) : null}
                   {show('lastActivity') ? (
                     <TableCell>
-                      {formatDateTimeCell(row.timestamps?.updated_at) ?? (
+                      {lastUpdatedAt ? (
+                        <p className='text-[13px] font-medium tabular-nums'>
+                          {lastUpdatedAt}
+                        </p>
+                      ) : (
                         <TableCellEmpty label='No update date' />
                       )}
                     </TableCell>
                   ) : null}
                   {show('createdBy') ? (
                     <TableCell>
-                      <span className='text-[13px] font-medium'>
+                      <span className='text-foreground text-[13px] font-semibold'>
                         {row.created_by?.name?.trim() || (
                           <TableCellEmpty label='—' />
                         )}

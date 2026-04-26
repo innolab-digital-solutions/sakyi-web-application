@@ -5,6 +5,7 @@ import { format, parseISO } from 'date-fns';
 import { ExternalLinkIcon } from 'lucide-react';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
+import TextField from '@/components/shared/form/TextField';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Button } from '@/components/ui/button';
@@ -24,12 +25,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import TableCellEmpty from '@/components/ui/table-cell-empty';
-import TextField from '@/components/shared/form/TextField';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import {
-  getCarePlanLogSummary,
   type CarePlanLogEntry,
   type CarePlanLogSection,
+  getCarePlanLogSummary,
 } from '@/domains/care-plans/services';
 import { useTable } from '@/lib/table';
 
@@ -128,7 +128,7 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
                 </p>
                 <p className='text-muted-foreground text-xs font-medium'>
                   {summary?.enrollment?.client?.name?.trim() || 'Unknown client'} -{' '}
-                  {summary?.enrollment?.program?.name?.trim() || 'No program'}
+                  {summary?.enrollment?.program?.title?.trim() || 'No program'}
                 </p>
                 <p className='text-muted-foreground text-xs font-medium'>
                   Window: {formatDate(summary?.starts_on) ?? '—'} -{' '}

@@ -8,6 +8,8 @@ export type EnrollmentRequestResource = {
   id: number;
   code: string;
   phone: string;
+  /** Free-form notes when returned by the admin API. */
+  notes?: string | null;
   status: EnrollmentRequestStatus;
   cancellation_note: string | null;
   contacted_at: string | null;

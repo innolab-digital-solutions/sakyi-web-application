@@ -6,8 +6,8 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
-import MovementCategoryRemovalBlockedAlert from '@/components/admin/modules/movement-categories/MovementCategoryRemovalBlockedAlert';
 import MovementCategorySheet from '@/components/admin/modules/movement-categories/CategorySheet';
+import MovementCategoryRemovalBlockedAlert from '@/components/admin/modules/movement-categories/MovementCategoryRemovalBlockedAlert';
 import RemoveMovementCategoryConfirmation from '@/components/admin/modules/movement-categories/RemoveMovementCategoryConfirmation';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';

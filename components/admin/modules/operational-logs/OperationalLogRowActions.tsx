@@ -2,7 +2,6 @@
 
 import {
   ClipboardCopyIcon,
-  EyeIcon,
   MoreHorizontalIcon,
   NotebookPenIcon,
 } from 'lucide-react';
@@ -19,7 +18,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ROUTES } from '@/config/routes';
 import type { OperationalLogListRow } from '@/domains/care-plans/types/operational-log-list';
 
 const viewPrimaryClass =
@@ -33,51 +31,19 @@ type Props = {
 
 export default function OperationalLogRowActions({ row }: Props) {
   const carePlanId = row.care_plan?.id;
-  const opLogCode = row.code?.trim() || `#${row.id}`;
-  const carePlanCode = row.care_plan?.code?.trim() ?? '';
-  const cr = row.client_report;
+  const reference = row.code?.trim() || `#${row.id}`;
   const href =
     carePlanId != null
       ? buildOperationalLogWorkspaceHref(carePlanId, row.id)
       : null;
 
-  const copyOpLogCode = () => {
+  const copyReference = () => {
     void (async () => {
       try {
-        await navigator.clipboard.writeText(opLogCode);
-        toast.success('Operational log code copied to clipboard.');
+        await navigator.clipboard.writeText(reference);
+        toast.success('Reference copied to clipboard.');
       } catch {
-        toast.error('Could not copy code.');
-      }
-    })();
-  };
-
-  const copyClientReportCode = () => {
-    void (async () => {
-      if (!cr?.code?.trim()) {
-        toast.error('No client report code yet.');
-        return;
-      }
-      try {
-        await navigator.clipboard.writeText(cr.code.trim());
-        toast.success('Client report code copied to clipboard.');
-      } catch {
-        toast.error('Could not copy code.');
-      }
-    })();
-  };
-
-  const copyCarePlan = () => {
-    void (async () => {
-      if (!carePlanCode) {
-        toast.error('No care plan code to copy.');
-        return;
-      }
-      try {
-        await navigator.clipboard.writeText(carePlanCode);
-        toast.success('Care plan code copied to clipboard.');
-      } catch {
-        toast.error('Could not copy care plan code.');
+        toast.error('Could not copy reference.');
       }
     })();
   };
@@ -123,43 +89,11 @@ export default function OperationalLogRowActions({ row }: Props) {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-            onClick={copyOpLogCode}
+            onClick={copyReference}
           >
             <ClipboardCopyIcon className='size-3.5 shrink-0' />
-            Copy op log code
+            Copy reference
           </DropdownMenuItem>
-          <DropdownMenuItem
-            className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-            onClick={copyClientReportCode}
-            disabled={!cr?.code?.trim()}
-          >
-            <ClipboardCopyIcon className='size-3.5 shrink-0' />
-            Copy client report code
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-            onClick={copyCarePlan}
-            disabled={!carePlanCode}
-          >
-            <ClipboardCopyIcon className='size-3.5 shrink-0' />
-            Copy care plan code
-          </DropdownMenuItem>
-          {carePlanId != null ? (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link
-                  className='flex items-center gap-2 text-[13px]! font-medium'
-                  href={ROUTES.ADMIN.MODULES.CARE_PLANS.DETAIL(
-                    String(carePlanId),
-                  )}
-                >
-                  <EyeIcon className='size-3.5 shrink-0' />
-                  View care plan
-                </Link>
-              </DropdownMenuItem>
-            </>
-          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

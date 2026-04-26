@@ -1,11 +1,11 @@
+import { House, LifeBuoy, RotateCcw } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { House, LifeBuoy, RotateCcw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils/styles';
 import type { ErrorPresentation } from '@/lib/errors/http-status';
+import { cn } from '@/lib/utils/styles';
 
 type ErrorStatusPageProps = {
   presentation: ErrorPresentation;

@@ -3,6 +3,13 @@ import type { ApiResponse } from '@/lib/api/client';
 import { http } from '@/lib/api/client';
 
 import type {
+  AdminCarePlan,
+  AdminCarePlanBuilder,
+  CarePlanSectionItem,
+  CarePlanSectionKey,
+  CarePlanValidationResult,
+} from '../types/admin';
+import type {
   CarePlanLogEntry,
   CarePlanLogSummary,
   ListCarePlanLogEntriesParams,
@@ -20,13 +27,6 @@ import type {
   UpdateCarePlanReportRunPayload,
   UpdateOperationalLogPayload,
 } from '../types/care-plan-report';
-import type {
-  AdminCarePlan,
-  AdminCarePlanBuilder,
-  CarePlanSectionItem,
-  CarePlanSectionKey,
-  CarePlanValidationResult,
-} from '../types/admin';
 
 export type PatchCarePlanBasicsPayload = {
   starts_on: string;
@@ -100,6 +100,13 @@ export async function getCarePlanById(
 
 export type GetReportWorkspaceParams =
   | {
+      carePlanDefault: true;
+      reportRunId?: never;
+      operationalLogId?: never;
+      periodStartsOn?: never;
+      periodEndsOn?: never;
+    }
+  | {
       reportRunId: number;
       operationalLogId?: never;
       periodStartsOn?: never;
@@ -114,11 +121,15 @@ export type GetReportWorkspaceParams =
   | {
       reportRunId?: never;
       operationalLogId?: never;
+      carePlanDefault?: never;
       periodStartsOn: string;
       periodEndsOn: string;
     };
 
 function buildReportWorkspaceQuery(params: GetReportWorkspaceParams): string {
+  if ('carePlanDefault' in params && params.carePlanDefault === true) {
+    return '';
+  }
   const search = new URLSearchParams();
   if ('reportRunId' in params && params.reportRunId != null) {
     search.set('report_run_id', String(params.reportRunId));
