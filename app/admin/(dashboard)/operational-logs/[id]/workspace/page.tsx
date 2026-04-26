@@ -28,7 +28,7 @@ export default async function OperationalLogsWorkspacePage({
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Operational logs workspace'
-        description='Evidence and metrics for this care plan’s operational log. Period is set on the server; save metrics, then submit for review when ready.'
+        description='Review daily evidence against care-plan targets, record and validate operational-log metrics, then submit the log for review once values are complete and accurate.'
         actions={
           <Button
             variant='outline'

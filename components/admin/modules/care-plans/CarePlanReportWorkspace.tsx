@@ -6,9 +6,9 @@ import {
   CheckCircle2Icon,
   ChevronDownIcon,
   ClipboardListIcon,
-  FileBarChartIcon,
   Loader2Icon,
   NotebookPenIcon,
+  Save,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -16,6 +16,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
 
+import SaveCarePlanDataConfirmation from '@/components/admin/modules/care-plans/SaveCarePlanDataConfirmation';
 import OperationalLogWorkspaceContextBar from '@/components/admin/modules/operational-logs/OperationalLogWorkspaceContextBar';
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
@@ -114,9 +115,10 @@ function groupEvidenceItemsBySection(
   return Array.from(map.entries());
 }
 
-function getEvidenceDayTaskLogCounts(
-  items: CarePlanReportEvidenceItem[],
-): { totalTasks: number; totalLogs: number } {
+function getEvidenceDayTaskLogCounts(items: CarePlanReportEvidenceItem[]): {
+  totalTasks: number;
+  totalLogs: number;
+} {
   return {
     totalTasks: items.length,
     totalLogs: items.filter((i) => i.log != null).length,
@@ -146,7 +148,13 @@ function getWorkspacePathForCarePlan(
  * Read-only metric row matching {@link OperationalLogWorkspaceContextBar} label/value
  * hierarchy, sized closer to the daily breakdown trigger than the large header cards.
  */
-function MetricSummaryStatCard({ label, value }: { label: string; value: string }) {
+function MetricSummaryStatCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
   return (
     <div
       className={cn(
@@ -191,6 +199,8 @@ export default function CarePlanReportWorkspace({
   const [formFeedback, setFormFeedback] =
     React.useState<ReportRunFeedback>(emptyFeedback);
   const [lightboxUrl, setLightboxUrl] = React.useState<string | null>(null);
+  const [saveCarePlanConfirmOpen, setSaveCarePlanConfirmOpen] =
+    React.useState(false);
   const defaultingPeriodRef = React.useRef(false);
   const workspaceFormKeyRef = React.useRef<string | null>(null);
 
@@ -448,7 +458,10 @@ export default function CarePlanReportWorkspace({
       programName: program?.title?.trim() || program?.slug?.trim() || null,
       programCode: program?.code?.trim() || null,
       cycleNumber: carePlan?.cycle_number ?? null,
-      enrollmentCode: enrollment?.code?.trim() || null,
+      carePlanCode:
+        carePlan?.code?.trim() ||
+        workspace?.care_plan?.code?.trim() ||
+        null,
       careWindowStartsOn:
         workspace?.care_plan?.starts_on ?? carePlan?.starts_on ?? null,
       careWindowEndsOn:
@@ -570,14 +583,29 @@ export default function CarePlanReportWorkspace({
       void refetchRuns();
       toast.success(
         result.mode === 'create'
-          ? 'Operational log saved. Continue with metrics, then submit for review.'
-          : 'Metrics saved.',
+          ? 'Operational log saved. Continue editing, then submit for review when ready.'
+          : 'Operational log data saved.',
       );
     },
     onError: (e: Error) => {
       toast.error(e.message);
     },
   });
+
+  const { mutate: mutateSaveCarePlan } = saveMetricsMutation;
+
+  const confirmSaveCarePlanData = React.useCallback(() => {
+    mutateSaveCarePlan(undefined, {
+      onSuccess: () => {
+        setSaveCarePlanConfirmOpen(false);
+      },
+    });
+  }, [mutateSaveCarePlan]);
+
+  const saveCarePlanCodeForDialog =
+    carePlan?.code?.trim() ||
+    workspace?.care_plan?.code?.trim() ||
+    null;
 
   const saveFeedbackMutation = useMutation({
     mutationFn: async () => {
@@ -691,41 +719,34 @@ export default function CarePlanReportWorkspace({
     const SectionIcon = sectionTab?.icon;
 
     return (
-    <div
-      className={cn(
-        'min-w-0 space-y-3 rounded-md border p-3 sm:p-4',
-        isOperationalLogsWorkspace
-          ? 'border-border bg-white'
-          : 'bg-muted/30',
-      )}
-    >
-      <div className='flex items-start justify-between gap-2'>
-        <p className='text-foreground/90 min-w-0 text-[12.5px] font-semibold'>
-          {metric.label}
-        </p>
-        <Badge
-          variant='outline'
-          className='shrink-0 gap-1.5 text-[10px] font-bold tracking-wide uppercase [&>svg]:size-3.5'
-        >
-          {SectionIcon ? <SectionIcon aria-hidden className='size-3.5 shrink-0' /> : null}
-          {sectionTab?.label ?? formatSectionLabel(metric.section)}
-        </Badge>
-      </div>
+      <div
+        className={cn(
+          'min-w-0 space-y-3 rounded-md border p-3 sm:p-4',
+          isOperationalLogsWorkspace ? 'border-border bg-white' : 'bg-muted/30',
+        )}
+      >
+        <div className='flex items-start justify-between gap-2'>
+          <p className='text-foreground/90 min-w-0 text-[12.5px] font-semibold'>
+            {metric.label}
+          </p>
+          <span className='border-border bg-background text-foreground inline-flex w-fit max-w-full shrink-0 items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold'>
+            {SectionIcon ? (
+              <SectionIcon aria-hidden className='size-3.5 shrink-0' />
+            ) : null}
+            {sectionTab?.label ?? formatSectionLabel(metric.section)}
+          </span>
+        </div>
         <div className='grid w-full min-w-0 grid-cols-2 gap-1.5 sm:grid-cols-4 sm:gap-2'>
           <MetricSummaryStatCard
             label='Target'
             value={
-              metric.target_value == null
-                ? '—'
-                : String(metric.target_value)
+              metric.target_value == null ? '—' : String(metric.target_value)
             }
           />
           <MetricSummaryStatCard
             label='Actual'
             value={
-              metric.actual_value == null
-                ? '—'
-                : String(metric.actual_value)
+              metric.actual_value == null ? '—' : String(metric.actual_value)
             }
           />
           <MetricSummaryStatCard
@@ -738,169 +759,170 @@ export default function CarePlanReportWorkspace({
           />
         </div>
 
-      <Collapsible
-        className={cn(
-          'group w-full rounded-md border border-border',
-          'bg-white dark:bg-card',
-          'shadow-none',
-          'transition-[background-color] duration-200 ease-out',
-          'data-[state=open]:bg-muted/20',
-          'data-[state=open]:dark:bg-muted/15',
-        )}
-        defaultOpen
-      >
-        <CollapsibleTrigger asChild>
-          <button
-            type='button'
-            className={cn(
-              'flex w-full min-w-0 cursor-pointer items-center',
-              'justify-between gap-2 px-3 py-2.5 text-left',
-              'text-foreground/90',
-              'border-0 border-transparent bg-transparent shadow-none',
-              'hover:bg-muted/50',
-              'group-data-[state=open]:hover:bg-muted/15',
-              'group-data-[state=open]:bg-transparent',
-              'focus-visible:ring-ring focus-visible:ring-2',
-              'focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-              'focus-visible:outline-hidden',
-              'transition-[background-color] duration-200',
-            )}
-            aria-label={`Daily Breakdown, ${metric.daily_points.length} day${metric.daily_points.length === 1 ? '' : 's'}. Toggle table.`}
-          >
-            <div className='min-w-0 pr-2'>
-              <div className='text-[12.5px] font-semibold tracking-tight'>
-                Daily Breakdown
+        <Collapsible
+          className={cn(
+            'group border-border w-full rounded-md border',
+            'dark:bg-card bg-white',
+            'shadow-none',
+            'transition-[background-color] duration-200 ease-out',
+            'data-[state=open]:bg-muted/20',
+            'data-[state=open]:dark:bg-muted/15',
+          )}
+        >
+          <CollapsibleTrigger asChild>
+            <button
+              type='button'
+              className={cn(
+                'flex w-full min-w-0 cursor-pointer items-center',
+                'justify-between gap-2 px-3 py-2.5 text-left',
+                'text-foreground/90',
+                'border-0 border-transparent bg-transparent shadow-none',
+                'hover:bg-muted/50',
+                'group-data-[state=open]:hover:bg-muted/15',
+                'group-data-[state=open]:bg-transparent',
+                'focus-visible:ring-ring focus-visible:ring-2',
+                'focus-visible:ring-offset-background focus-visible:ring-offset-2',
+                'focus-visible:outline-hidden',
+                'transition-[background-color] duration-200',
+              )}
+              aria-label={`Daily Breakdown, ${metric.daily_points.length} day${metric.daily_points.length === 1 ? '' : 's'}. Toggle table.`}
+            >
+              <div className='min-w-0 pr-2'>
+                <div className='text-[12.5px] font-semibold tracking-tight'>
+                  Daily Breakdown
+                </div>
+                <div className='text-muted-foreground/90 mt-0.5 text-[11px] font-medium tabular-nums'>
+                  {metric.daily_points.length} day
+                  {metric.daily_points.length === 1 ? '' : 's'}
+                </div>
               </div>
-              <div className='text-muted-foreground/90 mt-0.5 text-[11px] font-medium tabular-nums'>
-                {metric.daily_points.length} day
-                {metric.daily_points.length === 1 ? '' : 's'}
-              </div>
-            </div>
-            <ChevronDownIcon
-              aria-hidden
-              className='text-muted-foreground/80 size-3.5 shrink-0 transition-transform duration-200 ease-out group-data-[state=open]:rotate-180'
-            />
-          </button>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div
-            className={cn(
-              'border-border/70 dark:bg-black/5 overflow-x-auto rounded-b-md border-t',
-              'bg-muted/10',
-              'px-2.5 pt-2.5 pb-4 sm:px-3 sm:pt-3 sm:pb-5',
-            )}
-          >
-            <table className='w-full min-w-md text-left text-xs'>
-              <thead>
-                <tr className='border-border/50 border-b bg-transparent'>
-                  {(
-                    [
-                      { key: 'day', text: 'Day' },
-                      { key: 'target', text: 'Target' },
-                      { key: 'actual', text: 'Actual' },
-                      { key: 'on', text: 'On target' },
-                    ] as const
-                  ).map((col) => (
-                    <th
-                      key={col.key}
-                      className={cn(
-                        'text-muted-foreground bg-transparent py-2',
-                        'align-middle',
-                        'text-[10px] font-semibold tracking-wide uppercase',
-                        'whitespace-nowrap',
-                        col.key === 'day' &&
-                          'w-10 min-w-10 px-1.5 text-center sm:px-2',
-                        col.key === 'target' && 'px-2 text-left sm:px-2.5',
-                        col.key === 'actual' && 'px-2 text-left sm:px-2.5',
-                        col.key === 'on' &&
-                          'min-w-26 px-2.5 text-left last:pr-3 sm:min-w-24',
-                      )}
-                    >
-                      {col.text}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {metric.daily_points.map((dp, di) => (
-                  <tr
-                    key={di}
-                    className='border-border/40 hover:bg-muted/20 border-b align-middle last:border-b-0'
-                  >
-                    <td className='w-10 min-w-10 max-w-10 px-1.5 text-center text-[11px] font-semibold tabular-nums sm:px-2'>
-                      {dp.day_number}
-                    </td>
-                    <td className='px-1.5 py-1.5 align-middle sm:px-2 sm:py-2'>
-                      <TextField
-                        type='number'
-                        variant='tableDense'
-                        className='w-full min-w-0'
-                        min={0}
-                        step='any'
-                        value={String(dp.target_value ?? 0)}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          if (v === '') {
-                            updateDailyPoint(mi, di, { target_value: 0 });
-                            return;
-                          }
-                          const n = Number(v);
-                          if (Number.isNaN(n)) return;
-                          updateDailyPoint(mi, di, {
-                            target_value: Math.max(0, n),
-                          });
-                        }}
-                        disabled={!canEditMetrics}
-                        id={`m-${mi}-d-${di}-t`}
-                        aria-label={`${metric.label} day ${dp.day_number} target`}
-                      />
-                    </td>
-                    <td className='px-1.5 py-1.5 align-middle sm:px-2 sm:py-2'>
-                      <TextField
-                        type='number'
-                        variant='tableDense'
-                        className='w-full min-w-0'
-                        min={0}
-                        step='any'
-                        value={String(dp.actual_value ?? 0)}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          if (v === '') {
-                            updateDailyPoint(mi, di, { actual_value: 0 });
-                            return;
-                          }
-                          const n = Number(v);
-                          if (Number.isNaN(n)) return;
-                          updateDailyPoint(mi, di, {
-                            actual_value: Math.max(0, n),
-                          });
-                        }}
-                        disabled={!canEditMetrics}
-                        id={`m-${mi}-d-${di}-a`}
-                        aria-label={`${metric.label} day ${dp.day_number} actual`}
-                      />
-                    </td>
-                    <td className='w-20 px-2 py-1.5 text-center align-middle sm:w-14 sm:py-2'>
-                      <div className='flex h-8.75 min-h-8.75 items-center justify-center py-0.5'>
-                        <Checkbox
-                          variant='tableDense'
-                          checked={dp.on_target}
-                          onCheckedChange={(c) =>
-                            updateDailyPoint(mi, di, { on_target: c === true })
-                          }
-                          disabled={!canEditMetrics}
-                          aria-label={`On target day ${dp.day_number}`}
-                        />
-                      </div>
-                    </td>
+              <ChevronDownIcon
+                aria-hidden
+                className='text-muted-foreground/80 size-3.5 shrink-0 transition-transform duration-200 ease-out group-data-[state=open]:rotate-180'
+              />
+            </button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div
+              className={cn(
+                'border-border/70 overflow-x-auto rounded-b-md border-t dark:bg-black/5',
+                'bg-muted/10',
+                'px-2.5 pt-2.5 pb-4 sm:px-3 sm:pt-3 sm:pb-5',
+              )}
+            >
+              <table className='w-full min-w-md text-left text-xs'>
+                <thead>
+                  <tr className='border-border/50 border-b bg-transparent'>
+                    {(
+                      [
+                        { key: 'day', text: 'Day' },
+                        { key: 'target', text: 'Target' },
+                        { key: 'actual', text: 'Actual' },
+                        { key: 'on', text: 'On target' },
+                      ] as const
+                    ).map((col) => (
+                      <th
+                        key={col.key}
+                        className={cn(
+                          'text-muted-foreground bg-transparent py-2',
+                          'align-middle',
+                          'text-[10px] font-semibold tracking-wide uppercase',
+                          'whitespace-nowrap',
+                          col.key === 'day' &&
+                            'w-10 min-w-10 px-1.5 text-center sm:px-2',
+                          col.key === 'target' && 'px-2 text-left sm:px-2.5',
+                          col.key === 'actual' && 'px-2 text-left sm:px-2.5',
+                          col.key === 'on' &&
+                            'min-w-26 px-2.5 text-left last:pr-3 sm:min-w-24',
+                        )}
+                      >
+                        {col.text}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-    </div>
+                </thead>
+                <tbody>
+                  {metric.daily_points.map((dp, di) => (
+                    <tr
+                      key={di}
+                      className='border-border/40 hover:bg-muted/20 border-b align-middle last:border-b-0'
+                    >
+                      <td className='w-10 max-w-10 min-w-10 px-1.5 text-center text-[11px] font-semibold tabular-nums sm:px-2'>
+                        {dp.day_number}
+                      </td>
+                      <td className='px-1.5 py-1.5 align-middle sm:px-2 sm:py-2'>
+                        <TextField
+                          type='number'
+                          variant='tableDense'
+                          className='w-full min-w-0'
+                          min={0}
+                          step='any'
+                          value={String(dp.target_value ?? 0)}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            if (v === '') {
+                              updateDailyPoint(mi, di, { target_value: 0 });
+                              return;
+                            }
+                            const n = Number(v);
+                            if (Number.isNaN(n)) return;
+                            updateDailyPoint(mi, di, {
+                              target_value: Math.max(0, n),
+                            });
+                          }}
+                          disabled={!canEditMetrics}
+                          id={`m-${mi}-d-${di}-t`}
+                          aria-label={`${metric.label} day ${dp.day_number} target`}
+                        />
+                      </td>
+                      <td className='px-1.5 py-1.5 align-middle sm:px-2 sm:py-2'>
+                        <TextField
+                          type='number'
+                          variant='tableDense'
+                          className='w-full min-w-0'
+                          min={0}
+                          step='any'
+                          value={String(dp.actual_value ?? 0)}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            if (v === '') {
+                              updateDailyPoint(mi, di, { actual_value: 0 });
+                              return;
+                            }
+                            const n = Number(v);
+                            if (Number.isNaN(n)) return;
+                            updateDailyPoint(mi, di, {
+                              actual_value: Math.max(0, n),
+                            });
+                          }}
+                          disabled={!canEditMetrics}
+                          id={`m-${mi}-d-${di}-a`}
+                          aria-label={`${metric.label} day ${dp.day_number} actual`}
+                        />
+                      </td>
+                      <td className='w-20 px-2 py-1.5 text-center align-middle sm:w-14 sm:py-2'>
+                        <div className='flex h-8.75 min-h-8.75 items-center justify-center py-0.5'>
+                          <Checkbox
+                            variant='tableDense'
+                            checked={dp.on_target}
+                            onCheckedChange={(c) =>
+                              updateDailyPoint(mi, di, {
+                                on_target: c === true,
+                              })
+                            }
+                            disabled={!canEditMetrics}
+                            aria-label={`On target day ${dp.day_number}`}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
     );
   };
 
@@ -934,12 +956,12 @@ export default function CarePlanReportWorkspace({
               <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
                 Operational Log Reference
               </p>
-              <p className='text-foreground/90 font-mono text-[13px] leading-relaxed font-semibold'>
+              <p className='text-foreground/90 text-[13px] leading-relaxed font-semibold'>
                 {opLogReferenceText || '—'}
               </p>
               {!opLogReferenceText ? (
                 <p className='text-muted-foreground text-[11px] font-medium'>
-                  Save metrics to create a reference
+                  Save the operational log to create a reference
                 </p>
               ) : null}
             </div>
@@ -988,14 +1010,14 @@ export default function CarePlanReportWorkspace({
           ) : workspace ? (
             <>
               <div className='border-border/70 border-t' />
-              <div className='space-y-1.5'>
-                <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
-                  Evidence & metrics
+              <div className='space-y-1'>
+                <p className='text-foreground text-sm font-semibold'>
+                  Evidence & Log Metrics Worksheet
                 </p>
                 <p className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
-                  Compare log evidence to plan targets on the left; enter
-                  metrics for this care plan&apos;s operational log on the
-                  right. Report period is managed with the log on the server.
+                  Review evidence against planned targets on the left, then
+                  record operational log metrics on the right. The reporting
+                  period is managed server-side by the operational log.
                 </p>
               </div>
               <div className='grid min-h-0 grid-cols-1 items-start gap-5 lg:grid-cols-3 lg:gap-6'>
@@ -1025,7 +1047,8 @@ export default function CarePlanReportWorkspace({
                   {operationalLog && !canEditMetrics ? (
                     <p className='text-muted-foreground text-xs leading-relaxed'>
                       Metrics are read-only when this operational log is not in{' '}
-                      <span className='text-foreground font-medium'>draft</span> or{' '}
+                      <span className='text-foreground font-medium'>draft</span>{' '}
+                      or{' '}
                       <span className='text-foreground font-medium'>
                         in progress
                       </span>
@@ -1035,31 +1058,7 @@ export default function CarePlanReportWorkspace({
                   ) : null}
                 </div>
               </div>
-              <div className='border-border/70 flex w-full max-w-full flex-wrap items-center gap-2 border-t pt-5'>
-                <Button
-                  type='button'
-                  className='h-10 gap-1.5 text-[13px]! font-semibold'
-                  onClick={() => saveMetricsMutation.mutate()}
-                  disabled={
-                    !canEditMetrics ||
-                    saveMetricsMutation.isPending ||
-                    !workspace
-                  }
-                  title={
-                    !canEditMetrics && operationalLog
-                      ? 'Only draft or in-progress editable logs can change metrics'
-                      : !workspace
-                        ? 'Workspace not loaded'
-                        : undefined
-                  }
-                >
-                  {saveMetricsMutation.isPending ? (
-                    <Loader2Icon className='size-4 animate-spin' />
-                  ) : (
-                    <FileBarChartIcon className='size-4' />
-                  )}
-                  Save metrics
-                </Button>
+              <div className='border-border/70 flex w-full max-w-full flex-wrap items-center justify-end gap-2 border-t pt-5'>
                 {canSubmitForReview ? (
                   <Button
                     type='button'
@@ -1074,6 +1073,30 @@ export default function CarePlanReportWorkspace({
                     Submit for review
                   </Button>
                 ) : null}
+                <Button
+                  type='button'
+                  className='h-10 gap-1.5 text-[13px]! font-semibold'
+                  onClick={() => setSaveCarePlanConfirmOpen(true)}
+                  disabled={
+                    !canEditMetrics ||
+                    saveMetricsMutation.isPending ||
+                    !workspace
+                  }
+                  title={
+                    !canEditMetrics && operationalLog
+                      ? 'Only draft or in-progress editable logs can change operational log data'
+                      : !workspace
+                        ? 'Workspace not loaded'
+                        : undefined
+                  }
+                >
+                  {saveMetricsMutation.isPending ? (
+                    <Loader2Icon className='size-4 animate-spin' />
+                  ) : (
+                    <Save className='size-4' aria-hidden />
+                  )}
+                  Save operational log
+                </Button>
               </div>
             </>
           ) : null}
@@ -1247,7 +1270,7 @@ export default function CarePlanReportWorkspace({
               {!clientReport ? (
                 <p className='text-muted-foreground text-sm'>
                   Narrative fields unlock after you submit the operational log
-                  for review. Save metrics first, then use &quot;Submit for
+                  for review. Save the operational log first, then use &quot;Submit for
                   review&quot; to create the client report.
                 </p>
               ) : null}
@@ -1286,21 +1309,7 @@ export default function CarePlanReportWorkspace({
               />
             </div>
 
-            <div className='flex flex-wrap items-center gap-2'>
-              <Button
-                type='button'
-                onClick={() => saveMetricsMutation.mutate()}
-                disabled={
-                  !canEditMetrics || saveMetricsMutation.isPending || !workspace
-                }
-              >
-                {saveMetricsMutation.isPending ? (
-                  <Loader2Icon className='size-4 animate-spin' />
-                ) : (
-                  <FileBarChartIcon className='size-4' />
-                )}
-                Save metrics
-              </Button>
+            <div className='flex w-full flex-wrap items-center justify-end gap-2'>
               {canSubmitForReview ? (
                 <Button
                   type='button'
@@ -1347,6 +1356,21 @@ export default function CarePlanReportWorkspace({
                 )}
                 Publish
               </Button>
+              <Button
+                type='button'
+                onClick={() => setSaveCarePlanConfirmOpen(true)}
+                disabled={
+                  !canEditMetrics || saveMetricsMutation.isPending || !workspace
+                }
+                className='gap-1.5'
+              >
+                {saveMetricsMutation.isPending ? (
+                  <Loader2Icon className='size-4 animate-spin' />
+                ) : (
+                  <Save className='size-4' aria-hidden />
+                )}
+                Save operational log
+              </Button>
               {isPublished ? (
                 <p className='text-muted-foreground text-sm'>
                   This report is published; the operational log is locked and
@@ -1362,6 +1386,14 @@ export default function CarePlanReportWorkspace({
           </section>
         </div>
       )}
+
+      <SaveCarePlanDataConfirmation
+        open={saveCarePlanConfirmOpen}
+        isSubmitting={saveMetricsMutation.isPending}
+        carePlanCode={saveCarePlanCodeForDialog}
+        onOpenChange={setSaveCarePlanConfirmOpen}
+        onConfirm={confirmSaveCarePlanData}
+      />
 
       <Dialog open={!!lightboxUrl} onOpenChange={() => setLightboxUrl(null)}>
         <DialogContent className='max-w-3xl'>
@@ -1411,8 +1443,8 @@ function EvidenceLineItemCard({
   const media = log?.media?.length ? log.media : null;
 
   return (
-    <div className='border-border space-y-2 rounded-md border bg-white px-3 pt-3 pb-4 dark:bg-card sm:px-3.5 sm:pt-3.5 sm:pb-5'>
-      <p className='text-foreground/90 text-[12.5px] font-semibold leading-tight tracking-tight'>
+    <div className='border-border dark:bg-card space-y-2 rounded-md border bg-white px-3 pt-3 pb-4 sm:px-3.5 sm:pt-3.5 sm:pb-5'>
+      <p className='text-foreground/90 text-[12.5px] leading-tight font-semibold tracking-tight'>
         {item.title}
       </p>
 
@@ -1421,7 +1453,7 @@ function EvidenceLineItemCard({
           <p className='text-[10px] font-semibold tracking-wide text-emerald-700 uppercase dark:text-emerald-400'>
             Target
           </p>
-          <p className='text-foreground/90 text-[11px] font-medium leading-snug'>
+          <p className='text-foreground/90 text-[11px] leading-snug font-medium'>
             {targetDisplay}
           </p>
         </div>
@@ -1429,7 +1461,7 @@ function EvidenceLineItemCard({
           <p className='text-[10px] font-semibold tracking-wide text-sky-700 uppercase dark:text-sky-400'>
             Log
           </p>
-          <p className='text-foreground/90 text-[11px] font-medium leading-snug'>
+          <p className='text-foreground/90 text-[11px] leading-snug font-medium'>
             {logValueDisplay}
           </p>
         </div>
@@ -1440,7 +1472,7 @@ function EvidenceLineItemCard({
           <p className='text-[10px] font-semibold tracking-wide text-violet-700 uppercase dark:text-violet-400'>
             Log note
           </p>
-          <p className='text-foreground/90 text-[11px] font-medium wrap-break-word whitespace-pre-wrap leading-relaxed'>
+          <p className='text-foreground/90 text-[11px] leading-relaxed font-medium wrap-break-word whitespace-pre-wrap'>
             {noteText}
           </p>
         </div>
@@ -1460,7 +1492,7 @@ function EvidenceLineItemCard({
                   key={m.id ?? idx}
                   type='button'
                   onClick={() => onOpenImage(u)}
-                  className='border-border relative h-12 w-12 overflow-hidden rounded-md border bg-white dark:bg-background'
+                  className='border-border dark:bg-background relative h-12 w-12 overflow-hidden rounded-md border bg-white'
                 >
                   <Image
                     src={u}
@@ -1503,12 +1535,12 @@ function EvidenceList({
         return (
           <li
             key={`${d.target_date}-${d.day_index}`}
-            className='relative z-0 isolate'
+            className='relative isolate z-0'
           >
             <Collapsible
               className={cn(
-                'group w-full overflow-hidden rounded-md border border-border',
-                'bg-white dark:bg-card',
+                'group border-border w-full overflow-hidden rounded-md border',
+                'dark:bg-card bg-white',
                 'shadow-none',
                 'transition-[background-color] duration-200 ease-out',
                 'data-[state=open]:bg-muted/20',
@@ -1527,7 +1559,7 @@ function EvidenceList({
                     'group-data-[state=open]:hover:bg-muted/15',
                     'group-data-[state=open]:bg-transparent',
                     'focus-visible:ring-ring focus-visible:ring-2',
-                    'focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                    'focus-visible:ring-offset-background focus-visible:ring-offset-2',
                     'focus-visible:outline-hidden',
                     'transition-[background-color] duration-200',
                   )}
@@ -1545,7 +1577,7 @@ function EvidenceList({
                     className='flex min-w-0 shrink-0 flex-wrap items-center justify-end gap-1.5 sm:gap-2'
                     aria-hidden
                   >
-                    <span className='border-border flex h-6 max-w-full items-center gap-1 rounded-md border border-solid bg-muted/35 px-2 text-[10px] font-medium leading-none'>
+                    <span className='border-border bg-muted/35 flex h-6 max-w-full items-center gap-1 rounded-md border border-solid px-2 text-[10px] leading-none font-medium'>
                       <ClipboardListIcon
                         className='text-foreground/65 size-3 shrink-0'
                         aria-hidden
@@ -1557,7 +1589,7 @@ function EvidenceList({
                         {totalTasks}
                       </span>
                     </span>
-                    <span className='border-border flex h-6 max-w-full items-center gap-1 rounded-md border border-solid bg-muted/35 px-2 text-[10px] font-medium leading-none'>
+                    <span className='border-border bg-muted/35 flex h-6 max-w-full items-center gap-1 rounded-md border border-solid px-2 text-[10px] leading-none font-medium'>
                       <NotebookPenIcon
                         className='text-foreground/65 size-3 shrink-0'
                         aria-hidden
@@ -1579,11 +1611,11 @@ function EvidenceList({
               <CollapsibleContent
                 className={cn(
                   'min-h-0 overscroll-y-contain',
-                  '!max-h-[min(70dvh,30rem)] !overflow-y-auto !overflow-x-hidden',
-                  'sm:!max-h-[min(75vh,36rem)]',
+                  'max-h-[min(70dvh,30rem)]! overflow-x-hidden! overflow-y-auto!',
+                  'sm:max-h-[min(75vh,36rem)]!',
                 )}
               >
-                <div className='border-border/70 bg-muted/10 dark:bg-black/5 space-y-3 rounded-b-md border-t px-2.5 pt-2.5 pb-4 sm:px-3 sm:pt-3 sm:pb-5'>
+                <div className='border-border/70 bg-muted/10 space-y-3 rounded-b-md border-t px-2.5 pt-2.5 pb-4 sm:px-3 sm:pt-3 sm:pb-5 dark:bg-black/5'>
                   {sectionGroups.map(([sectionKey, items]) => (
                     <div
                       key={`${d.target_date}-${sectionKey}`}

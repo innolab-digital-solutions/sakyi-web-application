@@ -1,6 +1,7 @@
 'use client';
 
 import { format, parseISO } from 'date-fns';
+import { TimerResetIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
@@ -330,7 +331,13 @@ export default function OperationalLogListTable() {
               const opStatusStyle = opStatus
                 ? OPERATIONAL_LOG_STATUS_STYLES[opStatus]
                 : null;
-              const StatusIcon = opStatusStyle?.icon;
+              const isInProgress = opStatus === 'in_progress';
+              const StatusIcon = isInProgress
+                ? TimerResetIcon
+                : opStatusStyle?.icon;
+              const statusBadgeClassName = isInProgress
+                ? 'border-indigo-300/80 bg-indigo-50 text-indigo-800 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200'
+                : opStatusStyle?.className;
               const lastUpdatedAt = formatListDateTime(
                 row.timestamps?.updated_at,
               );
@@ -394,7 +401,7 @@ export default function OperationalLogListTable() {
                     <TableCell>
                       {opStatus && opStatusStyle && StatusIcon ? (
                         <span
-                          className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${opStatusStyle.className}`}
+                          className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${statusBadgeClassName ?? ''}`}
                         >
                           <StatusIcon className='size-3.5 shrink-0' />
                           {opStatusStyle.label}

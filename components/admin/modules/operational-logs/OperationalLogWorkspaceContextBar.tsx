@@ -36,7 +36,8 @@ export type OperationalLogWorkspaceContextBarProps = {
   programName: string | null | undefined;
   programCode: string | null | undefined;
   cycleNumber: number | null | undefined;
-  enrollmentCode: string | null | undefined;
+  /** Care plan business code (`AdminCarePlan.code` / `care_plans.code`), not enrollment code. */
+  carePlanCode: string | null | undefined;
   /** Care plan care window (same idea as the builder’s Plan Timeline). */
   careWindowStartsOn: string | null | undefined;
   careWindowEndsOn: string | null | undefined;
@@ -44,7 +45,7 @@ export type OperationalLogWorkspaceContextBarProps = {
 
 /**
  * Second row of the operational-log workspace: four summary cards matching
- * {@link CarePlanBuilder} (Client, Program, Enrollment, Plan Timeline).
+ * {@link CarePlanBuilder} (Client, Program, Care Plan, Plan Timeline).
  */
 export default function OperationalLogWorkspaceContextBar({
   clientName,
@@ -53,7 +54,7 @@ export default function OperationalLogWorkspaceContextBar({
   programName,
   programCode,
   cycleNumber,
-  enrollmentCode,
+  carePlanCode,
   careWindowStartsOn,
   careWindowEndsOn,
 }: OperationalLogWorkspaceContextBarProps) {
@@ -110,13 +111,13 @@ export default function OperationalLogWorkspaceContextBar({
 
       <div className='bg-muted/50 border-border flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2'>
         <p className='text-muted-foreground mb-1.5 text-[10px] font-semibold tracking-wide uppercase'>
-          Enrollment
+          Care plan
         </p>
         <p className='text-foreground text-[12.5px] font-semibold'>
           Cycle {cycleNumber ?? '—'}
         </p>
         <p className='text-muted-foreground mt-0.5 truncate text-[11px] font-semibold tabular-nums'>
-          {enrollmentCode?.trim() || 'Not linked'}
+          {carePlanCode?.trim() || 'Not linked'}
         </p>
       </div>
 
