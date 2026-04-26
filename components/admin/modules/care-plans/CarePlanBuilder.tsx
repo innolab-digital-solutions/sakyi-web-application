@@ -35,6 +35,12 @@ import TextField from '@/components/shared/form/TextField';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { base } from '@/config/api/base';
 import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
 import { ROUTES } from '@/config/routes';
@@ -563,6 +569,62 @@ class CarePlanDayNotesValidationError extends Error {
   }
 }
 
+function extractValidationIssuesByDay(
+  issues: CarePlanValidationIssue[],
+): Record<number, string> {
+  const dayIssueMessages: Record<number, string> = {};
+  const defaultDayTaskMessage =
+    'Add at least one task in any section (nutrition, movement, activity, or recovery).';
+
+  for (const issue of issues) {
+    const field = String(issue?.field ?? '').trim();
+    const message = String(issue?.message ?? '').trim();
+
+    const fieldMatch = field.match(/^days\.(\d+)$/i);
+    if (fieldMatch) {
+      const fieldDayNumber = Number(fieldMatch[1]);
+      if (Number.isInteger(fieldDayNumber) && fieldDayNumber > 0) {
+        dayIssueMessages[fieldDayNumber] = message
+          ? message
+              .replace(
+                /at least one item(?:\s+in)?\s+(nutrition,\s*movement,\s*activity,\s*or\s*recovery)/i,
+                'at least one task in any section ($1)',
+              )
+              .replace(/\bitem\b/gi, 'task')
+          : defaultDayTaskMessage;
+      }
+    }
+
+    const messageMatch = message.match(/\bday\s+(\d+)\b/i);
+    if (messageMatch) {
+      const messageDayNumber = Number(messageMatch[1]);
+      if (Number.isInteger(messageDayNumber) && messageDayNumber > 0) {
+        if (!dayIssueMessages[messageDayNumber]) {
+          dayIssueMessages[messageDayNumber] = message
+            ? message
+                .replace(
+                  /at least one item(?:\s+in)?\s+(nutrition,\s*movement,\s*activity,\s*or\s*recovery)/i,
+                  'at least one task in any section ($1)',
+                )
+                .replace(/\bitem\b/gi, 'task')
+            : defaultDayTaskMessage;
+        }
+      }
+    }
+  }
+
+  return dayIssueMessages;
+}
+
+function dayHasAnyTask(
+  sections: Record<CarePlanSectionKey, CarePlanSectionItem[]>,
+): boolean {
+  return SECTIONS.some((section) => {
+    const items = toEditableSectionItems(sections[section.key] ?? []);
+    return normalizeSectionItemsForSave(items, section.key).length > 0;
+  });
+}
+
 export default function CarePlanBuilder({
   carePlanId,
   mode,
@@ -600,10 +662,11 @@ export default function CarePlanBuilder({
     string | undefined
   >();
   const [finishModalOpen, setFinishModalOpen] = React.useState(false);
-  const [finishValidationResult, setFinishValidationResult] = React.useState<{
-    is_valid: boolean;
-    issues: CarePlanValidationIssue[];
-  } | null>(null);
+  const [hasFinishValidationResult, setHasFinishValidationResult] =
+    React.useState(false);
+  const [validationIssuesByDay, setValidationIssuesByDay] = React.useState<
+    Record<number, string>
+  >({});
   const [itemFieldErrors, setItemFieldErrors] =
     React.useState<CarePlanItemFieldErrorsState>({});
   const [movementRowErrors, setMovementRowErrors] =
@@ -868,7 +931,9 @@ export default function CarePlanBuilder({
     if (!root) return;
 
     requestAnimationFrame(() => {
-      const invalidEl = root.querySelector<HTMLElement>('[aria-invalid="true"]');
+      const invalidEl = root.querySelector<HTMLElement>(
+        '[aria-invalid="true"]',
+      );
       if (invalidEl) {
         invalidEl.scrollIntoView({
           behavior: 'smooth',
@@ -897,7 +962,9 @@ export default function CarePlanBuilder({
     if (!root) return;
 
     requestAnimationFrame(() => {
-      const cards = root.querySelectorAll<HTMLElement>('[data-care-plan-item-card]');
+      const cards = root.querySelectorAll<HTMLElement>(
+        '[data-care-plan-item-card]',
+      );
       const last = cards[cards.length - 1];
       if (!last) return;
       last.scrollIntoView({
@@ -1083,13 +1150,16 @@ export default function CarePlanBuilder({
     const currentStartsOn = (builder?.starts_on ?? '').trim();
     const currentEndsOn = (builder?.ends_on ?? '').trim();
     const isSameTimelineRange =
-      payload.starts_on === currentStartsOn && payload.ends_on === currentEndsOn;
+      payload.starts_on === currentStartsOn &&
+      payload.ends_on === currentEndsOn;
     const isNoopRegenerate =
       hasGeneratedDays &&
       isSameTimelineRange &&
       generateReplaceStrategy === 'preserve_overlap';
     if (isNoopRegenerate) {
-      toast.info('No changes detected in the selected timeline. No updates applied.');
+      toast.info(
+        'No changes detected in the selected timeline. No updates applied.',
+      );
       setGenerateDayModalOpen(false);
       return;
     }
@@ -1114,7 +1184,10 @@ export default function CarePlanBuilder({
           ...prev,
           days: prev.days.map((day) =>
             day.id === dayId
-              ? { ...day, general_notes: nextValue.length > 0 ? nextValue : null }
+              ? {
+                  ...day,
+                  general_notes: nextValue.length > 0 ? nextValue : null,
+                }
               : day,
           ),
         };
@@ -1347,7 +1420,8 @@ export default function CarePlanBuilder({
       setActiveSection(SECTIONS[0].key);
       return;
     }
-    setFinishValidationResult(null);
+    setHasFinishValidationResult(false);
+    setValidationIssuesByDay({});
     setFinishModalOpen(true);
   };
 
@@ -1431,14 +1505,15 @@ export default function CarePlanBuilder({
       return response.data;
     },
     onSuccess: (data) => {
-      setFinishValidationResult({
-        is_valid: Boolean(data?.is_valid),
-        issues: Array.isArray(data?.issues) ? data.issues : [],
-      });
+      setHasFinishValidationResult(true);
+      const issues = Array.isArray(data?.issues) ? data.issues : [];
+      setValidationIssuesByDay(extractValidationIssuesByDay(issues));
       if (data?.is_valid) {
         toast.success('The care plan is valid and ready for activation.');
       } else {
-        toast.error('Care plan has validation issues. Please review.');
+        toast.warning(
+          'Validation failed. Review marked days before activation.',
+        );
       }
     },
     onError: (error: Error) => {
@@ -1606,7 +1681,9 @@ export default function CarePlanBuilder({
       (builder?.starts_on ?? '').trim() ||
       generateDayModalForm.ends_on.trim() !== (builder?.ends_on ?? '').trim());
   const isScheduledPlan = normalizedStatus === 'scheduled';
-  const selectedGenerateStartDate = parseYmdLocal(generateDayModalForm.starts_on);
+  const selectedGenerateStartDate = parseYmdLocal(
+    generateDayModalForm.starts_on,
+  );
   const showScheduledDraftDemotionWarning =
     isScheduledPlan &&
     selectedGenerateStartDate != null &&
@@ -1693,7 +1770,7 @@ export default function CarePlanBuilder({
 
           <div className='grid gap-2 sm:grid-cols-2 lg:grid-cols-4'>
             <div className='bg-muted/50 border-border flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2'>
-              <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+              <p className='mb-1.5 text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
                 Client
               </p>
               <div className='mt-1 flex min-w-0 items-center gap-2.5'>
@@ -1726,7 +1803,7 @@ export default function CarePlanBuilder({
             </div>
 
             <div className='bg-muted/50 border-border flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2'>
-              <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+              <p className='mb-1.5 text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
                 Program
               </p>
               <p className='text-foreground/90 line-clamp-2 text-[12.5px] font-semibold'>
@@ -1740,22 +1817,23 @@ export default function CarePlanBuilder({
             </div>
 
             <div className='bg-muted/50 border-border flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2'>
-              <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+              <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase mb-1.5'>
                 Enrollment
               </p>
-              <p className='text-foreground truncate text-[12.5px] font-semibold tabular-nums'>
+
+              <p className='text-foreground text-[12.5px] font-semibold'>
+                Cycle {builder.cycle_number ?? '—'}
+              </p>
+              <p className='text-muted-foreground mt-0.5 truncate text-[11px] font-semibold tabular-nums'>
                 {builder.enrollment?.code?.trim() ||
                   (builder.enrollment_id != null
                     ? `#${builder.enrollment_id}`
                     : 'Not linked')}
               </p>
-              <p className='text-muted-foreground mt-0.5 truncate text-[11px] font-semibold'>
-                Cycle {builder.cycle_number ?? '—'}
-              </p>
             </div>
 
             <div className='bg-muted/50 border-border/60 flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2'>
-              <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+              <p className='mb-1.5 text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
                 Plan Timeline
               </p>
               <p className='text-foreground text-[12.5px] font-semibold'>
@@ -1808,12 +1886,12 @@ export default function CarePlanBuilder({
                   <CalendarIcon className='size-4' aria-hidden />
                 )}
               </div>
-              <p className='text-foreground text-sm font-semibold capitalize'>
-                No day plans are currently available.
+              <p className='text-foreground text-sm font-semibold'>
+                No timeline has been set yet.
               </p>
               <p className='text-muted-foreground mt-1 text-[13px] font-medium'>
-                Generate a day schedule first, then define section tasks for
-                each day across nutrition, movement, activity, and recovery.
+                Set the care timeline first, then add tasks to each day across
+                nutrition, movement, activity, and recovery.
               </p>
               {editable ? (
                 <Button
@@ -1851,78 +1929,114 @@ export default function CarePlanBuilder({
                       No days generated yet.
                     </p>
                   ) : (
-                    <ul className='flex flex-col gap-1'>
-                      {builder.days.map((day) => {
-                        const noteVisual = getDayNoteVisual(day);
-                        const NoteIcon = noteVisual.icon;
-                        const isSelected = selectedDayId === day.id;
-                        return (
-                          <li key={day.id} className='relative'>
-                            <button
-                              type='button'
-                              className={cn(
-                                'w-full min-w-0 rounded-md border px-3 py-2.5 pr-11 text-left transition-all',
-                                isSelected
-                                  ? 'bg-primary/8 border-primary/40 text-foreground shadow-xs'
-                                  : 'text-foreground/90 hover:border-border/70 hover:bg-background/80 border-transparent',
-                              )}
-                              onClick={() => {
-                                setSelectedDayId(day.id);
-                                setActiveSection('nutrition');
-                              }}
-                            >
-                              <span className='block text-[12.5px] font-semibold tracking-tight'>
-                                Day {day.day_number}
-                              </span>
-                              <span
+                    <TooltipProvider>
+                      <ul className='flex flex-col gap-1'>
+                        {builder.days.map((day) => {
+                          const noteVisual = getDayNoteVisual(day);
+                          const NoteIcon = noteVisual.icon;
+                          const isSelected = selectedDayId === day.id;
+                          const dayValidationMessage =
+                            validationIssuesByDay[day.day_number];
+                          const hasAnyTaskInDay = dayHasAnyTask(day.sections);
+                          const hasDayValidationIssue =
+                            Boolean(dayValidationMessage) && !hasAnyTaskInDay;
+                          return (
+                            <li key={day.id} className='relative'>
+                              <button
+                                type='button'
                                 className={cn(
-                                  'mt-0.5 block text-[11px] font-medium',
+                                  'w-full min-w-0 rounded-md border px-3 py-2.5 pr-20 text-left transition-all',
                                   isSelected
-                                    ? 'text-muted-foreground'
-                                    : 'text-muted-foreground/90',
+                                    ? 'bg-primary/8 border-primary/40 text-foreground shadow-xs'
+                                    : 'text-foreground/90 hover:border-border/70 hover:bg-background/80 border-transparent',
                                 )}
-                              >
-                                {formatTargetDateLabel(day.target_date)}
-                              </span>
-                            </button>
-                            {editable ? (
-                              <span
-                                role='button'
-                                tabIndex={0}
-                                aria-label={`${noteVisual.label} for day ${day.day_number}`}
-                                className={cn(
-                                  'absolute top-1/2 right-2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-md border transition-colors focus-visible:ring-2 focus-visible:outline-hidden',
-                                  isSelected
-                                    ? 'border-primary/30 bg-primary/10 text-primary hover:bg-primary/15'
-                                    : noteVisual.toneClass,
-                                  dayNotesMutation.isPending
-                                    ? 'pointer-events-none opacity-60'
-                                    : '',
-                                )}
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  if (dayNotesMutation.isPending) return;
-                                  openDayNotesModal(day.id);
-                                }}
-                                onKeyDown={(event) => {
-                                  if (
-                                    event.key === 'Enter' ||
-                                    event.key === ' '
-                                  ) {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    if (dayNotesMutation.isPending) return;
-                                    openDayNotesModal(day.id);
-                                  }
+                                onClick={() => {
+                                  setSelectedDayId(day.id);
+                                  setActiveSection('nutrition');
                                 }}
                               >
-                                <NoteIcon className='size-3.5' />
-                              </span>
-                            ) : null}
-                          </li>
-                        );
-                      })}
-                    </ul>
+                                <span className='text-[12.5px] font-semibold tracking-tight'>
+                                  Day {day.day_number}
+                                </span>
+                                <span
+                                  className={cn(
+                                    'mt-0.5 block text-[11px] font-medium',
+                                    isSelected
+                                      ? 'text-muted-foreground'
+                                      : 'text-muted-foreground/90',
+                                  )}
+                                >
+                                  {formatTargetDateLabel(day.target_date)}
+                                </span>
+                              </button>
+                              <div className='absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1'>
+                                {hasDayValidationIssue ? (
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span
+                                        role='img'
+                                        aria-label={`Validation issue on day ${day.day_number}`}
+                                        className={cn(
+                                          'inline-flex size-7 items-center justify-center rounded-md border transition-colors',
+                                          isSelected
+                                            ? 'border-amber-300/70 bg-amber-100 text-amber-700'
+                                            : 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100',
+                                        )}
+                                      >
+                                        <AlertTriangleIcon className='size-3.5' />
+                                      </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent
+                                      surface
+                                      side='top'
+                                      sideOffset={8}
+                                      className='max-w-64 text-[11.5px] font-medium'
+                                    >
+                                      {dayValidationMessage}
+                                    </TooltipContent>
+                                  </Tooltip>
+                                ) : null}
+
+                                {editable ? (
+                                  <span
+                                    role='button'
+                                    tabIndex={0}
+                                    aria-label={`${noteVisual.label} for day ${day.day_number}`}
+                                    className={cn(
+                                      'inline-flex size-7 items-center justify-center rounded-md border transition-colors focus-visible:ring-2 focus-visible:outline-hidden',
+                                      isSelected
+                                        ? 'border-primary/30 bg-primary/10 text-primary hover:bg-primary/15'
+                                        : noteVisual.toneClass,
+                                      dayNotesMutation.isPending
+                                        ? 'pointer-events-none opacity-60'
+                                        : '',
+                                    )}
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      if (dayNotesMutation.isPending) return;
+                                      openDayNotesModal(day.id);
+                                    }}
+                                    onKeyDown={(event) => {
+                                      if (
+                                        event.key === 'Enter' ||
+                                        event.key === ' '
+                                      ) {
+                                        event.preventDefault();
+                                        event.stopPropagation();
+                                        if (dayNotesMutation.isPending) return;
+                                        openDayNotesModal(day.id);
+                                      }
+                                    }}
+                                  >
+                                    <NoteIcon className='size-3.5' />
+                                  </span>
+                                ) : null}
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </TooltipProvider>
                   )}
                 </div>
               </div>
@@ -1982,7 +2096,6 @@ export default function CarePlanBuilder({
                                 <div className='grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto] sm:items-start'>
                                   <TextField
                                     label='Task'
-                               
                                     placeholder={
                                       activeSection === 'nutrition'
                                         ? 'Enter a task name (e.g. Breakfast)'
@@ -2220,7 +2333,7 @@ export default function CarePlanBuilder({
                                 ) : (
                                   <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
                                     <TextField
-                                      label='Target'                          
+                                      label='Target'
                                       type='number'
                                       placeholder='Enter a target value'
                                       value={String(item.target_value ?? '')}
@@ -2386,7 +2499,7 @@ export default function CarePlanBuilder({
         open={finishModalOpen}
         isValidating={validateMutation.isPending}
         planReference={builder?.code?.trim() || `#${carePlanId}`}
-        validationResult={finishValidationResult}
+        hasValidationResult={hasFinishValidationResult}
         onOpenChange={setFinishModalOpen}
         onValidate={() => validateMutation.mutate()}
         onFinalize={() => void handleFinalizeFromModal()}
