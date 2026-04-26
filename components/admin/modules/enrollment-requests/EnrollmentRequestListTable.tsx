@@ -789,6 +789,12 @@ export default function EnrollmentRequestListTable() {
             );
             return;
           }
+          if (note.length > 2000) {
+            setCancelRequestNoteError(
+              'Cancellation note must be 2000 characters or less.',
+            );
+            return;
+          }
           mutateCancelRequest(
             {
               id: cancelRequest.id,

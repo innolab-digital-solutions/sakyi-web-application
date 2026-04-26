@@ -519,7 +519,7 @@ export default function EnrollmentRecordListTable() {
                     </TableCell>
                   ) : null}
                   {showColumn('program') ? (
-                    <TableCell className='min-w-62'>
+                    <TableCell className='min-w-64'>
                       <div className='flex items-start gap-3'>
                         <ProgramThumbnail
                           thumbnailUrl={row.program?.thumbnail_url}

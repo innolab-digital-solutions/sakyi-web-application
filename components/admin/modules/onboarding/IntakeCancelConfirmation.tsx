@@ -75,6 +75,11 @@ export default function IntakeCancelConfirmation({
             placeholder='Please provide a reason for cancellation'
             className='text-[13px]!'
           />
+          <div className='flex items-center justify-end'>
+            <p className='text-muted-foreground text-[11px] font-medium'>
+              {cancellationNote.length}/2000
+            </p>
+          </div>
         </div>
 
         <AlertDialogFooter className='bg-muted/30 border-border gap-2 border-t p-4 sm:justify-end'>

@@ -545,6 +545,12 @@ export default function EnrollmentRecordRowActions({
       setCancellationNoteError('The cancellation note field is required.');
       return;
     }
+    if (trimmed.length > 2000) {
+      setCancellationNoteError(
+        'Cancellation note must be 2000 characters or less.',
+      );
+      return;
+    }
     setCancellationNoteError(undefined);
     mutateCancel(trimmed);
   };

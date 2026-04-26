@@ -1,6 +1,6 @@
 'use client';
 
-import { CircleQuestionMark, PlusCircleIcon } from 'lucide-react';
+import { CircleQuestionMark, FilePlus2Icon } from 'lucide-react';
 
 import {
   AlertDialog,
@@ -66,7 +66,7 @@ export default function EnrollmentCreateCarePlanConfirmation({
               onConfirm();
             }}
           >
-            <PlusCircleIcon className='size-3.5' aria-hidden />
+            <FilePlus2Icon className='size-3.5' aria-hidden />
             {isSubmitting ? 'Creating…' : 'Create draft'}
           </AlertDialogAction>
         </AlertDialogFooter>
