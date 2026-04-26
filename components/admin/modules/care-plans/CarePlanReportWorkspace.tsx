@@ -16,6 +16,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
 
+import OperationalLogMediaPreviewModal from '@/components/admin/modules/care-plans/OperationalLogMediaPreviewModal';
 import SaveCarePlanDataConfirmation from '@/components/admin/modules/care-plans/SaveCarePlanDataConfirmation';
 import OperationalLogWorkspaceContextBar from '@/components/admin/modules/operational-logs/OperationalLogWorkspaceContextBar';
 import TextAreaField from '@/components/shared/form/TextAreaField';
@@ -28,12 +29,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -1395,24 +1390,12 @@ export default function CarePlanReportWorkspace({
         onConfirm={confirmSaveCarePlanData}
       />
 
-      <Dialog open={!!lightboxUrl} onOpenChange={() => setLightboxUrl(null)}>
-        <DialogContent className='max-w-3xl'>
-          <DialogHeader>
-            <DialogTitle>Log media</DialogTitle>
-          </DialogHeader>
-          {lightboxUrl ? (
-            <div className='relative aspect-video w-full overflow-hidden rounded-md border'>
-              <Image
-                src={lightboxUrl}
-                alt=''
-                fill
-                className='object-contain'
-                unoptimized
-              />
-            </div>
-          ) : null}
-        </DialogContent>
-      </Dialog>
+      <OperationalLogMediaPreviewModal
+        imageUrl={lightboxUrl}
+        onOpenChange={(open) => {
+          if (!open) setLightboxUrl(null);
+        }}
+      />
     </div>
   );
 }
