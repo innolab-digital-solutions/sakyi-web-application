@@ -2,23 +2,19 @@
 
 import { format, parseISO } from 'date-fns';
 import {
-  ActivityIcon,
-  ArrowRightIcon,
+  AlertTriangleIcon,
   CheckCircle2Icon,
   ClockIcon,
-  FileTextIcon,
-  XCircleIcon,
 } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import CarePlanLogFilters from '@/components/admin/modules/care-plan-logs/CarePlanLogFilters';
+import CarePlanLogRowActions from '@/components/admin/modules/care-plan-logs/CarePlanLogRowActions';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -30,7 +26,6 @@ import {
 import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
-import { ROUTES } from '@/config/routes';
 import type { CarePlanLogSummary } from '@/domains/care-plans/services';
 import { useTable } from '@/lib/table';
 import { getInitials } from '@/lib/utils/string';
@@ -49,7 +44,6 @@ type CarePlanLogColumnKey =
   | 'careWindow'
   | 'lastLoggedAt'
   | 'progress'
-  | 'recency'
   | 'careCycle'
   | 'lastUpdatedAt'
   | 'actions';
@@ -65,9 +59,9 @@ const DEFAULT_VISIBLE_COLUMN_KEYS: readonly CarePlanLogColumnKey[] = [
   'Reference',
   'client',
   'careWindow',
-  'lastLoggedAt',
+  'status',
   'progress',
-  'recency',
+  'lastLoggedAt',
   'actions',
 ];
 
@@ -97,34 +91,28 @@ const CARE_PLAN_LOG_COLUMNS: readonly CarePlanLogColumnDefinition[] = [
     skeletonWidth: 'w-40',
   },
   {
-    key: 'status',
-    label: 'Status',
-    headerClassName: '',
-    skeletonWidth: 'w-24',
-  },
-  {
     key: 'careWindow',
     label: 'Care Window',
     headerClassName: '',
     skeletonWidth: 'w-40',
   },
   {
+    key: 'progress',
+    label: 'Log Progress',
+    headerClassName: '',
+    skeletonWidth: 'w-24',
+  },
+  {
+    key: 'status',
+    label: 'Status',
+    headerClassName: '',
+    skeletonWidth: 'w-24',
+  },
+  {
     key: 'lastLoggedAt',
     label: 'Last Logged At',
     headerClassName: '',
     skeletonWidth: 'w-36',
-  },
-  {
-    key: 'progress',
-    label: 'Progress',
-    headerClassName: '',
-    skeletonWidth: 'w-24',
-  },
-  {
-    key: 'recency',
-    label: 'Recency',
-    headerClassName: '',
-    skeletonWidth: 'w-24',
   },
   {
     key: 'careCycle',
@@ -158,7 +146,7 @@ function formatDate(iso: string | null | undefined): string | null {
 function formatDateTime(iso: string | null | undefined): string | null {
   if (!iso?.trim()) return null;
   try {
-    return format(parseISO(iso.trim()), 'dd-MMM-yyyy HH:mm');
+    return format(parseISO(iso.trim()), 'dd-MMM-yyyy');
   } catch {
     return iso.trim();
   }
@@ -203,69 +191,17 @@ function ProgramThumbnail({
   );
 }
 
-function normalizeStatus(
-  value: string | null | undefined,
-): 'draft' | 'scheduled' | 'active' | 'completed' | 'cancelled' | null {
-  const status = (value ?? '').trim().toLowerCase();
-  if (
-    status === 'draft' ||
-    status === 'scheduled' ||
-    status === 'active' ||
-    status === 'completed' ||
-    status === 'cancelled'
-  ) {
-    return status;
-  }
-  return null;
-}
-
-const STATUS_LABEL = {
-  draft: 'Draft',
-  scheduled: 'Scheduled',
-  active: 'Active',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
-} as const;
-
-const STATUS_STYLES = {
-  draft: {
-    icon: FileTextIcon,
-    className:
-      'border-amber-300/80 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200',
-  },
-  scheduled: {
-    icon: ClockIcon,
-    className:
-      'border-sky-300/80 bg-sky-50 text-sky-800 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-200',
-  },
-  active: {
-    icon: ActivityIcon,
-    className:
-      'border-cyan-300/80 bg-cyan-50 text-cyan-800 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-200',
-  },
-  completed: {
-    icon: CheckCircle2Icon,
-    className:
-      'border-emerald-300/80 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200',
-  },
-  cancelled: {
-    icon: XCircleIcon,
-    className:
-      'border-rose-300/80 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200',
-  },
-} as const;
-
-type CarePlanStatus = keyof typeof STATUS_STYLES;
-
-function recencyTone(summary: CarePlanLogSummary): {
+function statusTone(summary: CarePlanLogSummary): {
   label: string;
+  icon: typeof CheckCircle2Icon;
   className: string;
 } {
   const recent = summary.completion_signal?.is_logging_recent === true;
-  const progress = summary.completion_signal?.window_progress_percentage ?? 0;
+  const progress = summary.completion_signal?.logging_progress_percentage ?? 0;
   if (recent) {
     return {
       label: 'On Track',
+      icon: CheckCircle2Icon,
       className:
         'border-emerald-300/80 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200',
     };
@@ -273,12 +209,14 @@ function recencyTone(summary: CarePlanLogSummary): {
   if (progress >= 60) {
     return {
       label: 'Overdue',
+      icon: ClockIcon,
       className:
         'border-rose-300/80 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200',
     };
   }
   return {
-    label: 'Needs Follow-Up',
+    label: 'Follow-Up',
+    icon: AlertTriangleIcon,
     className:
       'border-amber-300/80 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200',
   };
@@ -305,7 +243,8 @@ export default function CarePlanLogListTable() {
           typeof value === 'string' &&
           allowed.has(value as CarePlanLogColumnKey),
       );
-      return next.length > 0 ? next : fallback;
+      const uniqueNext = Array.from(new Set(next));
+      return uniqueNext.length > 0 ? uniqueNext : fallback;
     } catch {
       return fallback;
     }
@@ -432,13 +371,13 @@ export default function CarePlanLogListTable() {
               const lastLoggedAt = formatDateTime(row.last_logged_at);
               const lastUpdatedAt = formatDateTime(row.timestamps?.updated_at);
               const progress =
-                row.completion_signal?.window_progress_percentage;
-              const tone = recencyTone(row);
-              const status = normalizeStatus(
-                row.status,
-              ) as CarePlanStatus | null;
-              const statusStyle = status ? STATUS_STYLES[status] : null;
-              const StatusIcon = statusStyle?.icon;
+                row.completion_signal?.logging_progress_percentage;
+              const normalizedProgress = Math.min(
+                Math.max(progress ?? 0, 0),
+                100,
+              );
+              const tone = statusTone(row);
+              const ToneIcon = tone.icon;
 
               const clientName = row.enrollment?.client?.name?.trim();
               const clientCode = row.enrollment?.client?.client_code?.trim();
@@ -519,23 +458,6 @@ export default function CarePlanLogListTable() {
                     </TableCell>
                   ) : null}
 
-                  {showColumn('status') ? (
-                    <TableCell>
-                      {status && statusStyle && StatusIcon ? (
-                        <span
-                          className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
-                        >
-                          <StatusIcon className='size-3.5 shrink-0' />
-                          {STATUS_LABEL[status]}
-                        </span>
-                      ) : (
-                        <span className='border-border bg-muted/60 inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold'>
-                          {(row.status ?? 'unknown').trim() || '—'}
-                        </span>
-                      )}
-                    </TableCell>
-                  ) : null}
-
                   {showColumn('careWindow') ? (
                     <TableCell className='min-w-60'>
                       {startDate ?? '—'} <span className='mx-1'>&rarr;</span>{' '}
@@ -543,89 +465,76 @@ export default function CarePlanLogListTable() {
                     </TableCell>
                   ) : null}
 
-                  {showColumn('lastLoggedAt') ? (
-                    <TableCell>
-                      {lastLoggedAt ? (
-                        <span className='text-sm font-medium'>
-                          {lastLoggedAt}
-                        </span>
-                      ) : (
-                        <TableCellEmpty label='No logs yet' />
-                      )}
-                    </TableCell>
-                  ) : null}
-
                   {showColumn('progress') ? (
                     <TableCell>
-                      <div className='min-w-28 space-y-1'>
-                        <div className='bg-muted h-2 w-full overflow-hidden rounded-full'>
-                          <div
-                            className='bg-primary h-full rounded-full'
-                            style={{
-                              width: `${Math.min(
-                                Math.max(progress ?? 0, 0),
-                                100,
-                              )}%`,
-                            }}
-                          />
+                      <div className='inline-flex items-center justify-center'>
+                        <div className='relative inline-flex size-12 items-center justify-center'>
+                          <svg
+                            className='size-12 -rotate-90'
+                            viewBox='0 0 36 36'
+                            aria-hidden
+                          >
+                            <circle
+                              cx='18'
+                              cy='18'
+                              r='14'
+                              fill='none'
+                              stroke='#E9EEF5'
+                              strokeWidth='4'
+                            />
+                            <circle
+                              cx='18'
+                              cy='18'
+                              r='14'
+                              fill='none'
+                              stroke='#00A9E0'
+                              strokeWidth='4'
+                              strokeLinecap={
+                                normalizedProgress > 0 ? 'round' : 'butt'
+                              }
+                              strokeDasharray={`${(normalizedProgress / 100) * 87.9646} 87.9646`}
+                            />
+                          </svg>
+                          <span className='text-primary absolute inset-0 inline-flex items-center justify-center text-[10px] font-semibold'>
+                            {Math.round(normalizedProgress)}%
+                          </span>
                         </div>
-                        <p className='text-muted-foreground text-xs font-semibold'>
-                          {progress ?? 0}%
-                        </p>
                       </div>
                     </TableCell>
                   ) : null}
 
-                  {showColumn('recency') ? (
+                  {showColumn('status') ? (
                     <TableCell>
                       <span
-                        className={`inline-flex rounded-md border px-2.5 py-1 text-xs font-semibold ${tone.className}`}
+                        className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${tone.className}`}
                       >
+                        <ToneIcon className='size-3.5 shrink-0' />
                         {tone.label}
                       </span>
                     </TableCell>
                   ) : null}
 
+                  {showColumn('lastLoggedAt') ? (
+                    <TableCell>
+                      {lastLoggedAt ?? <TableCellEmpty label='No logs yet' />}
+                    </TableCell>
+                  ) : null}
+
                   {showColumn('careCycle') ? (
                     <TableCell>
-                      {row.cycle_number != null ? (
-                        <span className='text-[13px] font-semibold'>{`Cycle ${row.cycle_number}`}</span>
-                      ) : (
-                        <TableCellEmpty label='—' />
-                      )}
+                      {row.cycle_number != null ? `Cycle ${row.cycle_number}` : <TableCellEmpty label='—' />}
                     </TableCell>
                   ) : null}
 
                   {showColumn('lastUpdatedAt') ? (
                     <TableCell>
-                      {lastUpdatedAt ? (
-                        <span className='text-sm font-medium'>
-                          {lastUpdatedAt}
-                        </span>
-                      ) : (
-                        <TableCellEmpty label='No update date' />
-                      )}
+                      {lastUpdatedAt ?? <TableCellEmpty label='No update date' />}
                     </TableCell>
                   ) : null}
 
                   {showColumn('actions') ? (
                     <TableCell>
-                      <div className='flex justify-end'>
-                        <Button
-                          asChild
-                          variant='outline'
-                          className='bg-background hover:bg-muted h-9 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
-                        >
-                          <Link
-                            href={ROUTES.ADMIN.MODULES.CARE_PLAN_LOGS.DETAIL(
-                              String(row.id),
-                            )}
-                          >
-                            View Logs
-                            <ArrowRightIcon className='size-3.5' />
-                          </Link>
-                        </Button>
-                      </div>
+                      <CarePlanLogRowActions row={row} />
                     </TableCell>
                   ) : null}
                 </TableRow>

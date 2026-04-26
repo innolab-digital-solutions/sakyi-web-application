@@ -8,6 +8,8 @@ export type CarePlanLogCompletionSignal = {
   window_days_total: number | null;
   window_elapsed_days: number | null;
   window_progress_percentage: number | null;
+  logged_days_count: number;
+  logging_progress_percentage: number | null;
   is_logging_recent: boolean | null;
 };
 
