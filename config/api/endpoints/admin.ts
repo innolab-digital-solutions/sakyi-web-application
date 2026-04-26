@@ -136,6 +136,7 @@ export const ADMIN_ENDPOINTS = {
     CARE_PLAN_LOGS: {
       LIST: `${BASE}/care-plan-logs`,
       DETAIL: (id: string) => `${BASE}/care-plan-logs/${id}`,
+      ENTRIES: (id: string) => `${BASE}/care-plan-logs/${id}/entries`,
     },
     USERS: {
       LIST: `${BASE}/users`,

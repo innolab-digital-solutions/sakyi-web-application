@@ -1,4 +1,10 @@
 export type {
+  CarePlanLogEntry,
+  CarePlanLogSection,
+  CarePlanLogSummary,
+  ListCarePlanLogEntriesParams,
+} from '../types/care-plan-log';
+export type {
   CarePlanReportRun,
   CarePlanReportWorkspace,
   ReportRunMetric,
@@ -18,10 +24,13 @@ export type {
 } from '../types/admin';
 export type { GetReportWorkspaceParams } from './admin.service';
 export {
+  getCarePlanLogSummary,
   getCarePlanBuilderById,
   getCarePlanById,
   getCarePlanReportRun,
   getCarePlanReportWorkspace,
+  listCarePlanLogEntries,
+  listCarePlanLogs,
   listCarePlanReportRuns,
   patchCarePlanBasics,
   patchCarePlanDayNotes,

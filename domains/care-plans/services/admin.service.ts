@@ -3,6 +3,11 @@ import type { ApiResponse } from '@/lib/api/client';
 import { http } from '@/lib/api/client';
 
 import type {
+  CarePlanLogEntry,
+  CarePlanLogSummary,
+  ListCarePlanLogEntriesParams,
+} from '../types/care-plan-log';
+import type {
   CreateCarePlanReportRunPayload,
   CarePlanReportRun,
   CarePlanReportWorkspace,
@@ -178,6 +183,53 @@ export async function postCarePlanReportRunPublish(
       String(reportRunId),
     ),
     body ?? {},
+    { throwOnError: false },
+  );
+}
+
+function buildCarePlanLogEntriesQuery(
+  params: ListCarePlanLogEntriesParams = {},
+): string {
+  const search = new URLSearchParams();
+
+  if (params.section) search.set('section', params.section);
+  if (typeof params.is_completed === 'boolean') {
+    search.set('is_completed', params.is_completed ? '1' : '0');
+  }
+  if (params.date_from?.trim()) search.set('date_from', params.date_from.trim());
+  if (params.date_to?.trim()) search.set('date_to', params.date_to.trim());
+  if (params.search?.trim()) search.set('search', params.search.trim());
+  if (typeof params.page === 'number') search.set('page', String(params.page));
+  if (typeof params.per_page === 'number') {
+    search.set('per_page', String(params.per_page));
+  }
+
+  const queryString = search.toString();
+  return queryString ? `?${queryString}` : '';
+}
+
+export async function listCarePlanLogs(): Promise<ApiResponse<CarePlanLogSummary[]>> {
+  return http.get<CarePlanLogSummary[]>(ENDPOINTS.ADMIN.MODULES.CARE_PLAN_LOGS.LIST, {
+    throwOnError: false,
+  });
+}
+
+export async function getCarePlanLogSummary(
+  id: number,
+): Promise<ApiResponse<CarePlanLogSummary>> {
+  return http.get<CarePlanLogSummary>(
+    ENDPOINTS.ADMIN.MODULES.CARE_PLAN_LOGS.DETAIL(String(id)),
+    { throwOnError: false },
+  );
+}
+
+export async function listCarePlanLogEntries(
+  carePlanId: number,
+  params: ListCarePlanLogEntriesParams = {},
+): Promise<ApiResponse<CarePlanLogEntry[]>> {
+  return http.get<CarePlanLogEntry[]>(
+    ENDPOINTS.ADMIN.MODULES.CARE_PLAN_LOGS.ENTRIES(String(carePlanId)) +
+      buildCarePlanLogEntriesQuery(params),
     { throwOnError: false },
   );
 }

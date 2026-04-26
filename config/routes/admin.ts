@@ -99,6 +99,10 @@ export const ADMIN_ROUTES = {
       REPORT: (id: string) => `${BASE}/care-plans/${id}/report`,
       DETAIL: (id: string) => `${BASE}/care-plans/${id}`,
     },
+    CARE_PLAN_LOGS: {
+      LIST: `${BASE}/care-plan-logs`,
+      DETAIL: (id: string) => `${BASE}/care-plan-logs/${id}`,
+    },
     USERS: {
       LIST: `${BASE}/users`,
       CREATE: `${BASE}/users/create`,

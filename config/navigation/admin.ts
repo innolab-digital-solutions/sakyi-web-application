@@ -80,7 +80,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
       },
       {
         name: 'Daily Task Logs',
-        path: '#',
+        path: ADMIN_ROUTES.MODULES.CARE_PLAN_LOGS.LIST,
       },
       {
         name: 'Operational Logs',
