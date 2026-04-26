@@ -135,6 +135,9 @@ export const ADMIN_ENDPOINTS = {
       /** Preferred: create / update internal metrics (same body as legacy `report-runs` store). */
       OPERATIONAL_LOGS: (carePlanId: string) =>
         `${BASE}/care-plans/${carePlanId}/operational-logs`,
+      /** Create a `draft` row (period defaults to the care plan window; optional sub-range in the body). */
+      OPERATIONAL_LOG_DRAFT: (carePlanId: string) =>
+        `${BASE}/care-plans/${carePlanId}/operational-logs/draft`,
       OPERATIONAL_LOG: (carePlanId: string, operationalLogId: string) =>
         `${BASE}/care-plans/${carePlanId}/operational-logs/${operationalLogId}`,
       OPERATIONAL_LOG_SUBMIT_FOR_REVIEW: (

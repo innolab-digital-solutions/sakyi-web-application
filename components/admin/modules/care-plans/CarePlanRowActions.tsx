@@ -21,6 +21,8 @@ import CarePlanActivateConfirmation from '@/components/admin/modules/care-plans/
 import CarePlanActivateEnrollmentPrerequisiteDialog from '@/components/admin/modules/care-plans/CarePlanActivateEnrollmentPrerequisiteDialog';
 import CarePlanCancelConfirmation from '@/components/admin/modules/care-plans/CarePlanCancelConfirmation';
 import CarePlanRevisionConfirmation from '@/components/admin/modules/care-plans/CarePlanRevisionConfirmation';
+import OperationalLogDraftConfirmation from '@/components/admin/modules/operational-logs/OperationalLogDraftConfirmation';
+import { buildOperationalLogWorkspaceHref } from '@/components/admin/modules/operational-logs/reportRunListHelpers';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -35,6 +37,7 @@ import { ROUTES } from '@/config/routes';
 import {
   postCarePlanActivate,
   postCarePlanCancel,
+  postCarePlanOperationalLogDraft,
   postCarePlanRevision,
 } from '@/domains/care-plans/services';
 import type {
@@ -111,10 +114,10 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
   const [activateOpen, setActivateOpen] = React.useState(false);
   const [enrollmentPrerequisiteOpen, setEnrollmentPrerequisiteOpen] =
     React.useState(false);
-  const [activePlanExistsOpen, setActivePlanExistsOpen] =
-    React.useState(false);
+  const [activePlanExistsOpen, setActivePlanExistsOpen] = React.useState(false);
   const [revisionOpen, setRevisionOpen] = React.useState(false);
   const [cancelOpen, setCancelOpen] = React.useState(false);
+  const [opLogDraftOpen, setOpLogDraftOpen] = React.useState(false);
   const [cancellationNote, setCancellationNote] = React.useState('');
   const [cancelNoteError, setCancelNoteError] = React.useState<
     string | undefined
@@ -132,10 +135,8 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
   const canActivate = status === 'draft';
   const canCancel =
     status === 'draft' || status === 'scheduled' || status === 'active';
-  const canCreateRevision =
-    status === 'active' || status === 'cancelled';
-  const canOpenOperationalLogs =
-    status === 'active' || status === 'completed';
+  const canCreateRevision = status === 'active' || status === 'cancelled';
+  const canOpenOperationalLogs = status === 'active' || status === 'completed';
   const hasMenuAfterCopy =
     canEdit ||
     canActivate ||
@@ -247,6 +248,49 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
     })();
   };
 
+  const embeddedOpLog = row.operational_log;
+  const hasExistingOperationalLog =
+    embeddedOpLog != null && Number.isFinite(embeddedOpLog.id);
+
+  const { mutate: createOpLogDraft, isPending: opLogDraftPending } =
+    useMutation({
+      mutationFn: async () => {
+        const res = await postCarePlanOperationalLogDraft(row.id, {});
+        if (res.status === 'error') {
+          throw new Error(
+            res.message ?? 'Could not create draft operational log.',
+          );
+        }
+        if (res.data?.id == null) {
+          throw new Error('Invalid response from server.');
+        }
+        return res.data;
+      },
+      onSuccess: (data) => {
+        setOpLogDraftOpen(false);
+        const href = buildOperationalLogWorkspaceHref(row.id, data.id);
+        router.push(href);
+        void queryClient.invalidateQueries({ queryKey: [...LIST_QUERY_KEY] });
+        toast.success('The operational log has been created successfully.');
+      },
+      onError: (e: Error) => {
+        toast.error(e.message);
+      },
+    });
+
+  const goToExistingOperationalLog = React.useCallback(() => {
+    if (!hasExistingOperationalLog || embeddedOpLog == null) return;
+    router.push(buildOperationalLogWorkspaceHref(row.id, embeddedOpLog.id));
+  }, [embeddedOpLog, hasExistingOperationalLog, row.id, router]);
+
+  const onOperationalLogMenuAction = () => {
+    if (hasExistingOperationalLog) {
+      goToExistingOperationalLog();
+      return;
+    }
+    setOpLogDraftOpen(true);
+  };
+
   return (
     <>
       <div className='flex items-center justify-end gap-1.5'>
@@ -293,16 +337,14 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
               <>
                 <DropdownMenuSeparator />
                 {canOpenOperationalLogs ? (
-                  <DropdownMenuItem asChild>
-                    <Link
-                      className='flex items-center gap-2 text-[13px]! font-medium'
-                      href={ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.WORKSPACE(
-                        String(row.id),
-                      )}
-                    >
-                      <NotebookPenIcon className='size-3.5 shrink-0' />
-                      Operational logs
-                    </Link>
+                  <DropdownMenuItem
+                    className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                    onClick={onOperationalLogMenuAction}
+                  >
+                    <NotebookPenIcon className='size-3.5 shrink-0' />
+                    {hasExistingOperationalLog
+                      ? 'Open operational log'
+                      : 'Create operational log'}
                   </DropdownMenuItem>
                 ) : null}
                 {canEdit ? (
@@ -416,6 +458,14 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
         }}
         noteError={cancelNoteError}
         onConfirmCancel={handleConfirmCancel}
+      />
+
+      <OperationalLogDraftConfirmation
+        open={opLogDraftOpen}
+        isSubmitting={opLogDraftPending}
+        carePlanReference={reference}
+        onOpenChange={setOpLogDraftOpen}
+        onConfirm={() => createOpLogDraft()}
       />
     </>
   );

@@ -11,7 +11,7 @@ import { ROUTES } from '@/config/routes';
 export const metadata: Metadata = {
   title: 'Operational Logs Workspace | SaKyi Admin',
   description:
-    'Review client logging evidence, author operational log outputs, and publish finalized care updates for an active or completed care plan.',
+    'For a care plan, move from log evidence and operational metrics to submit for review, care-team narrative, and publication of the client-facing period report.',
 };
 
 type OperationalLogsWorkspacePageProps = {
@@ -28,7 +28,7 @@ export default async function OperationalLogsWorkspacePage({
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Operational logs workspace'
-        description='Use client daily log evidence to prepare operational summaries, adjust computed metrics, add care-team narrative, and publish the finalized output.'
+        description='For this care plan, work from daily log evidence through operational metrics, submit for client review, complete the care-team narrative, and publish the client-visible period report when requirements are met.'
         actions={
           <div className='flex flex-wrap items-center gap-2'>
             <Button

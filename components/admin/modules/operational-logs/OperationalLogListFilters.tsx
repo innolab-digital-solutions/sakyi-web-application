@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-export type OperationalLogStatus = 'in_progress' | 'locked';
+export type OperationalLogStatus = 'draft' | 'in_progress' | 'locked';
 
 export type OperationalLogColumnOption = {
   key: string;

@@ -72,7 +72,7 @@ export type ReportRunFeedback = {
 export type OperationalLogSnapshot = {
   id: number;
   code: string | null;
-  status: 'in_progress' | 'locked';
+  status: 'draft' | 'in_progress' | 'locked';
   is_editable: boolean;
   adherence_percentage: number | null;
   metrics: ReportRunMetric[];
@@ -135,9 +135,21 @@ export type ListCarePlanReportRunsData = {
   report_runs?: CarePlanReportRunSummary[];
 };
 
+/** `POST .../operational-logs/draft` — body usually empty; period defaults to the care plan’s full range. */
+export type CreateOperationalLogDraftPayload = {
+  period_starts_on?: string;
+  period_ends_on?: string;
+};
+
+/**
+ * `POST .../operational-logs` (with metrics) — creates **`in_progress`**, not a draft.
+ * Use {@link CreateOperationalLogDraftPayload} and `postCarePlanOperationalLogDraft` for a draft.
+ */
 export type CreateOperationalLogPayload = {
-  period_starts_on: string;
-  period_ends_on: string;
+  /** Omitted: server defaults the period to the care plan’s `starts_on` / `ends_on`. */
+  period_starts_on?: string;
+  period_ends_on?: string;
+  /** Required; at least one item. */
   metrics: ReportRunMetric[];
   adherence_percentage?: number | null;
 };

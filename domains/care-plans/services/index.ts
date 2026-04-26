@@ -1,3 +1,4 @@
+export type { CarePlanEmbeddedOperationalLog } from '../types/operational-log-embed';
 export type {
   CarePlanLogEntry,
   CarePlanLogSection,
@@ -9,6 +10,7 @@ export type { ClientReportListRow } from '../types/client-report-list';
 export type {
   CarePlanReportRun,
   CarePlanReportWorkspace,
+  CreateOperationalLogDraftPayload,
   OperationalLogSnapshot,
   ReportRunMetric,
 } from '../types/care-plan-report';
@@ -42,6 +44,7 @@ export {
   postCarePlanCancel,
   postCarePlanGenerateDays,
   postCarePlanOperationalLog,
+  postCarePlanOperationalLogDraft,
   postCarePlanReportRun,
   postCarePlanReportRunPublish,
   postOperationalLogSubmitForReview,

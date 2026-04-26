@@ -109,7 +109,7 @@ export default function PeriodReportRowActions({ row }: Props) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end' className='min-w-52'>
           <DropdownMenuLabel className='text-foreground/70 space-y-1 px-2 py-1.5 text-[11px]! font-bold tracking-wide uppercase'>
-            More options
+            More Options
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -128,15 +128,20 @@ export default function PeriodReportRowActions({ row }: Props) {
             Copy care plan code
           </DropdownMenuItem>
           {carePlanId != null ? (
-            <DropdownMenuItem asChild>
-              <Link
-                className='flex items-center gap-2 text-[13px]! font-medium'
-                href={ROUTES.ADMIN.MODULES.CARE_PLANS.DETAIL(String(carePlanId))}
-              >
-                <EyeIcon className='size-3.5 shrink-0' />
-                View care plan
-              </Link>
-            </DropdownMenuItem>
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link
+                  className='flex items-center gap-2 text-[13px]! font-medium'
+                  href={ROUTES.ADMIN.MODULES.CARE_PLANS.DETAIL(
+                    String(carePlanId),
+                  )}
+                >
+                  <EyeIcon className='size-3.5 shrink-0' />
+                  View care plan
+                </Link>
+              </DropdownMenuItem>
+            </>
           ) : null}
         </DropdownMenuContent>
       </DropdownMenu>

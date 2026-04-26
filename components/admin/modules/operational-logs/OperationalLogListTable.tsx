@@ -114,12 +114,13 @@ const COLUMNS: readonly ColumnDef[] = [
   },
 ] as const;
 
-const OPERATIONAL_LOG_STATUSES = ['in_progress', 'locked'] as const;
+const OPERATIONAL_LOG_STATUSES = ['draft', 'in_progress', 'locked'] as const;
 
 const OPERATIONAL_LOG_STATUS_LABELS: Record<
   (typeof OPERATIONAL_LOG_STATUSES)[number],
   string
 > = {
+  draft: 'Draft',
   in_progress: 'In progress',
   locked: 'Locked',
 };
@@ -169,9 +170,9 @@ export default function OperationalLogListTable() {
     },
   });
 
-  const statusFilter = useMemo((): 'all' | 'in_progress' | 'locked' => {
+  const statusFilter = useMemo((): 'all' | 'draft' | 'in_progress' | 'locked' => {
     const s = (controls.params.values.status ?? '').trim().toLowerCase();
-    if (s === 'in_progress' || s === 'locked') return s;
+    if (s === 'draft' || s === 'in_progress' || s === 'locked') return s;
     return 'all';
   }, [controls.params.values.status]);
 
@@ -224,7 +225,7 @@ export default function OperationalLogListTable() {
   return (
     <TableListShell
       controls={controls}
-      searchPlaceholder='Search op logs, care plans, clients…'
+      searchPlaceholder='Search ...'
       filters={
         <OperationalLogListFilters
           statusFilter={statusFilter}

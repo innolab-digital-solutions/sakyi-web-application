@@ -1,5 +1,7 @@
 import { AdminEnrollment } from '@/domains/enrollment-records/types/admin';
 
+import type { CarePlanEmbeddedOperationalLog } from './operational-log-embed';
+
 export const CARE_PLAN_STATUSES = [
   'draft',
   'scheduled',
@@ -23,6 +25,8 @@ export interface AdminCarePlan {
     days?: number | null;
   };
   enrollment?: AdminEnrollment | null;
+  /** Present when the API loads the relation; at most one per care plan. */
+  operational_log?: CarePlanEmbeddedOperationalLog | null;
   timestamps?: {
     created_at: string | null;
     updated_at: string | null;

@@ -105,6 +105,7 @@ export const ADMIN_ROUTES = {
     },
     OPERATIONAL_LOGS: {
       LIST: `${BASE}/operational-logs`,
+      /** Care-plan report workspace (query: `operational_log_id`, `report_run_id`, or period). */
       WORKSPACE: (id: string) => `${BASE}/operational-logs/${id}/workspace`,
     },
     PERIOD_REPORTS: {

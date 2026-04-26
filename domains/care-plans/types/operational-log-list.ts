@@ -44,7 +44,7 @@ export type OperationalLogListTimestamps = {
 export type OperationalLogListRow = {
   id: number;
   code: string | null;
-  status: 'in_progress' | 'locked' | string;
+  status: 'draft' | 'in_progress' | 'locked' | string;
   is_editable: boolean;
   adherence_percentage: number | null;
   period: OperationalLogListPeriod;

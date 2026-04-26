@@ -1,3 +1,5 @@
+import type { CarePlanEmbeddedOperationalLog } from './operational-log-embed';
+
 export type CarePlanLogSection =
   | 'nutrition'
   | 'movement'
@@ -43,6 +45,8 @@ export type CarePlanLogSummary = {
   days_count: number | null;
   completion_signal: CarePlanLogCompletionSignal | null;
   enrollment: CarePlanLogEnrollmentContext;
+  /** Present when loaded; at most one per care plan. */
+  operational_log?: CarePlanEmbeddedOperationalLog | null;
   timestamps: {
     created_at: string | null;
     updated_at: string | null;

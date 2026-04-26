@@ -1,6 +1,7 @@
 import {
   ArchiveIcon,
   CheckCircle2Icon,
+  CircleDashed,
   FilePenLineIcon,
   LockIcon,
   SendIcon,
@@ -11,8 +12,8 @@ import { type ComponentType } from 'react';
 import { base } from '@/config/api/base';
 import { ROUTES } from '@/config/routes';
 
-/** Operational log list (`in_progress` | `locked`). */
-export type OperationalLogStatusKey = 'in_progress' | 'locked';
+/** Operational log list (`draft` | `in_progress` | `locked`). */
+export type OperationalLogStatusKey = 'draft' | 'in_progress' | 'locked';
 
 export const OPERATIONAL_LOG_STATUS_STYLES: Record<
   OperationalLogStatusKey,
@@ -22,6 +23,12 @@ export const OPERATIONAL_LOG_STATUS_STYLES: Record<
     label: string;
   }
 > = {
+  draft: {
+    icon: CircleDashed,
+    className:
+      'border-slate-300/80 bg-slate-50 text-slate-800 dark:border-slate-600 dark:bg-slate-900/50 dark:text-slate-200',
+    label: 'Draft',
+  },
   in_progress: {
     icon: FilePenLineIcon,
     className:
@@ -115,7 +122,7 @@ export function normalizeOperationalLogStatus(
   value: string | null | undefined,
 ): OperationalLogStatusKey | null {
   const s = (value ?? '').trim().toLowerCase();
-  if (s === 'in_progress' || s === 'locked') return s;
+  if (s === 'draft' || s === 'in_progress' || s === 'locked') return s;
   return null;
 }
 

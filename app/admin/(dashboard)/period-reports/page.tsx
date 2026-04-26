@@ -7,7 +7,7 @@ import PeriodReportListTable from '@/components/admin/modules/period-reports/Per
 export const metadata: Metadata = {
   title: 'Period Reports | SaKyi Admin',
   description:
-    'Review generated snapshots and published period outputs. Filter by status, see key dates, and open the same workspace to edit review-ready runs or view finalized reports.',
+    'Review client-facing period reports across care plans. Filter, compare dates, and open in-review, published, or archived reports to edit narrative or read finalized output.',
 };
 
 export default function PeriodReportsPage() {
@@ -15,7 +15,7 @@ export default function PeriodReportsPage() {
     <div className='space-y-8'>
       <PageHeader
         title='Period reports'
-        description='View generated and published period report runs. Filter by status, compare key dates, and open a run to review content or a finalized client-visible release.'
+        description='Review client-facing period reports across care plans. Filter and search, compare submitted and published dates, then open a report to work in-review narrative, read finalized output, or consult archived items.'
       />
       <Suspense
         fallback={

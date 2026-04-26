@@ -12,6 +12,7 @@ import type {
   CarePlanReportRunSummary,
   CarePlanReportWorkspace,
   CreateCarePlanReportRunPayload,
+  CreateOperationalLogDraftPayload,
   CreateOperationalLogPayload,
   ListCarePlanReportRunsData,
   OperationalLogSnapshot,
@@ -181,7 +182,23 @@ export async function getCarePlanReportRun(
 }
 
 /**
- * Creates an operational log (metrics) for a period. Preferred over legacy `postCarePlanReportRun`.
+ * Creates a **draft** operational log (`POST .../operational-logs/draft`). Period defaults to the
+ * care plan’s full date range unless `period_starts_on` / `period_ends_on` are sent together.
+ */
+export async function postCarePlanOperationalLogDraft(
+  carePlanId: number,
+  body?: CreateOperationalLogDraftPayload,
+): Promise<ApiResponse<OperationalLogSnapshot>> {
+  return http.post<OperationalLogSnapshot>(
+    ENDPOINTS.ADMIN.MODULES.CARE_PLANS.OPERATIONAL_LOG_DRAFT(String(carePlanId)),
+    body ?? {},
+    { throwOnError: false },
+  );
+}
+
+/**
+ * Creates an operational log **with metrics** (`in_progress`). For an empty worksheet first, use
+ * {@link postCarePlanOperationalLogDraft} then the workspace.
  */
 export async function postCarePlanOperationalLog(
   carePlanId: number,

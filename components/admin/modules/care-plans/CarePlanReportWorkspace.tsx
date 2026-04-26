@@ -1,7 +1,6 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { format, isValid, parse } from 'date-fns';
 import { CheckCircle2Icon, FileBarChartIcon, Loader2Icon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -48,6 +47,7 @@ import type {
   ReportRunFeedback,
   ReportRunMetric,
 } from '@/domains/care-plans/types/care-plan-report';
+import { defaultReportPeriodForCarePlan } from '@/lib/care-plans/defaultReportPeriodRange';
 import { cn } from '@/lib/utils/styles';
 
 const WORKSPACE_QUERY_KEY = 'care-plan-report-workspace' as const;
@@ -58,37 +58,6 @@ function resolveMediaUrl(raw: string | null | undefined): string | null {
   const v = raw.trim();
   if (v.startsWith('http')) return v;
   return `${base.domainEndpoint}${v}`;
-}
-
-function parseYmdLocal(s: string): Date | null {
-  const d = parse(s.trim(), 'yyyy-MM-dd', new Date());
-  return isValid(d) ? d : null;
-}
-
-function defaultPeriodForPlan(
-  startsOn: string | null,
-  endsOn: string | null,
-): { periodStartsOn: string; periodEndsOn: string } | null {
-  if (!startsOn?.trim() || !endsOn?.trim()) return null;
-  const start = parseYmdLocal(startsOn);
-  const end = parseYmdLocal(endsOn);
-  if (!start || !end) return null;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  let periodEnd = end.getTime() < today.getTime() ? end : today;
-  if (periodEnd.getTime() < start.getTime()) periodEnd = end;
-  const periodStart = new Date(periodEnd);
-  periodStart.setDate(periodStart.getDate() - 6);
-  if (periodStart.getTime() < start.getTime()) {
-    return {
-      periodStartsOn: format(start, 'yyyy-MM-dd'),
-      periodEndsOn: format(periodEnd, 'yyyy-MM-dd'),
-    };
-  }
-  return {
-    periodStartsOn: format(periodStart, 'yyyy-MM-dd'),
-    periodEndsOn: format(periodEnd, 'yyyy-MM-dd'),
-  };
 }
 
 function cloneMetrics(metrics: ReportRunMetric[]): ReportRunMetric[] {
@@ -212,7 +181,7 @@ export default function CarePlanReportWorkspace({
     ) {
       return;
     }
-    const d = defaultPeriodForPlan(
+    const d = defaultReportPeriodForCarePlan(
       carePlan.starts_on ?? null,
       carePlan.ends_on ?? null,
     );
@@ -332,7 +301,9 @@ export default function CarePlanReportWorkspace({
   const isArchived = clientReport?.status === 'archived';
   const canEditMetrics =
     operationalLog != null
-      ? operationalLog.status === 'in_progress' && operationalLog.is_editable
+      ? (operationalLog.status === 'draft' ||
+          operationalLog.status === 'in_progress') &&
+        operationalLog.is_editable
       : !clientReport;
   const canEditFeedback =
     clientReport?.status === 'in_review' && clientReport.is_editable !== false;

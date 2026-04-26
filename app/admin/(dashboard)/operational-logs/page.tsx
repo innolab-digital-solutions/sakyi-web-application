@@ -7,7 +7,7 @@ import OperationalLogListTable from '@/components/admin/modules/operational-logs
 export const metadata: Metadata = {
   title: 'Operational Logs | SaKyi Admin',
   description:
-    'Work through draft and in-progress report runs: review client logs, adjust metrics, and move runs toward release. Published items stay hidden by default unless you include them.',
+    'Browse internal operational logs across care plans—draft, in progress, and locked. Search, filter by status, and open any log to continue evidence and metrics work in the workspace.',
 };
 
 export default function OperationalLogsPage() {
@@ -15,7 +15,7 @@ export default function OperationalLogsPage() {
     <div className='space-y-8'>
       <PageHeader
         title='Operational logs'
-        description='Resume draft and in-progress report runs for active care plans. Filter by status, show published runs when you need to reference them, and open the workspace for a specific report run.'
+        description='Browse internal operational logs across care plans. Use search and status filters to find draft, in-progress, or locked work, then open a row to review evidence, edit metrics, and continue the reporting workflow in the workspace.'
       />
       <Suspense
         fallback={

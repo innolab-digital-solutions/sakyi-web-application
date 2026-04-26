@@ -131,8 +131,7 @@ const PERIOD_REPORT_STATUS_LABELS: Record<
 };
 
 /** Matches the API default list (omitted status = in review + published). */
-const PERIOD_REPORT_ALL_STATUSES_MENU_LABEL =
-  'In review & published (default)';
+const PERIOD_REPORT_ALL_STATUSES_MENU_LABEL = 'In review & published (default)';
 
 const DEFAULT_VISIBLE: readonly ColumnKey[] = [
   'client',
@@ -239,7 +238,7 @@ export default function PeriodReportListTable() {
   return (
     <TableListShell
       controls={controls}
-      searchPlaceholder='Search reports, care plans, clients…'
+      searchPlaceholder='Search ...'
       filters={
         <PeriodReportListFilters
           statusFilter={statusFilter}
