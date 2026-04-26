@@ -107,6 +107,9 @@ export const ADMIN_ROUTES = {
       LIST: `${BASE}/operational-logs`,
       WORKSPACE: (id: string) => `${BASE}/operational-logs/${id}/workspace`,
     },
+    PERIOD_REPORTS: {
+      LIST: `${BASE}/period-reports`,
+    },
     USERS: {
       LIST: `${BASE}/users`,
       CREATE: `${BASE}/users/create`,

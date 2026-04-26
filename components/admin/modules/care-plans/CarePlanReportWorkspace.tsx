@@ -33,9 +33,12 @@ import { ROUTES } from '@/config/routes';
 import {
   getCarePlanById,
   getCarePlanReportWorkspace,
+  getClientReportsFromListPayload,
   listCarePlanReportRuns,
-  postCarePlanReportRun,
+  postCarePlanOperationalLog,
   postCarePlanReportRunPublish,
+  postOperationalLogSubmitForReview,
+  putCarePlanOperationalLog,
   putCarePlanReportRun,
 } from '@/domains/care-plans/services';
 import type {
@@ -98,18 +101,37 @@ function emptyFeedback(): ReportRunFeedback {
 
 type CarePlanReportWorkspaceProps = {
   carePlanId: number;
-  workspaceRoute?: (id: string) => string;
+  /**
+   * Which admin route this workspace is rendered under. Used for client-side URL
+   * updates (cannot pass route builder functions from Server Components).
+   */
+  workspaceLocation?: 'period-report' | 'operational-logs';
 };
+
+function getWorkspacePathForCarePlan(
+  carePlanId: number,
+  location: 'period-report' | 'operational-logs',
+): string {
+  const id = String(carePlanId);
+  return location === 'operational-logs'
+    ? ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.WORKSPACE(id)
+    : ROUTES.ADMIN.MODULES.CARE_PLANS.REPORT(id);
+}
 
 export default function CarePlanReportWorkspace({
   carePlanId,
-  workspaceRoute = ROUTES.ADMIN.MODULES.CARE_PLANS.REPORT,
+  workspaceLocation = 'period-report',
 }: CarePlanReportWorkspaceProps) {
   const router = useRouter();
+  const workspacePath = React.useMemo(
+    () => getWorkspacePathForCarePlan(carePlanId, workspaceLocation),
+    [carePlanId, workspaceLocation],
+  );
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
 
   const runIdFromUrl = searchParams.get('report_run_id');
+  const operationalLogIdFromUrl = searchParams.get('operational_log_id');
   const periodStartFromUrl = searchParams.get('period_starts_on');
   const periodEndFromUrl = searchParams.get('period_ends_on');
 
@@ -140,8 +162,13 @@ export default function CarePlanReportWorkspace({
 
   const effectiveWorkspaceParams = React.useMemo(():
     | { reportRunId: number }
+    | { operationalLogId: number }
     | { periodStartsOn: string; periodEndsOn: string }
     | null => {
+    if (operationalLogIdFromUrl) {
+      const n = Number.parseInt(operationalLogIdFromUrl, 10);
+      if (Number.isFinite(n)) return { operationalLogId: n };
+    }
     if (runIdFromUrl) {
       const n = Number.parseInt(runIdFromUrl, 10);
       if (Number.isFinite(n)) return { reportRunId: n };
@@ -156,6 +183,7 @@ export default function CarePlanReportWorkspace({
     }
     return null;
   }, [
+    operationalLogIdFromUrl,
     runIdFromUrl,
     periodStartFromUrl,
     periodEndFromUrl,
@@ -164,10 +192,10 @@ export default function CarePlanReportWorkspace({
   ]);
 
   React.useEffect(() => {
-    if (runIdFromUrl) return;
+    if (runIdFromUrl || operationalLogIdFromUrl) return;
     if (periodStartFromUrl) setPeriodStartInput(periodStartFromUrl);
     if (periodEndFromUrl) setPeriodEndInput(periodEndFromUrl);
-  }, [runIdFromUrl, periodStartFromUrl, periodEndFromUrl]);
+  }, [operationalLogIdFromUrl, runIdFromUrl, periodStartFromUrl, periodEndFromUrl]);
 
   const carePlan = carePlanResult;
   const status = (carePlan?.status ?? '').trim().toLowerCase();
@@ -177,6 +205,7 @@ export default function CarePlanReportWorkspace({
     if (!carePlan || !canUseReports) return;
     if (
       runIdFromUrl ||
+      operationalLogIdFromUrl ||
       periodStartFromUrl ||
       periodEndFromUrl ||
       defaultingPeriodRef.current
@@ -195,20 +224,19 @@ export default function CarePlanReportWorkspace({
     next.set('period_starts_on', d.periodStartsOn);
     next.set('period_ends_on', d.periodEndsOn);
     next.delete('report_run_id');
-    router.replace(
-      `${workspaceRoute(String(carePlanId))}?${next.toString()}`,
-      { scroll: false },
-    );
+    next.delete('operational_log_id');
+    router.replace(`${workspacePath}?${next.toString()}`, { scroll: false });
   }, [
     carePlan,
     canUseReports,
     runIdFromUrl,
+    operationalLogIdFromUrl,
     periodStartFromUrl,
     periodEndFromUrl,
     carePlanId,
     router,
     searchParams,
-    workspaceRoute,
+    workspacePath,
   ]);
 
   const {
@@ -227,15 +255,22 @@ export default function CarePlanReportWorkspace({
       if (!effectiveWorkspaceParams) {
         throw new Error('No workspace parameters');
       }
-      const res =
-        'reportRunId' in effectiveWorkspaceParams
-          ? await getCarePlanReportWorkspace(carePlanId, {
-              reportRunId: effectiveWorkspaceParams.reportRunId,
-            })
-          : await getCarePlanReportWorkspace(carePlanId, {
-              periodStartsOn: effectiveWorkspaceParams.periodStartsOn,
-              periodEndsOn: effectiveWorkspaceParams.periodEndsOn,
-            });
+      const res = await (async () => {
+        if ('reportRunId' in effectiveWorkspaceParams) {
+          return getCarePlanReportWorkspace(carePlanId, {
+            reportRunId: effectiveWorkspaceParams.reportRunId,
+          });
+        }
+        if ('operationalLogId' in effectiveWorkspaceParams) {
+          return getCarePlanReportWorkspace(carePlanId, {
+            operationalLogId: effectiveWorkspaceParams.operationalLogId,
+          });
+        }
+        return getCarePlanReportWorkspace(carePlanId, {
+          periodStartsOn: effectiveWorkspaceParams.periodStartsOn,
+          periodEndsOn: effectiveWorkspaceParams.periodEndsOn,
+        });
+      })();
       if (res.status === 'error') {
         const msg = res.message ?? 'Could not load report workspace.';
         const err = new Error(msg);
@@ -255,42 +290,58 @@ export default function CarePlanReportWorkspace({
       if (res.status === 'error') {
         throw new Error(res.message ?? 'Could not load report history.');
       }
-      return res.data?.report_runs ?? [];
+      return getClientReportsFromListPayload(res.data);
     },
   });
 
   const workspace = workspaceResult;
   const reportRuns: CarePlanReportRunSummary[] = runsResult ?? [];
 
+  const periodLocked = Boolean(
+    (runIdFromUrl && runIdFromUrl.length > 0) ||
+      (operationalLogIdFromUrl && operationalLogIdFromUrl.length > 0),
+  );
+
   React.useEffect(() => {
     if (!workspace) return;
-    const k = `${workspace.period.starts_on}|${workspace.period.ends_on}|${workspace.report_run?.id ?? 'new'}`;
+    const cr = workspace.client_report ?? workspace.report_run;
+    const op = workspace.operational_log;
+    const k = `${workspace.period.starts_on}|${workspace.period.ends_on}|op:${op?.id ?? 'n'}|cr:${cr?.id ?? 'n'}`;
     if (workspaceFormKeyRef.current === k) return;
     workspaceFormKeyRef.current = k;
-    setFormMetrics(
-      cloneMetrics(
-        workspace.report_run?.metrics?.length
-          ? workspace.report_run.metrics
-          : workspace.suggested_metrics,
-      ),
-    );
+    const metricsSource = op?.metrics?.length
+      ? op.metrics
+      : cr?.metrics?.length
+        ? cr.metrics
+        : workspace.suggested_metrics;
+    setFormMetrics(cloneMetrics(metricsSource));
     setFormFeedback(
-      workspace.report_run?.feedback
+      cr?.feedback
         ? {
-            summary: workspace.report_run.feedback.summary ?? '',
-            focus_next_period:
-              workspace.report_run.feedback.focus_next_period ?? '',
-            notes: workspace.report_run.feedback.notes ?? '',
+            summary: cr.feedback.summary ?? '',
+            focus_next_period: cr.feedback.focus_next_period ?? '',
+            notes: cr.feedback.notes ?? '',
           }
         : emptyFeedback(),
     );
   }, [workspace]);
 
-  const reportRun = workspace?.report_run ?? null;
-  const isDraft = reportRun?.status === 'draft' || !reportRun;
-  const isPublished = reportRun?.status === 'published';
-  const canEdit = !isPublished && isDraft;
-  const activeRunId = reportRun?.id ?? null;
+  const operationalLog = workspace?.operational_log ?? null;
+  const clientReport = workspace?.client_report ?? workspace?.report_run ?? null;
+  const isPublished = clientReport?.status === 'published';
+  const isArchived = clientReport?.status === 'archived';
+  const canEditMetrics =
+    operationalLog != null
+      ? operationalLog.status === 'in_progress' && operationalLog.is_editable
+      : !clientReport;
+  const canEditFeedback =
+    clientReport?.status === 'in_review' && clientReport.is_editable !== false;
+  const activeRunId = clientReport?.id ?? null;
+  const activeOpLogId = operationalLog?.id ?? null;
+  const canSubmitForReview =
+    operationalLog != null &&
+    operationalLog.status === 'in_progress' &&
+    !clientReport;
 
   const updateDailyPoint = React.useCallback(
     (
@@ -336,10 +387,10 @@ export default function CarePlanReportWorkspace({
     const next = new URLSearchParams();
     next.set('period_starts_on', s);
     next.set('period_ends_on', e);
-    router.push(
-      `${workspaceRoute(String(carePlanId))}?${next.toString()}`,
-    );
-  }, [carePlanId, periodStartInput, periodEndInput, router, workspaceRoute]);
+    next.delete('report_run_id');
+    next.delete('operational_log_id');
+    router.push(`${workspacePath}?${next.toString()}`);
+  }, [carePlanId, periodStartInput, periodEndInput, router, workspacePath]);
 
   const onSelectRun = (value: string) => {
     if (value === 'new') {
@@ -348,71 +399,129 @@ export default function CarePlanReportWorkspace({
         next.set('period_starts_on', periodStartInput.trim());
         next.set('period_ends_on', periodEndInput.trim());
       }
+      next.delete('report_run_id');
+      next.delete('operational_log_id');
       router.push(
-        `${workspaceRoute(String(carePlanId))}${next.toString() ? `?${next.toString()}` : ''}`,
+        `${workspacePath}${next.toString() ? `?${next.toString()}` : ''}`,
       );
+      return;
+    }
+    if (value.startsWith('op-')) {
+      const opId = value.slice(3);
+      const n = Number.parseInt(opId, 10);
+      if (!Number.isFinite(n)) return;
+      const next = new URLSearchParams();
+      next.set('operational_log_id', String(n));
+      next.delete('report_run_id');
+      router.push(`${workspacePath}?${next.toString()}`);
       return;
     }
     const id = Number.parseInt(value, 10);
     if (!Number.isFinite(id)) return;
     const next = new URLSearchParams();
     next.set('report_run_id', String(id));
-    router.push(
-      `${workspaceRoute(String(carePlanId))}?${next.toString()}`,
-    );
+    next.delete('operational_log_id');
+    router.push(`${workspacePath}?${next.toString()}`);
   };
 
-  const saveMutation = useMutation({
+  const saveMetricsMutation = useMutation({
     mutationFn: async () => {
       if (!workspace) throw new Error('Workspace not ready');
       const period = workspace.period;
-      const feedback: ReportRunFeedback = {
-        summary: (formFeedback.summary ?? '').trim() || null,
-        focus_next_period: (formFeedback.focus_next_period ?? '').trim() || null,
-        notes: (formFeedback.notes ?? '').trim() || null,
-      };
-      if (activeRunId != null) {
-        const res = await putCarePlanReportRun(
+      if (activeOpLogId != null) {
+        const res = await putCarePlanOperationalLog(
           carePlanId,
-          activeRunId,
-          {
-            metrics: formMetrics,
-            feedback,
-          },
+          activeOpLogId,
+          { metrics: formMetrics },
         );
         if (res.status === 'error') {
-          throw new Error(res.message ?? 'Could not save draft.');
+          throw new Error(res.message ?? 'Could not save metrics.');
         }
         return { mode: 'update' as const, data: res.data };
       }
-      const res = await postCarePlanReportRun(carePlanId, {
+      const res = await postCarePlanOperationalLog(carePlanId, {
         period_starts_on: period.starts_on,
         period_ends_on: period.ends_on,
         metrics: formMetrics,
-        feedback: feedback.summary || feedback.focus_next_period || feedback.notes
-          ? feedback
-          : { summary: null, focus_next_period: null, notes: null },
       });
       if (res.status === 'error') {
-        throw new Error(res.message ?? 'Could not create draft.');
+        throw new Error(res.message ?? 'Could not create operational log.');
       }
       return { mode: 'create' as const, data: res.data };
     },
     onSuccess: (result) => {
       if (result.mode === 'create' && result.data?.id != null) {
         const next = new URLSearchParams();
-        next.set('report_run_id', String(result.data.id));
-        router.replace(
-          `${workspaceRoute(String(carePlanId))}?${next.toString()}`,
-        );
+        next.set('operational_log_id', String(result.data.id));
+        next.delete('report_run_id');
+        router.replace(`${workspacePath}?${next.toString()}`);
       }
       void queryClient.invalidateQueries({
         queryKey: [WORKSPACE_QUERY_KEY, carePlanId],
       });
       void refetchRuns();
       toast.success(
-        result.mode === 'create' ? 'Draft report created.' : 'Draft saved.',
+        result.mode === 'create'
+          ? 'Operational log saved. Continue with metrics, then submit for review.'
+          : 'Metrics saved.',
       );
+    },
+    onError: (e: Error) => {
+      toast.error(e.message);
+    },
+  });
+
+  const saveFeedbackMutation = useMutation({
+    mutationFn: async () => {
+      if (activeRunId == null) throw new Error('No client report to update.');
+      const feedback: ReportRunFeedback = {
+        summary: (formFeedback.summary ?? '').trim() || null,
+        focus_next_period: (formFeedback.focus_next_period ?? '').trim() || null,
+        notes: (formFeedback.notes ?? '').trim() || null,
+      };
+      const res = await putCarePlanReportRun(carePlanId, activeRunId, {
+        feedback,
+      });
+      if (res.status === 'error') {
+        throw new Error(res.message ?? 'Could not save narrative.');
+      }
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: [WORKSPACE_QUERY_KEY, carePlanId],
+      });
+      void refetchRuns();
+      toast.success('Narrative saved.');
+    },
+    onError: (e: Error) => {
+      toast.error(e.message);
+    },
+  });
+
+  const submitForReviewMutation = useMutation({
+    mutationFn: async () => {
+      if (activeOpLogId == null) throw new Error('No operational log to submit.');
+      const res = await postOperationalLogSubmitForReview(
+        carePlanId,
+        activeOpLogId,
+      );
+      if (res.status === 'error') {
+        throw new Error(res.message ?? 'Could not submit for review.');
+      }
+      return res.data;
+    },
+    onSuccess: (data) => {
+      void queryClient.invalidateQueries({
+        queryKey: [WORKSPACE_QUERY_KEY, carePlanId],
+      });
+      void refetchRuns();
+      if (data?.id != null) {
+        const next = new URLSearchParams();
+        next.set('report_run_id', String(data.id));
+        next.delete('operational_log_id');
+        router.replace(`${workspacePath}?${next.toString()}`);
+      }
+      toast.success('Submitted for review. You can add the client-facing narrative, then publish.');
     },
     onError: (e: Error) => {
       toast.error(e.message);
@@ -421,7 +530,7 @@ export default function CarePlanReportWorkspace({
 
   const publishMutation = useMutation({
     mutationFn: async () => {
-      if (activeRunId == null) throw new Error('Save a draft first.');
+      if (activeRunId == null) throw new Error('No client report to publish.');
       const res = await postCarePlanReportRunPublish(carePlanId, activeRunId);
       if (res.status === 'error') {
         throw new Error(res.message ?? 'Could not publish report.');
@@ -494,16 +603,23 @@ export default function CarePlanReportWorkspace({
                 value={
                   runIdFromUrl
                     ? runIdFromUrl
-                    : activeRunId
-                      ? String(activeRunId)
-                      : 'new'
+                    : clientReport
+                      ? String(clientReport.id)
+                      : activeOpLogId != null
+                        ? `op-${activeOpLogId}`
+                        : 'new'
                 }
               >
                 <SelectTrigger className='h-9 w-full min-w-48 md:w-56'>
                   <SelectValue placeholder='New period…' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='new'>New (suggested metrics)</SelectItem>
+                  <SelectItem value='new'>New period (suggested metrics)</SelectItem>
+                  {activeOpLogId != null && !clientReport ? (
+                    <SelectItem value={`op-${activeOpLogId}`}>
+                      Current operational log (in progress)
+                    </SelectItem>
+                  ) : null}
                   {reportRuns.map((r) => (
                     <SelectItem key={r.id} value={String(r.id)}>
                       {r.code ?? `#${r.id}`} — {r.status} (
@@ -553,7 +669,7 @@ export default function CarePlanReportWorkspace({
                 type='date'
                 value={periodStartInput}
                 onChange={(e) => setPeriodStartInput(e.target.value)}
-                disabled={!!runIdFromUrl}
+                disabled={periodLocked}
                 id='period-start'
               />
               <TextField
@@ -561,7 +677,7 @@ export default function CarePlanReportWorkspace({
                 type='date'
                 value={periodEndInput}
                 onChange={(e) => setPeriodEndInput(e.target.value)}
-                disabled={!!runIdFromUrl}
+                disabled={periodLocked}
                 id='period-end'
               />
               <div className='sm:col-span-2'>
@@ -570,13 +686,13 @@ export default function CarePlanReportWorkspace({
                   variant='secondary'
                   size='sm'
                   onClick={applyPeriodToUrl}
-                  disabled={!!runIdFromUrl}
+                  disabled={periodLocked}
                 >
                   Load this period
                 </Button>
-                {runIdFromUrl ? (
+                {periodLocked ? (
                   <p className='text-muted-foreground mt-1 text-xs'>
-                    Clear report selection to change the date range, or pick &quot;New (suggested metrics)&quot; above.
+                    Clear the saved operational log or client report (pick &quot;New&quot; in history) to change dates.
                   </p>
                 ) : null}
               </div>
@@ -584,20 +700,27 @@ export default function CarePlanReportWorkspace({
           </div>
 
           <div className='space-y-3 rounded-md border p-4'>
-            <div className='flex items-center justify-between gap-2'>
+            <div className='flex flex-wrap items-center justify-between gap-2'>
               <h3 className='text-foreground text-sm font-semibold'>
                 Metrics worksheet
               </h3>
-              {reportRun?.status ? (
-                <Badge variant='secondary' className='text-[11px] uppercase'>
-                  {reportRun.status}
-                </Badge>
-              ) : null}
+              <div className='flex flex-wrap items-center gap-1.5'>
+                {operationalLog?.status ? (
+                  <Badge variant='outline' className='text-[10px] uppercase'>
+                    Op log: {operationalLog.status}
+                  </Badge>
+                ) : null}
+                {clientReport?.status ? (
+                  <Badge variant='secondary' className='text-[10px] uppercase'>
+                    Client report: {clientReport.status}
+                  </Badge>
+                ) : null}
+              </div>
             </div>
             {!formMetrics.length && !workspaceFetching ? (
               <p className='text-muted-foreground text-sm'>
-                No suggested metrics for this range. You can still save a draft; add rows via the API or adjust
-                when the plan includes nutrition, activity, or recovery targets in range.
+                No suggested metrics for this range. You can still create an operational log when targets exist in range,
+                or adjust the plan to include nutrition, activity, or recovery items in this period.
               </p>
             ) : null}
             <div className='space-y-6'>
@@ -635,7 +758,7 @@ export default function CarePlanReportWorkspace({
                             v === '' ? null : Number(v),
                           );
                         }}
-                        disabled={!canEdit}
+                        disabled={!canEditMetrics}
                         id={`m-${mi}-t`}
                       />
                       <TextField
@@ -654,7 +777,7 @@ export default function CarePlanReportWorkspace({
                             v === '' ? null : Number(v),
                           );
                         }}
-                        disabled={!canEdit}
+                        disabled={!canEditMetrics}
                         id={`m-${mi}-a`}
                       />
                       <TextField
@@ -663,7 +786,7 @@ export default function CarePlanReportWorkspace({
                         onChange={(e) =>
                           updateMetricField(mi, 'unit', e.target.value || null)
                         }
-                        disabled={!canEdit}
+                        disabled={!canEditMetrics}
                         id={`m-${mi}-u`}
                       />
                       <TextField
@@ -705,7 +828,7 @@ export default function CarePlanReportWorkspace({
                                       v === '' ? null : Number(v),
                                   });
                                 }}
-                                disabled={!canEdit}
+                                disabled={!canEditMetrics}
                                 id={`m-${mi}-d-${di}-t`}
                               />
                             </td>
@@ -725,7 +848,7 @@ export default function CarePlanReportWorkspace({
                                       v === '' ? null : Number(v),
                                   });
                                 }}
-                                disabled={!canEdit}
+                                disabled={!canEditMetrics}
                                 id={`m-${mi}-d-${di}-a`}
                               />
                             </td>
@@ -738,7 +861,7 @@ export default function CarePlanReportWorkspace({
                                       on_target: c === true,
                                     })
                                   }
-                                  disabled={!canEdit}
+                                  disabled={!canEditMetrics}
                                   aria-label={`On target day ${dp.day_number}`}
                                 />
                               </div>
@@ -757,6 +880,12 @@ export default function CarePlanReportWorkspace({
             <h3 className='text-foreground text-sm font-semibold'>
               Care team narrative
             </h3>
+            {!clientReport ? (
+              <p className='text-muted-foreground text-sm'>
+                Narrative fields unlock after you submit the operational log for review. Save metrics first, then use
+                &quot;Submit for review&quot; to create the client report.
+              </p>
+            ) : null}
             <TextAreaField
               id='summary'
               label='Summary (required to publish)'
@@ -765,7 +894,7 @@ export default function CarePlanReportWorkspace({
                 setFormFeedback((f) => ({ ...f, summary: e.target.value }))
               }
               className='min-h-24'
-              disabled={!canEdit}
+              disabled={!canEditFeedback}
             />
             <TextAreaField
               id='focus'
@@ -778,7 +907,7 @@ export default function CarePlanReportWorkspace({
                 }))
               }
               className='min-h-20'
-              disabled={!canEdit}
+              disabled={!canEditFeedback}
             />
             <TextAreaField
               id='notes'
@@ -788,22 +917,54 @@ export default function CarePlanReportWorkspace({
                 setFormFeedback((f) => ({ ...f, notes: e.target.value }))
               }
               className='min-h-20'
-              disabled={!canEdit}
+              disabled={!canEditFeedback}
             />
           </div>
 
           <div className='flex flex-wrap items-center gap-2'>
             <Button
               type='button'
-              onClick={() => saveMutation.mutate()}
-              disabled={!canEdit || saveMutation.isPending || !workspace}
+              onClick={() => saveMetricsMutation.mutate()}
+              disabled={
+                !canEditMetrics ||
+                saveMetricsMutation.isPending ||
+                !workspace
+              }
             >
-              {saveMutation.isPending ? (
+              {saveMetricsMutation.isPending ? (
                 <Loader2Icon className='size-4 animate-spin' />
               ) : (
                 <FileBarChartIcon className='size-4' />
               )}
-              Save draft
+              Save metrics
+            </Button>
+            {canSubmitForReview ? (
+              <Button
+                type='button'
+                variant='secondary'
+                onClick={() => submitForReviewMutation.mutate()}
+                disabled={submitForReviewMutation.isPending}
+              >
+                {submitForReviewMutation.isPending ? (
+                  <Loader2Icon className='size-4 animate-spin' />
+                ) : null}
+                Submit for review
+              </Button>
+            ) : null}
+            <Button
+              type='button'
+              variant='outline'
+              onClick={() => saveFeedbackMutation.mutate()}
+              disabled={
+                !canEditFeedback ||
+                saveFeedbackMutation.isPending ||
+                activeRunId == null
+              }
+            >
+              {saveFeedbackMutation.isPending ? (
+                <Loader2Icon className='size-4 animate-spin' />
+              ) : null}
+              Save narrative
             </Button>
             <Button
               type='button'
@@ -811,7 +972,9 @@ export default function CarePlanReportWorkspace({
               className='gap-1.5 bg-emerald-600 text-white hover:bg-emerald-700'
               onClick={() => publishMutation.mutate()}
               disabled={
-                !canEdit || publishMutation.isPending || activeRunId == null
+                clientReport?.status !== 'in_review' ||
+                publishMutation.isPending ||
+                activeRunId == null
               }
             >
               {publishMutation.isPending ? (
@@ -823,7 +986,12 @@ export default function CarePlanReportWorkspace({
             </Button>
             {isPublished ? (
               <p className='text-muted-foreground text-sm'>
-                This run is published and cannot be edited here.
+                This report is published; the operational log is locked and cannot be edited here.
+              </p>
+            ) : null}
+            {isArchived ? (
+              <p className='text-muted-foreground text-sm'>
+                This report is archived (read-only in this view).
               </p>
             ) : null}
           </div>

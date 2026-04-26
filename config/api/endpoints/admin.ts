@@ -132,11 +132,29 @@ export const ADMIN_ENDPOINTS = {
         `${BASE}/care-plans/${carePlanId}/report-runs/${runId}`,
       REPORT_RUN_PUBLISH: (carePlanId: string, runId: string) =>
         `${BASE}/care-plans/${carePlanId}/report-runs/${runId}/publish`,
+      /** Preferred: create / update internal metrics (same body as legacy `report-runs` store). */
+      OPERATIONAL_LOGS: (carePlanId: string) =>
+        `${BASE}/care-plans/${carePlanId}/operational-logs`,
+      OPERATIONAL_LOG: (carePlanId: string, operationalLogId: string) =>
+        `${BASE}/care-plans/${carePlanId}/operational-logs/${operationalLogId}`,
+      OPERATIONAL_LOG_SUBMIT_FOR_REVIEW: (
+        carePlanId: string,
+        operationalLogId: string,
+      ) =>
+        `${BASE}/care-plans/${carePlanId}/operational-logs/${operationalLogId}/submit-for-review`,
     },
     CARE_PLAN_LOGS: {
       LIST: `${BASE}/care-plan-logs`,
       DETAIL: (id: string) => `${BASE}/care-plan-logs/${id}`,
       ENTRIES: (id: string) => `${BASE}/care-plan-logs/${id}/entries`,
+    },
+    /** Internal operational logs (`CarePlanOperationalLog` rows). */
+    OPERATIONAL_LOGS: {
+      LIST: `${BASE}/operational-logs`,
+    },
+    /** Client-facing period report runs (`care_plan_report_runs`). */
+    PERIOD_REPORTS: {
+      LIST: `${BASE}/period-reports`,
     },
     USERS: {
       LIST: `${BASE}/users`,

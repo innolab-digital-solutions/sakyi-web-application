@@ -4,9 +4,12 @@ export type {
   CarePlanLogSummary,
   ListCarePlanLogEntriesParams,
 } from '../types/care-plan-log';
+export type { OperationalLogListRow } from '../types/operational-log-list';
+export type { ClientReportListRow } from '../types/client-report-list';
 export type {
   CarePlanReportRun,
   CarePlanReportWorkspace,
+  OperationalLogSnapshot,
   ReportRunMetric,
 } from '../types/care-plan-report';
 export type {
@@ -25,6 +28,7 @@ export type {
 export type { GetReportWorkspaceParams } from './admin.service';
 export {
   getCarePlanLogSummary,
+  getClientReportsFromListPayload,
   getCarePlanBuilderById,
   getCarePlanById,
   getCarePlanReportRun,
@@ -37,11 +41,14 @@ export {
   postCarePlanActivate,
   postCarePlanCancel,
   postCarePlanGenerateDays,
+  postCarePlanOperationalLog,
   postCarePlanReportRun,
   postCarePlanReportRunPublish,
+  postOperationalLogSubmitForReview,
   postCarePlanRevision,
   postCarePlanValidate,
   postCreateCarePlan,
+  putCarePlanOperationalLog,
   putCarePlanReportRun,
   putCarePlanSectionItems,
 } from './admin.service';

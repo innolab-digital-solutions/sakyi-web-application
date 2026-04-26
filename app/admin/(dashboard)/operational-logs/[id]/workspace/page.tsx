@@ -69,7 +69,7 @@ export default async function OperationalLogsWorkspacePage({
         {Number.isFinite(numericId) ? (
           <CarePlanReportWorkspace
             carePlanId={numericId}
-            workspaceRoute={ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.WORKSPACE}
+            workspaceLocation='operational-logs'
           />
         ) : (
           <div className='text-destructive rounded-md border p-4 text-sm'>

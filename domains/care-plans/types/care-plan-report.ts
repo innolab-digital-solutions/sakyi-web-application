@@ -1,6 +1,7 @@
 import type { CarePlanSectionKey } from './admin';
 
-export type ReportRunStatus = 'draft' | 'published' | 'generated';
+/** Client report row (`care_plan_report_runs`). */
+export type ReportRunStatus = 'in_review' | 'published' | 'archived';
 
 export type CarePlanReportMediaRef = {
   id?: number;
@@ -67,6 +68,17 @@ export type ReportRunFeedback = {
   notes: string | null;
 };
 
+/** Internal operational log snapshot in the workspace (metrics only; no feedback). */
+export type OperationalLogSnapshot = {
+  id: number;
+  code: string | null;
+  status: 'in_progress' | 'locked';
+  is_editable: boolean;
+  adherence_percentage: number | null;
+  metrics: ReportRunMetric[];
+  client_report_id?: number | null;
+};
+
 export type CarePlanReportRunSummary = {
   id: number;
   code: string | null;
@@ -75,11 +87,15 @@ export type CarePlanReportRunSummary = {
   period?: { starts_on: string; ends_on: string } | null;
   period_starts_on?: string;
   period_ends_on?: string;
-  generated_at?: string | null;
-  published_at?: string | null;
-  locked_at?: string | null;
+  is_editable?: boolean;
+  timestamps?: {
+    submitted_for_review_at?: string | null;
+    published_at?: string | null;
+    locked_at?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
   generated_by?: { id: number; name?: string | null } | null;
-  timestamps?: { created_at?: string | null; updated_at?: string | null };
 };
 
 export type CarePlanReportRun = CarePlanReportRunSummary & {
@@ -105,25 +121,38 @@ export type CarePlanReportWorkspace = {
   period: { starts_on: string; ends_on: string };
   evidence: CarePlanReportEvidenceDay[];
   suggested_metrics: ReportRunMetric[];
+  /** Internal worksheet; null until created for the range. */
+  operational_log: OperationalLogSnapshot | null;
+  /** Client report (narrative + lifecycle); null until submit-for-review. */
+  client_report: CarePlanReportRun | null;
+  /** @deprecated Server alias for `client_report`. */
   report_run: CarePlanReportRun | null;
 };
 
 export type ListCarePlanReportRunsData = {
-  report_runs: CarePlanReportRunSummary[];
+  client_reports?: CarePlanReportRunSummary[];
+  /** @deprecated Use `client_reports`. */
+  report_runs?: CarePlanReportRunSummary[];
 };
 
-export type CreateCarePlanReportRunPayload = {
+export type CreateOperationalLogPayload = {
   period_starts_on: string;
   period_ends_on: string;
   metrics: ReportRunMetric[];
   adherence_percentage?: number | null;
-  feedback?: ReportRunFeedback | null;
 };
 
-export type UpdateCarePlanReportRunPayload = {
+/** Legacy `POST /report-runs` uses the same body as `POST /operational-logs`. */
+export type CreateCarePlanReportRunPayload = CreateOperationalLogPayload;
+
+export type UpdateOperationalLogPayload = {
   metrics?: ReportRunMetric[];
-  feedback?: ReportRunFeedback | null;
   adherence_percentage?: number | null;
+};
+
+/** `PUT` client report: feedback only (object required; fields may be null). */
+export type UpdateCarePlanReportRunPayload = {
+  feedback: ReportRunFeedback;
 };
 
 export type PublishCarePlanReportRunPayload = {

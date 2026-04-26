@@ -8,12 +8,16 @@ import type {
   ListCarePlanLogEntriesParams,
 } from '../types/care-plan-log';
 import type {
-  CreateCarePlanReportRunPayload,
   CarePlanReportRun,
+  CarePlanReportRunSummary,
   CarePlanReportWorkspace,
+  CreateCarePlanReportRunPayload,
+  CreateOperationalLogPayload,
   ListCarePlanReportRunsData,
+  OperationalLogSnapshot,
   PublishCarePlanReportRunPayload,
   UpdateCarePlanReportRunPayload,
+  UpdateOperationalLogPayload,
 } from '../types/care-plan-report';
 import type {
   AdminCarePlan,
@@ -94,13 +98,34 @@ export async function getCarePlanById(
 }
 
 export type GetReportWorkspaceParams =
-  | { reportRunId: number; periodStartsOn?: never; periodEndsOn?: never }
-  | { reportRunId?: never; periodStartsOn: string; periodEndsOn: string };
+  | {
+      reportRunId: number;
+      operationalLogId?: never;
+      periodStartsOn?: never;
+      periodEndsOn?: never;
+    }
+  | {
+      operationalLogId: number;
+      reportRunId?: never;
+      periodStartsOn?: never;
+      periodEndsOn?: never;
+    }
+  | {
+      reportRunId?: never;
+      operationalLogId?: never;
+      periodStartsOn: string;
+      periodEndsOn: string;
+    };
 
 function buildReportWorkspaceQuery(params: GetReportWorkspaceParams): string {
   const search = new URLSearchParams();
   if ('reportRunId' in params && params.reportRunId != null) {
     search.set('report_run_id', String(params.reportRunId));
+  } else if (
+    'operationalLogId' in params &&
+    params.operationalLogId != null
+  ) {
+    search.set('operational_log_id', String(params.operationalLogId));
   } else if (
     'periodStartsOn' in params &&
     'periodEndsOn' in params &&
@@ -133,6 +158,15 @@ export async function listCarePlanReportRuns(
   );
 }
 
+/** Resolves `client_reports` (new) or `report_runs` (legacy) from the list payload. */
+export function getClientReportsFromListPayload(
+  data: ListCarePlanReportRunsData | CarePlanReportRunSummary[] | null | undefined,
+) {
+  if (data == null) return [];
+  if (Array.isArray(data)) return data;
+  return data.client_reports ?? data.report_runs ?? [];
+}
+
 export async function getCarePlanReportRun(
   carePlanId: number,
   reportRunId: number,
@@ -146,13 +180,57 @@ export async function getCarePlanReportRun(
   );
 }
 
+/**
+ * Creates an operational log (metrics) for a period. Preferred over legacy `postCarePlanReportRun`.
+ */
+export async function postCarePlanOperationalLog(
+  carePlanId: number,
+  body: CreateOperationalLogPayload,
+): Promise<ApiResponse<OperationalLogSnapshot>> {
+  return http.post<OperationalLogSnapshot>(
+    ENDPOINTS.ADMIN.MODULES.CARE_PLANS.OPERATIONAL_LOGS(String(carePlanId)),
+    body,
+    { throwOnError: false },
+  );
+}
+
+/** @deprecated Same handler as `postCarePlanOperationalLog`; use that for new UI. */
 export async function postCarePlanReportRun(
   carePlanId: number,
   body: CreateCarePlanReportRunPayload,
-): Promise<ApiResponse<CarePlanReportRun>> {
-  return http.post<CarePlanReportRun>(
+): Promise<ApiResponse<OperationalLogSnapshot>> {
+  return http.post<OperationalLogSnapshot>(
     ENDPOINTS.ADMIN.MODULES.CARE_PLANS.REPORT_RUNS(String(carePlanId)),
     body,
+    { throwOnError: false },
+  );
+}
+
+export async function putCarePlanOperationalLog(
+  carePlanId: number,
+  operationalLogId: number,
+  body: UpdateOperationalLogPayload,
+): Promise<ApiResponse<OperationalLogSnapshot>> {
+  return http.put<OperationalLogSnapshot>(
+    ENDPOINTS.ADMIN.MODULES.CARE_PLANS.OPERATIONAL_LOG(
+      String(carePlanId),
+      String(operationalLogId),
+    ),
+    body,
+    { throwOnError: false },
+  );
+}
+
+export async function postOperationalLogSubmitForReview(
+  carePlanId: number,
+  operationalLogId: number,
+): Promise<ApiResponse<CarePlanReportRun>> {
+  return http.post<CarePlanReportRun>(
+    ENDPOINTS.ADMIN.MODULES.CARE_PLANS.OPERATIONAL_LOG_SUBMIT_FOR_REVIEW(
+      String(carePlanId),
+      String(operationalLogId),
+    ),
+    {},
     { throwOnError: false },
   );
 }
