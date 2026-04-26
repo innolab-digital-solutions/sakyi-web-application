@@ -98,10 +98,12 @@ function emptyFeedback(): ReportRunFeedback {
 
 type CarePlanReportWorkspaceProps = {
   carePlanId: number;
+  workspaceRoute?: (id: string) => string;
 };
 
 export default function CarePlanReportWorkspace({
   carePlanId,
+  workspaceRoute = ROUTES.ADMIN.MODULES.CARE_PLANS.REPORT,
 }: CarePlanReportWorkspaceProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -194,7 +196,7 @@ export default function CarePlanReportWorkspace({
     next.set('period_ends_on', d.periodEndsOn);
     next.delete('report_run_id');
     router.replace(
-      `${ROUTES.ADMIN.MODULES.CARE_PLANS.REPORT(String(carePlanId))}?${next.toString()}`,
+      `${workspaceRoute(String(carePlanId))}?${next.toString()}`,
       { scroll: false },
     );
   }, [
@@ -206,6 +208,7 @@ export default function CarePlanReportWorkspace({
     carePlanId,
     router,
     searchParams,
+    workspaceRoute,
   ]);
 
   const {
@@ -334,9 +337,9 @@ export default function CarePlanReportWorkspace({
     next.set('period_starts_on', s);
     next.set('period_ends_on', e);
     router.push(
-      `${ROUTES.ADMIN.MODULES.CARE_PLANS.REPORT(String(carePlanId))}?${next.toString()}`,
+      `${workspaceRoute(String(carePlanId))}?${next.toString()}`,
     );
-  }, [carePlanId, periodStartInput, periodEndInput, router]);
+  }, [carePlanId, periodStartInput, periodEndInput, router, workspaceRoute]);
 
   const onSelectRun = (value: string) => {
     if (value === 'new') {
@@ -346,7 +349,7 @@ export default function CarePlanReportWorkspace({
         next.set('period_ends_on', periodEndInput.trim());
       }
       router.push(
-        `${ROUTES.ADMIN.MODULES.CARE_PLANS.REPORT(String(carePlanId))}${next.toString() ? `?${next.toString()}` : ''}`,
+        `${workspaceRoute(String(carePlanId))}${next.toString() ? `?${next.toString()}` : ''}`,
       );
       return;
     }
@@ -355,7 +358,7 @@ export default function CarePlanReportWorkspace({
     const next = new URLSearchParams();
     next.set('report_run_id', String(id));
     router.push(
-      `${ROUTES.ADMIN.MODULES.CARE_PLANS.REPORT(String(carePlanId))}?${next.toString()}`,
+      `${workspaceRoute(String(carePlanId))}?${next.toString()}`,
     );
   };
 
@@ -400,7 +403,7 @@ export default function CarePlanReportWorkspace({
         const next = new URLSearchParams();
         next.set('report_run_id', String(result.data.id));
         router.replace(
-          `${ROUTES.ADMIN.MODULES.CARE_PLANS.REPORT(String(carePlanId))}?${next.toString()}`,
+          `${workspaceRoute(String(carePlanId))}?${next.toString()}`,
         );
       }
       void queryClient.invalidateQueries({

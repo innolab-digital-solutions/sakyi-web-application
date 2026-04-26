@@ -4,11 +4,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   CheckCircle2Icon,
   ClipboardCopyIcon,
-  FileBarChartIcon,
   EyeIcon,
   FilePenLineIcon,
   GitBranchPlusIcon,
   MoreHorizontalIcon,
+  NotebookPenIcon,
   XCircleIcon,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -134,9 +134,14 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
     status === 'draft' || status === 'scheduled' || status === 'active';
   const canCreateRevision =
     status === 'active' || status === 'cancelled';
-  const canOpenPeriodReport = status === 'active' || status === 'completed';
+  const canOpenOperationalLogs =
+    status === 'active' || status === 'completed';
   const hasMenuAfterCopy =
-    canEdit || canActivate || canCreateRevision || canCancel || canOpenPeriodReport;
+    canEdit ||
+    canActivate ||
+    canCreateRevision ||
+    canCancel ||
+    canOpenOperationalLogs;
 
   const { mutate: activatePlan, isPending: activatePending } = useMutation({
     mutationFn: async () => {
@@ -287,16 +292,16 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
             {hasMenuAfterCopy ? (
               <>
                 <DropdownMenuSeparator />
-                {canOpenPeriodReport ? (
+                {canOpenOperationalLogs ? (
                   <DropdownMenuItem asChild>
                     <Link
                       className='flex items-center gap-2 text-[13px]! font-medium'
-                      href={ROUTES.ADMIN.MODULES.CARE_PLANS.REPORT(
+                      href={ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.WORKSPACE(
                         String(row.id),
                       )}
                     >
-                      <FileBarChartIcon className='size-3.5 shrink-0' />
-                      Period report
+                      <NotebookPenIcon className='size-3.5 shrink-0' />
+                      Operational logs
                     </Link>
                   </DropdownMenuItem>
                 ) : null}

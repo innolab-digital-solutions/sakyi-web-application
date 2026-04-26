@@ -103,6 +103,10 @@ export const ADMIN_ROUTES = {
       LIST: `${BASE}/care-plan-logs`,
       DETAIL: (id: string) => `${BASE}/care-plan-logs/${id}`,
     },
+    OPERATIONAL_LOGS: {
+      LIST: `${BASE}/operational-logs`,
+      WORKSPACE: (id: string) => `${BASE}/operational-logs/${id}/workspace`,
+    },
     USERS: {
       LIST: `${BASE}/users`,
       CREATE: `${BASE}/users/create`,

@@ -84,7 +84,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
       },
       {
         name: 'Operational Logs',
-        path: ADMIN_ROUTES.MODULES.CARE_PLANS.LIST,
+        path: ADMIN_ROUTES.MODULES.OPERATIONAL_LOGS.LIST,
       },
       {
         name: 'Period Reports',

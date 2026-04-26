@@ -1,6 +1,11 @@
 'use client';
 
-import { ClipboardCopyIcon, EyeIcon, MoreHorizontalIcon } from 'lucide-react';
+import {
+  ClipboardCopyIcon,
+  EyeIcon,
+  MoreHorizontalIcon,
+  NotebookPenIcon,
+} from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
@@ -76,6 +81,17 @@ export default function CarePlanLogRowActions({
           >
             <ClipboardCopyIcon className='size-3.5 shrink-0' />
             Copy reference
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link
+              className='flex items-center gap-2 text-[13px]! font-medium'
+              href={ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.WORKSPACE(
+                String(row.id),
+              )}
+            >
+              <NotebookPenIcon className='size-3.5 shrink-0' />
+              Operational logs
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
