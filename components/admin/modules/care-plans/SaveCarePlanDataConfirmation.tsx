@@ -43,7 +43,7 @@ export default function SaveCarePlanDataConfirmation({
             </div>
             <div className='space-y-1.5'>
               <AlertDialogTitle className='text-foreground/90 text-sm font-bold'>
-                Save this operational log?
+                Save This Operational Log?
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
                 You are about to save this period&apos;s metric and daily

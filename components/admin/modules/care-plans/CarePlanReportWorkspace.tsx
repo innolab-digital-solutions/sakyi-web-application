@@ -95,6 +95,29 @@ function formatSectionLabel(sectionKey: string): string {
   return k.replace(/\b\w/g, (ch) => ch.toUpperCase());
 }
 
+/** Shown in metric stat cards when a value is absent (avoids em dash in primary slots). */
+const METRIC_VALUE_NOT_SET = 'Not set' as const;
+
+/**
+ * Renders "on target" day ratio without stringifying `null` as the literal "null".
+ * Missing or invalid on-target count is shown as 0.
+ */
+function formatOnTargetDaysRatio(
+  daysOnTarget: number | null | undefined,
+  daysTotal: number | null | undefined,
+): string {
+  if (daysTotal == null) {
+    return METRIC_VALUE_NOT_SET;
+  }
+  const total = Math.floor(Math.max(0, Number(daysTotal)));
+  if (!Number.isFinite(total)) {
+    return METRIC_VALUE_NOT_SET;
+  }
+  const onRaw = daysOnTarget == null ? 0 : Number(daysOnTarget);
+  const on = Number.isFinite(onRaw) ? Math.floor(Math.max(0, onRaw)) : 0;
+  return `${on}/${total}`;
+}
+
 /**
  * Preserves first-seen section order (matches API item ordering within the day).
  */
@@ -579,7 +602,7 @@ export default function CarePlanReportWorkspace({
       toast.success(
         result.mode === 'create'
           ? 'Operational log saved. Continue editing, then submit for review when ready.'
-          : 'Operational log data saved.',
+          : 'The operational log data has been saved successfully.',
       );
     },
     onError: (e: Error) => {
@@ -735,13 +758,17 @@ export default function CarePlanReportWorkspace({
           <MetricSummaryStatCard
             label='Target'
             value={
-              metric.target_value == null ? '—' : String(metric.target_value)
+              metric.target_value == null
+                ? METRIC_VALUE_NOT_SET
+                : String(metric.target_value)
             }
           />
           <MetricSummaryStatCard
             label='Actual'
             value={
-              metric.actual_value == null ? '—' : String(metric.actual_value)
+              metric.actual_value == null
+                ? METRIC_VALUE_NOT_SET
+                : String(metric.actual_value)
             }
           />
           <MetricSummaryStatCard
@@ -750,7 +777,10 @@ export default function CarePlanReportWorkspace({
           />
           <MetricSummaryStatCard
             label='On target days'
-            value={`${metric.days_on_target}/${metric.days_total}`}
+            value={formatOnTargetDaysRatio(
+              metric.days_on_target,
+              metric.days_total,
+            )}
           />
         </div>
 
