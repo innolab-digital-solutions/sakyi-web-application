@@ -6,6 +6,8 @@ import {
   CheckCircle2Icon,
   ChevronDownIcon,
   ClipboardListIcon,
+  FileChartColumn,
+  FileSymlink,
   ListChecks,
   Loader2Icon,
   NotebookPenIcon,
@@ -40,6 +42,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { base } from '@/config/api/base';
 import { ROUTES } from '@/config/routes';
 import {
@@ -234,8 +242,10 @@ export default function CarePlanReportWorkspace({
     React.useState<ReportRunFeedback>(emptyFeedback);
   const [submitReviewAverageSteps, setSubmitReviewAverageSteps] =
     React.useState('');
-  const [submitReviewAverageTrainingMinutes, setSubmitReviewAverageTrainingMinutes] =
-    React.useState('');
+  const [
+    submitReviewAverageTrainingMinutes,
+    setSubmitReviewAverageTrainingMinutes,
+  ] = React.useState('');
   const defaultingPeriodRef = React.useRef(false);
   const workspaceFormKeyRef = React.useRef<string | null>(null);
   const formMetricsRef = React.useRef<ReportRunMetric[]>([]);
@@ -482,11 +492,21 @@ export default function CarePlanReportWorkspace({
     clientReport?.status === 'in_review' && clientReport.is_editable !== false;
   const activeRunId = clientReport?.id ?? null;
   const activeOpLogId = operationalLog?.id ?? null;
-  const canSubmitForReview =
+  const canShowSubmitForReview =
     operationalLog != null &&
-    operationalLog.status === 'in_progress' &&
+    operationalLog.status !== 'locked' &&
     operationalLog.is_editable !== false &&
-    !clientReport;
+    clientReport?.status !== 'published';
+  const canSubmitForReview =
+    canShowSubmitForReview && operationalLog?.status === 'in_progress';
+  const submitForReviewDisabledReason =
+    canShowSubmitForReview && !canSubmitForReview
+      ? 'Save operational log metrics first. Generate report is available after the log moves to in progress.'
+      : null;
+  const hasExistingReport = clientReport != null;
+  const submitForReviewLabel = hasExistingReport
+    ? 'Regenerate report'
+    : 'Generate report';
   const submitReviewMetricOptions = React.useMemo(
     () =>
       (operationalLog?.metrics?.length
@@ -1082,17 +1102,51 @@ export default function CarePlanReportWorkspace({
       {isOperationalLogsWorkspace ? (
         <section className='border-border max-w-full min-w-0 space-y-5 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:p-6'>
           <div className='space-y-4'>
-            <div className='min-w-0 space-y-1.5'>
-              <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
-                Operational Log Reference
-              </p>
-              <p className='text-foreground/90 text-[13px] leading-relaxed font-semibold'>
-                {opLogReferenceText || '—'}
-              </p>
-              {!opLogReferenceText ? (
-                <p className='text-muted-foreground text-[11px] font-medium'>
-                  Save the operational log to create a reference
+            <div className='flex flex-wrap items-start justify-between gap-3'>
+              <div className='min-w-0 space-y-1.5'>
+                <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+                  Operational Log Reference
                 </p>
+                <p className='text-foreground/90 text-[13px] leading-relaxed font-semibold'>
+                  {opLogReferenceText || '—'}
+                </p>
+                {!opLogReferenceText ? (
+                  <p className='text-muted-foreground text-[11px] font-medium'>
+                    Save the operational log to create a reference
+                  </p>
+                ) : null}
+              </div>
+              {canShowSubmitForReview ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className='inline-flex'>
+                        <Button
+                          type='button'
+                          className='h-10 gap-1.5 text-[13px]! font-semibold'
+                          onClick={openSubmitForReviewDialog}
+                          disabled={
+                            !canSubmitForReview || submitForReviewMutation.isPending
+                          }
+                        >
+                          {submitForReviewMutation.isPending ? (
+                            <Loader2Icon className='size-4 animate-spin' />
+                          ) : hasExistingReport ? (
+                            <FileSymlink className='size-4' aria-hidden />
+                          ) : (
+                            <FileChartColumn className='size-4' aria-hidden />
+                          )}
+                          {submitForReviewLabel}
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    {submitForReviewDisabledReason ? (
+                      <TooltipContent side='bottom' sideOffset={8} surface>
+                        {submitForReviewDisabledReason}
+                      </TooltipContent>
+                    ) : null}
+                  </Tooltip>
+                </TooltipProvider>
               ) : null}
             </div>
             <div className='border-border/70 border-t' />
@@ -1188,61 +1242,62 @@ export default function CarePlanReportWorkspace({
                   ) : null}
                 </div>
               </div>
-              <div className='border-border/70 flex w-full max-w-full flex-wrap items-center justify-end gap-2 border-t pt-5'>
-                {canSubmitForReview ? (
+              <div className='border-border/70 flex w-full max-w-full flex-wrap items-center justify-between gap-2 border-t pt-5'>
+                <div className='flex flex-wrap items-center gap-2'>
                   <Button
                     type='button'
-                    className='h-10 text-[13px]! font-semibold'
-                    variant='secondary'
-                    onClick={openSubmitForReviewDialog}
-                    disabled={submitForReviewMutation.isPending}
+                    className='bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+                    variant='outline'
+                    onClick={() => setOperationalLogMetricsReviewOpen(true)}
+                    disabled={
+                      !canEditMetrics ||
+                      !formMetrics.length ||
+                      saveMetricsMutation.isPending ||
+                      !workspace
+                    }
+                    title='See what changed in the metrics worksheet (vs. last open or last save) before you save'
                   >
-                    {submitForReviewMutation.isPending ? (
-                      <Loader2Icon className='size-4 animate-spin' />
-                    ) : null}
-                    Submit for review
+                    <ListChecks className='size-4' aria-hidden />
+                    Review changes
                   </Button>
-                ) : null}
-                <Button
-                  type='button'
-                  className='bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
-                  variant='outline'
-                  onClick={() => setOperationalLogMetricsReviewOpen(true)}
-                  disabled={
-                    !canEditMetrics ||
-                    !formMetrics.length ||
-                    saveMetricsMutation.isPending ||
-                    !workspace
-                  }
-                  title='See what changed in the metrics worksheet (vs. last open or last save) before you save'
-                >
-                  <ListChecks className='size-4' aria-hidden />
-                  Review changes
-                </Button>
-                <Button
-                  type='button'
-                  className='h-10 gap-1.5 text-[13px]! font-semibold'
-                  onClick={() => setSaveCarePlanConfirmOpen(true)}
-                  disabled={
-                    !canEditMetrics ||
-                    saveMetricsMutation.isPending ||
-                    !workspace
-                  }
-                  title={
-                    !canEditMetrics && operationalLog
-                      ? 'Only draft or in-progress editable logs can change operational log data'
-                      : !workspace
-                        ? 'Workspace not loaded'
-                        : undefined
-                  }
-                >
-                  {saveMetricsMutation.isPending ? (
-                    <Loader2Icon className='size-4 animate-spin' />
-                  ) : (
-                    <Save className='size-4' aria-hidden />
-                  )}
-                  Save operational log
-                </Button>
+                </div>
+                <div className='flex flex-wrap items-center justify-end gap-2'>
+                  <Button
+                    type='button'
+                    className='bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+                    variant='outline'
+                    onClick={() =>
+                      router.push(ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.LIST)
+                    }
+                    disabled={saveMetricsMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type='button'
+                    className='h-10 gap-1.5 text-[13px]! font-semibold'
+                    onClick={() => setSaveCarePlanConfirmOpen(true)}
+                    disabled={
+                      !canEditMetrics ||
+                      saveMetricsMutation.isPending ||
+                      !workspace
+                    }
+                    title={
+                      !canEditMetrics && operationalLog
+                        ? 'Only draft or in-progress editable logs can change operational log data'
+                        : !workspace
+                          ? 'Workspace not loaded'
+                          : undefined
+                    }
+                  >
+                    {saveMetricsMutation.isPending ? (
+                      <Loader2Icon className='size-4 animate-spin' />
+                    ) : (
+                      <Save className='size-4' aria-hidden />
+                    )}
+                    Save operational log
+                  </Button>
+                </div>
               </div>
             </>
           ) : null}
@@ -1455,36 +1510,25 @@ export default function CarePlanReportWorkspace({
               />
             </div>
 
-            <div className='flex w-full flex-wrap items-center justify-end gap-2'>
-              {canSubmitForReview ? (
+            <div className='flex w-full flex-wrap items-center justify-between gap-2'>
+              <div className='flex flex-wrap items-center gap-2'>
                 <Button
                   type='button'
-                  variant='secondary'
-                  onClick={openSubmitForReviewDialog}
-                  disabled={submitForReviewMutation.isPending}
+                  className='gap-1.5'
+                  variant='outline'
+                  onClick={() => setOperationalLogMetricsReviewOpen(true)}
+                  disabled={
+                    !canEditMetrics ||
+                    !formMetrics.length ||
+                    saveMetricsMutation.isPending ||
+                    !workspace
+                  }
+                  title='See what changed in the metrics worksheet (vs. last open or last save) before you save'
                 >
-                  {submitForReviewMutation.isPending ? (
-                    <Loader2Icon className='size-4 animate-spin' />
-                  ) : null}
-                  Submit for review
+                  <ListChecks className='size-4' aria-hidden />
+                  Review changes
                 </Button>
-              ) : null}
-              <Button
-                type='button'
-                className='gap-1.5'
-                variant='outline'
-                onClick={() => setOperationalLogMetricsReviewOpen(true)}
-                disabled={
-                  !canEditMetrics ||
-                  !formMetrics.length ||
-                  saveMetricsMutation.isPending ||
-                  !workspace
-                }
-                title='See what changed in the metrics worksheet (vs. last open or last save) before you save'
-              >
-                <ListChecks className='size-4' aria-hidden />
-                Review changes
-              </Button>
+              </div>
               <Button
                 type='button'
                 variant='outline'
@@ -1564,8 +1608,10 @@ export default function CarePlanReportWorkspace({
         onConfirm={confirmSaveCarePlanData}
       />
       <SubmitOperationalLogForReviewDialog
+        key={submitForReviewDialogOpen ? 'submit-review-open' : 'submit-review-closed'}
         open={submitForReviewDialogOpen}
         isSubmitting={submitForReviewMutation.isPending}
+        hasExistingReport={hasExistingReport}
         metricOptions={submitReviewMetricOptions}
         includedMetricKeys={submitReviewIncludedMetricKeys}
         feedback={submitReviewFeedback}

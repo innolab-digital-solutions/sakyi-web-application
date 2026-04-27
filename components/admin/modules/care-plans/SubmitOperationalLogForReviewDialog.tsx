@@ -1,7 +1,20 @@
 'use client';
 
-import { ClipboardListIcon } from 'lucide-react';
+import {
+  ArrowLeftIcon,
+  ChevronRightIcon,
+  FileChartColumn,
+  FileSymlink,
+  XIcon,
+} from 'lucide-react';
+import * as React from 'react';
 
+import {
+  enrollmentWizardDialogContentClass,
+  enrollmentWizardDialogFooterClass,
+  wizardOutlineButtonClass,
+  wizardPrimaryButtonClass,
+} from '@/components/admin/modules/enrollmentWizardModalUi';
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
 import { Button } from '@/components/ui/button';
@@ -15,6 +28,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import type { ReportRunFeedback } from '@/domains/care-plans/types/care-plan-report';
+import { cn } from '@/lib/utils/styles';
 
 type SubmitMetricOption = {
   metricKey: string;
@@ -25,6 +39,7 @@ type SubmitMetricOption = {
 export type SubmitOperationalLogForReviewDialogProps = {
   open: boolean;
   isSubmitting: boolean;
+  hasExistingReport: boolean;
   metricOptions: SubmitMetricOption[];
   includedMetricKeys: string[];
   feedback: ReportRunFeedback;
@@ -46,6 +61,7 @@ function formatSectionLabel(sectionKey: string): string {
 export default function SubmitOperationalLogForReviewDialog({
   open,
   isSubmitting,
+  hasExistingReport,
   metricOptions,
   includedMetricKeys,
   feedback,
@@ -58,135 +74,260 @@ export default function SubmitOperationalLogForReviewDialog({
   onAvgTrainingTimeChange,
   onSubmit,
 }: SubmitOperationalLogForReviewDialogProps) {
+  const [step, setStep] = React.useState<1 | 2 | 3>(1);
+  const actionTitle = hasExistingReport ? 'Regenerate client report' : 'Generate client report';
+  const submitLabel = hasExistingReport ? 'Regenerate report' : 'Generate report';
+  const STEPS = [
+    { id: 1 as const, title: 'Average Values', description: 'Provide manual average values for client-facing highlights.' },
+    { id: 2 as const, title: 'Select Metrics', description: 'Choose which operational metrics should be included in the report.' },
+    { id: 3 as const, title: 'Narrative', description: 'Add summary, next-period focus, and optional internal notes.' },
+  ];
+
+  const goBack = () => {
+    if (step === 1) return;
+    setStep((prev) => (prev === 3 ? 2 : 1));
+  };
+
+  const goNext = () => {
+    if (step === 3) return;
+    setStep((prev) => (prev === 1 ? 2 : 3));
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-h-[90vh] max-w-2xl overflow-y-auto'>
-        <DialogHeader>
-          <DialogTitle className='flex items-center gap-2 text-sm font-semibold'>
-            <ClipboardListIcon className='size-4' aria-hidden />
-            Generate client-facing report
-          </DialogTitle>
-          <DialogDescription>
-            Select which operational metrics to include, provide manual averages,
-            and add the care-team narrative before submitting for review.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent
+        className={cn(
+          enrollmentWizardDialogContentClass,
+          'max-h-[min(90vh,760px)] overflow-hidden',
+        )}
+      >
+        <div className='border-border flex min-h-0 flex-1 flex-col'>
+          <DialogHeader className='border-border shrink-0 border-b px-6 pt-6 pb-4 text-left'>
+            <DialogTitle className='text-foreground flex items-center gap-2 text-[15.5px] font-bold capitalize'>
+              {actionTitle}
+            </DialogTitle>
+            <DialogDescription className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
+              Curate the metrics cards for the client report, provide manual
+              highlight values, and confirm care-team narrative before sending
+              to review.
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className='space-y-4'>
-          <div className='space-y-2'>
-            <p className='text-foreground text-xs font-semibold tracking-wide uppercase'>
-              Include metrics
-            </p>
-            {metricOptions.length ? (
-              <div className='space-y-2 rounded-md border p-3'>
-                {metricOptions.map((metric) => {
-                  const checked = includedMetricKeys.includes(metric.metricKey);
-                  return (
-                    <label
-                      key={metric.metricKey}
-                      className='flex items-start gap-2 rounded-md border p-2'
+          <div className='flex min-h-0 flex-1 flex-col px-6 py-4'>
+            <ol className='flex w-full shrink-0 gap-2' aria-label='Generate report steps'>
+              {STEPS.map((item) => {
+                const active = step === item.id;
+                const completed = step > item.id;
+                return (
+                  <li key={item.id} className='min-w-0 flex-1'>
+                    <div
+                      className={cn(
+                        'flex flex-col gap-1 rounded-lg border px-2 py-2 text-center transition-colors',
+                        active && 'border-primary bg-primary/5 dark:bg-primary/10 shadow-sm',
+                        completed && 'border-border bg-muted/30',
+                        !active && !completed && 'border-border bg-background',
+                      )}
                     >
-                      <Checkbox
-                        checked={checked}
-                        onCheckedChange={(value) => {
-                          if (value === true) {
-                            onIncludedMetricKeysChange([
-                              ...includedMetricKeys,
-                              metric.metricKey,
-                            ]);
-                            return;
-                          }
-                          onIncludedMetricKeysChange(
-                            includedMetricKeys.filter(
-                              (key) => key !== metric.metricKey,
-                            ),
+                      <span
+                        className={cn(
+                          'text-[11px] font-bold tracking-wide uppercase',
+                          active ? 'text-primary' : 'text-muted-foreground',
+                        )}
+                      >
+                        Step {item.id}
+                      </span>
+                      <span
+                        className={cn(
+                          'truncate text-xs font-semibold',
+                          active ? 'text-foreground' : 'text-muted-foreground',
+                        )}
+                      >
+                        {item.title}
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+            <p className='text-muted-foreground mt-4 shrink-0 text-[13px] leading-relaxed font-medium'>
+              {STEPS[step - 1]?.description}
+            </p>
+
+            <div className='min-h-0 flex-1 pt-4'>
+              {step === 1 ? (
+                <div className='grid grid-cols-1 gap-3 px-0.5 py-0.5 sm:grid-cols-2'>
+                  <TextField
+                    id='submit-review-avg-steps'
+                    label='Average steps (manual)'
+                    type='number'
+                    min={0}
+                    step='any'
+                    value={avgSteps}
+                    onChange={(event) => onAvgStepsChange(event.target.value)}
+                    className='text-[13px]'
+                  />
+                  <TextField
+                    id='submit-review-avg-training-time'
+                    label='Average training time (minutes)'
+                    type='number'
+                    min={0}
+                    step='any'
+                    value={avgTrainingTime}
+                    onChange={(event) =>
+                      onAvgTrainingTimeChange(event.target.value)
+                    }
+                    className='text-[13px]'
+                  />
+                </div>
+              ) : null}
+
+              {step === 2 ? (
+                <div className='space-y-2'>
+                  <p className='text-foreground text-[12px] font-semibold tracking-wide uppercase'>
+                    Included metrics
+                  </p>
+                  {metricOptions.length ? (
+                    <div className='max-h-72 overflow-y-auto px-0.5 py-0.5'>
+                      <div className='grid grid-cols-1 gap-2 md:grid-cols-2'>
+                        {metricOptions.map((metric) => {
+                          const checked = includedMetricKeys.includes(metric.metricKey);
+                          return (
+                            <label
+                              key={metric.metricKey}
+                              className={cn(
+                                'border-border bg-background hover:border-primary/40 hover:bg-primary/2 flex items-start gap-3 rounded-md border p-3 transition-colors',
+                                checked && 'border-primary/50 bg-primary/5',
+                              )}
+                            >
+                              <Checkbox
+                                checked={checked}
+                                onCheckedChange={(value) => {
+                                  if (value === true) {
+                                    onIncludedMetricKeysChange([
+                                      ...includedMetricKeys,
+                                      metric.metricKey,
+                                    ]);
+                                    return;
+                                  }
+                                  onIncludedMetricKeysChange(
+                                    includedMetricKeys.filter(
+                                      (key) => key !== metric.metricKey,
+                                    ),
+                                  );
+                                }}
+                                aria-label={`Include ${metric.label}`}
+                              />
+                              <div className='min-w-0 space-y-1'>
+                                <p className='text-foreground line-clamp-1 text-[13px] font-semibold'>
+                                  {metric.label}
+                                </p>
+                                <p className='text-muted-foreground line-clamp-1 text-[12px]'>
+                                  {metric.metricKey}
+                                </p>
+                                <span className='border-border bg-muted/40 text-foreground/80 inline-flex rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase'>
+                                  {formatSectionLabel(metric.section)}
+                                </span>
+                              </div>
+                            </label>
                           );
-                        }}
-                        aria-label={`Include ${metric.label}`}
-                      />
-                      <div className='min-w-0'>
-                        <p className='text-sm font-medium'>{metric.label}</p>
-                        <p className='text-muted-foreground text-xs'>
-                          {formatSectionLabel(metric.section)} -{' '}
-                          {metric.metricKey}
-                        </p>
+                        })}
                       </div>
-                    </label>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className='text-muted-foreground text-sm'>
-                No metric rows available to include from this operational log.
-              </p>
-            )}
-          </div>
+                    </div>
+                  ) : (
+                    <p className='text-muted-foreground text-sm'>
+                      No metric rows available to include from this operational log.
+                    </p>
+                  )}
+                </div>
+              ) : null}
 
-          <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-            <TextField
-              id='submit-review-avg-steps'
-              label='Average steps (manual)'
-              type='number'
-              min={0}
-              step='any'
-              value={avgSteps}
-              onChange={(event) => onAvgStepsChange(event.target.value)}
-            />
-            <TextField
-              id='submit-review-avg-training-time'
-              label='Average training time (minutes)'
-              type='number'
-              min={0}
-              step='any'
-              value={avgTrainingTime}
-              onChange={(event) => onAvgTrainingTimeChange(event.target.value)}
-            />
+              {step === 3 ? (
+                <div className='space-y-3 px-0.5 py-0.5'>
+                  <TextAreaField
+                    id='submit-review-summary'
+                    label='Summary'
+                    value={feedback.summary ?? ''}
+                    onChange={(event) =>
+                      onFeedbackChange({ ...feedback, summary: event.target.value })
+                    }
+                    className='min-h-24 text-[13px]'
+                  />
+                  <TextAreaField
+                    id='submit-review-focus'
+                    label='Focus for next period'
+                    value={feedback.focus_next_period ?? ''}
+                    onChange={(event) =>
+                      onFeedbackChange({
+                        ...feedback,
+                        focus_next_period: event.target.value,
+                      })
+                    }
+                    className='min-h-20 text-[13px]'
+                  />
+                  <TextAreaField
+                    id='submit-review-notes'
+                    label='Internal notes'
+                    value={feedback.notes ?? ''}
+                    onChange={(event) =>
+                      onFeedbackChange({ ...feedback, notes: event.target.value })
+                    }
+                    className='min-h-20 text-[13px]'
+                  />
+                </div>
+              ) : null}
+            </div>
           </div>
-
-          <TextAreaField
-            id='submit-review-summary'
-            label='Summary'
-            value={feedback.summary ?? ''}
-            onChange={(event) =>
-              onFeedbackChange({ ...feedback, summary: event.target.value })
-            }
-            className='min-h-24'
-          />
-          <TextAreaField
-            id='submit-review-focus'
-            label='Focus for next period'
-            value={feedback.focus_next_period ?? ''}
-            onChange={(event) =>
-              onFeedbackChange({
-                ...feedback,
-                focus_next_period: event.target.value,
-              })
-            }
-            className='min-h-20'
-          />
-          <TextAreaField
-            id='submit-review-notes'
-            label='Internal notes'
-            value={feedback.notes ?? ''}
-            onChange={(event) =>
-              onFeedbackChange({ ...feedback, notes: event.target.value })
-            }
-            className='min-h-20'
-          />
         </div>
 
-        <DialogFooter>
-          <Button
-            type='button'
-            variant='outline'
-            onClick={() => onOpenChange(false)}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button type='button' onClick={onSubmit} disabled={isSubmitting}>
-            Submit for review
-          </Button>
+        <DialogFooter className={enrollmentWizardDialogFooterClass}>
+          {step === 1 ? (
+            <Button
+              type='button'
+              variant='outline'
+              className={wizardOutlineButtonClass}
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
+              <XIcon className='size-3.5 shrink-0' />
+              Cancel
+            </Button>
+          ) : (
+            <Button
+              type='button'
+              variant='outline'
+              className={wizardOutlineButtonClass}
+              onClick={goBack}
+              disabled={isSubmitting}
+            >
+              <ArrowLeftIcon className='size-3.5 shrink-0' />
+              Previous
+            </Button>
+          )}
+          {step < 3 ? (
+            <Button
+              type='button'
+              className={wizardPrimaryButtonClass}
+              onClick={goNext}
+              disabled={isSubmitting}
+            >
+              Continue
+              <ChevronRightIcon className='size-3.5 shrink-0' />
+            </Button>
+          ) : (
+            <Button
+              type='button'
+              className={wizardPrimaryButtonClass}
+              onClick={onSubmit}
+              disabled={isSubmitting}
+            >
+              {hasExistingReport ? (
+                <FileSymlink className='size-3.5 shrink-0' />
+              ) : (
+                <FileChartColumn className='size-3.5 shrink-0' />
+              )}
+              {submitLabel}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
