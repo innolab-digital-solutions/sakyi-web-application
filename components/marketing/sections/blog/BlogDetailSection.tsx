@@ -102,7 +102,6 @@ const BlogDetailSection = ({ slug }: BlogDetailSectionProps) => {
             >
               <BookOpen className='mr-2 h-5 w-5' />
               Start Your Program
-              <ArrowRight className='ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1' />
             </Link>
 
             <Link

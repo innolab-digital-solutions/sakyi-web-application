@@ -9,4 +9,8 @@ export {
   type BlogCategoryLookup,
   getBlogCategoriesLookup,
 } from './lookup.service';
-export { getBlogPostBySlug, getBlogPosts } from './marketing.service';
+export {
+  getBlogCategories,
+  getBlogPostBySlug,
+  getBlogPosts,
+} from './marketing.service';

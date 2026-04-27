@@ -13,7 +13,7 @@ export type BlogPost = {
   excerpt: string | null;
   content: string;
   category: BlogCategory;
-  timestamps: {
+  timestamps?: {
     published_at: string | null;
     archived_at: string | null;
     created_at: string;

@@ -1,8 +1,9 @@
 import { ENDPOINTS } from '@/config/api/endpoints';
 import type { SupportedLanguage } from '@/config/languages';
-import { ApiResponse, http } from '@/lib/api/client';
+import { http } from '@/lib/api/client';
+import type { ApiResponse } from '@/types/api';
 
-import type { BlogPost } from '../types/marketing';
+import type { BlogCategory, BlogPost } from '../types/marketing';
 
 export const getBlogPosts = async (
   language: SupportedLanguage,
@@ -11,12 +12,21 @@ export const getBlogPosts = async (
 ): Promise<ApiResponse<BlogPost[]>> => {
   const params = new URLSearchParams({
     locale: language,
+    paginate: 'true',
     page: page.toString(),
     ...(category ? { category } : {}),
   });
 
   return http.get<BlogPost[]>(
-    ENDPOINTS.MARKETING.BLOGS + `?${params.toString()}`,
+    ENDPOINTS.MARKETING.BLOGS.LIST + `?${params.toString()}`,
+  );
+};
+
+export const getBlogCategories = async (
+  language: SupportedLanguage,
+): Promise<ApiResponse<BlogCategory[]>> => {
+  return http.get<BlogCategory[]>(
+    ENDPOINTS.MARKETING.BLOGS.CATEGORIES + `?locale=${language}`,
   );
 };
 
@@ -25,6 +35,6 @@ export const getBlogPostBySlug = async (
   language: SupportedLanguage,
 ): Promise<ApiResponse<BlogPost>> => {
   return http.get<BlogPost>(
-    ENDPOINTS.MARKETING.BLOGS + `/${slug}?locale=${language}`,
+    ENDPOINTS.MARKETING.BLOGS.DETAIL(slug) + `?locale=${language}`,
   );
 };

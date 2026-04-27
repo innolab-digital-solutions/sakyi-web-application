@@ -21,6 +21,10 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
         protocol: 'https',
         hostname: 'staging-api.sakyihealthandwellness.com',
       },
@@ -36,6 +40,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'placehold.co',
         pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
       },
     ],
   },

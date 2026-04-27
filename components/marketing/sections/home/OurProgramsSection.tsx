@@ -97,15 +97,24 @@ const OurProgramsSection = () => {
             ))}
           </div>
         </div>
-      ) : (
-        <div className='mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-          {programs.length > 0
-            ? programs.map((program, index) => (
-                <ProgramCard key={program.id} program={program} index={index} />
-              ))
-            : null}
+      ) : programs.length > 0 ? (
+        <div className='mt-12 grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-stretch'>
+          {/* Left — first program, tall vertical card */}
+          <ProgramCard program={programs[0]} index={0} className='h-full' />
+
+          {/* Right — second and third programs stacked horizontally */}
+          <div className='grid grid-rows-2 gap-6'>
+            {programs.slice(1, 3).map((program, index) => (
+              <ProgramCard
+                key={program.id}
+                program={program}
+                index={index + 1}
+                variant='horizontal'
+              />
+            ))}
+          </div>
         </div>
-      )}
+      ) : null}
 
       {!isLoading && programs.length === 0 && (
         <div className='mt-12'>

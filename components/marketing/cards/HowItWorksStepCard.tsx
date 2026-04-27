@@ -27,7 +27,7 @@ const HowItWorksStepCard = ({
   return (
     <div
       className={cn(
-        'group border-border relative min-w-0 overflow-hidden rounded-2xl border bg-white p-6 text-center shadow-sm transition-all duration-300 hover:border-[#35bec5]/50 hover:shadow-lg sm:p-8',
+        'group border-border relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border bg-white p-6 text-center shadow-sm transition-all duration-300 hover:border-[#35bec5]/50 hover:shadow-lg sm:p-8',
         className,
       )}
     >
