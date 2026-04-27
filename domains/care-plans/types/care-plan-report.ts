@@ -168,6 +168,20 @@ export type UpdateOperationalLogPayload = {
   adherence_percentage?: number | null;
 };
 
+export type SubmitForReviewManualHighlightPayload = {
+  metric_key: string;
+  label: string;
+  value: number;
+  unit: string | null;
+  is_visible_to_client: boolean;
+};
+
+export type SubmitOperationalLogForReviewPayload = {
+  feedback?: ReportRunFeedback;
+  included_metric_keys?: string[];
+  manual_highlights?: SubmitForReviewManualHighlightPayload[];
+};
+
 /** `PUT` client report: feedback only (object required; fields may be null). */
 export type UpdateCarePlanReportRunPayload = {
   feedback: ReportRunFeedback;

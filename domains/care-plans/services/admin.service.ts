@@ -24,6 +24,7 @@ import type {
   ListCarePlanReportRunsData,
   OperationalLogSnapshot,
   PublishCarePlanReportRunPayload,
+  SubmitOperationalLogForReviewPayload,
   UpdateCarePlanReportRunPayload,
   UpdateOperationalLogPayload,
 } from '../types/care-plan-report';
@@ -252,13 +253,14 @@ export async function putCarePlanOperationalLog(
 export async function postOperationalLogSubmitForReview(
   carePlanId: number,
   operationalLogId: number,
+  body?: SubmitOperationalLogForReviewPayload,
 ): Promise<ApiResponse<CarePlanReportRun>> {
   return http.post<CarePlanReportRun>(
     ENDPOINTS.ADMIN.MODULES.CARE_PLANS.OPERATIONAL_LOG_SUBMIT_FOR_REVIEW(
       String(carePlanId),
       String(operationalLogId),
     ),
-    {},
+    body ?? {},
     { throwOnError: false },
   );
 }

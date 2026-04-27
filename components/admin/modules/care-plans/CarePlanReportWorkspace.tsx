@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import OperationalLogMediaPreviewModal from '@/components/admin/modules/care-plans/OperationalLogMediaPreviewModal';
 import ReviewOperationalLogMetricsDialog from '@/components/admin/modules/care-plans/ReviewOperationalLogMetricsDialog';
 import SaveCarePlanDataConfirmation from '@/components/admin/modules/care-plans/SaveCarePlanDataConfirmation';
+import SubmitOperationalLogForReviewDialog from '@/components/admin/modules/care-plans/SubmitOperationalLogForReviewDialog';
 import OperationalLogWorkspaceContextBar from '@/components/admin/modules/operational-logs/OperationalLogWorkspaceContextBar';
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
@@ -60,6 +61,7 @@ import type {
   ReportMetricDailyPoint,
   ReportRunFeedback,
   ReportRunMetric,
+  SubmitForReviewManualHighlightPayload,
 } from '@/domains/care-plans/types/care-plan-report';
 import { getCarePlanSectionTab } from '@/lib/care-plans/carePlanSectionTabs';
 import { defaultReportPeriodForCarePlan } from '@/lib/care-plans/defaultReportPeriodRange';
@@ -224,6 +226,16 @@ export default function CarePlanReportWorkspace({
     React.useState(false);
   const [operationalLogMetricsReviewOpen, setOperationalLogMetricsReviewOpen] =
     React.useState(false);
+  const [submitForReviewDialogOpen, setSubmitForReviewDialogOpen] =
+    React.useState(false);
+  const [submitReviewIncludedMetricKeys, setSubmitReviewIncludedMetricKeys] =
+    React.useState<string[]>([]);
+  const [submitReviewFeedback, setSubmitReviewFeedback] =
+    React.useState<ReportRunFeedback>(emptyFeedback);
+  const [submitReviewAverageSteps, setSubmitReviewAverageSteps] =
+    React.useState('');
+  const [submitReviewAverageTrainingMinutes, setSubmitReviewAverageTrainingMinutes] =
+    React.useState('');
   const defaultingPeriodRef = React.useRef(false);
   const workspaceFormKeyRef = React.useRef<string | null>(null);
   const formMetricsRef = React.useRef<ReportRunMetric[]>([]);
@@ -475,6 +487,18 @@ export default function CarePlanReportWorkspace({
     operationalLog.status === 'in_progress' &&
     operationalLog.is_editable !== false &&
     !clientReport;
+  const submitReviewMetricOptions = React.useMemo(
+    () =>
+      (operationalLog?.metrics?.length
+        ? operationalLog.metrics
+        : formMetrics
+      ).map((metric) => ({
+        metricKey: metric.metric_key,
+        label: metric.label,
+        section: metric.section,
+      })),
+    [operationalLog?.metrics, formMetrics],
+  );
 
   const operationalLogsSummaryCardsProps = React.useMemo(() => {
     const enrollment = carePlan?.enrollment;
@@ -684,9 +708,43 @@ export default function CarePlanReportWorkspace({
     mutationFn: async () => {
       if (activeOpLogId == null)
         throw new Error('No operational log to submit.');
+      const manualHighlights: SubmitForReviewManualHighlightPayload[] = [];
+      const avgStepsValue = Number.parseFloat(submitReviewAverageSteps);
+      if (Number.isFinite(avgStepsValue) && avgStepsValue >= 0) {
+        manualHighlights.push({
+          metric_key: 'avg_steps',
+          label: 'Average steps',
+          value: avgStepsValue,
+          unit: 'steps',
+          is_visible_to_client: true,
+        });
+      }
+      const avgTrainingTimeValue = Number.parseFloat(
+        submitReviewAverageTrainingMinutes,
+      );
+      if (Number.isFinite(avgTrainingTimeValue) && avgTrainingTimeValue >= 0) {
+        manualHighlights.push({
+          metric_key: 'avg_training_time',
+          label: 'Average training time',
+          value: avgTrainingTimeValue,
+          unit: 'minute',
+          is_visible_to_client: true,
+        });
+      }
       const res = await postOperationalLogSubmitForReview(
         carePlanId,
         activeOpLogId,
+        {
+          feedback: {
+            summary: (submitReviewFeedback.summary ?? '').trim(),
+            focus_next_period: (
+              submitReviewFeedback.focus_next_period ?? ''
+            ).trim(),
+            notes: (submitReviewFeedback.notes ?? '').trim(),
+          },
+          included_metric_keys: submitReviewIncludedMetricKeys,
+          manual_highlights: manualHighlights,
+        },
       );
       if (res.status === 'error') {
         throw new Error(res.message ?? 'Could not submit for review.');
@@ -694,6 +752,7 @@ export default function CarePlanReportWorkspace({
       return res.data;
     },
     onSuccess: (data) => {
+      setSubmitForReviewDialogOpen(false);
       void queryClient.invalidateQueries({
         queryKey: [WORKSPACE_QUERY_KEY, carePlanId],
       });
@@ -717,6 +776,25 @@ export default function CarePlanReportWorkspace({
       toast.error(e.message);
     },
   });
+
+  const openSubmitForReviewDialog = React.useCallback(() => {
+    setSubmitReviewFeedback({
+      summary: formFeedback.summary ?? '',
+      focus_next_period: formFeedback.focus_next_period ?? '',
+      notes: formFeedback.notes ?? '',
+    });
+    setSubmitReviewIncludedMetricKeys(
+      submitReviewMetricOptions.map((metric) => metric.metricKey),
+    );
+    setSubmitReviewAverageSteps('');
+    setSubmitReviewAverageTrainingMinutes('');
+    setSubmitForReviewDialogOpen(true);
+  }, [
+    formFeedback.focus_next_period,
+    formFeedback.notes,
+    formFeedback.summary,
+    submitReviewMetricOptions,
+  ]);
 
   const publishMutation = useMutation({
     mutationFn: async () => {
@@ -1116,7 +1194,7 @@ export default function CarePlanReportWorkspace({
                     type='button'
                     className='h-10 text-[13px]! font-semibold'
                     variant='secondary'
-                    onClick={() => submitForReviewMutation.mutate()}
+                    onClick={openSubmitForReviewDialog}
                     disabled={submitForReviewMutation.isPending}
                   >
                     {submitForReviewMutation.isPending ? (
@@ -1382,7 +1460,7 @@ export default function CarePlanReportWorkspace({
                 <Button
                   type='button'
                   variant='secondary'
-                  onClick={() => submitForReviewMutation.mutate()}
+                  onClick={openSubmitForReviewDialog}
                   disabled={submitForReviewMutation.isPending}
                 >
                   {submitForReviewMutation.isPending ? (
@@ -1484,6 +1562,21 @@ export default function CarePlanReportWorkspace({
         carePlanCode={saveCarePlanCodeForDialog}
         onOpenChange={setSaveCarePlanConfirmOpen}
         onConfirm={confirmSaveCarePlanData}
+      />
+      <SubmitOperationalLogForReviewDialog
+        open={submitForReviewDialogOpen}
+        isSubmitting={submitForReviewMutation.isPending}
+        metricOptions={submitReviewMetricOptions}
+        includedMetricKeys={submitReviewIncludedMetricKeys}
+        feedback={submitReviewFeedback}
+        avgSteps={submitReviewAverageSteps}
+        avgTrainingTime={submitReviewAverageTrainingMinutes}
+        onOpenChange={setSubmitForReviewDialogOpen}
+        onIncludedMetricKeysChange={setSubmitReviewIncludedMetricKeys}
+        onFeedbackChange={setSubmitReviewFeedback}
+        onAvgStepsChange={setSubmitReviewAverageSteps}
+        onAvgTrainingTimeChange={setSubmitReviewAverageTrainingMinutes}
+        onSubmit={() => submitForReviewMutation.mutate()}
       />
 
       <OperationalLogMediaPreviewModal
