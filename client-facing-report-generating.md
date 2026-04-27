@@ -160,6 +160,7 @@ Publish (`POST /report-runs/{id}/publish`) requires:
 - at least one highlight where `is_visible_to_client = true`
 
 On publish:
+
 - report run becomes `published`
 - operational log becomes `locked`
 

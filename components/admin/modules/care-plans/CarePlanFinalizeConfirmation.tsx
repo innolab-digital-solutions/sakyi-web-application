@@ -1,6 +1,10 @@
 'use client';
 
-import { CheckCircle2Icon, CircleQuestionMark, ScanTextIcon } from 'lucide-react';
+import {
+  CheckCircle2Icon,
+  CircleQuestionMark,
+  ScanTextIcon,
+} from 'lucide-react';
 
 import {
   AlertDialog,
@@ -50,9 +54,9 @@ export default function CarePlanFinalizeConfirmation({
                 <span className='text-primary text-xs font-semibold'>
                   {planReference?.trim() || 'this care plan'}
                 </span>
-                . Run validation before finalizing to confirm this draft is ready
-                for activation. If validation fails, activation will be blocked
-                until the reported issues are fixed.
+                . Run validation before finalizing to confirm this draft is
+                ready for activation. If validation fails, activation will be
+                blocked until the reported issues are fixed.
               </AlertDialogDescription>
             </div>
           </div>

@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 
 import type { AdminCarePlan } from '@/domains/care-plans/types/admin';
 import type { CarePlanReportWorkspace } from '@/domains/care-plans/types/care-plan-report';
-
 import { resolveOperationalLogForReportWorkspace } from '@/lib/care-plans/resolveOperationalLogForReportWorkspace';
 
 const base: CarePlanReportWorkspace = {
@@ -13,7 +12,13 @@ const base: CarePlanReportWorkspace = {
     starts_on: '2026-01-01',
     ends_on: '2026-01-07',
   },
-  client: { id: 1, name: 'n', client_code: 'cc', email: 'e', picture_url: null },
+  client: {
+    id: 1,
+    name: 'n',
+    client_code: 'cc',
+    email: 'e',
+    picture_url: null,
+  },
   period: { starts_on: '2026-01-01', ends_on: '2026-01-07' },
   evidence: [],
   suggested_metrics: [],
@@ -36,7 +41,12 @@ describe('resolveOperationalLogForReportWorkspace', () => {
       },
     };
     const carePlan = {
-      operational_log: { id: 1, code: 'OL', status: 'draft', is_editable: true },
+      operational_log: {
+        id: 1,
+        code: 'OL',
+        status: 'draft',
+        is_editable: true,
+      },
     } as AdminCarePlan;
 
     const r = resolveOperationalLogForReportWorkspace(workspace, carePlan);
@@ -47,7 +57,12 @@ describe('resolveOperationalLogForReportWorkspace', () => {
 
   it('returns only care plan when workspace has no operational_log', () => {
     const carePlan = {
-      operational_log: { id: 2, code: 'X', status: 'in_progress', is_editable: true },
+      operational_log: {
+        id: 2,
+        code: 'X',
+        status: 'in_progress',
+        is_editable: true,
+      },
     } as AdminCarePlan;
 
     const r = resolveOperationalLogForReportWorkspace(base, carePlan);

@@ -1,5 +1,5 @@
-import type { CarePlanEmbeddedOperationalLog } from '@/domains/care-plans/types/operational-log-embed';
 import type { OperationalLogSnapshot } from '@/domains/care-plans/types/care-plan-report';
+import type { CarePlanEmbeddedOperationalLog } from '@/domains/care-plans/types/operational-log-embed';
 
 /**
  * When `GET` report-workspace returns `operational_log: null` but `getCarePlanById`
@@ -12,7 +12,9 @@ export function carePlanEmbedToOperationalLogSnapshot(
 ): OperationalLogSnapshot {
   const raw = (embed.status ?? 'draft').trim().toLowerCase();
   const status: OperationalLogSnapshot['status'] =
-    raw === 'draft' || raw === 'in_progress' || raw === 'locked' ? raw : 'locked';
+    raw === 'draft' || raw === 'in_progress' || raw === 'locked'
+      ? raw
+      : 'locked';
   return {
     id: embed.id,
     code: embed.code,

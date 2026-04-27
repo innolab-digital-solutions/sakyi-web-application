@@ -134,10 +134,7 @@ function buildReportWorkspaceQuery(params: GetReportWorkspaceParams): string {
   const search = new URLSearchParams();
   if ('reportRunId' in params && params.reportRunId != null) {
     search.set('report_run_id', String(params.reportRunId));
-  } else if (
-    'operationalLogId' in params &&
-    params.operationalLogId != null
-  ) {
+  } else if ('operationalLogId' in params && params.operationalLogId != null) {
     search.set('operational_log_id', String(params.operationalLogId));
   } else if (
     'periodStartsOn' in params &&
@@ -173,7 +170,11 @@ export async function listCarePlanReportRuns(
 
 /** Resolves `client_reports` (new) or `report_runs` (legacy) from the list payload. */
 export function getClientReportsFromListPayload(
-  data: ListCarePlanReportRunsData | CarePlanReportRunSummary[] | null | undefined,
+  data:
+    | ListCarePlanReportRunsData
+    | CarePlanReportRunSummary[]
+    | null
+    | undefined,
 ) {
   if (data == null) return [];
   if (Array.isArray(data)) return data;
@@ -202,7 +203,9 @@ export async function postCarePlanOperationalLogDraft(
   body?: CreateOperationalLogDraftPayload,
 ): Promise<ApiResponse<OperationalLogSnapshot>> {
   return http.post<OperationalLogSnapshot>(
-    ENDPOINTS.ADMIN.MODULES.CARE_PLANS.OPERATIONAL_LOG_DRAFT(String(carePlanId)),
+    ENDPOINTS.ADMIN.MODULES.CARE_PLANS.OPERATIONAL_LOG_DRAFT(
+      String(carePlanId),
+    ),
     body ?? {},
     { throwOnError: false },
   );
@@ -304,7 +307,8 @@ function buildCarePlanLogEntriesQuery(
   if (typeof params.is_completed === 'boolean') {
     search.set('is_completed', params.is_completed ? '1' : '0');
   }
-  if (params.date_from?.trim()) search.set('date_from', params.date_from.trim());
+  if (params.date_from?.trim())
+    search.set('date_from', params.date_from.trim());
   if (params.date_to?.trim()) search.set('date_to', params.date_to.trim());
   if (params.search?.trim()) search.set('search', params.search.trim());
   if (typeof params.page === 'number') search.set('page', String(params.page));
@@ -316,10 +320,15 @@ function buildCarePlanLogEntriesQuery(
   return queryString ? `?${queryString}` : '';
 }
 
-export async function listCarePlanLogs(): Promise<ApiResponse<CarePlanLogSummary[]>> {
-  return http.get<CarePlanLogSummary[]>(ENDPOINTS.ADMIN.MODULES.CARE_PLAN_LOGS.LIST, {
-    throwOnError: false,
-  });
+export async function listCarePlanLogs(): Promise<
+  ApiResponse<CarePlanLogSummary[]>
+> {
+  return http.get<CarePlanLogSummary[]>(
+    ENDPOINTS.ADMIN.MODULES.CARE_PLAN_LOGS.LIST,
+    {
+      throwOnError: false,
+    },
+  );
 }
 
 export async function getCarePlanLogSummary(

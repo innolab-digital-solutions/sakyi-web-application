@@ -74,7 +74,7 @@ export default function CarePlanActivateActivePlanExistsDialog({
                   {activeLabel}
                 </span>{' '}
                 is already the active care plan for this enrollment{' '}
-                <span className='text-xs font-semibold text-foreground/90'>
+                <span className='text-foreground/90 text-xs font-semibold'>
                   {enrollmentLabel}
                 </span>{' '}
                 . Complete, cancel, or replace that plan before activating a

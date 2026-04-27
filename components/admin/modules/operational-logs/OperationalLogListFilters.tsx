@@ -63,8 +63,7 @@ export default function OperationalLogListFilters({
           >
             <SlidersHorizontalIcon className='size-4 opacity-80' />
             <span>
-              Status:{' '}
-              {statusFilter === 'all' ? 'All' : labels[statusFilter]}
+              Status: {statusFilter === 'all' ? 'All' : labels[statusFilter]}
             </span>
             <ChevronDownIcon className='size-3.5 opacity-70' />
           </Button>

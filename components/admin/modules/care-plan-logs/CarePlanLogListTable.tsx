@@ -1,11 +1,7 @@
 'use client';
 
 import { format, parseISO } from 'date-fns';
-import {
-  AlertTriangleIcon,
-  CheckCircle2Icon,
-  ClockIcon,
-} from 'lucide-react';
+import { AlertTriangleIcon, CheckCircle2Icon, ClockIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -522,13 +518,19 @@ export default function CarePlanLogListTable() {
 
                   {showColumn('careCycle') ? (
                     <TableCell>
-                      {row.cycle_number != null ? `Cycle ${row.cycle_number}` : <TableCellEmpty label='—' />}
+                      {row.cycle_number != null ? (
+                        `Cycle ${row.cycle_number}`
+                      ) : (
+                        <TableCellEmpty label='—' />
+                      )}
                     </TableCell>
                   ) : null}
 
                   {showColumn('lastUpdatedAt') ? (
                     <TableCell>
-                      {lastUpdatedAt ?? <TableCellEmpty label='No update date' />}
+                      {lastUpdatedAt ?? (
+                        <TableCellEmpty label='No update date' />
+                      )}
                     </TableCell>
                   ) : null}
 

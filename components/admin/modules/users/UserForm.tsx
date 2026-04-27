@@ -164,7 +164,7 @@ function UserFormFields({
           error={errors.password_confirmation}
         />
 
-        <div className='flex items-center justify-between rounded-md border border-input shadow px-4 py-3'>
+        <div className='border-input flex items-center justify-between rounded-md border px-4 py-3 shadow'>
           <div className='space-y-0.5'>
             <Label className='text-foreground text-[13px] font-semibold'>
               Admin Access

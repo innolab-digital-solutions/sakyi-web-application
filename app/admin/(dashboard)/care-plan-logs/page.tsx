@@ -17,7 +17,11 @@ export default function CarePlanLogsPage() {
         title='Daily Task Logs'
         description='Track daily task logging across active care plans with recency indicators, timeline progress context, and clear visibility into completion patterns. Open each care plan to review detailed entries for operational follow-up.'
       />
-      <Suspense fallback={<div className='text-muted-foreground text-sm'>Loading...</div>}>
+      <Suspense
+        fallback={
+          <div className='text-muted-foreground text-sm'>Loading...</div>
+        }
+      >
         <CarePlanLogListTable />
       </Suspense>
     </div>

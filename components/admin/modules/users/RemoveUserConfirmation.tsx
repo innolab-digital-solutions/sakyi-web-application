@@ -47,8 +47,9 @@ export default function RemoveUserConfirmation({
                 <strong className='text-destructive font-semibold'>
                   {displayName}
                 </strong>{' '}
-                from the system and permanently delete related enrollment history
-                and other linked user records. This action cannot be undone.
+                from the system and permanently delete related enrollment
+                history and other linked user records. This action cannot be
+                undone.
               </AlertDialogDescription>
             </div>
           </div>

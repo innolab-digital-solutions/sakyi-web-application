@@ -125,7 +125,9 @@ export default function OperationalLogWorkspaceContextBar({
         <p className='text-muted-foreground mb-1.5 text-[10px] font-semibold tracking-wide uppercase'>
           Plan Timeline
         </p>
-        <p className='text-foreground text-[12.5px] font-semibold'>Care window</p>
+        <p className='text-foreground text-[12.5px] font-semibold'>
+          Care window
+        </p>
         <p className='text-muted-foreground mt-0.5 truncate text-[11px] font-semibold'>
           {careWindowStartsOn
             ? formatTargetDateLabel(careWindowStartsOn)

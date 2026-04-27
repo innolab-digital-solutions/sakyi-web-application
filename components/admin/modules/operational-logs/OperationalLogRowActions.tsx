@@ -58,12 +58,7 @@ export default function OperationalLogRowActions({ row }: Props) {
 
   return (
     <div className='flex items-center justify-end gap-1.5'>
-      <Button
-        variant='outline'
-        size='sm'
-        className={viewPrimaryClass}
-        asChild
-      >
+      <Button variant='outline' size='sm' className={viewPrimaryClass} asChild>
         <Link href={href} className='inline-flex items-center gap-1.5'>
           <NotebookPenIcon className='size-3.5 shrink-0' />
           Open workspace

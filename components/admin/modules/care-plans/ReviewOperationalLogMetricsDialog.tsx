@@ -147,7 +147,7 @@ export default function ReviewOperationalLogMetricsDialog({
                             </span>
                           ) : null}
                         </div>
-                        <p className='text-foreground mt-0.5 text-[12.5px] font-semibold leading-snug tracking-tight'>
+                        <p className='text-foreground mt-0.5 text-[12.5px] leading-snug font-semibold tracking-tight'>
                           {m.label}
                         </p>
                       </div>
@@ -190,7 +190,7 @@ export default function ReviewOperationalLogMetricsDialog({
                               </td>
                               <td className='px-1.5 py-1.5 align-top sm:px-2'>
                                 <span
-                                  className='border-border/70 bg-background text-foreground/85 inline-block min-w-0 max-w-full rounded border px-2 py-1 font-medium wrap-break-word tabular-nums dark:bg-zinc-900/50'
+                                  className='border-border/70 bg-background text-foreground/85 inline-block max-w-full min-w-0 rounded border px-2 py-1 font-medium wrap-break-word tabular-nums dark:bg-zinc-900/50'
                                   title={ch.before}
                                 >
                                   {ch.before}
@@ -204,7 +204,7 @@ export default function ReviewOperationalLogMetricsDialog({
                               </td>
                               <td className='px-1.5 py-1.5 align-top sm:px-2'>
                                 <span
-                                  className='border-primary/20 bg-primary/5 text-foreground inline-block min-w-0 max-w-full rounded border px-2 py-1 font-semibold wrap-break-word tabular-nums'
+                                  className='border-primary/20 bg-primary/5 text-foreground inline-block max-w-full min-w-0 rounded border px-2 py-1 font-semibold wrap-break-word tabular-nums'
                                   title={ch.after}
                                 >
                                   {ch.after}

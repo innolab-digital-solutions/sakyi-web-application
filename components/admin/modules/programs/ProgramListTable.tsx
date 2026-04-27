@@ -195,9 +195,8 @@ function listLocaleFromParams(raw: string | undefined): ProgramListLocale {
 export default function ProgramListTable() {
   const queryClient = useQueryClient();
   const [deleteTarget, setDeleteTarget] = useState<Program | null>(null);
-  const [blockedDeleteTarget, setBlockedDeleteTarget] = useState<Program | null>(
-    null,
-  );
+  const [blockedDeleteTarget, setBlockedDeleteTarget] =
+    useState<Program | null>(null);
 
   const { mutateAsync: confirmDelete, isPending: isDeleting } = useMutation({
     mutationFn: async (id: number) => {
@@ -466,9 +465,7 @@ export default function ProgramListTable() {
             ? `program #${blockedDeleteTarget.id}`
             : undefined)
         }
-        reason={
-          blockedDeleteTarget?.actions.delete_block_reason ?? undefined
-        }
+        reason={blockedDeleteTarget?.actions.delete_block_reason ?? undefined}
       />
     </>
   );

@@ -224,7 +224,11 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
   const scrollToWizardTop = useCallback(() => {
     const root = wizardSectionRef.current;
     if (!root) return;
-    root.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+    root.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+      inline: 'nearest',
+    });
   }, []);
 
   const scrollToFirstInvalidField = useCallback(() => {
@@ -232,7 +236,9 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
     if (!root) return;
 
     requestAnimationFrame(() => {
-      const invalidEl = root.querySelector<HTMLElement>('[aria-invalid="true"]');
+      const invalidEl = root.querySelector<HTMLElement>(
+        '[aria-invalid="true"]',
+      );
       if (invalidEl) {
         invalidEl.scrollIntoView({
           behavior: 'smooth',
@@ -815,7 +821,9 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
             onClick={() => {
               const draft = draftBySection[activeSection.id] ?? {};
               if (!isSectionDraftDirty(activeSection, draft)) {
-                toast.success('The section responses have been saved successfully.');
+                toast.success(
+                  'The section responses have been saved successfully.',
+                );
                 return;
               }
               saveMutation.mutate({

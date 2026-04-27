@@ -283,7 +283,10 @@ type ProgramChangeSnapshot = {
   duration: string;
   price: number;
   goalIds: number[];
-  status: typeof STATUS.DRAFT | typeof STATUS.PUBLISHED | typeof STATUS.ARCHIVED;
+  status:
+    | typeof STATUS.DRAFT
+    | typeof STATUS.PUBLISHED
+    | typeof STATUS.ARCHIVED;
   translations: Array<{
     locale: 'en' | 'my';
     title: string;
@@ -301,7 +304,10 @@ function buildProgramChangeSnapshot(input: {
   duration: string;
   price: number;
   goalIds: number[];
-  status: typeof STATUS.DRAFT | typeof STATUS.PUBLISHED | typeof STATUS.ARCHIVED;
+  status:
+    | typeof STATUS.DRAFT
+    | typeof STATUS.PUBLISHED
+    | typeof STATUS.ARCHIVED;
   translations: TranslationData[];
 }): ProgramChangeSnapshot {
   return {
@@ -427,7 +433,9 @@ export default function ProgramWizard({
           ideals: src.ideals ?? [],
           expectations: src.expectations ?? [],
           structures:
-            src.structures?.length > 0 ? src.structures.map((s) => ({ ...s })) : [],
+            src.structures?.length > 0
+              ? src.structures.map((s) => ({ ...s }))
+              : [],
         };
       }),
     });
@@ -631,7 +639,8 @@ export default function ProgramWizard({
         translations,
       });
       const changedValues =
-        JSON.stringify(currentSnapshot) !== JSON.stringify(initialChangeSnapshot);
+        JSON.stringify(currentSnapshot) !==
+        JSON.stringify(initialChangeSnapshot);
       const thumbnailChanged = thumbnailFile !== null;
 
       if (!changedValues && !thumbnailChanged) {

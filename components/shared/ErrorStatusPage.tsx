@@ -47,13 +47,15 @@ export default function ErrorStatusPage({
           <p className='text-primary text-xs font-semibold tracking-[0.22em] uppercase sm:text-sm'>
             Error {presentation.code}
           </p>
-          <h1 className='text-foreground text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl'>
+          <h1 className='text-foreground text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl'>
             {presentation.title}
           </h1>
           <p className='text-muted-foreground text-sm leading-relaxed sm:text-base lg:max-w-[56ch]'>
             {presentation.description}
           </p>
-          {note ? <div className='text-muted-foreground text-xs'>{note}</div> : null}
+          {note ? (
+            <div className='text-muted-foreground text-xs'>{note}</div>
+          ) : null}
           <div className='flex flex-wrap items-center justify-center gap-2.5 pt-2 sm:gap-3 md:justify-start'>
             {onRetry ? (
               <Button

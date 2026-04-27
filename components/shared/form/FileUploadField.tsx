@@ -702,7 +702,9 @@ function FileUploadField(props: FileUploadFieldProps) {
           >
             <div className='text-muted-foreground flex items-center gap-2 text-xs md:text-sm'>
               <Upload className='size-4 shrink-0' aria-hidden />
-              <span className='text-foreground text-[13px] capitalize font-medium'>{emptyHint}</span>
+              <span className='text-foreground text-[13px] font-medium capitalize'>
+                {emptyHint}
+              </span>
             </div>
             {!hasListContent ? (
               <span className='text-muted-foreground text-xs'>

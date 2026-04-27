@@ -12,7 +12,7 @@ This document describes **recommended UI/data flow** for the care plan **report 
 {
   "status": "success",
   "message": "…",
-  "data": { },
+  "data": {},
   "meta": {
     "version": 1
   }
@@ -27,11 +27,11 @@ Errors use the same handler pattern (`status: "error"`, `message`, optional `err
 
 `GET` **report-workspace** returns **both** of the following. They are **not** the same and must not be conflated in the UI.
 
-| Field | Source | Updated when? | Editable in UI? |
-|--------|--------|---------------|----------------|
-| **`suggested_metrics`** | **Computed on every request** from care plan days (nutritions, movements, activities, recoveries) + **client** `care_plan_day_item_logs`. | New logs or care plan data → new numbers. | **Treat as read-only** (a “suggested roll-up / seed”). Editing this in the browser **does not persist** unless you **save to the operational log** (see below). |
-| **`operational_log.metrics` (+ `daily_points`)** | **Stored in the database** for this care plan’s single operational log. | Only when the admin **PUTs** the operational log with a `metrics` array. | **This is the persisted “working copy”** for the report period. Admin edits to targets/actuals for reporting belong **here** — they **do not** change user logs or the care plan builder tables. |
-| **`evidence`** | Raw, day-by-day items + attached logs. | When clients log. | **Read-only** for the operational narrative (ground truth of what was logged). |
+| Field                                            | Source                                                                                                                                    | Updated when?                                                            | Editable in UI?                                                                                                                                                                                  |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`suggested_metrics`**                          | **Computed on every request** from care plan days (nutritions, movements, activities, recoveries) + **client** `care_plan_day_item_logs`. | New logs or care plan data → new numbers.                                | **Treat as read-only** (a “suggested roll-up / seed”). Editing this in the browser **does not persist** unless you **save to the operational log** (see below).                                  |
+| **`operational_log.metrics` (+ `daily_points`)** | **Stored in the database** for this care plan’s single operational log.                                                                   | Only when the admin **PUTs** the operational log with a `metrics` array. | **This is the persisted “working copy”** for the report period. Admin edits to targets/actuals for reporting belong **here** — they **do not** change user logs or the care plan builder tables. |
+| **`evidence`**                                   | Raw, day-by-day items + attached logs.                                                                                                    | When clients log.                                                        | **Read-only** for the operational narrative (ground truth of what was logged).                                                                                                                   |
 
 **Recommendation for the product:**
 
@@ -65,13 +65,13 @@ Errors use the same handler pattern (`status: "error"`, `message`, optional `err
 
 Laravel **named route** keys are `v1.web.admin.care-plans.*` (use `route()` in the app, or your OpenAPI file if generated).
 
-| Step | Method | Path | Route name (Laravel) |
-|------|--------|------|------------------------|
-| Create draft op log (empty metrics) | `POST` | `care-plans/{care_plan}/operational-logs/draft` | `v1.web.admin.care-plans.operational-logs.draft` |
-| Create op log with at least 1 metric | `POST` | `care-plans/{care_plan}/operational-logs` | `v1.web.admin.care-plans.operational-logs.store` |
-| Update op log (save metrics) | `PUT` | `care-plans/{care_plan}/operational-logs/{operational_log}` | `v1.web.admin.care-plans.operational-logs.update` |
-| Load workspace | `GET` | `care-plans/{care_plan}/report-workspace` | `v1.web.admin.care-plans.report-workspace` |
-| Submit client report for review | `POST` | `care-plans/{care_plan}/operational-logs/{operational_log}/submit-for-review` | `v1.web.admin.care-plans.operational-logs.submit-for-review` |
+| Step                                 | Method | Path                                                                          | Route name (Laravel)                                         |
+| ------------------------------------ | ------ | ----------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Create draft op log (empty metrics)  | `POST` | `care-plans/{care_plan}/operational-logs/draft`                               | `v1.web.admin.care-plans.operational-logs.draft`             |
+| Create op log with at least 1 metric | `POST` | `care-plans/{care_plan}/operational-logs`                                     | `v1.web.admin.care-plans.operational-logs.store`             |
+| Update op log (save metrics)         | `PUT`  | `care-plans/{care_plan}/operational-logs/{operational_log}`                   | `v1.web.admin.care-plans.operational-logs.update`            |
+| Load workspace                       | `GET`  | `care-plans/{care_plan}/report-workspace`                                     | `v1.web.admin.care-plans.report-workspace`                   |
+| Submit client report for review      | `POST` | `care-plans/{care_plan}/operational-logs/{operational_log}/submit-for-review` | `v1.web.admin.care-plans.operational-logs.submit-for-review` |
 
 > Per-path parameter names: `care_plan` and `operational_log` (IDs).
 
@@ -129,26 +129,26 @@ Laravel **named route** keys are `v1.web.admin.care-plans.*` (use `route()` in t
 - `adherence_percentage` (optional, 0–100). If omitted, server can **recompute** from the saved metrics.
 - `metrics` (optional) — if present, **replaces** all stored metrics. Each element:
 
-| Key | Rule |
-|-----|------|
-| `section` | required; enum: `nutrition`, `movement`, `activity`, `recovery` |
-| `metric_key` | required string (≤100), e.g. `estimated_energy_burn`, or `activity:walking` style keys for titled rollups |
-| `label` | required string (≤150) |
-| `target_value`, `actual_value` | nullable numbers (period-level summary) |
-| `unit` | nullable string (≤30) — display label |
-| `days_on_target`, `days_total` | nullable 0–255 |
-| `display_order` | optional int |
-| `meta` | optional object |
-| `daily_points` | **required** array (may be empty) |
+| Key                            | Rule                                                                                                      |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `section`                      | required; enum: `nutrition`, `movement`, `activity`, `recovery`                                           |
+| `metric_key`                   | required string (≤100), e.g. `estimated_energy_burn`, or `activity:walking` style keys for titled rollups |
+| `label`                        | required string (≤150)                                                                                    |
+| `target_value`, `actual_value` | nullable numbers (period-level summary)                                                                   |
+| `unit`                         | nullable string (≤30) — display label                                                                     |
+| `days_on_target`, `days_total` | nullable 0–255                                                                                            |
+| `display_order`                | optional int                                                                                              |
+| `meta`                         | optional object                                                                                           |
+| `daily_points`                 | **required** array (may be empty)                                                                         |
 
 **Each `daily_points[]` item:**
 
-| Key | Rule |
-|-----|------|
-| `day_number` | required, 1..120 (1 = first day of the operational period) |
-| `target_value`, `actual_value` | nullable numbers |
-| `on_target` | **required** boolean |
-| `meta` | optional object (e.g. `reason: "no_movement_burn_log"` in suggested metrics — you may copy or simplify for stored rows) |
+| Key                            | Rule                                                                                                                    |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| `day_number`                   | required, 1..120 (1 = first day of the operational period)                                                              |
+| `target_value`, `actual_value` | nullable numbers                                                                                                        |
+| `on_target`                    | **required** boolean                                                                                                    |
+| `meta`                         | optional object (e.g. `reason: "no_movement_burn_log"` in suggested metrics — you may copy or simplify for stored rows) |
 
 **Result:** `200` — `data` = `formatOperationalLog` only (not the full workspace). The frontend should **merge** into local state or **re-fetch** `GET` report-workspace to refresh `suggested_metrics` + `evidence`.
 
@@ -165,7 +165,7 @@ Laravel **named route** keys are `v1.web.admin.care-plans.*` (use `route()` in t
 **Typical 422 messages:**
 
 - A client report run **already exists** for this operational log.
-- Operational log is still **`draft`** — *“Save operational metrics first…”* (must have saved at least one non-empty metrics payload so status moves off draft — see service behavior).
+- Operational log is still **`draft`** — _“Save operational metrics first…”_ (must have saved at least one non-empty metrics payload so status moves off draft — see service behavior).
 - Operational log is **`locked`**.
 
 ---
@@ -235,19 +235,19 @@ Structured by period days and item sections, with per-item `target` (when define
 
 ## 5. Edge cases & how to handle them in the UI
 
-| Situation | Behavior / frontend handling |
-|------------|------------------------------|
-| **No operational log yet** | `GET` report-workspace **422**. Show CTA: call **`POST` draft** (or `POST` store with metrics), then reload workspace. |
-| **One care plan = one operational log** | `POST` draft / store when a log **already exists** → 422. Don’t show “Create” twice. |
-| **Draft vs in_progress** | First **`PUT` with non-empty `metrics`** moves status from `draft` → **`in_progress`** (when the saved metrics set is not empty). |
-| **Submit for review from draft** | 422. Disable “Submit” until at least one successful **save of metrics** that transitions off `draft` (or show server message). |
-| **Full replace on PUT** | If the user only edits one card but you **omit** other metrics, those rows are **deleted**. Always **PUT the full** `metrics` array you need. |
-| **Daily point count** | `day_number` is **1-based** in the **operational period** (not calendar day-of-month). The count should match `period` length; align with `suggested_metrics[0].daily_points` length or `data.period` day span when building rows. |
-| **Header vs table mismatch** | If header binds to **`suggested_metrics`** and table to **local state**, they will diverge. **Bind the editor to `operational_log`**, optionally show “suggested” as a secondary column or tooltip. |
-| **Admin edits do not change client logs** | Expected. `PUT` metrics does **not** update `care_plan_day_item_logs`. `suggested_metrics` + `evidence` still reflect logs and plan. |
-| **Lock after publish** | `operational_log.status` becomes **`locked`**. `PUT` returns 422. Make fields read-only. |
-| **Adherence** | Can be user-supplied on PUT or **recomputed** server-side from metrics when not sent — understand your product rule and display the same number the server returns after save. |
-| **Empty `metrics` on update** | Sending `metrics: []` **removes** all metrics; status may not revert to `draft`. Avoid sending an empty `metrics` unless you really mean to clear. |
+| Situation                                 | Behavior / frontend handling                                                                                                                                                                                                       |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **No operational log yet**                | `GET` report-workspace **422**. Show CTA: call **`POST` draft** (or `POST` store with metrics), then reload workspace.                                                                                                             |
+| **One care plan = one operational log**   | `POST` draft / store when a log **already exists** → 422. Don’t show “Create” twice.                                                                                                                                               |
+| **Draft vs in_progress**                  | First **`PUT` with non-empty `metrics`** moves status from `draft` → **`in_progress`** (when the saved metrics set is not empty).                                                                                                  |
+| **Submit for review from draft**          | 422. Disable “Submit” until at least one successful **save of metrics** that transitions off `draft` (or show server message).                                                                                                     |
+| **Full replace on PUT**                   | If the user only edits one card but you **omit** other metrics, those rows are **deleted**. Always **PUT the full** `metrics` array you need.                                                                                      |
+| **Daily point count**                     | `day_number` is **1-based** in the **operational period** (not calendar day-of-month). The count should match `period` length; align with `suggested_metrics[0].daily_points` length or `data.period` day span when building rows. |
+| **Header vs table mismatch**              | If header binds to **`suggested_metrics`** and table to **local state**, they will diverge. **Bind the editor to `operational_log`**, optionally show “suggested” as a secondary column or tooltip.                                |
+| **Admin edits do not change client logs** | Expected. `PUT` metrics does **not** update `care_plan_day_item_logs`. `suggested_metrics` + `evidence` still reflect logs and plan.                                                                                               |
+| **Lock after publish**                    | `operational_log.status` becomes **`locked`**. `PUT` returns 422. Make fields read-only.                                                                                                                                           |
+| **Adherence**                             | Can be user-supplied on PUT or **recomputed** server-side from metrics when not sent — understand your product rule and display the same number the server returns after save.                                                     |
+| **Empty `metrics` on update**             | Sending `metrics: []` **removes** all metrics; status may not revert to `draft`. Avoid sending an empty `metrics` unless you really mean to clear.                                                                                 |
 
 ---
 

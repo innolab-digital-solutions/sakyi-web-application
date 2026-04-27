@@ -83,8 +83,12 @@ export default function SubmitOperationalLogForReviewDialog({
   onSubmit,
 }: SubmitOperationalLogForReviewDialogProps) {
   const [step, setStep] = React.useState<1 | 2 | 3>(1);
-  const actionTitle = hasExistingReport ? 'Regenerate client report' : 'Generate client report';
-  const submitLabel = hasExistingReport ? 'Regenerate report' : 'Generate report';
+  const actionTitle = hasExistingReport
+    ? 'Regenerate client report'
+    : 'Generate client report';
+  const submitLabel = hasExistingReport
+    ? 'Regenerate report'
+    : 'Generate report';
   const STEPS = [
     {
       id: 1 as const,
@@ -103,7 +107,6 @@ export default function SubmitOperationalLogForReviewDialog({
       title: 'Narrative',
       description:
         'Finalize the care-team narrative with a clear summary and next-period focus. Ensure these sections convey key achievements and primary goals for the upcoming period.',
-   
     },
   ];
 
@@ -132,12 +135,16 @@ export default function SubmitOperationalLogForReviewDialog({
             </DialogTitle>
             <DialogDescription className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
               Use this guided workflow to prepare a high-quality client report
-              draft from the operational log before final review and publication.
+              draft from the operational log before final review and
+              publication.
             </DialogDescription>
           </DialogHeader>
 
           <div className='flex min-h-0 flex-1 flex-col px-6 py-4'>
-            <ol className='flex w-full shrink-0 gap-2' aria-label='Generate report steps'>
+            <ol
+              className='flex w-full shrink-0 gap-2'
+              aria-label='Generate report steps'
+            >
               {STEPS.map((item) => {
                 const active = step === item.id;
                 const completed = step > item.id;
@@ -146,7 +153,8 @@ export default function SubmitOperationalLogForReviewDialog({
                     <div
                       className={cn(
                         'flex flex-col gap-1 rounded-lg border px-2 py-2 text-center transition-colors',
-                        active && 'border-primary bg-primary/5 dark:bg-primary/10 shadow-sm',
+                        active &&
+                          'border-primary bg-primary/5 dark:bg-primary/10 shadow-sm',
                         completed && 'border-border bg-muted/30',
                         !active && !completed && 'border-border bg-background',
                       )}
@@ -230,15 +238,20 @@ export default function SubmitOperationalLogForReviewDialog({
                     <div className='max-h-72 overflow-y-auto px-0.5 py-0.5'>
                       <div className='grid grid-cols-1 gap-2 md:grid-cols-2'>
                         {metricOptions.map((metric) => {
-                          const checked = includedMetricKeys.includes(metric.metricKey);
-                          const sectionTab = getCarePlanSectionTab(metric.section);
+                          const checked = includedMetricKeys.includes(
+                            metric.metricKey,
+                          );
+                          const sectionTab = getCarePlanSectionTab(
+                            metric.section,
+                          );
                           const SectionIcon = sectionTab?.icon;
                           return (
                             <label
                               key={metric.metricKey}
                               className={cn(
                                 'border-border bg-muted/40 hover:border-primary/40 hover:bg-primary/2 flex min-h-20 items-center justify-between gap-3 rounded-md border p-3 transition-colors',
-                                checked && 'border-primary/50 bg-primary/5 shadow-xs',
+                                checked &&
+                                  'border-primary/50 bg-primary/5 shadow-xs',
                               )}
                             >
                               <div className='flex min-w-0 items-center gap-2.5'>
@@ -257,9 +270,10 @@ export default function SubmitOperationalLogForReviewDialog({
                                 </div>
                                 <div className='min-w-0 space-y-1'>
                                   <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
-                                    {sectionTab?.label ?? formatSectionLabel(metric.section)}
+                                    {sectionTab?.label ??
+                                      formatSectionLabel(metric.section)}
                                   </p>
-                                  <p className='text-foreground line-clamp-2 text-[13px] font-semibold leading-tight'>
+                                  <p className='text-foreground line-clamp-2 text-[13px] leading-tight font-semibold'>
                                     {metric.label}
                                   </p>
                                 </div>
@@ -291,7 +305,8 @@ export default function SubmitOperationalLogForReviewDialog({
                     </div>
                   ) : (
                     <p className='text-muted-foreground text-sm'>
-                      No metric rows available to include from this operational log.
+                      No metric rows available to include from this operational
+                      log.
                     </p>
                   )}
                 </div>
@@ -305,7 +320,10 @@ export default function SubmitOperationalLogForReviewDialog({
                     placeholder='Provide a concise summary of the client performance for this reporting period.'
                     value={feedback.summary ?? ''}
                     onChange={(event) =>
-                      onFeedbackChange({ ...feedback, summary: event.target.value })
+                      onFeedbackChange({
+                        ...feedback,
+                        summary: event.target.value,
+                      })
                     }
                     className='min-h-24 text-[13px]'
                   />

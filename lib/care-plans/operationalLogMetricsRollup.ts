@@ -35,7 +35,9 @@ export function rollupPeriodTargetFromDailies(
 /**
  * Merges rolled-up target / actual / on-target days onto a metric.
  */
-export function rollUpMetricFromDailyPoints(m: ReportRunMetric): ReportRunMetric {
+export function rollUpMetricFromDailyPoints(
+  m: ReportRunMetric,
+): ReportRunMetric {
   const p = m.daily_points;
   if (!p.length) {
     return m;

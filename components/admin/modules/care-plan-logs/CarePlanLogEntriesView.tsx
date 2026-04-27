@@ -37,7 +37,12 @@ type Props = {
   carePlanId: number;
 };
 
-const ENTRIES_FILTER_KEYS = ['section', 'is_completed', 'date_from', 'date_to'] as const;
+const ENTRIES_FILTER_KEYS = [
+  'section',
+  'is_completed',
+  'date_from',
+  'date_to',
+] as const;
 const ENTRIES_ENDPOINT = (id: number) =>
   ENDPOINTS.ADMIN.MODULES.CARE_PLAN_LOGS.ENTRIES(String(id));
 
@@ -75,24 +80,31 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
     queryFn: async () => {
       const response = await getCarePlanLogSummary(carePlanId);
       if (response.status === 'error') {
-        throw new Error(response.message ?? 'Could not load care plan log summary.');
+        throw new Error(
+          response.message ?? 'Could not load care plan log summary.',
+        );
       }
       return response.data;
     },
   });
 
-  const { rows, controls } = useTable<CarePlanLogEntry>(ENTRIES_ENDPOINT(carePlanId), {
-    params: {
-      sync: true,
-      writeInitialToUrl: true,
-      extra: {
-        mode: 'allowlist',
-        allowlist: [...ENTRIES_FILTER_KEYS],
+  const { rows, controls } = useTable<CarePlanLogEntry>(
+    ENTRIES_ENDPOINT(carePlanId),
+    {
+      params: {
+        sync: true,
+        writeInitialToUrl: true,
+        extra: {
+          mode: 'allowlist',
+          allowlist: [...ENTRIES_FILTER_KEYS],
+        },
       },
     },
-  });
+  );
 
-  const sectionFilter = controls.params.values.section as CarePlanLogSection | undefined;
+  const sectionFilter = controls.params.values.section as
+    | CarePlanLogSection
+    | undefined;
   const completionFilter = controls.params.values.is_completed;
   const dateFrom = controls.params.values.date_from ?? '';
   const dateTo = controls.params.values.date_to ?? '';
@@ -127,7 +139,9 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
                   {summary?.code?.trim() || `#${summary?.id ?? carePlanId}`}
                 </p>
                 <p className='text-muted-foreground text-xs font-medium'>
-                  {summary?.enrollment?.client?.name?.trim() || 'Unknown client'} -{' '}
+                  {summary?.enrollment?.client?.name?.trim() ||
+                    'Unknown client'}{' '}
+                  -{' '}
                   {summary?.enrollment?.program?.title?.trim() || 'No program'}
                 </p>
                 <p className='text-muted-foreground text-xs font-medium'>
@@ -150,9 +164,14 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
 
             <div className='space-y-1.5'>
               <div className='bg-muted h-2.5 w-full overflow-hidden rounded-full'>
-                <div className='bg-primary h-full rounded-full' style={{ width: `${Math.min(Math.max(progress, 0), 100)}%` }} />
+                <div
+                  className='bg-primary h-full rounded-full'
+                  style={{ width: `${Math.min(Math.max(progress, 0), 100)}%` }}
+                />
               </div>
-              <p className='text-muted-foreground text-xs font-medium'>{progress}% timeline progress</p>
+              <p className='text-muted-foreground text-xs font-medium'>
+                {progress}% timeline progress
+              </p>
             </div>
           </div>
         )}
@@ -237,7 +256,7 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
           </div>
         }
       >
-        <Table className='w-full min-w-8xl'>
+        <Table className='min-w-8xl w-full'>
           <TableHeader className='bg-muted/50 [&_tr]:border-border'>
             <TableRow className='border-border hover:bg-transparent'>
               <TableHead>Logged At</TableHead>
@@ -272,7 +291,10 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
 
             {!showSkeleton && query.isError ? (
               <TableRow>
-                <TableCell colSpan={9} className='text-destructive py-8 text-center text-sm'>
+                <TableCell
+                  colSpan={9}
+                  className='text-destructive py-8 text-center text-sm'
+                >
                   {entryError}
                 </TableCell>
               </TableRow>
@@ -295,14 +317,26 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
               rows.map((entry) => {
                 const media = Array.isArray(entry.media) ? entry.media : [];
                 const firstMedia = media[0];
-                const targetLabel = toTargetActualLabel(entry.target?.value, entry.target?.unit);
-                const actualLabel = toTargetActualLabel(entry.actual?.value, entry.actual?.unit);
+                const targetLabel = toTargetActualLabel(
+                  entry.target?.value,
+                  entry.target?.unit,
+                );
+                const actualLabel = toTargetActualLabel(
+                  entry.actual?.value,
+                  entry.actual?.unit,
+                );
                 return (
                   <TableRow key={entry.id}>
-                    <TableCell>{formatDateTime(entry.logged_at) ?? <TableCellEmpty label='—' />}</TableCell>
+                    <TableCell>
+                      {formatDateTime(entry.logged_at) ?? (
+                        <TableCellEmpty label='—' />
+                      )}
+                    </TableCell>
                     <TableCell>
                       <div className='space-y-0.5'>
-                        <p className='text-sm font-semibold'>Day {entry.day_number ?? '—'}</p>
+                        <p className='text-sm font-semibold'>
+                          Day {entry.day_number ?? '—'}
+                        </p>
                         <p className='text-muted-foreground text-xs font-medium'>
                           {formatDate(entry.target_date) ?? '—'}
                         </p>
@@ -312,8 +346,13 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
                       <span className='capitalize'>{entry.section ?? '—'}</span>
                     </TableCell>
                     <TableCell>
-                      <p className='max-w-60 truncate text-sm font-medium' title={entry.item_title ?? ''}>
-                        {entry.item_title?.trim() || <TableCellEmpty label='No task title' />}
+                      <p
+                        className='max-w-60 truncate text-sm font-medium'
+                        title={entry.item_title ?? ''}
+                      >
+                        {entry.item_title?.trim() || (
+                          <TableCellEmpty label='No task title' />
+                        )}
                       </p>
                     </TableCell>
                     <TableCell>{targetLabel}</TableCell>
@@ -330,20 +369,30 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <p className='max-w-72 truncate text-sm font-medium' title={entry.notes ?? ''}>
+                      <p
+                        className='max-w-72 truncate text-sm font-medium'
+                        title={entry.notes ?? ''}
+                      >
                         {entry.notes?.trim() || '—'}
                       </p>
                     </TableCell>
                     <TableCell>
-                      {entry.media_count && entry.media_count > 0 && firstMedia ? (
+                      {entry.media_count &&
+                      entry.media_count > 0 &&
+                      firstMedia ? (
                         <Button
                           type='button'
                           asChild
                           variant='outline'
                           className='bg-background hover:bg-muted h-8 rounded-md border-neutral-300 px-2 text-xs font-semibold'
                         >
-                          <a href={firstMedia.url} target='_blank' rel='noreferrer'>
-                            {entry.media_count} file{entry.media_count > 1 ? 's' : ''}
+                          <a
+                            href={firstMedia.url}
+                            target='_blank'
+                            rel='noreferrer'
+                          >
+                            {entry.media_count} file
+                            {entry.media_count > 1 ? 's' : ''}
                             <ExternalLinkIcon className='size-3.5' />
                           </a>
                         </Button>

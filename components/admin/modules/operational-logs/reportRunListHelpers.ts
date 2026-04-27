@@ -72,8 +72,7 @@ export const CLIENT_REPORT_STATUS_STYLES: Record<
   },
   archived: {
     icon: ArchiveIcon,
-    className:
-      'border-border bg-muted/70 text-foreground dark:bg-muted/50',
+    className: 'border-border bg-muted/70 text-foreground dark:bg-muted/50',
     label: 'Archived',
   },
 };

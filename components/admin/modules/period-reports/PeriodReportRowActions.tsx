@@ -46,9 +46,7 @@ export default function PeriodReportRowActions({ row }: Props) {
   const reportCode = row.code?.trim() || `#${row.id}`;
   const carePlanCode = row.care_plan?.code?.trim() ?? '';
   const href =
-    carePlanId != null
-      ? buildReportWorkspaceHref(carePlanId, row.id)
-      : null;
+    carePlanId != null ? buildReportWorkspaceHref(carePlanId, row.id) : null;
 
   const { label, Icon } = primaryLabelAndIcon(row);
 
@@ -88,7 +86,12 @@ export default function PeriodReportRowActions({ row }: Props) {
 
   return (
     <div className='flex items-center justify-end gap-1.5'>
-      <Button variant='outline' size='sm' className={primaryButtonClass} asChild>
+      <Button
+        variant='outline'
+        size='sm'
+        className={primaryButtonClass}
+        asChild
+      >
         <Link href={href} className='inline-flex items-center gap-1.5'>
           <Icon className='size-3.5 shrink-0' />
           {label}

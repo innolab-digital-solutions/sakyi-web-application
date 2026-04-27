@@ -206,7 +206,9 @@ export default function MovementEquipmentListTable() {
           if (!o) setBlockedDeleteEquipment(null);
         }}
         equipmentName={blockedDeleteEquipment?.name}
-        reason={blockedDeleteEquipment?.actions.delete_block_reason ?? undefined}
+        reason={
+          blockedDeleteEquipment?.actions.delete_block_reason ?? undefined
+        }
       />
     </>
   );

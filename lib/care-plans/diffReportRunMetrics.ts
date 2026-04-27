@@ -1,4 +1,7 @@
-import type { ReportMetricDailyPoint, ReportRunMetric } from '@/domains/care-plans/types/care-plan-report';
+import type {
+  ReportMetricDailyPoint,
+  ReportRunMetric,
+} from '@/domains/care-plans/types/care-plan-report';
 
 /**
  * A single before/after line for a metric or a daily cell.
@@ -94,11 +97,8 @@ export function diffReportRunMetrics(
     const cm = c[i];
     if (!cm && !bm) continue;
 
-    const label =
-      (cm?.label ?? bm?.label ?? 'Metric')?.toString() || 'Metric';
-    const keyMismatch = Boolean(
-      bm && cm && bm.metric_key !== cm.metric_key,
-    );
+    const label = (cm?.label ?? bm?.label ?? 'Metric')?.toString() || 'Metric';
+    const keyMismatch = Boolean(bm && cm && bm.metric_key !== cm.metric_key);
     const metricKey = (cm?.metric_key ?? bm?.metric_key ?? `index-${i}`) as
       | string
       | number;
@@ -164,8 +164,11 @@ export function diffReportRunMetrics(
     for (const day of days) {
       const dpB = bMap.get(day);
       const dpC = cMap.get(day);
-      for (const field of
-        ['target_value', 'actual_value', 'on_target'] as const) {
+      for (const field of [
+        'target_value',
+        'actual_value',
+        'on_target',
+      ] as const) {
         if (valuesEqual(field, dpB, dpC)) continue;
         if (!dpB && dpC) {
           const after =

@@ -88,7 +88,8 @@ export default function IntakeRowActions({
   const showViewInMenu = primary !== 'view';
   const showContinueInMenu = primary !== 'continue' && showContinue;
   const showSendInMenu = primary !== 'send' && showSend;
-  const hasMenuAfterCopy = showViewInMenu || showContinueInMenu || showSendInMenu;
+  const hasMenuAfterCopy =
+    showViewInMenu || showContinueInMenu || showSendInMenu;
 
   return (
     <div className='flex items-center justify-end gap-1.5'>

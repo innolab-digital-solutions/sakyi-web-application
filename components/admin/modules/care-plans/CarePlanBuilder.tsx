@@ -1757,7 +1757,7 @@ export default function CarePlanBuilder({
 
           <div className='grid gap-2 sm:grid-cols-2 lg:grid-cols-4'>
             <div className='bg-muted/50 border-border flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2'>
-              <p className='mb-1.5 text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+              <p className='text-muted-foreground mb-1.5 text-[10px] font-semibold tracking-wide uppercase'>
                 Client
               </p>
               <div className='mt-1 flex min-w-0 items-center gap-2.5'>
@@ -1790,7 +1790,7 @@ export default function CarePlanBuilder({
             </div>
 
             <div className='bg-muted/50 border-border flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2'>
-              <p className='mb-1.5 text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+              <p className='text-muted-foreground mb-1.5 text-[10px] font-semibold tracking-wide uppercase'>
                 Program
               </p>
               <p className='text-foreground/90 line-clamp-2 text-[12.5px] font-semibold'>
@@ -1804,7 +1804,7 @@ export default function CarePlanBuilder({
             </div>
 
             <div className='bg-muted/50 border-border flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2'>
-              <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase mb-1.5'>
+              <p className='text-muted-foreground mb-1.5 text-[10px] font-semibold tracking-wide uppercase'>
                 Enrollment
               </p>
 
@@ -1820,7 +1820,7 @@ export default function CarePlanBuilder({
             </div>
 
             <div className='bg-muted/50 border-border/60 flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2'>
-              <p className='mb-1.5 text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+              <p className='text-muted-foreground mb-1.5 text-[10px] font-semibold tracking-wide uppercase'>
                 Plan Timeline
               </p>
               <p className='text-foreground text-[12.5px] font-semibold'>

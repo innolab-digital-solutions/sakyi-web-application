@@ -207,7 +207,9 @@ export default function CarePlanCreateModal({
             onClick={handleCreate}
           >
             <ClipboardPlusIcon className='size-3.5 shrink-0' />
-            {createMutation.isPending ? 'Creating…' : 'Create And Open Workspace'}
+            {createMutation.isPending
+              ? 'Creating…'
+              : 'Create And Open Workspace'}
           </Button>
         </DialogFooter>
       </DialogContent>

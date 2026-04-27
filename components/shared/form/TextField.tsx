@@ -96,9 +96,7 @@ const TextField = React.forwardRef<HTMLInputElement, CustomInputProps>(
     const inputElement = <ShadCNInput {...inputProps} />;
 
     return (
-      <div
-        className={isTableDense ? 'w-full space-y-0' : 'space-y-2'}
-      >
+      <div className={isTableDense ? 'w-full space-y-0' : 'space-y-2'}>
         {label && (
           <ShadCNLabel htmlFor={id} className={responsiveLabelClass}>
             {label}

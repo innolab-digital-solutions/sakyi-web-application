@@ -208,7 +208,11 @@ export default function OperationalLogListTable() {
     },
   });
 
-  const statusFilter = useMemo((): 'all' | 'draft' | 'in_progress' | 'locked' => {
+  const statusFilter = useMemo(():
+    | 'all'
+    | 'draft'
+    | 'in_progress'
+    | 'locked' => {
     const s = (controls.params.values.status ?? '').trim().toLowerCase();
     if (s === 'draft' || s === 'in_progress' || s === 'locked') return s;
     return 'all';
@@ -314,7 +318,7 @@ export default function OperationalLogListTable() {
             <TableEmptyStateRow
               colSpan={colCount}
               title='No operational logs found'
-              description="No operational logs found. None may exist yet, or your filters may be hiding results. Adjust your filters or check back later."
+              description='No operational logs found. None may exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
             />
           ) : null}
 
@@ -386,9 +390,7 @@ export default function OperationalLogListTable() {
                   {show('carePlan') ? (
                     <TableCell>
                       <p className='text-foreground text-[13px] font-semibold'>
-                        {carePlanCode || (
-                          <TableCellEmpty label='Not linked' />
-                        )}
+                        {carePlanCode || <TableCellEmpty label='Not linked' />}
                       </p>
                     </TableCell>
                   ) : null}

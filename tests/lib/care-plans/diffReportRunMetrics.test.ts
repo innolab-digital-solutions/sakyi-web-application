@@ -4,21 +4,23 @@ import type { ReportRunMetric } from '@/domains/care-plans/types/care-plan-repor
 import { diffReportRunMetrics } from '@/lib/care-plans/diffReportRunMetrics';
 
 function makeMetric(
-  overrides: Partial<ReportRunMetric> & Pick<ReportRunMetric, 'metric_key' | 'label'>,
+  overrides: Partial<ReportRunMetric> &
+    Pick<ReportRunMetric, 'metric_key' | 'label'>,
 ): ReportRunMetric {
+  const { metric_key, label, ...rest } = overrides;
   return {
     section: 'movement',
-    metric_key: overrides.metric_key,
-    label: overrides.label,
-    target_value: overrides.target_value ?? null,
-    actual_value: overrides.actual_value ?? null,
-    unit: overrides.unit ?? 'steps',
-    days_on_target: overrides.days_on_target ?? 0,
-    days_total: overrides.days_total ?? 0,
-    display_order: overrides.display_order ?? 0,
-    meta: overrides.meta ?? null,
-    daily_points: overrides.daily_points ?? [],
-    ...overrides,
+    metric_key,
+    label,
+    target_value: rest.target_value ?? null,
+    actual_value: rest.actual_value ?? null,
+    unit: rest.unit ?? 'steps',
+    days_on_target: rest.days_on_target ?? 0,
+    days_total: rest.days_total ?? 0,
+    display_order: rest.display_order ?? 0,
+    meta: rest.meta ?? null,
+    daily_points: rest.daily_points ?? [],
+    ...rest,
   };
 }
 
@@ -56,9 +58,9 @@ describe('diffReportRunMetrics', () => {
     const result = diffReportRunMetrics([before], [after]);
     expect(result.totalFieldChanges).toBe(1);
     expect(result.metrics[0]?.section).toBe('movement');
-    expect(result.metrics[0]?.changes.some((c) => c.pathLabel.includes('target'))).toBe(
-      true,
-    );
+    expect(
+      result.metrics[0]?.changes.some((c) => c.pathLabel.includes('target')),
+    ).toBe(true);
     expect(result.metrics[0]?.changes[0]?.before).toBe('10');
     expect(result.metrics[0]?.changes[0]?.after).toBe('20');
   });

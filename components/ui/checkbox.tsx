@@ -20,12 +20,12 @@ function Checkbox({
     <CheckboxPrimitive.Root
       data-slot='checkbox'
       className={cn(
-        'peer size-4 shrink-0 rounded-md border outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50',
+        'peer focus-visible:border-ring focus-visible:ring-ring/50 size-4 shrink-0 rounded-md border transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',
         'aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40',
         'data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary',
         variant === 'tableDense'
-          ? 'border-neutral-200 bg-background shadow-none'
-          : 'border-border bg-muted/50 shadow-xs dark:bg-input/30',
+          ? 'bg-background border-neutral-200 shadow-none'
+          : 'border-border bg-muted/50 dark:bg-input/30 shadow-xs',
         className,
       )}
       {...props}

@@ -290,33 +290,36 @@ export default function ClientProfileListTable() {
   };
 
   const showColumn = (key: ClientProfileColumnKey) => visibleColumnSet.has(key);
-  const { mutate: mutateUploadMedia, isPending: isUploadingMedia } = useMutation({
-    mutationFn: async (args: { id: number; files: File[] }) => {
-      const response = await uploadClientProfileMedia(args.id, {
-        files: args.files,
-      });
-      if (response.status === 'error') {
-        throw new Error(response.message || 'Could not upload files.');
-      }
-    },
-    onSuccess: () => {
-      toast.success('The files have been uploaded to the client profile successfully.');
-      queryClient.invalidateQueries({
-        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.CLIENT_PROFILES.LIST],
-      });
-      if (uploadTarget) {
-        queryClient.invalidateQueries({
-          queryKey: ['client-profile', uploadTarget.id],
+  const { mutate: mutateUploadMedia, isPending: isUploadingMedia } =
+    useMutation({
+      mutationFn: async (args: { id: number; files: File[] }) => {
+        const response = await uploadClientProfileMedia(args.id, {
+          files: args.files,
         });
-      }
-      setUploadTarget(null);
-      setMediaFiles([]);
-      setMediaFileError(undefined);
-    },
-    onError: (error) => {
-      toast.error(error.message ?? 'Could not upload files.');
-    },
-  });
+        if (response.status === 'error') {
+          throw new Error(response.message || 'Could not upload files.');
+        }
+      },
+      onSuccess: () => {
+        toast.success(
+          'The files have been uploaded to the client profile successfully.',
+        );
+        queryClient.invalidateQueries({
+          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.CLIENT_PROFILES.LIST],
+        });
+        if (uploadTarget) {
+          queryClient.invalidateQueries({
+            queryKey: ['client-profile', uploadTarget.id],
+          });
+        }
+        setUploadTarget(null);
+        setMediaFiles([]);
+        setMediaFileError(undefined);
+      },
+      onError: (error) => {
+        toast.error(error.message ?? 'Could not upload files.');
+      },
+    });
 
   return (
     <TableListShell

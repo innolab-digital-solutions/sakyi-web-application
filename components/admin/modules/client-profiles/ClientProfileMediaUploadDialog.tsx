@@ -61,14 +61,15 @@ export default function ClientProfileMediaUploadDialog({
             </DialogTitle>
             <DialogDescription className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
               Upload one or more files for{' '}
-              <span className='text-foreground font-semibold'>{displayName}</span>
-              {' '}
-              to keep important documents and supporting evidence attached to this
-              profile.
+              <span className='text-foreground font-semibold'>
+                {displayName}
+              </span>{' '}
+              to keep important documents and supporting evidence attached to
+              this profile.
             </DialogDescription>
           </DialogHeader>
 
-          <div className='min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-6 py-4'>
+          <div className='min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-6 py-4'>
             <FileUploadField
               label='Files & Documents'
               required

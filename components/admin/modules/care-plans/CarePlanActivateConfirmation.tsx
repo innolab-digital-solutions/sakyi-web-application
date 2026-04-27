@@ -46,12 +46,15 @@ export default function CarePlanActivateConfirmation({
                   {carePlanReference || 'this care plan'}
                 </span>{' '}
                 for activation. If the start date is in the future, it will be
-                set to <span className='text-foreground/90 font-semibold'>scheduled</span>{' '}
+                set to{' '}
+                <span className='text-foreground/90 font-semibold'>
+                  scheduled
+                </span>{' '}
                 and auto-activated on the start date. If the start date is today
                 or earlier, it will become{' '}
                 <span className='text-foreground/90 font-semibold'>active</span>{' '}
-                immediately. After activation scheduling, major changes should be
-                made through revision mode to maintain a clear audit trail.
+                immediately. After activation scheduling, major changes should
+                be made through revision mode to maintain a clear audit trail.
               </AlertDialogDescription>
             </div>
           </div>

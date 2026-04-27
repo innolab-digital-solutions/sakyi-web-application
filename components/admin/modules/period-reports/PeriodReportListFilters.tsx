@@ -19,7 +19,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-export type ClientPeriodReportListStatus = 'in_review' | 'published' | 'archived';
+export type ClientPeriodReportListStatus =
+  | 'in_review'
+  | 'published'
+  | 'archived';
 
 export type PeriodReportColumnOption = {
   key: string;
@@ -65,8 +68,7 @@ export default function PeriodReportListFilters({
           >
             <SlidersHorizontalIcon className='size-4 opacity-80' />
             <span>
-              Status:{' '}
-              {statusFilter === 'all' ? 'All' : labels[statusFilter]}
+              Status: {statusFilter === 'all' ? 'All' : labels[statusFilter]}
             </span>
             <ChevronDownIcon className='size-3.5 opacity-70' />
           </Button>
