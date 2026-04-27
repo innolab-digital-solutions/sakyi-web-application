@@ -115,7 +115,7 @@ export function formatDateTimeCell(
 ): string | null {
   if (!iso?.trim()) return null;
   try {
-    return format(parseISO(iso.trim()), 'dd-MMM-yyyy HH:mm');
+    return format(parseISO(iso.trim()), 'dd-MMM-yyyy');
   } catch {
     return iso.trim();
   }

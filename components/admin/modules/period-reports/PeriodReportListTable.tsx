@@ -1,6 +1,6 @@
 'use client';
 
-import { FileTextIcon } from 'lucide-react';
+import { ClockIcon, FileTextIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
@@ -58,6 +58,12 @@ type ColumnDef = {
 
 const COLUMNS: readonly ColumnDef[] = [
   {
+    key: 'report',
+    label: 'Reference',
+    headerClassName: '',
+    skeletonWidth: 'w-32',
+  },
+  {
     key: 'client',
     label: 'Client',
     headerClassName: '',
@@ -70,14 +76,8 @@ const COLUMNS: readonly ColumnDef[] = [
     skeletonWidth: 'w-32',
   },
   {
-    key: 'report',
-    label: 'Client report',
-    headerClassName: '',
-    skeletonWidth: 'w-32',
-  },
-  {
     key: 'operationalLog',
-    label: 'Op log',
+    label: 'Operational Log',
     headerClassName: '',
     skeletonWidth: 'w-28',
   },
@@ -101,13 +101,13 @@ const COLUMNS: readonly ColumnDef[] = [
   },
   {
     key: 'submittedAt',
-    label: 'Submitted',
+    label: 'Generated At',
     headerClassName: 'tabular-nums',
     skeletonWidth: 'w-36',
   },
   {
     key: 'publishedAt',
-    label: 'Published',
+    label: 'Published At',
     headerClassName: 'tabular-nums',
     skeletonWidth: 'w-36',
   },
@@ -130,18 +130,16 @@ const PERIOD_REPORT_STATUS_LABELS: Record<
   archived: 'Archived',
 };
 
-/** Matches the API default list (omitted status = in review + published). */
-const PERIOD_REPORT_ALL_STATUSES_MENU_LABEL = 'In review & published (default)';
+const PERIOD_REPORT_ALL_STATUSES_MENU_LABEL = 'All statuses';
 
 const DEFAULT_VISIBLE: readonly ColumnKey[] = [
-  'client',
-  'carePlan',
   'report',
-  'period',
+  'client',
+  'operationalLog',
   'status',
+  'period',
   'adherence',
   'submittedAt',
-  'publishedAt',
   'actions',
 ];
 
@@ -307,11 +305,26 @@ export default function PeriodReportListTable() {
               const clientEmail = client?.email?.trim();
               const reportStatus = normalizeClientReportStatus(row.status);
               const style = reportStatus
-                ? CLIENT_REPORT_STATUS_STYLES[reportStatus]
+                ? reportStatus === 'in_review'
+                  ? {
+                      ...CLIENT_REPORT_STATUS_STYLES.in_review,
+                      icon: ClockIcon,
+                      className:
+                        'border-amber-300/80 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200',
+                    }
+                  : CLIENT_REPORT_STATUS_STYLES[reportStatus]
                 : null;
               const StatusIcon = style?.icon ?? FileTextIcon;
               return (
                 <TableRow key={row.id}>
+                  {show('report') ? (
+                    <TableCell>
+                      <p className='text-foreground text-[13px] font-semibold'>
+                        {row.code?.trim() || `#${row.id}`}
+                      </p>
+                    </TableCell>
+                  ) : null}
+
                   {show('client') ? (
                     <TableCell>
                       <div className='flex items-start gap-3'>
@@ -340,6 +353,7 @@ export default function PeriodReportListTable() {
                       </div>
                     </TableCell>
                   ) : null}
+
                   {show('carePlan') ? (
                     <TableCell>
                       <p className='text-foreground text-[13px] font-semibold'>
@@ -347,17 +361,11 @@ export default function PeriodReportListTable() {
                       </p>
                     </TableCell>
                   ) : null}
-                  {show('report') ? (
-                    <TableCell>
-                      <p className='text-foreground text-[13px] font-semibold'>
-                        {row.code?.trim() || `#${row.id}`}
-                      </p>
-                    </TableCell>
-                  ) : null}
+
                   {show('operationalLog') ? (
                     <TableCell>
                       {row.operational_log ? (
-                        <p className='text-foreground font-mono text-[13px] font-semibold'>
+                        <p className='text-foreground text-[13px] font-semibold'>
                           {row.operational_log.code?.trim() ||
                             `#${row.operational_log.id}`}
                         </p>
@@ -366,16 +374,16 @@ export default function PeriodReportListTable() {
                       )}
                     </TableCell>
                   ) : null}
+
                   {show('period') ? (
                     <TableCell>
-                      <p className='text-[13px] font-medium tabular-nums'>
-                        {formatPeriodRange(
-                          row.period?.starts_on,
-                          row.period?.ends_on,
-                        )}
-                      </p>
+                      {formatPeriodRange(
+                        row.period?.starts_on,
+                        row.period?.ends_on,
+                      )}
                     </TableCell>
                   ) : null}
+
                   {show('status') ? (
                     <TableCell>
                       {style ? (
@@ -401,12 +409,48 @@ export default function PeriodReportListTable() {
                       )}
                     </TableCell>
                   ) : null}
+
                   {show('adherence') ? (
                     <TableCell>
                       {row.adherence_percentage != null ? (
-                        <span className='text-[13px] font-semibold tabular-nums'>
-                          {Math.round(row.adherence_percentage)}%
-                        </span>
+                        <div className='inline-flex items-center justify-center'>
+                          <div className='relative inline-flex size-12 items-center justify-center'>
+                            <svg
+                              className='size-12 -rotate-90'
+                              viewBox='0 0 36 36'
+                              aria-hidden
+                            >
+                              <circle
+                                cx='18'
+                                cy='18'
+                                r='14'
+                                fill='none'
+                                stroke='#E9EEF5'
+                                strokeWidth='4'
+                              />
+                              <circle
+                                cx='18'
+                                cy='18'
+                                r='14'
+                                fill='none'
+                                stroke='#00A9E0'
+                                strokeWidth='4'
+                                strokeLinecap='round'
+                                strokeDasharray={`${(Math.max(0, Math.min(100, Math.round(row.adherence_percentage))) / 100) * 87.9646} 87.9646`}
+                              />
+                            </svg>
+                            <span className='text-primary absolute inset-0 inline-flex items-center justify-center text-[10px] font-semibold'>
+                              {Math.max(
+                                0,
+                                Math.min(
+                                  100,
+                                  Math.round(row.adherence_percentage),
+                                ),
+                              )}
+                              %
+                            </span>
+                          </div>
+                        </div>
                       ) : (
                         <TableCellEmpty label='—' />
                       )}
@@ -416,22 +460,23 @@ export default function PeriodReportListTable() {
                     <TableCell>
                       {formatDateTimeCell(
                         row.timestamps?.submitted_for_review_at,
-                      ) ?? <TableCellEmpty label='—' />}
+                      ) ?? <TableCellEmpty label='Not submitted' />}
+                 
                     </TableCell>
                   ) : null}
                   {show('publishedAt') ? (
                     <TableCell>
                       {row.status === 'published' ? (
                         (formatDateTimeCell(row.timestamps?.published_at) ?? (
-                          <TableCellEmpty label='—' />
+                          <TableCellEmpty label='Not published' />
                         ))
                       ) : (
-                        <TableCellEmpty label='—' />
+                        <TableCellEmpty label='Not published' />
                       )}
                     </TableCell>
                   ) : null}
                   {show('actions') ? (
-                    <TableCell>
+                    <TableCell className='text-end'>
                       <PeriodReportRowActions row={row} />
                     </TableCell>
                   ) : null}
