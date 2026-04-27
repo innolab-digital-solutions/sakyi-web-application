@@ -16,7 +16,10 @@
       "black": "Latest",
       "gradient": "Articles"
     },
-    "description": "Stay updated with our latest expert insights on wellness, nutrition, mindfulness, and healthy living. Get practical tips and inspiring stories to help you thrive on your wellness journey."
+    "description": "Stay updated with our latest expert insights on wellness, nutrition, mindfulness, and healthy living. Get practical tips and inspiring stories to help you thrive on your wellness journey.",
+    "filter": {
+      "all": "All"
+    }
   },
   "call-to-action": {
     "title": "Ready to Apply What You've Learned?",

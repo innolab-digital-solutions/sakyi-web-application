@@ -5,16 +5,16 @@ export type Program = {
   tagline: string;
   excerpt: string;
   about: string;
-  /** Card / hero summary (API may mirror `excerpt`). */
-  overview: string;
-  /** Long-form copy (API may mirror `about`). */
-  description: string;
   /** Publication state for listing filters. */
   status: 'draft' | 'published' | 'archived';
   features: string[];
   ideals: string[];
   expectations: string[];
-  structures: string[];
+  structures: {
+    period: string;
+    title: string;
+    description: string;
+  }[];
   thumbnail_url: string;
   duration: string;
   price: {

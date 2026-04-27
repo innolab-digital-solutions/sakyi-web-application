@@ -5,7 +5,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
+import { useLanguage } from '@/context/LanguageContext';
 import type { BlogPost } from '@/domains/blogs/types';
+import { resolveApiImageUrl } from '@/lib/utils/url';
 
 type BlogCardProps = {
   post: BlogPost;
@@ -14,10 +16,10 @@ type BlogCardProps = {
 };
 
 const BlogCard = ({ post, index = 0, className = '' }: BlogCardProps) => {
-  const hasThumbnail = post.thumbnail_url && post.thumbnail_url.trim() !== '';
+  const { language } = useLanguage();
+  const resolvedThumbnail = resolveApiImageUrl(post.thumbnail_url);
+  const hasThumbnail = !!resolvedThumbnail;
   const [imageError, setImageError] = useState(false);
-  const thumbnailSource =
-    hasThumbnail && !imageError ? post.thumbnail_url! : '/images/no-image.png';
 
   return (
     <div
@@ -27,26 +29,34 @@ const BlogCard = ({ post, index = 0, className = '' }: BlogCardProps) => {
     >
       {/* Image */}
       <div className='mb-6 overflow-hidden rounded-xl'>
-        <div className='group/image relative aspect-[16/10] w-full'>
-          <Image
-            src={thumbnailSource}
-            alt={post.title}
-            width={1200}
-            height={750}
-            quality={95}
-            sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px'
-            className={`h-full w-full transition-transform duration-300 group-hover:scale-105 ${
-              hasThumbnail && !imageError
-                ? 'object-cover'
-                : 'bg-gray-100 object-contain'
-            }`}
-            onError={() => {
-              if (hasThumbnail) setImageError(true);
-            }}
-          />
-
-          {hasThumbnail && !imageError && (
-            <div className='absolute inset-0 bg-gradient-to-br from-slate-900/10 to-slate-800/5 transition-opacity duration-300 group-hover:opacity-0' />
+        <div className='group/image relative aspect-16/10 w-full bg-slate-100'>
+          {hasThumbnail && !imageError ? (
+            <>
+              <Image
+                src={resolvedThumbnail!}
+                alt={post.title}
+                fill
+                quality={95}
+                unoptimized={
+                  resolvedThumbnail!.startsWith('http://') ||
+                  resolvedThumbnail!.startsWith('https://')
+                }
+                sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px'
+                className='object-cover transition-transform duration-300 group-hover:scale-105'
+                onError={() => setImageError(true)}
+              />
+              <div className='absolute inset-0 bg-gradient-to-br from-slate-900/10 to-slate-800/5 transition-opacity duration-300 group-hover:opacity-0' />
+            </>
+          ) : (
+            <div className='absolute inset-0 flex items-center justify-center p-6'>
+              <Image
+                src='/images/logo-gray.png'
+                alt='Sakyi'
+                width={100}
+                height={100}
+                className='object-contain opacity-60'
+              />
+            </div>
           )}
         </div>
       </div>
@@ -63,7 +73,7 @@ const BlogCard = ({ post, index = 0, className = '' }: BlogCardProps) => {
               {post.category.name}
             </span>
           )}
-          {post.timestamps.published_at && (
+          {post.timestamps?.published_at && (
             <span
               className='text-sm text-slate-500'
               style={{ fontFamily: 'Inter, sans-serif' }}
@@ -82,7 +92,7 @@ const BlogCard = ({ post, index = 0, className = '' }: BlogCardProps) => {
 
         {/* Title */}
         <h3
-          className='text-2xl leading-tight font-bold text-slate-900'
+          className={`text-2xl font-bold text-slate-900 ${language === 'my' ? 'leading-relaxed' : 'leading-tight'}`}
           style={{ fontFamily: 'Poppins, sans-serif' }}
         >
           {post.title}

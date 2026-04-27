@@ -19,6 +19,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/context/LanguageContext';
 import { getProgramBySlug } from '@/domains/programs/services';
 import type { Program } from '@/domains/programs/types';
+import { resolveApiImageUrl } from '@/lib/utils/url';
 
 type ProgramDetailSectionProps = {
   slug: string;
@@ -36,6 +37,13 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
   });
 
   const program = data?.status === 'success' ? (data.data as Program) : null;
+  const resolvedThumbnail = resolveApiImageUrl(program?.thumbnail_url);
+  const hasThumbnail = !!resolvedThumbnail;
+  const thumbnailSource =
+    hasThumbnail && !imageError ? resolvedThumbnail : '/images/logo-gray.png';
+  const unoptimized =
+    thumbnailSource.startsWith('http://') ||
+    thumbnailSource.startsWith('https://');
 
   if (isError) {
     return (
@@ -56,9 +64,33 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
         </div>
 
         <div className='relative mx-auto max-w-7xl px-4 pt-24 pb-20 sm:px-6 lg:px-8'>
+          {/* Back Button */}
+          <div className='mb-8' data-aos='fade-up'>
+            <Link
+              href='/programs'
+              className='group inline-flex items-center gap-2 font-medium text-slate-600 transition-colors duration-300 hover:text-[#35bec5]'
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            >
+              <svg
+                className='h-4 w-4 transition-transform duration-300 group-hover:-translate-x-1'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M15 19l-7-7 7-7'
+                />
+              </svg>
+              Back to Programs
+            </Link>
+          </div>
+
           <div className='grid items-center gap-12 lg:grid-cols-2 lg:gap-16'>
             {/* Left Column */}
-            <div className='space-y-8'>
+            <div className='space-y-8' data-aos='fade-up'>
               {/* Tagline Badge */}
               {isLoading ? (
                 <Skeleton className='h-8 w-40 rounded-full' />
@@ -84,7 +116,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                 ) : (
                   <>
                     <h1
-                      className='text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl'
+                      className={`text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl ${language === 'my' ? 'leading-relaxed sm:leading-relaxed lg:leading-relaxed' : 'leading-tight sm:leading-tight lg:leading-tight'}`}
                       style={{ fontFamily: 'Poppins, sans-serif' }}
                     >
                       {program?.title}
@@ -93,7 +125,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                       className='max-w-2xl text-lg leading-relaxed text-slate-600'
                       style={{ fontFamily: 'Inter, sans-serif' }}
                     >
-                      {program?.overview}
+                      {program?.excerpt}
                     </p>
                   </>
                 )}
@@ -149,35 +181,31 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
             </div>
 
             {/* Right Column - Image */}
-            <div className='relative'>
+            <div className='relative' data-aos='fade-up' data-aos-delay='200'>
               {isLoading ? (
                 <Skeleton className='aspect-4/5 w-full rounded-3xl' />
               ) : (
                 <div className='group relative overflow-hidden rounded-3xl shadow-2xl'>
-                  <div className='aspect-4/5 w-full sm:aspect-3/4'>
+                  <div className='relative aspect-4/5 w-full sm:aspect-3/4'>
                     <Image
-                      src={
-                        imageError || !program?.thumbnail_url
-                          ? '/images/no-image.png'
-                          : program.thumbnail_url
-                      }
+                      src={thumbnailSource}
                       alt={program?.title ?? ''}
-                      width={1200}
-                      height={1500}
+                      fill
                       quality={95}
                       priority
+                      unoptimized={unoptimized}
                       sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
-                      className={`h-full w-full transition-transform duration-300 group-hover:scale-105 ${
-                        imageError || !program?.thumbnail_url
-                          ? 'bg-gray-100 object-contain'
-                          : 'object-cover'
+                      className={`transition-transform duration-300 group-hover:scale-105 ${
+                        hasThumbnail && !imageError
+                          ? 'object-cover'
+                          : 'bg-gray-100 object-contain p-8'
                       }`}
                       onError={() => {
-                        if (program?.thumbnail_url) setImageError(true);
+                        if (hasThumbnail) setImageError(true);
                       }}
                     />
                   </div>
-                  {!imageError && program?.thumbnail_url && (
+                  {hasThumbnail && !imageError && (
                     <div className='absolute inset-0 bg-linear-to-br from-slate-900/20 to-slate-800/10 transition-opacity duration-300 group-hover:opacity-0' />
                   )}
                 </div>
@@ -190,7 +218,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
       {/* About Section */}
       <section className='relative overflow-hidden bg-white py-24'>
         <div className='relative mx-auto max-w-7xl px-6 lg:px-8'>
-          <div className='mb-16'>
+          <div className='mb-16' data-aos='fade-up'>
             {isLoading ? (
               <Skeleton className='h-12 w-1/2' />
             ) : (
@@ -212,7 +240,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                   <Skeleton className='h-4 w-4/5' />
                 </div>
               ) : (
-                <p>{program?.description}</p>
+                <p>{program?.about}</p>
               )}
             </div>
           </div>
@@ -220,7 +248,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
           {/* Features & Ideals */}
           <div className='grid gap-12 lg:grid-cols-2'>
             {/* Features */}
-            <div>
+            <div data-aos='fade-up' data-aos-delay='100'>
               {isLoading ? (
                 <Skeleton className='mb-6 h-8 w-40' />
               ) : (
@@ -258,7 +286,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
             </div>
 
             {/* Ideals */}
-            <div>
+            <div data-aos='fade-up' data-aos-delay='200'>
               {isLoading ? (
                 <Skeleton className='mb-6 h-8 w-40' />
               ) : (
@@ -304,7 +332,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
         </div>
 
         <div className='relative mx-auto max-w-7xl px-6 lg:px-8'>
-          <div className='mb-16 text-center'>
+          <div className='mb-16 text-center' data-aos='fade-up'>
             {isLoading ? (
               <Skeleton className='mx-auto h-12 w-1/2' />
             ) : (
@@ -328,6 +356,8 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
               : program?.expectations?.map((item, index) => (
                   <div
                     key={index}
+                    data-aos='fade-up'
+                    data-aos-delay={`${index * 100}`}
                     className='group flex items-center gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:border-[#35bec5]/50 hover:shadow-lg'
                   >
                     <div className='flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-[#35bec5] to-[#0c96c4] transition-all duration-300 group-hover:scale-105'>
@@ -348,7 +378,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
       {/* Program Structure */}
       <section className='relative overflow-hidden bg-white py-24'>
         <div className='relative mx-auto max-w-7xl px-6 lg:px-8'>
-          <div className='mb-16 text-center'>
+          <div className='mb-16 text-center' data-aos='fade-up'>
             {isLoading ? (
               <Skeleton className='mx-auto h-12 w-1/2' />
             ) : (
@@ -372,17 +402,37 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
               : program?.structures?.map((phase, index) => (
                   <div
                     key={index}
+                    data-aos='fade-up'
+                    data-aos-delay={`${index * 100}`}
                     className='group flex items-start gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:border-[#35bec5]/50 hover:shadow-lg sm:p-8'
                   >
                     <div className='flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-linear-to-r from-[#35bec5] to-[#0c96c4] font-bold text-white transition-all duration-300 group-hover:scale-105'>
                       {index + 1}
                     </div>
-                    <p
-                      className='text-xl font-semibold text-slate-900'
-                      style={{ fontFamily: 'Poppins, sans-serif' }}
-                    >
-                      {Array.isArray(phase) ? phase.join(', ') : phase}
-                    </p>
+                    <div className='space-y-1'>
+                      {phase.period && (
+                        <p
+                          className='text-sm font-medium text-[#35bec5]'
+                          style={{ fontFamily: 'Inter, sans-serif' }}
+                        >
+                          {phase.period}
+                        </p>
+                      )}
+                      <p
+                        className='text-xl font-semibold text-slate-900'
+                        style={{ fontFamily: 'Poppins, sans-serif' }}
+                      >
+                        {phase.title}
+                      </p>
+                      {phase.description && (
+                        <p
+                          className='text-slate-600'
+                          style={{ fontFamily: 'Inter, sans-serif' }}
+                        >
+                          {phase.description}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 ))}
           </div>
@@ -391,7 +441,10 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
 
       {/* CTA Section */}
       <section className='bg-brand-gradient relative overflow-hidden py-24'>
-        <div className='relative mx-auto max-w-7xl px-6 text-center lg:px-8'>
+        <div
+          className='relative mx-auto max-w-7xl px-6 text-center lg:px-8'
+          data-aos='fade-up'
+        >
           <h2
             className='text-3xl font-bold text-white sm:text-4xl'
             style={{ fontFamily: 'Poppins, sans-serif' }}

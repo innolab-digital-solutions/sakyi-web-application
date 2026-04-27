@@ -19,6 +19,7 @@ export const MARKETING_ENDPOINTS = {
   BLOGS: {
     LIST: `${BASE}/blog-posts`,
     DETAIL: (id: string) => `${BASE}/blog-posts/${id}`,
+    CATEGORIES: `${BASE}/blog-categories`,
   },
   CONTACT: `${BASE}/contact`,
 } as const;

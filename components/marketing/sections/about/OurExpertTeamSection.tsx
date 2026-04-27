@@ -17,7 +17,7 @@ const OurExpertTeamSection = () => {
       name: translate('marketing.pages.about.our-team.members.founder.name'),
       role: translate('marketing.pages.about.our-team.members.founder.role'),
       bio: translate('marketing.pages.about.our-team.members.founder.bio'),
-      image: '/images/founder-profile.jpg',
+      image: '/images/founder-kyawhtin.jpg',
       quote: translate('marketing.pages.about.our-team.members.founder.quote'),
       socials: {
         linkedin: 'https://www.linkedin.com/in/kyaw-htin-86b0ba144/',
@@ -40,7 +40,7 @@ const OurExpertTeamSection = () => {
       quote: translate(
         'marketing.pages.about.our-team.members.technical-director.quote',
       ),
-      image: '/images/technical-director-profile.jpg',
+      image: '/images/technical-swamhtet.jpg',
       socials: {
         linkedin: 'www.linkedin.com/in/swam-htet-830b71129',
         email: 'drswamhtet@sakyihealthandwellness.com ',

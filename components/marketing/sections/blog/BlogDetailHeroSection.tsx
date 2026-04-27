@@ -5,17 +5,19 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
+import { useLanguage } from '@/context/LanguageContext';
 import type { BlogPost } from '@/domains/blogs/types';
+import { resolveApiImageUrl } from '@/lib/utils/url';
 
 type BlogDetailHeroSectionProps = {
   post: BlogPost;
 };
 
 const BlogDetailHeroSection = ({ post }: BlogDetailHeroSectionProps) => {
-  const hasThumbnail = post.thumbnail_url && post.thumbnail_url.trim() !== '';
+  const { language } = useLanguage();
+  const resolvedThumbnail = resolveApiImageUrl(post.thumbnail_url);
+  const hasThumbnail = !!resolvedThumbnail;
   const [imageError, setImageError] = useState(false);
-  const thumbnailSource =
-    hasThumbnail && !imageError ? post.thumbnail_url! : '/images/no-image.png';
 
   const handleShare = async () => {
     const url = globalThis.location.href;
@@ -64,7 +66,7 @@ const BlogDetailHeroSection = ({ post }: BlogDetailHeroSectionProps) => {
         <div className='mb-8' data-aos='fade-up' data-aos-delay='200'>
           {/* Title */}
           <h1
-            className='mb-6 text-3xl leading-tight font-bold text-slate-900 sm:text-4xl lg:text-5xl'
+            className={`mb-6 text-3xl font-bold text-slate-900 sm:text-4xl lg:text-5xl ${language === 'my' ? 'leading-relaxed sm:leading-relaxed lg:leading-relaxed' : 'leading-tight sm:leading-tight lg:leading-tight'}`}
             style={{ fontFamily: 'Poppins, sans-serif' }}
           >
             {post.title}
@@ -86,7 +88,7 @@ const BlogDetailHeroSection = ({ post }: BlogDetailHeroSectionProps) => {
               </div>
             )}
 
-            {post.timestamps.published_at && (
+            {post.timestamps?.published_at && (
               <div className='flex items-center gap-2'>
                 <Calendar className='h-4 w-4' />
                 <span style={{ fontFamily: 'Inter, sans-serif' }}>
@@ -118,24 +120,33 @@ const BlogDetailHeroSection = ({ post }: BlogDetailHeroSectionProps) => {
           data-aos='fade-up'
           data-aos-delay='400'
         >
-          <div className='aspect-video w-full'>
-            <Image
-              src={thumbnailSource}
-              alt={post.title}
-              width={1600}
-              height={900}
-              quality={95}
-              priority
-              sizes='(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px'
-              className={`h-full w-full ${
-                hasThumbnail && !imageError
-                  ? 'object-cover'
-                  : 'bg-gray-100 object-contain'
-              }`}
-              onError={() => {
-                if (hasThumbnail) setImageError(true);
-              }}
-            />
+          <div className='relative aspect-video w-full bg-slate-100'>
+            {hasThumbnail && !imageError ? (
+              <Image
+                src={resolvedThumbnail!}
+                alt={post.title}
+                fill
+                quality={95}
+                priority
+                unoptimized={
+                  resolvedThumbnail!.startsWith('http://') ||
+                  resolvedThumbnail!.startsWith('https://')
+                }
+                sizes='(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px'
+                className='object-cover'
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <div className='absolute inset-0 flex items-center justify-center p-10'>
+                <Image
+                  src='/images/logo-gray.png'
+                  alt='Sakyi'
+                  width={120}
+                  height={120}
+                  className='object-contain opacity-60'
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
