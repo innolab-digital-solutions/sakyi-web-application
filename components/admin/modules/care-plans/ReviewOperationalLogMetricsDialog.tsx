@@ -53,7 +53,7 @@ export default function ReviewOperationalLogMetricsDialog({
         showCloseButton
       >
         <DialogHeader className='border-border shrink-0 border-b p-5 sm:p-6'>
-          <div className='flex items-start gap-3'>
+          <div className='flex min-w-0 items-start gap-3'>
             <div className='bg-primary/10 border-primary/20 text-primary inline-flex size-10 shrink-0 items-center justify-center rounded-md border'>
               <ClipboardList className='size-5' aria-hidden />
             </div>
@@ -74,7 +74,7 @@ export default function ReviewOperationalLogMetricsDialog({
                 changed when you save.
               </DialogDescription>
               {period ? (
-                <p className='text-foreground/80 text-[12px] font-semibold tabular-nums'>
+                <p className='text-foreground/80 mt-2 text-[12px] font-semibold tabular-nums'>
                   Period: {period.starts_on} → {period.ends_on}
                 </p>
               ) : null}
@@ -94,17 +94,22 @@ export default function ReviewOperationalLogMetricsDialog({
             </div>
           ) : null}
 
-          <p className='text-foreground/90 text-[12px] font-semibold tabular-nums'>
-            {totalFieldChanges === 0
-              ? 'No field-level changes since this workspace was opened (or your last save).'
-              : `${totalFieldChanges} Change${totalFieldChanges === 1 ? '' : 's'} across ${metrics.length} Metric${metrics.length === 1 ? '' : 's'}.`}
-          </p>
+          {totalFieldChanges > 0 ? (
+            <p className='text-foreground/90 text-[12px] font-semibold tabular-nums'>
+              {`${totalFieldChanges} Change${totalFieldChanges === 1 ? '' : 's'} across ${metrics.length} Metric${metrics.length === 1 ? '' : 's'}.`}
+            </p>
+          ) : null}
 
           {!hasDetails && totalFieldChanges === 0 ? (
-            <p className='text-muted-foreground mt-2 text-[12px] leading-relaxed font-medium'>
-              You can still save to confirm the current worksheet on the server,
-              or go back to keep editing.
-            </p>
+            <div className='border-border/80 bg-muted/15 my-2 rounded-md border px-3.5 py-3.5'>
+              <p className='text-foreground/90 text-[12px] font-semibold'>
+                Nothing new to review right now
+              </p>
+              <p className='text-muted-foreground mt-1 text-[12px] leading-relaxed font-medium'>
+                You can continue to save if you want to confirm this worksheet
+                on the server, or keep editing to make more changes first.
+              </p>
+            </div>
           ) : null}
 
           {hasDetails ? (
