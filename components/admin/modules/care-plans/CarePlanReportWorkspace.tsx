@@ -240,6 +240,10 @@ export default function CarePlanReportWorkspace({
     React.useState<string[]>([]);
   const [submitReviewFeedback, setSubmitReviewFeedback] =
     React.useState<ReportRunFeedback>(emptyFeedback);
+  const [submitReviewAverageIntake, setSubmitReviewAverageIntake] =
+    React.useState('');
+  const [submitReviewAverageBurn, setSubmitReviewAverageBurn] =
+    React.useState('');
   const [submitReviewAverageSteps, setSubmitReviewAverageSteps] =
     React.useState('');
   const [
@@ -519,6 +523,16 @@ export default function CarePlanReportWorkspace({
       })),
     [operationalLog?.metrics, formMetrics],
   );
+  const reportGenerationDefaults =
+    workspace?.report_generation_defaults?.average_inputs;
+
+  const formatAverageInputDefault = React.useCallback(
+    (value: number | null | undefined) => {
+      if (value == null || !Number.isFinite(value)) return '0';
+      return String(value);
+    },
+    [],
+  );
 
   const operationalLogsSummaryCardsProps = React.useMemo(() => {
     const enrollment = carePlan?.enrollment;
@@ -729,8 +743,37 @@ export default function CarePlanReportWorkspace({
       if (activeOpLogId == null)
         throw new Error('No operational log to submit.');
       const manualHighlights: SubmitForReviewManualHighlightPayload[] = [];
+      const averageInputPayload: {
+        avg_intake?: number;
+        avg_burn?: number;
+        avg_steps?: number;
+        avg_training_time?: number;
+      } = {};
+      const avgIntakeValue = Number.parseFloat(submitReviewAverageIntake);
+      if (Number.isFinite(avgIntakeValue) && avgIntakeValue >= 0) {
+        averageInputPayload.avg_intake = avgIntakeValue;
+        manualHighlights.push({
+          metric_key: 'avg_intake',
+          label: 'Average intake',
+          value: avgIntakeValue,
+          unit: 'Kilocalorie',
+          is_visible_to_client: true,
+        });
+      }
+      const avgBurnValue = Number.parseFloat(submitReviewAverageBurn);
+      if (Number.isFinite(avgBurnValue) && avgBurnValue >= 0) {
+        averageInputPayload.avg_burn = avgBurnValue;
+        manualHighlights.push({
+          metric_key: 'avg_burn',
+          label: 'Average burn',
+          value: avgBurnValue,
+          unit: 'Kilocalorie',
+          is_visible_to_client: true,
+        });
+      }
       const avgStepsValue = Number.parseFloat(submitReviewAverageSteps);
       if (Number.isFinite(avgStepsValue) && avgStepsValue >= 0) {
+        averageInputPayload.avg_steps = avgStepsValue;
         manualHighlights.push({
           metric_key: 'avg_steps',
           label: 'Average steps',
@@ -743,6 +786,7 @@ export default function CarePlanReportWorkspace({
         submitReviewAverageTrainingMinutes,
       );
       if (Number.isFinite(avgTrainingTimeValue) && avgTrainingTimeValue >= 0) {
+        averageInputPayload.avg_training_time = avgTrainingTimeValue;
         manualHighlights.push({
           metric_key: 'avg_training_time',
           label: 'Average training time',
@@ -762,6 +806,10 @@ export default function CarePlanReportWorkspace({
             ).trim(),
             notes: (submitReviewFeedback.notes ?? '').trim(),
           },
+          average_inputs:
+            Object.keys(averageInputPayload).length > 0
+              ? averageInputPayload
+              : undefined,
           included_metric_keys: submitReviewIncludedMetricKeys,
           manual_highlights: manualHighlights,
         },
@@ -786,11 +834,7 @@ export default function CarePlanReportWorkspace({
       if (isOperationalLogsWorkspace) {
         router.replace(workspacePath, { scroll: false });
       }
-      toast.success(
-        workspaceLocation === 'operational-logs'
-          ? 'Submitted for review.'
-          : 'Submitted for review. You can add the client-facing narrative, then publish.',
-      );
+      toast.success('The report has been generated successfully.');
     },
     onError: (e: Error) => {
       toast.error(e.message);
@@ -806,13 +850,30 @@ export default function CarePlanReportWorkspace({
     setSubmitReviewIncludedMetricKeys(
       submitReviewMetricOptions.map((metric) => metric.metricKey),
     );
-    setSubmitReviewAverageSteps('');
-    setSubmitReviewAverageTrainingMinutes('');
+    setSubmitReviewAverageIntake(
+      formatAverageInputDefault(reportGenerationDefaults?.avg_intake?.value),
+    );
+    setSubmitReviewAverageBurn(
+      formatAverageInputDefault(reportGenerationDefaults?.avg_burn?.value),
+    );
+    setSubmitReviewAverageSteps(
+      formatAverageInputDefault(reportGenerationDefaults?.avg_steps?.value),
+    );
+    setSubmitReviewAverageTrainingMinutes(
+      formatAverageInputDefault(
+        reportGenerationDefaults?.avg_training_time?.value,
+      ),
+    );
     setSubmitForReviewDialogOpen(true);
   }, [
+    formatAverageInputDefault,
     formFeedback.focus_next_period,
     formFeedback.notes,
     formFeedback.summary,
+    reportGenerationDefaults?.avg_burn?.value,
+    reportGenerationDefaults?.avg_intake?.value,
+    reportGenerationDefaults?.avg_steps?.value,
+    reportGenerationDefaults?.avg_training_time?.value,
     submitReviewMetricOptions,
   ]);
 
@@ -1126,7 +1187,8 @@ export default function CarePlanReportWorkspace({
                           className='h-10 gap-1.5 text-[13px]! font-semibold'
                           onClick={openSubmitForReviewDialog}
                           disabled={
-                            !canSubmitForReview || submitForReviewMutation.isPending
+                            !canSubmitForReview ||
+                            submitForReviewMutation.isPending
                           }
                         >
                           {submitForReviewMutation.isPending ? (
@@ -1608,18 +1670,26 @@ export default function CarePlanReportWorkspace({
         onConfirm={confirmSaveCarePlanData}
       />
       <SubmitOperationalLogForReviewDialog
-        key={submitForReviewDialogOpen ? 'submit-review-open' : 'submit-review-closed'}
+        key={
+          submitForReviewDialogOpen
+            ? 'submit-review-open'
+            : 'submit-review-closed'
+        }
         open={submitForReviewDialogOpen}
         isSubmitting={submitForReviewMutation.isPending}
         hasExistingReport={hasExistingReport}
         metricOptions={submitReviewMetricOptions}
         includedMetricKeys={submitReviewIncludedMetricKeys}
         feedback={submitReviewFeedback}
+        avgIntake={submitReviewAverageIntake}
+        avgBurn={submitReviewAverageBurn}
         avgSteps={submitReviewAverageSteps}
         avgTrainingTime={submitReviewAverageTrainingMinutes}
         onOpenChange={setSubmitForReviewDialogOpen}
         onIncludedMetricKeysChange={setSubmitReviewIncludedMetricKeys}
         onFeedbackChange={setSubmitReviewFeedback}
+        onAvgIntakeChange={setSubmitReviewAverageIntake}
+        onAvgBurnChange={setSubmitReviewAverageBurn}
         onAvgStepsChange={setSubmitReviewAverageSteps}
         onAvgTrainingTimeChange={setSubmitReviewAverageTrainingMinutes}
         onSubmit={() => submitForReviewMutation.mutate()}

@@ -5,7 +5,6 @@ import {
   ChevronRightIcon,
   FileChartColumn,
   FileSymlink,
-  XIcon,
 } from 'lucide-react';
 import * as React from 'react';
 
@@ -28,6 +27,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import type { ReportRunFeedback } from '@/domains/care-plans/types/care-plan-report';
+import { getCarePlanSectionTab } from '@/lib/care-plans/carePlanSectionTabs';
 import { cn } from '@/lib/utils/styles';
 
 type SubmitMetricOption = {
@@ -43,11 +43,15 @@ export type SubmitOperationalLogForReviewDialogProps = {
   metricOptions: SubmitMetricOption[];
   includedMetricKeys: string[];
   feedback: ReportRunFeedback;
+  avgIntake: string;
+  avgBurn: string;
   avgSteps: string;
   avgTrainingTime: string;
   onOpenChange: (open: boolean) => void;
   onIncludedMetricKeysChange: (keys: string[]) => void;
   onFeedbackChange: (feedback: ReportRunFeedback) => void;
+  onAvgIntakeChange: (value: string) => void;
+  onAvgBurnChange: (value: string) => void;
   onAvgStepsChange: (value: string) => void;
   onAvgTrainingTimeChange: (value: string) => void;
   onSubmit: () => void;
@@ -65,11 +69,15 @@ export default function SubmitOperationalLogForReviewDialog({
   metricOptions,
   includedMetricKeys,
   feedback,
+  avgIntake,
+  avgBurn,
   avgSteps,
   avgTrainingTime,
   onOpenChange,
   onIncludedMetricKeysChange,
   onFeedbackChange,
+  onAvgIntakeChange,
+  onAvgBurnChange,
   onAvgStepsChange,
   onAvgTrainingTimeChange,
   onSubmit,
@@ -78,9 +86,25 @@ export default function SubmitOperationalLogForReviewDialog({
   const actionTitle = hasExistingReport ? 'Regenerate client report' : 'Generate client report';
   const submitLabel = hasExistingReport ? 'Regenerate report' : 'Generate report';
   const STEPS = [
-    { id: 1 as const, title: 'Average Values', description: 'Provide manual average values for client-facing highlights.' },
-    { id: 2 as const, title: 'Select Metrics', description: 'Choose which operational metrics should be included in the report.' },
-    { id: 3 as const, title: 'Narrative', description: 'Add summary, next-period focus, and optional internal notes.' },
+    {
+      id: 1 as const,
+      title: 'Average Values',
+      description:
+        'Review and confirm the period averages shown to the client, then adjust values when clinical context requires an override.',
+    },
+    {
+      id: 2 as const,
+      title: 'Select Metrics',
+      description:
+        'Select the operational metrics that best represent this reporting period so the client report stays focused and relevant.',
+    },
+    {
+      id: 3 as const,
+      title: 'Narrative',
+      description:
+        'Finalize the care-team narrative with a clear summary and next-period focus. Ensure these sections convey key achievements and primary goals for the upcoming period.',
+   
+    },
   ];
 
   const goBack = () => {
@@ -107,9 +131,8 @@ export default function SubmitOperationalLogForReviewDialog({
               {actionTitle}
             </DialogTitle>
             <DialogDescription className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
-              Curate the metrics cards for the client report, provide manual
-              highlight values, and confirm care-team narrative before sending
-              to review.
+              Use this guided workflow to prepare a high-quality client report
+              draft from the operational log before final review and publication.
             </DialogDescription>
           </DialogHeader>
 
@@ -157,8 +180,28 @@ export default function SubmitOperationalLogForReviewDialog({
               {step === 1 ? (
                 <div className='grid grid-cols-1 gap-3 px-0.5 py-0.5 sm:grid-cols-2'>
                   <TextField
+                    id='submit-review-avg-intake'
+                    label='Average Intake (kcal)'
+                    type='number'
+                    min={0}
+                    step='any'
+                    value={avgIntake}
+                    onChange={(event) => onAvgIntakeChange(event.target.value)}
+                    className='text-[13px]'
+                  />
+                  <TextField
+                    id='submit-review-avg-burn'
+                    label='Average Burn (kcal)'
+                    type='number'
+                    min={0}
+                    step='any'
+                    value={avgBurn}
+                    onChange={(event) => onAvgBurnChange(event.target.value)}
+                    className='text-[13px]'
+                  />
+                  <TextField
                     id='submit-review-avg-steps'
-                    label='Average steps (manual)'
+                    label='Average Steps (steps)'
                     type='number'
                     min={0}
                     step='any'
@@ -168,7 +211,7 @@ export default function SubmitOperationalLogForReviewDialog({
                   />
                   <TextField
                     id='submit-review-avg-training-time'
-                    label='Average training time (minutes)'
+                    label='Average Training Time (minutes)'
                     type='number'
                     min={0}
                     step='any'
@@ -183,50 +226,63 @@ export default function SubmitOperationalLogForReviewDialog({
 
               {step === 2 ? (
                 <div className='space-y-2'>
-                  <p className='text-foreground text-[12px] font-semibold tracking-wide uppercase'>
-                    Included metrics
-                  </p>
                   {metricOptions.length ? (
                     <div className='max-h-72 overflow-y-auto px-0.5 py-0.5'>
                       <div className='grid grid-cols-1 gap-2 md:grid-cols-2'>
                         {metricOptions.map((metric) => {
                           const checked = includedMetricKeys.includes(metric.metricKey);
+                          const sectionTab = getCarePlanSectionTab(metric.section);
+                          const SectionIcon = sectionTab?.icon;
                           return (
                             <label
                               key={metric.metricKey}
                               className={cn(
-                                'border-border bg-background hover:border-primary/40 hover:bg-primary/2 flex items-start gap-3 rounded-md border p-3 transition-colors',
-                                checked && 'border-primary/50 bg-primary/5',
+                                'border-border bg-muted/40 hover:border-primary/40 hover:bg-primary/2 flex min-h-20 items-center justify-between gap-3 rounded-md border p-3 transition-colors',
+                                checked && 'border-primary/50 bg-primary/5 shadow-xs',
                               )}
                             >
-                              <Checkbox
-                                checked={checked}
-                                onCheckedChange={(value) => {
-                                  if (value === true) {
-                                    onIncludedMetricKeysChange([
-                                      ...includedMetricKeys,
-                                      metric.metricKey,
-                                    ]);
-                                    return;
-                                  }
-                                  onIncludedMetricKeysChange(
-                                    includedMetricKeys.filter(
-                                      (key) => key !== metric.metricKey,
-                                    ),
-                                  );
-                                }}
-                                aria-label={`Include ${metric.label}`}
-                              />
-                              <div className='min-w-0 space-y-1'>
-                                <p className='text-foreground line-clamp-1 text-[13px] font-semibold'>
-                                  {metric.label}
-                                </p>
-                                <p className='text-muted-foreground line-clamp-1 text-[12px]'>
-                                  {metric.metricKey}
-                                </p>
-                                <span className='border-border bg-muted/40 text-foreground/80 inline-flex rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase'>
-                                  {formatSectionLabel(metric.section)}
-                                </span>
+                              <div className='flex min-w-0 items-center gap-2.5'>
+                                <div className='border-border bg-muted/25 flex size-10 shrink-0 items-center justify-center rounded-md border'>
+                                  {SectionIcon ? (
+                                    <SectionIcon
+                                      aria-hidden
+                                      className='text-muted-foreground size-4'
+                                    />
+                                  ) : (
+                                    <div
+                                      aria-hidden
+                                      className='bg-border/70 size-3 rounded-sm'
+                                    />
+                                  )}
+                                </div>
+                                <div className='min-w-0 space-y-1'>
+                                  <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+                                    {sectionTab?.label ?? formatSectionLabel(metric.section)}
+                                  </p>
+                                  <p className='text-foreground line-clamp-2 text-[13px] font-semibold leading-tight'>
+                                    {metric.label}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className='flex items-center'>
+                                <Checkbox
+                                  checked={checked}
+                                  onCheckedChange={(value) => {
+                                    if (value === true) {
+                                      onIncludedMetricKeysChange([
+                                        ...includedMetricKeys,
+                                        metric.metricKey,
+                                      ]);
+                                      return;
+                                    }
+                                    onIncludedMetricKeysChange(
+                                      includedMetricKeys.filter(
+                                        (key) => key !== metric.metricKey,
+                                      ),
+                                    );
+                                  }}
+                                  aria-label={`Include ${metric.label}`}
+                                />
                               </div>
                             </label>
                           );
@@ -246,6 +302,7 @@ export default function SubmitOperationalLogForReviewDialog({
                   <TextAreaField
                     id='submit-review-summary'
                     label='Summary'
+                    placeholder='Provide a concise summary of the client performance for this reporting period.'
                     value={feedback.summary ?? ''}
                     onChange={(event) =>
                       onFeedbackChange({ ...feedback, summary: event.target.value })
@@ -254,22 +311,14 @@ export default function SubmitOperationalLogForReviewDialog({
                   />
                   <TextAreaField
                     id='submit-review-focus'
-                    label='Focus for next period'
+                    label='Focus For Next Period'
+                    placeholder='State the primary priorities and actionable focus areas for the next period.'
                     value={feedback.focus_next_period ?? ''}
                     onChange={(event) =>
                       onFeedbackChange({
                         ...feedback,
                         focus_next_period: event.target.value,
                       })
-                    }
-                    className='min-h-20 text-[13px]'
-                  />
-                  <TextAreaField
-                    id='submit-review-notes'
-                    label='Internal notes'
-                    value={feedback.notes ?? ''}
-                    onChange={(event) =>
-                      onFeedbackChange({ ...feedback, notes: event.target.value })
                     }
                     className='min-h-20 text-[13px]'
                   />
@@ -288,7 +337,6 @@ export default function SubmitOperationalLogForReviewDialog({
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
             >
-              <XIcon className='size-3.5 shrink-0' />
               Cancel
             </Button>
           ) : (
@@ -325,7 +373,11 @@ export default function SubmitOperationalLogForReviewDialog({
               ) : (
                 <FileChartColumn className='size-3.5 shrink-0' />
               )}
-              {submitLabel}
+              {isSubmitting
+                ? hasExistingReport
+                  ? 'Regenerating...'
+                  : 'Generating...'
+                : submitLabel}
             </Button>
           )}
         </DialogFooter>

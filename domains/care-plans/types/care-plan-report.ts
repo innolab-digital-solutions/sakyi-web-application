@@ -133,6 +133,14 @@ export type CarePlanReportWorkspace = {
   client_report: CarePlanReportRun | null;
   /** @deprecated Server alias for `client_report`. */
   report_run: CarePlanReportRun | null;
+  report_generation_defaults?: {
+    average_inputs?: {
+      avg_intake?: { value: number | null; unit: string | null } | null;
+      avg_burn?: { value: number | null; unit: string | null } | null;
+      avg_steps?: { value: number | null; unit: string | null } | null;
+      avg_training_time?: { value: number | null; unit: string | null } | null;
+    } | null;
+  } | null;
 };
 
 export type ListCarePlanReportRunsData = {
@@ -178,6 +186,12 @@ export type SubmitForReviewManualHighlightPayload = {
 
 export type SubmitOperationalLogForReviewPayload = {
   feedback?: ReportRunFeedback;
+  average_inputs?: {
+    avg_intake?: number;
+    avg_burn?: number;
+    avg_steps?: number;
+    avg_training_time?: number;
+  };
   included_metric_keys?: string[];
   manual_highlights?: SubmitForReviewManualHighlightPayload[];
 };

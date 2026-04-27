@@ -9,7 +9,7 @@ This document describes the implemented flow where admin generates the client re
 - In modal, admin provides:
   - narrative (`summary`, `focus_next_period`, internal `notes`)
   - which operational metrics to include (nutrition, estimated burn, optional activity/recovery)
-  - manual averages (e.g. avg steps, avg training time)
+  - **4 average inputs**: `avg_intake`, `avg_steps`, `avg_training_time`, `avg_burn`
 - Frontend sends this payload to **submit-for-review**.
 - Backend creates the report run and stores curated highlights.
 - Frontend can later update content via existing `report-runs/{id}` endpoint.
@@ -35,6 +35,12 @@ No separate `/builder` endpoint is required.
     "summary": "Great consistency this week.",
     "focus_next_period": "Maintain hydration before noon.",
     "notes": "Internal notes for care team."
+  },
+  "average_inputs": {
+    "avg_intake": 1600,
+    "avg_steps": 6500,
+    "avg_training_time": 45,
+    "avg_burn": 300
   },
   "included_metric_keys": [
     "meals_total_kcal",
@@ -62,6 +68,9 @@ No separate `/builder` endpoint is required.
 
 ### Backend behavior
 
+- `average_inputs` are supported directly and produce the 4 highlights:
+  - `avg_intake`, `avg_steps`, `avg_training_time`, `avg_burn`
+- `avg_intake` and `avg_burn` are backend-prefill capable but still admin-editable overrides.
 - `included_metric_keys` maps to operational log metrics (`metric_key`) and stores them as visible calculated highlights.
 - For included keys:
   - `meals_total_kcal` is converted to avg/day value.
@@ -70,6 +79,27 @@ No separate `/builder` endpoint is required.
 - `manual_highlights` are stored as manual highlights.
 - If admin sends no selection payload, backend seeds defaults:
   - avg intake, avg burn, avg steps (manual placeholder), avg training time (manual placeholder).
+
+### Getting prefilled values for the 4 input boxes
+
+`GET /care-plans/{care_plan}/report-workspace` now includes:
+
+```json
+{
+  "data": {
+    "report_generation_defaults": {
+      "average_inputs": {
+        "avg_intake": { "value": 1700, "unit": "Kilocalorie" },
+        "avg_burn": { "value": 280, "unit": "Kilocalorie" },
+        "avg_steps": { "value": null, "unit": "steps" },
+        "avg_training_time": { "value": null, "unit": "minute" }
+      }
+    }
+  }
+}
+```
+
+Use these as default values in the modal, and let admin edit all four.
 
 ## 4) Report run update payload
 
