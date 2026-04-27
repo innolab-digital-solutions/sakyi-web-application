@@ -1,6 +1,7 @@
 import { ENDPOINTS } from '@/config/api/endpoints';
 import type { SupportedLanguage } from '@/config/languages';
-import { ApiResponse, http } from '@/lib/api/client';
+import { http } from '@/lib/api/client';
+import type { ApiResponse } from '@/types/api';
 
 import type { BlogCategory, BlogPost } from '../types/marketing';
 
@@ -11,6 +12,7 @@ export const getBlogPosts = async (
 ): Promise<ApiResponse<BlogPost[]>> => {
   const params = new URLSearchParams({
     locale: language,
+    paginate: 'true',
     page: page.toString(),
     ...(category ? { category } : {}),
   });
