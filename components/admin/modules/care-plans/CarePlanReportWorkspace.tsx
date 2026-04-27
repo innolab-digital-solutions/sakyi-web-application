@@ -86,6 +86,40 @@ function cloneMetrics(metrics: ReportRunMetric[]): ReportRunMetric[] {
   return JSON.parse(JSON.stringify(metrics)) as ReportRunMetric[];
 }
 
+/**
+ * Derives period-level summary numbers from the daily grid so the stat cards
+ * and PUT payload match what the user edits in the table (operational-logs
+ * worksheet).
+ *
+ * - Target: if every day has the same target, that value; otherwise sum of
+ *   (per-day target or 0). All-null targets → `null`.
+ * - Actual: sum of per-day actuals.
+ * - On-target / days total: from row checkboxes and row count.
+ */
+function rollupPeriodTargetFromDailies(
+  points: ReportMetricDailyPoint[],
+): number | null {
+  if (!points.length) return null;
+  const t = points.map((p) => p.target_value);
+  if (t.every((v) => v == null)) return null;
+  if (t.every((v) => v != null && v === t[0])) return t[0] as number;
+  return points.reduce((s, p) => s + (p.target_value ?? 0), 0);
+}
+
+function rollUpMetricFromDailyPoints(m: ReportRunMetric): ReportRunMetric {
+  const p = m.daily_points;
+  if (!p.length) {
+    return m;
+  }
+  return {
+    ...m,
+    days_total: p.length,
+    days_on_target: p.filter((d) => d.on_target).length,
+    actual_value: p.reduce((s, d) => s + (d.actual_value ?? 0), 0),
+    target_value: rollupPeriodTargetFromDailies(p),
+  };
+}
+
 function emptyFeedback(): ReportRunFeedback {
   return { summary: '', focus_next_period: '', notes: '' };
 }
@@ -421,7 +455,9 @@ export default function CarePlanReportWorkspace({
       : cr?.metrics?.length
         ? cr.metrics
         : workspace.suggested_metrics;
-    setFormMetrics(cloneMetrics(metricsSource));
+    setFormMetrics(
+      cloneMetrics(metricsSource).map(rollUpMetricFromDailyPoints),
+    );
     setFormFeedback(
       cr?.feedback
         ? {
@@ -499,12 +535,13 @@ export default function CarePlanReportWorkspace({
         const next = cloneMetrics(prev);
         const m = next[metricIndex];
         if (!m?.daily_points?.[dayIndex]) return prev;
-        next[metricIndex] = {
+        const withPoints = {
           ...m,
           daily_points: m.daily_points.map((p, i) =>
             i === dayIndex ? { ...p, ...patch } : p,
           ),
         };
+        next[metricIndex] = rollUpMetricFromDailyPoints(withPoints);
         return next;
       });
     },
