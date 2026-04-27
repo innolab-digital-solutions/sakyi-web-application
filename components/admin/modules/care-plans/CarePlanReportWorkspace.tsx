@@ -6,6 +6,7 @@ import {
   CheckCircle2Icon,
   ChevronDownIcon,
   ClipboardListIcon,
+  ListChecks,
   Loader2Icon,
   NotebookPenIcon,
   Save,
@@ -17,6 +18,7 @@ import * as React from 'react';
 import { toast } from 'sonner';
 
 import OperationalLogMediaPreviewModal from '@/components/admin/modules/care-plans/OperationalLogMediaPreviewModal';
+import ReviewOperationalLogMetricsDialog from '@/components/admin/modules/care-plans/ReviewOperationalLogMetricsDialog';
 import SaveCarePlanDataConfirmation from '@/components/admin/modules/care-plans/SaveCarePlanDataConfirmation';
 import OperationalLogWorkspaceContextBar from '@/components/admin/modules/operational-logs/OperationalLogWorkspaceContextBar';
 import TextAreaField from '@/components/shared/form/TextAreaField';
@@ -61,6 +63,11 @@ import type {
 } from '@/domains/care-plans/types/care-plan-report';
 import { getCarePlanSectionTab } from '@/lib/care-plans/carePlanSectionTabs';
 import { defaultReportPeriodForCarePlan } from '@/lib/care-plans/defaultReportPeriodRange';
+import { diffReportRunMetrics } from '@/lib/care-plans/diffReportRunMetrics';
+import {
+  cloneReportRunMetrics,
+  rollUpMetricFromDailyPoints,
+} from '@/lib/care-plans/operationalLogMetricsRollup';
 import { resolveOperationalLogForReportWorkspace } from '@/lib/care-plans/resolveOperationalLogForReportWorkspace';
 import { cn } from '@/lib/utils/styles';
 
@@ -80,44 +87,6 @@ function resolveMediaUrl(raw: string | null | undefined): string | null {
   const v = raw.trim();
   if (v.startsWith('http')) return v;
   return `${base.domainEndpoint}${v}`;
-}
-
-function cloneMetrics(metrics: ReportRunMetric[]): ReportRunMetric[] {
-  return JSON.parse(JSON.stringify(metrics)) as ReportRunMetric[];
-}
-
-/**
- * Derives period-level summary numbers from the daily grid so the stat cards
- * and PUT payload match what the user edits in the table (operational-logs
- * worksheet).
- *
- * - Target: if every day has the same target, that value; otherwise sum of
- *   (per-day target or 0). All-null targets → `null`.
- * - Actual: sum of per-day actuals.
- * - On-target / days total: from row checkboxes and row count.
- */
-function rollupPeriodTargetFromDailies(
-  points: ReportMetricDailyPoint[],
-): number | null {
-  if (!points.length) return null;
-  const t = points.map((p) => p.target_value);
-  if (t.every((v) => v == null)) return null;
-  if (t.every((v) => v != null && v === t[0])) return t[0] as number;
-  return points.reduce((s, p) => s + (p.target_value ?? 0), 0);
-}
-
-function rollUpMetricFromDailyPoints(m: ReportRunMetric): ReportRunMetric {
-  const p = m.daily_points;
-  if (!p.length) {
-    return m;
-  }
-  return {
-    ...m,
-    days_total: p.length,
-    days_on_target: p.filter((d) => d.on_target).length,
-    actual_value: p.reduce((s, d) => s + (d.actual_value ?? 0), 0),
-    target_value: rollupPeriodTargetFromDailies(p),
-  };
 }
 
 function emptyFeedback(): ReportRunFeedback {
@@ -253,8 +222,14 @@ export default function CarePlanReportWorkspace({
   const [lightboxUrl, setLightboxUrl] = React.useState<string | null>(null);
   const [saveCarePlanConfirmOpen, setSaveCarePlanConfirmOpen] =
     React.useState(false);
+  const [operationalLogMetricsReviewOpen, setOperationalLogMetricsReviewOpen] =
+    React.useState(false);
   const defaultingPeriodRef = React.useRef(false);
   const workspaceFormKeyRef = React.useRef<string | null>(null);
+  const formMetricsRef = React.useRef<ReportRunMetric[]>([]);
+  const [metricsSnapshotBaseline, setMetricsSnapshotBaseline] = React.useState<
+    ReportRunMetric[] | null
+  >(null);
 
   const { data: carePlanResult } = useQuery({
     queryKey: ['admin-care-plan-brief', carePlanId] as const,
@@ -455,9 +430,11 @@ export default function CarePlanReportWorkspace({
       : cr?.metrics?.length
         ? cr.metrics
         : workspace.suggested_metrics;
-    setFormMetrics(
-      cloneMetrics(metricsSource).map(rollUpMetricFromDailyPoints),
+    const rolled = cloneReportRunMetrics(metricsSource).map(
+      rollUpMetricFromDailyPoints,
     );
+    setMetricsSnapshotBaseline(cloneReportRunMetrics(rolled));
+    setFormMetrics(rolled);
     setFormFeedback(
       cr?.feedback
         ? {
@@ -468,6 +445,10 @@ export default function CarePlanReportWorkspace({
         : emptyFeedback(),
     );
   }, [workspace]);
+
+  React.useEffect(() => {
+    formMetricsRef.current = formMetrics;
+  }, [formMetrics]);
 
   const clientReport =
     workspace?.client_report ?? workspace?.report_run ?? null;
@@ -513,9 +494,7 @@ export default function CarePlanReportWorkspace({
       programCode: program?.code?.trim() || null,
       cycleNumber: carePlan?.cycle_number ?? null,
       carePlanCode:
-        carePlan?.code?.trim() ||
-        workspace?.care_plan?.code?.trim() ||
-        null,
+        carePlan?.code?.trim() || workspace?.care_plan?.code?.trim() || null,
       careWindowStartsOn:
         workspace?.care_plan?.starts_on ?? carePlan?.starts_on ?? null,
       careWindowEndsOn:
@@ -525,6 +504,16 @@ export default function CarePlanReportWorkspace({
 
   const opLogReferenceText = (operationalLog?.code ?? '').trim();
 
+  const operationalMetricsReviewDiff = React.useMemo(
+    () => diffReportRunMetrics(metricsSnapshotBaseline, formMetrics),
+    [metricsSnapshotBaseline, formMetrics],
+  );
+
+  const continueMetricsReviewToSave = React.useCallback(() => {
+    setOperationalLogMetricsReviewOpen(false);
+    setSaveCarePlanConfirmOpen(true);
+  }, []);
+
   const updateDailyPoint = React.useCallback(
     (
       metricIndex: number,
@@ -532,7 +521,7 @@ export default function CarePlanReportWorkspace({
       patch: Partial<ReportMetricDailyPoint>,
     ) => {
       setFormMetrics((prev) => {
-        const next = cloneMetrics(prev);
+        const next = cloneReportRunMetrics(prev);
         const m = next[metricIndex];
         if (!m?.daily_points?.[dayIndex]) return prev;
         const withPoints = {
@@ -653,14 +642,15 @@ export default function CarePlanReportWorkspace({
     mutateSaveCarePlan(undefined, {
       onSuccess: () => {
         setSaveCarePlanConfirmOpen(false);
+        setMetricsSnapshotBaseline(
+          cloneReportRunMetrics(formMetricsRef.current),
+        );
       },
     });
   }, [mutateSaveCarePlan]);
 
   const saveCarePlanCodeForDialog =
-    carePlan?.code?.trim() ||
-    workspace?.care_plan?.code?.trim() ||
-    null;
+    carePlan?.code?.trim() || workspace?.care_plan?.code?.trim() || null;
 
   const saveFeedbackMutation = useMutation({
     mutationFn: async () => {
@@ -1137,6 +1127,22 @@ export default function CarePlanReportWorkspace({
                 ) : null}
                 <Button
                   type='button'
+                  className='bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+                  variant='outline'
+                  onClick={() => setOperationalLogMetricsReviewOpen(true)}
+                  disabled={
+                    !canEditMetrics ||
+                    !formMetrics.length ||
+                    saveMetricsMutation.isPending ||
+                    !workspace
+                  }
+                  title='See what changed in the metrics worksheet (vs. last open or last save) before you save'
+                >
+                  <ListChecks className='size-4' aria-hidden />
+                  Review changes
+                </Button>
+                <Button
+                  type='button'
                   className='h-10 gap-1.5 text-[13px]! font-semibold'
                   onClick={() => setSaveCarePlanConfirmOpen(true)}
                   disabled={
@@ -1332,8 +1338,8 @@ export default function CarePlanReportWorkspace({
               {!clientReport ? (
                 <p className='text-muted-foreground text-sm'>
                   Narrative fields unlock after you submit the operational log
-                  for review. Save the operational log first, then use &quot;Submit for
-                  review&quot; to create the client report.
+                  for review. Save the operational log first, then use
+                  &quot;Submit for review&quot; to create the client report.
                 </p>
               ) : null}
               <TextAreaField
@@ -1385,6 +1391,22 @@ export default function CarePlanReportWorkspace({
                   Submit for review
                 </Button>
               ) : null}
+              <Button
+                type='button'
+                className='gap-1.5'
+                variant='outline'
+                onClick={() => setOperationalLogMetricsReviewOpen(true)}
+                disabled={
+                  !canEditMetrics ||
+                  !formMetrics.length ||
+                  saveMetricsMutation.isPending ||
+                  !workspace
+                }
+                title='See what changed in the metrics worksheet (vs. last open or last save) before you save'
+              >
+                <ListChecks className='size-4' aria-hidden />
+                Review changes
+              </Button>
               <Button
                 type='button'
                 variant='outline'
@@ -1449,6 +1471,13 @@ export default function CarePlanReportWorkspace({
         </div>
       )}
 
+      <ReviewOperationalLogMetricsDialog
+        open={operationalLogMetricsReviewOpen}
+        onOpenChange={setOperationalLogMetricsReviewOpen}
+        period={workspace?.period ?? null}
+        diff={operationalMetricsReviewDiff}
+        onContinueToSave={continueMetricsReviewToSave}
+      />
       <SaveCarePlanDataConfirmation
         open={saveCarePlanConfirmOpen}
         isSubmitting={saveMetricsMutation.isPending}
