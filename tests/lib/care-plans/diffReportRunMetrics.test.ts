@@ -55,6 +55,7 @@ describe('diffReportRunMetrics', () => {
 
     const result = diffReportRunMetrics([before], [after]);
     expect(result.totalFieldChanges).toBe(1);
+    expect(result.metrics[0]?.section).toBe('movement');
     expect(result.metrics[0]?.changes.some((c) => c.pathLabel.includes('target'))).toBe(
       true,
     );

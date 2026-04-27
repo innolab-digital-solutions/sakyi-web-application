@@ -11,7 +11,10 @@ export type ReportMetricValueChange = {
 };
 
 export type ReportRunMetricRowDiff = {
+  /** For stable React keys and tests; not shown in the review UI. */
   metricKey: string;
+  /** Care plan section key, e.g. `nutrition` — display label comes from the UI. */
+  section: string;
   label: string;
   /** `true` if metric_key at this index no longer lines up. */
   keyMismatch: boolean;
@@ -115,6 +118,7 @@ export function diffReportRunMetrics(
       totalFieldChanges += 1;
       out.push({
         metricKey: String(metricKey),
+        section: String(cm.section ?? 'other'),
         label,
         keyMismatch: false,
         changes,
@@ -131,6 +135,7 @@ export function diffReportRunMetrics(
       totalFieldChanges += 1;
       out.push({
         metricKey: String(bm.metric_key),
+        section: String(bm.section ?? 'other'),
         label: bm.label,
         keyMismatch: false,
         changes,
@@ -210,9 +215,9 @@ export function diffReportRunMetrics(
 
     if (keyMismatch) {
       changes.push({
-        pathLabel: 'Order',
-        before: `metric key “${String(bm.metric_key)}”`,
-        after: `metric key “${String(cm.metric_key)}” (same row index)`,
+        pathLabel: 'Row alignment',
+        before: 'This row was a different metric',
+        after: 'Another metric now — confirm this row in the sheet',
       });
       totalFieldChanges += 1;
     }
@@ -220,6 +225,7 @@ export function diffReportRunMetrics(
     if (changes.length) {
       out.push({
         metricKey: String(cm.metric_key),
+        section: String(cm.section ?? 'other'),
         label: cm.label,
         keyMismatch,
         changes,

@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { getCarePlanSectionTab } from '@/lib/care-plans/carePlanSectionTabs';
 import type { ReportRunMetricsDiff } from '@/lib/care-plans/diffReportRunMetrics';
 import { cn } from '@/lib/utils/styles';
 
@@ -21,6 +22,13 @@ export type ReviewOperationalLogMetricsDialogProps = {
   diff: ReportRunMetricsDiff;
   onContinueToSave: () => void;
 };
+
+function formatSectionLabel(sectionKey: string): string {
+  const tab = getCarePlanSectionTab(sectionKey);
+  if (tab) return tab.label;
+  const k = sectionKey.replace(/_/g, ' ').trim() || 'other';
+  return k.replace(/\b\w/g, (ch) => ch.toUpperCase());
+}
 
 /**
  * Pre-save review of what changed in operational log metrics (worksheet) vs
@@ -66,7 +74,7 @@ export default function ReviewOperationalLogMetricsDialog({
                 changed when you save.
               </DialogDescription>
               {period ? (
-                <p className='text-primary text-[12px] font-semibold tabular-nums'>
+                <p className='text-foreground/80 text-[12px] font-semibold tabular-nums'>
                   Period: {period.starts_on} → {period.ends_on}
                 </p>
               ) : null}
@@ -89,7 +97,7 @@ export default function ReviewOperationalLogMetricsDialog({
           <p className='text-foreground/90 text-[12px] font-semibold tabular-nums'>
             {totalFieldChanges === 0
               ? 'No field-level changes since this workspace was opened (or your last save).'
-              : `${totalFieldChanges} change${totalFieldChanges === 1 ? '' : 's'} across ${metrics.length} metric${metrics.length === 1 ? '' : 's'}.`}
+              : `${totalFieldChanges} Change${totalFieldChanges === 1 ? '' : 's'} across ${metrics.length} Metric${metrics.length === 1 ? '' : 's'}.`}
           </p>
 
           {!hasDetails && totalFieldChanges === 0 ? (
@@ -100,52 +108,111 @@ export default function ReviewOperationalLogMetricsDialog({
           ) : null}
 
           {hasDetails ? (
-            <ul className='mt-3 space-y-3'>
-              {metrics.map((m, rowIdx) => (
-                <li
-                  key={`review-metric-${rowIdx}-${m.metricKey}`}
-                  className='border-border rounded-md border bg-white px-3 py-2.5 dark:bg-zinc-950/30'
-                >
-                  <p className='text-foreground/90 text-[12px] font-bold'>
-                    {m.label}
-                    <span className='text-muted-foreground ml-1.5 font-mono text-[10px] font-semibold'>
-                      {m.metricKey}
-                    </span>
-                    {m.keyMismatch ? (
-                      <span className='ml-1.5 text-[10px] font-semibold text-amber-800 uppercase dark:text-amber-200'>
-                        order / key
-                      </span>
-                    ) : null}
-                  </p>
-                  <ul className='text-muted-foreground mt-1.5 list-none space-y-1.5 text-[11px] font-medium'>
-                    {m.changes.map((ch, i) => (
-                      <li
-                        key={`${m.metricKey}-${ch.pathLabel}-${i}`}
-                        className='flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5'
+            <ul className='mt-4 space-y-4'>
+              {metrics.map((m, rowIdx) => {
+                const sectionTab = getCarePlanSectionTab(m.section);
+                const SectionIcon = sectionTab?.icon;
+                return (
+                  <li
+                    key={`review-metric-${rowIdx}-${m.metricKey}`}
+                    className='border-border from-muted/20 overflow-hidden rounded-md border bg-linear-to-b to-white dark:from-zinc-900/40 dark:to-zinc-950/40'
+                  >
+                    <div className='border-border/60 flex min-h-11 items-stretch gap-2 border-b bg-white/50 px-3 py-2 sm:gap-2.5 sm:px-3.5 dark:bg-zinc-950/30'>
+                      <div
+                        className='border-border/90 bg-muted/20 flex size-7 shrink-0 items-center justify-center self-start rounded-md border sm:size-8'
+                        aria-hidden
                       >
-                        <span className='text-foreground/90 font-semibold'>
-                          {ch.pathLabel}
-                        </span>
-                        <span
-                          className='text-destructive/90 min-w-0 wrap-break-word'
-                          title={ch.before}
-                        >
-                          {ch.before}
-                        </span>
-                        <span className='text-muted-foreground' aria-hidden>
-                          →
-                        </span>
-                        <span
-                          className='text-primary min-w-0 font-semibold wrap-break-word'
-                          title={ch.after}
-                        >
-                          {ch.after}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-              ))}
+                        {SectionIcon ? (
+                          <SectionIcon className='text-muted-foreground size-3.5' />
+                        ) : (
+                          <div className='bg-border/50 size-2.5 rounded-sm' />
+                        )}
+                      </div>
+                      <div className='min-w-0 flex-1 py-px'>
+                        <div className='flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5'>
+                          <p
+                            className='text-muted-foreground text-[9px] font-semibold tracking-wider uppercase'
+                            title={m.section}
+                          >
+                            {formatSectionLabel(m.section)}
+                          </p>
+                          {m.keyMismatch ? (
+                            <span className='inline-flex items-center rounded border border-amber-200/90 bg-amber-50/90 px-1.5 py-0.5 text-[8px] font-semibold text-amber-900 uppercase dark:border-amber-900/50 dark:bg-amber-950/50 dark:text-amber-100'>
+                              Row check
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className='text-foreground mt-0.5 text-[12.5px] font-semibold leading-snug tracking-tight'>
+                          {m.label}
+                        </p>
+                      </div>
+                    </div>
+                    <div className='overflow-x-auto bg-white/40 dark:bg-zinc-950/20'>
+                      <table
+                        className='w-full min-w-80 border-collapse text-left text-[11px] sm:min-w-full'
+                        aria-label={`Changes for ${m.label}`}
+                      >
+                        <caption className='sr-only'>
+                          Field, previous and new value for {m.label}
+                        </caption>
+                        <thead>
+                          <tr className='border-border/50 text-muted-foreground border-b text-[9px] font-bold tracking-wider dark:bg-zinc-900/20'>
+                            <th className='text-foreground/70 px-3 py-1.5 text-left sm:px-4'>
+                              Field
+                            </th>
+                            <th className='w-[28%] min-w-20 px-2 py-1.5 text-left'>
+                              Previous
+                            </th>
+                            <th
+                              className='text-muted-foreground/70 w-6 px-0.5 text-center'
+                              aria-hidden
+                            >
+                              →
+                            </th>
+                            <th className='w-[30%] min-w-20 px-2 py-1.5 text-left'>
+                              New
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {m.changes.map((ch, i) => (
+                            <tr
+                              key={`${m.metricKey}-${ch.pathLabel}-${i}`}
+                              className='border-border/30 hover:bg-muted/20 border-b last:border-b-0'
+                            >
+                              <td className='text-foreground/90 bg-muted/5 px-3 py-2 align-top font-medium capitalize sm:px-4'>
+                                {ch.pathLabel}
+                              </td>
+                              <td className='px-1.5 py-1.5 align-top sm:px-2'>
+                                <span
+                                  className='border-border/70 bg-background text-foreground/85 inline-block min-w-0 max-w-full rounded border px-2 py-1 font-medium wrap-break-word tabular-nums dark:bg-zinc-900/50'
+                                  title={ch.before}
+                                >
+                                  {ch.before}
+                                </span>
+                              </td>
+                              <td
+                                className='text-muted-foreground/60 px-0.5 text-center align-middle'
+                                aria-hidden
+                              >
+                                →
+                              </td>
+                              <td className='px-1.5 py-1.5 align-top sm:px-2'>
+                                <span
+                                  className='border-primary/20 bg-primary/5 text-foreground inline-block min-w-0 max-w-full rounded border px-2 py-1 font-semibold wrap-break-word tabular-nums'
+                                  title={ch.after}
+                                >
+                                  {ch.after}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           ) : null}
         </div>
