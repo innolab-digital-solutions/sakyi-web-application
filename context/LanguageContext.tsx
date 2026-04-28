@@ -19,7 +19,8 @@ function subscribe(callback: () => void) {
 
 function getSnapshot(): SupportedLanguage {
   const stored = window.localStorage.getItem('language');
-  return stored && SUPPORTED_LANGUAGE_CODES.includes(stored as SupportedLanguage)
+  return stored &&
+    SUPPORTED_LANGUAGE_CODES.includes(stored as SupportedLanguage)
     ? (stored as SupportedLanguage)
     : DEFAULT_LANGUAGE;
 }
