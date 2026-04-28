@@ -12,7 +12,7 @@ import type { DashboardProgramWorkload } from '@/domains/dashboard-overview/type
 const chartConfig = {
   active_enrollments: {
     label: 'Active Enrollments',
-    color: 'var(--chart-3)',
+    color: 'var(--primary)',
   },
 } as const;
 
@@ -63,8 +63,8 @@ export default function ActiveWorkloadChartCard({
               <Bar
                 dataKey='active_enrollments'
                 fill='var(--color-active_enrollments)'
-                radius={10}
-                barSize={34}
+                radius={8}
+                barSize={42}
               />
             </BarChart>
           </ChartContainer>
