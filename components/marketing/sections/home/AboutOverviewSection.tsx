@@ -62,21 +62,28 @@ const AboutOverviewSection = () => {
 
             {/* Floating card: lives transformed */}
             <FloatingCard
-              icon={<Users className='h-5 w-5' />}
-              title='10K+ Lives'
-              description='Transformed'
-              className='-top-6 -left-2 sm:-left-4 lg:-top-4 lg:-left-6'
-              iconClassName='bg-linear-to-r from-[#35bec5] to-[#4bc4db]'
-            />
-
-            {/* Floating card: success rate */}
-            <FloatingCard
               icon={<TrendingUp className='h-5 w-5' />}
-              title='98% Success'
-              description='Rate'
-              className='-right-2 -bottom-6 sm:-right-4 lg:-right-6'
+              title={translate(
+                'marketing.pages.home.about-overview.floating-cards.lives-transformed.title',
+              )}
+              description={translate(
+                'marketing.pages.home.about-overview.floating-cards.lives-transformed.description',
+              )}
+              className='-top-6 -left-2 sm:-left-4 lg:-top-4 lg:-left-6'
               iconClassName='bg-linear-to-r from-[#4bc4db] to-[#0c96c4]'
             />
+            <FloatingCard
+              icon={<Users className='h-5 w-5' />}
+              title={translate(
+                'marketing.pages.home.about-overview.floating-cards.success-rate.title',
+              )}
+              description={translate(
+                'marketing.pages.home.about-overview.floating-cards.success-rate.description',
+              )}
+              className='-right-2 -bottom-6 sm:-right-4 lg:-right-6'
+              iconClassName='bg-linear-to-r from-[#35bec5] to-[#4bc4db]'
+            />
+            {/* Floating card: success rate */}
           </div>
         </div>
 

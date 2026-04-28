@@ -63,8 +63,8 @@
         "description": "Evidence-Based"
       },
       "holistic-care": {
-        "title": "Holistic Care",
-        "description": "Whole Person"
+        "title": "Complete Wellness",
+        "description": "Holistic Approach"
       }
     },
     "features": {
@@ -87,7 +87,7 @@
     }
   },
   "our-team": {
-    "badge": "Meet Our Founder",
+    "badge": "Meet Our Team",
     "title": {
       "black": "Our",
       "gradient": "Expert Team"
@@ -138,7 +138,7 @@
     "features": {
       "impact": {
         "title": "What Our Impact Looks Like",
-        "description": "Lives Changed, Not Just Weights Lost Clients experience meaningful improvements in health, energy, and daily habits."
+        "description": "Lives Changed, Not Just Weights Lost! Clients experience meaningful improvements in health, energy, and daily habits."
       },
       "trust": {
         "title": "Trusted by Those We Serve",

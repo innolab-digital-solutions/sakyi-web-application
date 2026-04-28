@@ -31,12 +31,10 @@ const MobileAppSection = () => {
 
             <div>
               <Heading2 lang={language}>
-                <span className='text-foreground'>
-                  {translate(
-                    'marketing.pages.home.mobile-app.title.black',
-                  )}{' '}
+                <span className='text-foreground block'>
+                  {translate('marketing.pages.home.mobile-app.title.black')}
                 </span>
-                <span className='text-brand-gradient bg-clip-text text-transparent'>
+                <span className='text-brand-gradient block bg-clip-text text-transparent'>
                   {translate('marketing.pages.home.mobile-app.title.gradient')}
                 </span>
               </Heading2>

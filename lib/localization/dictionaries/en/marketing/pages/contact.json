@@ -9,6 +9,12 @@
     "cta": {
       "primary": "Send Us a Message",
       "secondary": "View Contacts"
+    },
+    "floating-cards": {
+      "quick-response": {
+        "title": "Quick Response",
+        "description": "We reply within 24 hours"
+      }
     }
   },
   "contact-details": {
