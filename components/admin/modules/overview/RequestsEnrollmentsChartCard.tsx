@@ -1,6 +1,13 @@
 'use client';
 
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
+import {
+  Area,
+  CartesianGrid,
+  ComposedChart,
+  Line,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 import {
   ChartContainer,
@@ -35,13 +42,45 @@ export default function RequestsEnrollmentsChartCard({
       <div className='pt-3'>
         {points.length ? (
           <ChartContainer
-            className='ml-1 h-72 w-[calc(100%+0.75rem)]'
+            className='h-72 w-full pr-2'
             config={chartConfig}
           >
-            <LineChart
+            <ComposedChart
               data={points}
-              margin={{ top: 8, right: 4, bottom: 0, left: -8 }}
+              margin={{ top: 8, right: 14, bottom: 0, left: 0 }}
             >
+              <defs>
+                <linearGradient id='overview-requests-fill' x1='0' y1='0' x2='0' y2='1'>
+                  <stop
+                    offset='0%'
+                    stopColor='var(--color-requests)'
+                    stopOpacity={0.26}
+                  />
+                  <stop
+                    offset='100%'
+                    stopColor='var(--color-requests)'
+                    stopOpacity={0.03}
+                  />
+                </linearGradient>
+                <linearGradient
+                  id='overview-enrollments-fill'
+                  x1='0'
+                  y1='0'
+                  x2='0'
+                  y2='1'
+                >
+                  <stop
+                    offset='0%'
+                    stopColor='var(--color-enrollments)'
+                    stopOpacity={0.22}
+                  />
+                  <stop
+                    offset='100%'
+                    stopColor='var(--color-enrollments)'
+                    stopOpacity={0.02}
+                  />
+                </linearGradient>
+              </defs>
               <CartesianGrid vertical={false} />
               <XAxis
                 dataKey='period'
@@ -63,6 +102,18 @@ export default function RequestsEnrollmentsChartCard({
                   />
                 }
               />
+              <Area
+                type='monotone'
+                dataKey='requests'
+                fill='url(#overview-requests-fill)'
+                stroke='none'
+              />
+              <Area
+                type='monotone'
+                dataKey='enrollments'
+                fill='url(#overview-enrollments-fill)'
+                stroke='none'
+              />
               <Line
                 type='monotone'
                 dataKey='requests'
@@ -77,7 +128,7 @@ export default function RequestsEnrollmentsChartCard({
                 strokeWidth={2}
                 dot={false}
               />
-            </LineChart>
+            </ComposedChart>
           </ChartContainer>
         ) : (
           <p className='text-muted-foreground text-sm'>

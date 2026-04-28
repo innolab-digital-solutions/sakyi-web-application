@@ -34,12 +34,12 @@ export default function PipelineFunnelChartCard({
       <div className='pt-3'>
         {stages.length ? (
           <ChartContainer
-            className='ml-1 h-72 w-[calc(100%+0.75rem)]'
+            className='h-72 w-full pr-2'
             config={chartConfig}
           >
             <BarChart
               data={stages}
-              margin={{ top: 8, right: 4, bottom: 0, left: -8 }}
+              margin={{ top: 8, right: 14, bottom: 0, left: 0 }}
             >
               <CartesianGrid vertical={false} />
               <XAxis

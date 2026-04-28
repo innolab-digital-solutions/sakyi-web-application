@@ -36,11 +36,11 @@ export default function ActiveWorkloadChartCard({
       </div>
       <div className='pt-3'>
         {bars.length ? (
-          <ChartContainer className='ml-1 h-80 w-[calc(100%+0.75rem)]' config={chartConfig}>
+          <ChartContainer className='h-80 w-full pr-2' config={chartConfig}>
             <BarChart
               data={bars}
               layout='vertical'
-              margin={{ top: 8, right: 6, bottom: 0, left: -8 }}
+              margin={{ top: 8, right: 14, bottom: 0, left: 0 }}
             >
               <CartesianGrid horizontal={false} />
               <XAxis
