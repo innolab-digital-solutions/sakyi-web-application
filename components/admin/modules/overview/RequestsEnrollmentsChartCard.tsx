@@ -107,12 +107,14 @@ export default function RequestsEnrollmentsChartCard({
                 dataKey='requests'
                 fill='url(#overview-requests-fill)'
                 stroke='none'
+                tooltipType='none'
               />
               <Area
                 type='monotone'
                 dataKey='enrollments'
                 fill='url(#overview-enrollments-fill)'
                 stroke='none'
+                tooltipType='none'
               />
               <Line
                 type='monotone'
