@@ -12,6 +12,20 @@ import {
   type TranslationReplacements,
 } from '@/lib/localization';
 
+function subscribe(callback: () => void) {
+  window.addEventListener('storage', callback);
+  return () => window.removeEventListener('storage', callback);
+}
+
+function getSnapshot(): SupportedLanguage {
+  const stored = window.localStorage.getItem('language');
+  return stored && SUPPORTED_LANGUAGE_CODES.includes(stored as SupportedLanguage)
+    ? (stored as SupportedLanguage)
+    : DEFAULT_LANGUAGE;
+}
+
+const getServerSnapshot = (): SupportedLanguage => DEFAULT_LANGUAGE;
+
 type LanguageContextValue = {
   language: SupportedLanguage;
   setLanguage: (language: SupportedLanguage) => void;
@@ -20,52 +34,29 @@ type LanguageContextValue = {
 
 const LanguageContext = React.createContext<LanguageContextValue | null>(null);
 
-/**
- * Provides language state and translation functionality to the React component tree.
- *
- * - Tracks the current language and persists it to localStorage.
- * - Sets the HTML document's language attribute according to the current language.
- * - Supplies a translation function using the current language context.
- *
- * @param {React.PropsWithChildren} props - The children to be wrapped by the language provider.
- * @returns {JSX.Element} The provider component supplying language context to its descendants.
- *
- * Context value:
- *   - language: The currently selected language code.
- *   - setLanguage: Function to update the selected language.
- *   - translate: Function to translate a string key with optional replacements, using the current language.
- *
- * Usage:
- *   Wrap application components in <LanguageProvider> to enable localization and language switching.
- */
 export const LanguageProvider = ({ children }: React.PropsWithChildren) => {
-  // Always start with DEFAULT_LANGUAGE to match the server-rendered HTML,
-  // then hydrate from localStorage after mount to avoid SSR/client mismatch.
-  const [language, setLanguage] =
-    React.useState<SupportedLanguage>(DEFAULT_LANGUAGE);
+  // useSyncExternalStore uses getServerSnapshot during SSR + hydration (no mismatch),
+  // then switches to getSnapshot (localStorage) after hydration completes.
+  const language = React.useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
 
-  React.useEffect(() => {
-    const stored = window.localStorage.getItem('language');
-    if (
-      stored &&
-      SUPPORTED_LANGUAGE_CODES.includes(stored as SupportedLanguage)
-    ) {
-      setLanguage(stored as SupportedLanguage);
-    }
+  const setLanguage = React.useCallback((lang: SupportedLanguage) => {
+    window.localStorage.setItem('language', lang);
+    document.documentElement.lang = lang;
+    // Dispatch a synthetic storage event so the subscriber in the current tab
+    // re-reads the snapshot and triggers a re-render.
+    window.dispatchEvent(
+      new StorageEvent('storage', { key: 'language', newValue: lang }),
+    );
   }, []);
 
   React.useEffect(() => {
     document.documentElement.lang = language;
-    window.localStorage.setItem('language', language);
   }, [language]);
 
-  /**
-   * Translates a key into the current language, with optional string replacement interpolation.
-   *
-   * @param {string} key - The translation key (dot-separated for nested paths).
-   * @param {TranslationReplacements} [replacements] - Optional placeholder replacements.
-   * @returns {string} The translated and interpolated string.
-   */
   const translate = React.useCallback(
     (key: string, replacements?: TranslationReplacements) =>
       getTranslation(language, key, replacements),
