@@ -74,6 +74,7 @@ export default function DashboardPage() {
         overviewError={overviewError}
         generatedAtText={generatedAtText}
         overviewData={overviewData}
+        isLoading={overviewQuery.isLoading}
       />
     </div>
   );

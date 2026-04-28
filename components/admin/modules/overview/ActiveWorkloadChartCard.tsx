@@ -7,6 +7,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { DashboardProgramWorkload } from '@/domains/dashboard-overview/types';
 
 const chartConfig = {
@@ -18,10 +19,12 @@ const chartConfig = {
 
 type ActiveWorkloadChartCardProps = {
   bars: DashboardProgramWorkload[];
+  isLoading?: boolean;
 };
 
 export default function ActiveWorkloadChartCard({
   bars,
+  isLoading = false,
 }: ActiveWorkloadChartCardProps) {
   return (
     <div className='border-border bg-background rounded-md border p-4 md:p-5'>
@@ -35,7 +38,16 @@ export default function ActiveWorkloadChartCard({
         </p>
       </div>
       <div className='pt-3'>
-        {bars.length ? (
+        {isLoading ? (
+          <div className='space-y-3'>
+            <Skeleton className='h-80 w-full rounded-md' />
+            <div className='space-y-2'>
+              <Skeleton className='h-3 w-full rounded-sm' />
+              <Skeleton className='h-3 w-[92%] rounded-sm' />
+              <Skeleton className='h-3 w-[84%] rounded-sm' />
+            </div>
+          </div>
+        ) : bars.length ? (
           <ChartContainer className='h-80 w-full pr-2' config={chartConfig}>
             <BarChart
               data={bars}

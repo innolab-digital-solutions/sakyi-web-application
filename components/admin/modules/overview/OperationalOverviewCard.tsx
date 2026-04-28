@@ -5,18 +5,21 @@ import { AlertTriangle, Clock3Icon } from 'lucide-react';
 import ActiveWorkloadChartCard from '@/components/admin/modules/overview/ActiveWorkloadChartCard';
 import PipelineFunnelChartCard from '@/components/admin/modules/overview/PipelineFunnelChartCard';
 import RequestsEnrollmentsChartCard from '@/components/admin/modules/overview/RequestsEnrollmentsChartCard';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { DashboardOverviewData } from '@/domains/dashboard-overview/types';
 
 type OperationalOverviewCardProps = {
   overviewError: string | null;
   generatedAtText: string;
   overviewData: DashboardOverviewData | null;
+  isLoading?: boolean;
 };
 
 export default function OperationalOverviewCard({
   overviewError,
   generatedAtText,
   overviewData,
+  isLoading = false,
 }: OperationalOverviewCardProps) {
   return (
     <div className='border-border rounded-md border bg-white p-4 shadow-xs md:p-5'>
@@ -36,9 +39,13 @@ export default function OperationalOverviewCard({
             <span className='text-muted-foreground font-medium capitalize'>
               Last processed:
             </span>
-            <span className='text-foreground/90 font-semibold'>
-              {generatedAtText}
-            </span>
+            {isLoading ? (
+              <Skeleton className='h-3.5 w-28 rounded-sm' />
+            ) : (
+              <span className='text-foreground/90 font-semibold'>
+                {generatedAtText}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -56,14 +63,17 @@ export default function OperationalOverviewCard({
         <div className='grid gap-4 lg:grid-cols-2'>
           <PipelineFunnelChartCard
             stages={overviewData?.charts.pipeline_funnel.stages ?? []}
+            isLoading={isLoading}
           />
           <RequestsEnrollmentsChartCard
             points={overviewData?.charts.request_enrollment_trend.points ?? []}
+            isLoading={isLoading}
           />
         </div>
 
         <ActiveWorkloadChartCard
           bars={overviewData?.charts.active_workload_by_program.bars ?? []}
+          isLoading={isLoading}
         />
       </div>
     </div>

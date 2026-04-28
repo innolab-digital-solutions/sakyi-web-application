@@ -14,6 +14,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { DashboardTrendPoint } from '@/domains/dashboard-overview/types';
 
 const chartConfig = {
@@ -23,10 +24,12 @@ const chartConfig = {
 
 type RequestsEnrollmentsChartCardProps = {
   points: DashboardTrendPoint[];
+  isLoading?: boolean;
 };
 
 export default function RequestsEnrollmentsChartCard({
   points,
+  isLoading = false,
 }: RequestsEnrollmentsChartCardProps) {
   return (
     <div className='border-border bg-background rounded-md border p-4 md:p-5'>
@@ -40,7 +43,19 @@ export default function RequestsEnrollmentsChartCard({
         </p>
       </div>
       <div className='pt-3'>
-        {points.length ? (
+        {isLoading ? (
+          <div className='space-y-3'>
+            <Skeleton className='h-72 w-full rounded-md' />
+            <div className='grid grid-cols-6 gap-2'>
+              <Skeleton className='h-3 w-full rounded-sm' />
+              <Skeleton className='h-3 w-full rounded-sm' />
+              <Skeleton className='h-3 w-full rounded-sm' />
+              <Skeleton className='h-3 w-full rounded-sm' />
+              <Skeleton className='h-3 w-full rounded-sm' />
+              <Skeleton className='h-3 w-full rounded-sm' />
+            </div>
+          </div>
+        ) : points.length ? (
           <ChartContainer
             className='h-72 w-full pr-2'
             config={chartConfig}

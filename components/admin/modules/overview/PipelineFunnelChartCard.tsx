@@ -7,6 +7,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { DashboardPipelineStage } from '@/domains/dashboard-overview/types';
 
 const chartConfig = {
@@ -15,10 +16,12 @@ const chartConfig = {
 
 type PipelineFunnelChartCardProps = {
   stages: DashboardPipelineStage[];
+  isLoading?: boolean;
 };
 
 export default function PipelineFunnelChartCard({
   stages,
+  isLoading = false,
 }: PipelineFunnelChartCardProps) {
   return (
     <div className='border-border bg-background rounded-md border p-4 md:p-5'>
@@ -32,7 +35,17 @@ export default function PipelineFunnelChartCard({
         </p>
       </div>
       <div className='pt-3'>
-        {stages.length ? (
+        {isLoading ? (
+          <div className='space-y-3'>
+            <Skeleton className='h-72 w-full rounded-md' />
+            <div className='grid grid-cols-4 gap-2'>
+              <Skeleton className='h-3 w-full rounded-sm' />
+              <Skeleton className='h-3 w-full rounded-sm' />
+              <Skeleton className='h-3 w-full rounded-sm' />
+              <Skeleton className='h-3 w-full rounded-sm' />
+            </div>
+          </div>
+        ) : stages.length ? (
           <ChartContainer
             className='h-72 w-full pr-2'
             config={chartConfig}
