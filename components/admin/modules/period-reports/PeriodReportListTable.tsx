@@ -461,7 +461,6 @@ export default function PeriodReportListTable() {
                       {formatDateTimeCell(
                         row.timestamps?.submitted_for_review_at,
                       ) ?? <TableCellEmpty label='Not submitted' />}
-                 
                     </TableCell>
                   ) : null}
                   {show('publishedAt') ? (

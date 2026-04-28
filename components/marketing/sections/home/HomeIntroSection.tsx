@@ -101,8 +101,12 @@ const HomeIntroSection = () => {
           {/* Floating card: Personalized Plans */}
           <FloatingCard
             icon={<Heart className='h-5 w-5' />}
-            title='Personalized Plans'
-            description='Tailored to your needs'
+            title={translate(
+              'marketing.pages.home.hero.floating-cards.personalized-plans.title',
+            )}
+            description={translate(
+              'marketing.pages.home.hero.floating-cards.personalized-plans.description',
+            )}
             className='-top-6 -left-2 sm:-left-4 lg:-top-4 lg:-left-6'
             iconClassName='bg-linear-to-r from-[#35bec5] to-[#4bc4db]'
           />
@@ -110,8 +114,12 @@ const HomeIntroSection = () => {
           {/* Floating card: Doctor Guided */}
           <FloatingCard
             icon={<Shield className='h-5 w-5' />}
-            title='Doctor Guided'
-            description='Expert supervision'
+            title={translate(
+              'marketing.pages.home.hero.floating-cards.doctor-guided.title',
+            )}
+            description={translate(
+              'marketing.pages.home.hero.floating-cards.doctor-guided.description',
+            )}
             className='-right-2 -bottom-6 sm:-right-4 lg:-right-6'
             iconClassName='bg-linear-to-r from-[#4bc4db] to-[#0c96c4]'
           />

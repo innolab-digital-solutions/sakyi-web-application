@@ -10,6 +10,16 @@
     "cta": {
       "primary": "Start Your Journey",
       "secondary": "Learn More"
+    },
+    "floating-cards": {
+      "personalized-plans": {
+        "title": "Personalized Plans",
+        "description": "Tailored to your needs"
+      },
+      "doctor-guided": {
+        "title": "Expert Guided",
+        "description": "Expert supervision"
+      }
     }
   },
   "about-overview": {
@@ -19,6 +29,16 @@
       "gradient": "Journey Starts Here"
     },
     "description": "At Sa Kyi, we combine medical expertise with personalized care to support safe, sustainable health transformation. Each program is designed by certified doctors and guided by our dedicated team ensuring clarity, support, and confidence at every step.",
+    "floating-cards": {
+      "lives-transformed": {
+        "title": "Transformed",
+        "description": "Real People Real Progress"
+      },
+      "success-rate": {
+        "title": "Proven",
+        "description": "Evidence-Informed Outcomes"
+      }
+    },
     "features": {
       "doctor-designed-programs": {
         "title": "Doctor-Designed Programs",
@@ -114,7 +134,7 @@
     "description": "Join thousands of individuals who have already started their wellness journey with Sa Kyi. Get personalized guidance from certified doctors and achieve your health goals.",
     "cta": {
       "primary": "Start Your Journey",
-      "secondary": "Get Free Consultation"
+      "secondary": "Get Consultation"
     }
   }
 }

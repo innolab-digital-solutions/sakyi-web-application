@@ -16,7 +16,7 @@ const PrimaryButton = ({
   return (
     <button
       className={cn(
-        'group bg-brand-gradient inline-flex min-w-0 items-center justify-center space-x-2 rounded-full px-6 py-3 font-sans text-base font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl',
+        'group bg-brand-gradient inline-flex min-w-0 cursor-pointer items-center justify-center space-x-2 rounded-full px-6 py-3 font-sans text-base font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl',
         className,
       )}
       {...props}

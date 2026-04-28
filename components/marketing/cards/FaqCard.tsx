@@ -22,7 +22,7 @@ const FAQCard = ({ question, answer, delayMs = 0 }: FAQCardProps) => {
         data-aos='fade-up'
         data-aos-delay={`${delayMs}`}
       >
-        <CollapsibleTrigger className='flex w-full items-center justify-between bg-slate-50 p-6 text-left transition-colors duration-300'>
+        <CollapsibleTrigger className='flex w-full cursor-pointer items-center justify-between bg-slate-50 p-6 text-left transition-colors duration-300'>
           <h3
             className='text-lg font-semibold text-slate-900 transition-colors duration-300 group-hover:text-[#35bec5]'
             style={{ fontFamily: 'Poppins, sans-serif' }}

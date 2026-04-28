@@ -10,6 +10,9 @@ import { LanguageProvider } from '@/context/LanguageContext';
 import TanstackQueryProvider from '@/lib/providers/TanstackQueryProvider';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ?? 'https://sakyihealthandwellness.com',
+  ),
   title: 'SaKyi Health & Wellness',
   description: 'Personalized wellness programs to support your health journey.',
 };
