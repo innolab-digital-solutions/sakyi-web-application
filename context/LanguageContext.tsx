@@ -18,19 +18,6 @@ type LanguageContextValue = {
   translate: (key: string, replacements?: TranslationReplacements) => string;
 };
 
-const getInitialLanguage = (): SupportedLanguage => {
-  if (typeof window === 'undefined') {
-    return DEFAULT_LANGUAGE;
-  }
-
-  const stored = window.localStorage.getItem('language');
-
-  return stored &&
-    SUPPORTED_LANGUAGE_CODES.includes(stored as SupportedLanguage)
-    ? (stored as SupportedLanguage)
-    : DEFAULT_LANGUAGE;
-};
-
 const LanguageContext = React.createContext<LanguageContextValue | null>(null);
 
 /**
@@ -52,17 +39,24 @@ const LanguageContext = React.createContext<LanguageContextValue | null>(null);
  *   Wrap application components in <LanguageProvider> to enable localization and language switching.
  */
 export const LanguageProvider = ({ children }: React.PropsWithChildren) => {
-  const [language, setLanguage] = React.useState<SupportedLanguage>(() =>
-    getInitialLanguage(),
-  );
+  // Always start with DEFAULT_LANGUAGE to match the server-rendered HTML,
+  // then hydrate from localStorage after mount to avoid SSR/client mismatch.
+  const [language, setLanguage] =
+    React.useState<SupportedLanguage>(DEFAULT_LANGUAGE);
 
   React.useEffect(() => {
-    if (typeof document === 'undefined') return;
-    document.documentElement.lang = language;
-
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('language', language);
+    const stored = window.localStorage.getItem('language');
+    if (
+      stored &&
+      SUPPORTED_LANGUAGE_CODES.includes(stored as SupportedLanguage)
+    ) {
+      setLanguage(stored as SupportedLanguage);
     }
+  }, []);
+
+  React.useEffect(() => {
+    document.documentElement.lang = language;
+    window.localStorage.setItem('language', language);
   }, [language]);
 
   /**

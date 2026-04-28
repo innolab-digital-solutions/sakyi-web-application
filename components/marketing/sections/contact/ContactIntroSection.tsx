@@ -51,7 +51,7 @@ const ContactIntroSection = () => {
           </div>
 
           {/* Primary and secondary CTAs */}
-          <div className='flex min-w-0 flex-col gap-4 sm:flex-row'>
+          <div className='flex min-w-0 flex-wrap gap-4'>
             <PrimaryButton
               className='w-full min-w-0 sm:w-auto'
               onClick={() => scrollToElement('send-us-message-section')}

@@ -16,14 +16,6 @@ const FAQSection = () => {
   const FAQS = [
     {
       question: translate(
-        'marketing.pages.programs.faq.questions.program-duration.question',
-      ),
-      answer: translate(
-        'marketing.pages.programs.faq.questions.program-duration.answer',
-      ),
-    },
-    {
-      question: translate(
         'marketing.pages.programs.faq.questions.diet-flexibility.question',
       ),
       answer: translate(
@@ -68,6 +60,14 @@ const FAQSection = () => {
       ),
       answer: translate(
         'marketing.pages.programs.faq.questions.busy-schedule.answer',
+      ),
+    },
+    {
+      question: translate(
+        'marketing.pages.programs.faq.questions.program-duration.question',
+      ),
+      answer: translate(
+        'marketing.pages.programs.faq.questions.program-duration.answer',
       ),
     },
   ];
