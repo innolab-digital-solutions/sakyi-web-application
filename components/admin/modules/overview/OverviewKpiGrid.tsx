@@ -7,8 +7,8 @@ import {
   ContactRound,
   FileClock,
   FileSignature,
-  UsersRound,
   Users,
+  UsersRound,
 } from 'lucide-react';
 
 import type { DashboardOverviewData } from '@/domains/dashboard-overview/types';

@@ -55,7 +55,7 @@ export default function DashboardPage() {
   }, [overviewData]);
 
   return (
-    <div className='space-y-6'>
+    <div className='space-y-5'>
       <div className='flex flex-col space-y-1'>
         <p className='text-muted-foreground text-xs font-semibold'>
           {formatDate()}
