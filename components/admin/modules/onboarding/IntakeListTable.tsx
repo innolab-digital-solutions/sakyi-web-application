@@ -300,7 +300,7 @@ export default function IntakeListTable() {
       },
       onSuccess: () => {
         toast.success(
-          'The enrollment contract notification was sent. The applicant will receive it on their mobile device.',
+          'The enrollment contract notification was sent to the applicant.',
         );
         queryClient.invalidateQueries({
           queryKey: ['table', ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST],
@@ -313,7 +313,6 @@ export default function IntakeListTable() {
         );
       },
     });
-
   const confirmSendContract = () => {
     if (!sendContractDialog) return;
     const enrollmentRequestId = sendContractDialog.enrollmentRequestId;
@@ -395,7 +394,7 @@ export default function IntakeListTable() {
         <TableBody>
           {showSkeleton && (
             <TableSkeletonRows
-              rowCount={3}
+              rowCount={15}
               columnCount={visibleColumnCount}
               cellWidths={visibleSkeletonWidths}
             />
@@ -446,7 +445,7 @@ export default function IntakeListTable() {
               return (
                 <TableRow key={intake.id}>
                   {showColumn('reference') ? (
-                    <TableCell>
+                    <TableCell className='min-w-44'>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {intake.code?.trim()}
                       </p>
@@ -488,7 +487,7 @@ export default function IntakeListTable() {
                   ) : null}
 
                   {showColumn('requestedProgram') ? (
-                    <TableCell>
+                    <TableCell className='min-w-62'>
                       <div className='flex items-start gap-3'>
                         <ProgramThumbnail
                           thumbnailUrl={intake.program?.thumbnail_url}
@@ -514,7 +513,7 @@ export default function IntakeListTable() {
                   ) : null}
 
                   {showColumn('linkedRequest') ? (
-                    <TableCell>
+                    <TableCell className='min-w-44'>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {intake.enrollment_request?.code?.trim() || (
                           <TableCellEmpty label='Not linked' />
@@ -562,7 +561,7 @@ export default function IntakeListTable() {
                   ) : null}
 
                   {showColumn('status') ? (
-                    <TableCell>
+                    <TableCell className='min-w-36'>
                       <span
                         className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
                       >
@@ -585,7 +584,7 @@ export default function IntakeListTable() {
                   ) : null}
 
                   {showColumn('actions') ? (
-                    <TableCell className='align-center text-end whitespace-nowrap'>
+                    <TableCell>
                       <IntakeRowActions
                         intake={intake}
                         onSendContract={() => {

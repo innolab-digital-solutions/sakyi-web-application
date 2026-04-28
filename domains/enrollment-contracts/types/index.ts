@@ -1,8 +1,9 @@
-export type EnrollmentContractStatus = 'assigned' | 'signed';
+export type EnrollmentContractStatus = 'assigned' | 'signed' | 'voided';
 
 export interface EnrollmentContractTimestamps {
   sent_at: string | null;
   signed_at: string | null;
+  voided_at: string | null;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -40,6 +41,7 @@ export interface EnrollmentContract {
   signed_by_name: string | null;
   signature_url: string | null;
   accepted_terms: boolean;
+  void_reason?: string | null;
   enrollment?: EnrollmentContractEnrollment | null;
   onboarding_intake?: EnrollmentContractOnboardingIntake | null;
   timestamps: EnrollmentContractTimestamps;

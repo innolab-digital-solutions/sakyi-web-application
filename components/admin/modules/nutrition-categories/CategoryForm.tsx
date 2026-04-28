@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useQueryClient } from '@tanstack/react-query';
+import { FolderPlusIcon, SaveIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -97,6 +98,11 @@ export default function NutritionCategoryForm({
 
   const submit = async () => {
     if (isEdit) {
+      if (!form.isDirty) {
+        toast.info('There are no changes to save.');
+        return;
+      }
+
       await form.patch(
         ENDPOINTS.ADMIN.MODULES.NUTRITION_CATEGORIES.DETAIL(
           String(category.id),
@@ -115,7 +121,7 @@ export default function NutritionCategoryForm({
             queryClient.invalidateQueries({
               queryKey: nutritionCategoryParentPickerQueryKey,
             });
-            toast.success('Food category updated successfully.');
+            toast.success('The food category has been updated successfully.');
             if (onSuccess) onSuccess();
             else router.push(ROUTES.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST);
           },
@@ -141,7 +147,7 @@ export default function NutritionCategoryForm({
         queryClient.invalidateQueries({
           queryKey: nutritionCategoryParentPickerQueryKey,
         });
-        toast.success('Food category created successfully.');
+        toast.success('The food category has been created successfully.');
         if (onSuccess) onSuccess();
         else router.push(ROUTES.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST);
       },
@@ -163,9 +169,9 @@ export default function NutritionCategoryForm({
     >
       <div className='space-y-6'>
         <TextField
-          label='Name'
+          label='Category Name'
           required
-          placeholder='e.g. Macronutrients'
+          placeholder='Enter category name (e.g. Macronutrients)'
           value={String(form.fields.name ?? '')}
           onChange={(e) => form.setData('name', e.target.value)}
           error={form.errors.name}
@@ -173,7 +179,7 @@ export default function NutritionCategoryForm({
         <TextAreaField
           label='Description'
           name='description'
-          placeholder='Optional description for this category…'
+          placeholder='Enter a brief description for this category'
           rows={3}
           value={String(form.fields.description ?? '')}
           onChange={(e) => form.setData('description', e.target.value)}
@@ -181,9 +187,9 @@ export default function NutritionCategoryForm({
         />
         <ComboboxField
           label='Parent Category'
-          placeholder='Select a top-level category…'
-          searchPlaceholder='Search top-level categories…'
-          emptyMessage='No top-level categories found.'
+          placeholder='Please select a root category'
+          searchPlaceholder='Search root categories…'
+          emptyMessage='No categories found.'
           options={parentOptions}
           value={form.fields.parent_id ? String(form.fields.parent_id) : null}
           onChange={(val) =>
@@ -197,7 +203,7 @@ export default function NutritionCategoryForm({
             type='button'
             variant='outline'
             disabled={loading}
-            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
             onClick={() =>
               onSuccess
                 ? onSuccess()
@@ -209,8 +215,13 @@ export default function NutritionCategoryForm({
           <Button
             type='submit'
             disabled={loading}
-            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
           >
+            {isEdit ? (
+              <SaveIcon className='size-3.5' />
+            ) : (
+              <FolderPlusIcon className='size-3.5' />
+            )}
             {loading
               ? isEdit
                 ? 'Saving Changes…'

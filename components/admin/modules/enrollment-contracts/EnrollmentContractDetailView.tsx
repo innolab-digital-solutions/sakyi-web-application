@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
-import { CheckCircle2Icon, FileSignatureIcon } from 'lucide-react';
+import { BanIcon, CheckCircle2Icon, FileSignatureIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -25,6 +25,7 @@ import { getInitials } from '@/lib/utils/string';
 const STATUS_LABEL: Record<EnrollmentContractStatus, string> = {
   assigned: 'Assigned',
   signed: 'Signed',
+  voided: 'Voided',
 };
 
 const STATUS_STYLES: Record<
@@ -43,6 +44,11 @@ const STATUS_STYLES: Record<
     icon: CheckCircle2Icon,
     className:
       'border-emerald-300/80 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200',
+  },
+  voided: {
+    icon: BanIcon,
+    className:
+      'border-rose-300/80 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200',
   },
 };
 
@@ -329,7 +335,7 @@ export default function EnrollmentContractDetailView({
               className='h-9'
               onClick={() => setCreateEnrollmentOpen(true)}
             >
-              Create enrollment
+              Create Enrollment
             </Button>
           ) : null}
         </div>

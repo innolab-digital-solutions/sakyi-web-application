@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query';
+import { FolderPlusIcon, SaveIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -104,6 +105,34 @@ function mapServerErrorsToFormErrors(
   return mapped;
 }
 
+function createPayloadFromFields(
+  fields: FormState,
+  isActive: boolean,
+): {
+  is_active: boolean;
+  translations: Array<{
+    locale: 'en' | 'my';
+    name: string;
+    description: string | null;
+  }>;
+} {
+  return {
+    is_active: isActive,
+    translations: [
+      {
+        locale: 'en',
+        name: fields.en.name.trim(),
+        description: fields.en.description.trim() || null,
+      },
+      {
+        locale: 'my',
+        name: fields.my.name.trim(),
+        description: fields.my.description.trim() || null,
+      },
+    ],
+  };
+}
+
 function BlogCategoryEditFormLoader({
   category,
   onSuccess,
@@ -205,6 +234,9 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [activeLocale, setActiveLocale] = useState<'en' | 'my'>('en');
+  const initialPayload = isEdit
+    ? createPayloadFromFields(props.initialFields, category?.is_active ?? true)
+    : null;
 
   const setTranslation = (
     locale: 'en' | 'my',
@@ -224,36 +256,21 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
 
   const validate = (): boolean => {
     const next: Record<string, string> = {};
-    if (!fields.en.name.trim()) next['en_name'] = 'English name is required.';
-    if (!fields.my.name.trim()) next['my_name'] = 'Myanmar name is required.';
+    if (!fields.en.name.trim()) next['en_name'] = 'The name field is required.';
+    if (!fields.my.name.trim()) next['my_name'] = 'The name field is required.';
     setErrors(next);
     const ok = Object.keys(next).length === 0;
     if (!ok) {
       setActiveLocale(firstLocaleTabForErrors(next));
-      toast.error('Required fields are missing', {
-        description:
-          'Each language needs a category name. The tab with missing information is opened below.',
-        duration: 5000,
-      });
     }
     return ok;
   };
 
-  const buildPayload = () => ({
-    is_active: isEdit && category ? category.is_active : true,
-    translations: [
-      {
-        locale: 'en' as const,
-        name: fields.en.name.trim(),
-        description: fields.en.description.trim() || null,
-      },
-      {
-        locale: 'my' as const,
-        name: fields.my.name.trim(),
-        description: fields.my.description.trim() || null,
-      },
-    ],
-  });
+  const buildPayload = () =>
+    createPayloadFromFields(
+      fields,
+      isEdit && category ? category.is_active : true,
+    );
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: async () => {
@@ -285,22 +302,28 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
       });
       toast.success(
         isEdit
-          ? 'Blog category updated successfully.'
-          : 'Blog category created successfully.',
+          ? 'The blog category has been updated successfully.'
+          : 'The blog category has been created successfully.',
       );
       const onSuccess = props.onSuccess;
       if (onSuccess) onSuccess();
       else router.push(ROUTES.ADMIN.MODULES.BLOG_CATEGORIES.LIST);
-    },
-    onError: (error) => {
-      toast.error(error.message ?? 'Something went wrong.');
     },
   });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validate()) return;
-    mutateAsync();
+    if (isEdit && initialPayload) {
+      const currentPayload = buildPayload();
+      if (JSON.stringify(currentPayload) === JSON.stringify(initialPayload)) {
+        toast.info('There are no changes to save.');
+        return;
+      }
+    }
+    mutateAsync().catch(() => {
+      // field errors are already mapped to input error props
+    });
   };
 
   const onSuccess = props.onSuccess;
@@ -344,9 +367,9 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
 
           <TabsContent value='en' className='space-y-4'>
             <TextField
-              label='Name'
+              label='Category Name'
               required
-              placeholder='e.g. Health & Nutrition'
+              placeholder='Enter category name (e.g. Health & Nutrition)'
               value={fields.en.name}
               onChange={(e) => setTranslation('en', 'name', e.target.value)}
               error={errors['en_name']}
@@ -354,7 +377,7 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
             <TextAreaField
               label='Description'
               name='en_description'
-              placeholder='Optional description…'
+              placeholder='Enter a brief description for this category'
               rows={3}
               value={fields.en.description}
               onChange={(e) =>
@@ -365,9 +388,9 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
 
           <TabsContent value='my' className='space-y-4'>
             <TextField
-              label='Name'
+              label='Category Name'
               required
-              placeholder='e.g. ကျန်းမာရေးနှင့် အာဟာရ'
+              placeholder='အမျိုးအစားအမည် (ဥပမာ ကျန်းမာရေးနှင့် အာဟာရ) ထည့်ပါ'
               value={fields.my.name}
               onChange={(e) => setTranslation('my', 'name', e.target.value)}
               error={errors['my_name']}
@@ -375,7 +398,7 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
             <TextAreaField
               label='Description'
               name='my_description'
-              placeholder='Optional description…'
+              placeholder='ဤအမျိုးအစားအတွက် အတိုချုံးဖော်ပြချက်ကို ထည့်ပါ။'
               rows={3}
               value={fields.my.description}
               onChange={(e) =>
@@ -390,7 +413,7 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
             type='button'
             variant='outline'
             disabled={isPending}
-            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
             onClick={() =>
               onSuccess
                 ? onSuccess()
@@ -402,8 +425,13 @@ function BlogCategoryFormFields(props: FormFieldsProps) {
           <Button
             type='submit'
             disabled={isPending}
-            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
           >
+            {isEdit ? (
+              <SaveIcon className='size-3.5' />
+            ) : (
+              <FolderPlusIcon className='size-3.5' />
+            )}
             {isPending
               ? isEdit
                 ? 'Saving Changes…'

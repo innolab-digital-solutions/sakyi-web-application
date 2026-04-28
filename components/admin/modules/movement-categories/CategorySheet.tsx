@@ -49,22 +49,22 @@ export default function MovementCategorySheet({
         <SheetTrigger asChild>
           <Button
             type='button'
-            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
           >
             <PlusIcon className='size-3.5' />
-            Add Movement Category
+            Add movement category
           </Button>
         </SheetTrigger>
       )}
       <SheetContent className='overflow-y-auto px-6 sm:max-w-md [&>button]:cursor-pointer'>
         <SheetHeader className='px-0'>
-          <SheetTitle className='text-foreground text-md font-bold'>
-            {isEdit ? 'Edit Movement Category' : 'Add Movement Category'}
+          <SheetTitle className='text-foreground text-[15.5px] font-bold capitalize'>
+            {isEdit ? 'Edit movement category' : 'Create movement category'}
           </SheetTitle>
-          <SheetDescription className='text-muted-foreground text-sm font-medium'>
+          <SheetDescription className='text-muted-foreground text-[13.5px] font-medium'>
             {isEdit
-              ? 'Update name, description, and parent so exercises stay organized in the movement library.'
-              : 'Add a movement category to group exercises. Optional parent links build a simple hierarchy in the movement library.'}
+              ? 'Update the category name, description, or parent link so exercises remain clearly organized throughout movement planning and delivery.'
+              : 'Create a movement category to group related exercises clearly and keep your movement library structure consistent.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (

@@ -1,6 +1,6 @@
 'use client';
 
-import { Trash2 } from 'lucide-react';
+import { AlertTriangleIcon, Trash2 } from 'lucide-react';
 
 import {
   AlertDialog,
@@ -36,7 +36,7 @@ export default function RemoveBlogCategoryConfirmation({
         <AlertDialogHeader className='border-border border-b p-6'>
           <div className='flex items-start gap-3'>
             <div className='border-destructive/25 bg-destructive/10 text-destructive mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-md border'>
-              <Trash2 className='size-5' aria-hidden />
+              <AlertTriangleIcon className='size-5' aria-hidden />
             </div>
             <div className='space-y-1.5'>
               <AlertDialogTitle className='text-foreground text-sm font-bold capitalize'>
@@ -44,11 +44,10 @@ export default function RemoveBlogCategoryConfirmation({
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
                 This will permanently remove{' '}
-                <strong className='text-foreground font-semibold'>
+                <strong className='text-destructive font-semibold'>
                   {displayName}
                 </strong>{' '}
-                from your blog library. Posts that reference it may need to be
-                reassigned. This action cannot be undone.
+                from your blog category library. This action cannot be undone.
               </AlertDialogDescription>
             </div>
           </div>

@@ -11,7 +11,7 @@ import { ROUTES } from '@/config/routes';
 export const metadata: Metadata = {
   title: 'Care Programs | SaKyi Admin',
   description:
-    'Review wellness program catalog entries: reference codes, bilingual titles, duration and price, publish dates, enrollment counts, and status—filter by language and visibility before opening a program to edit.',
+    'Manage the care program catalog with consistent pricing, goals, localized content, and publication status so listings stay accurate for internal and public use.',
 };
 
 export default function ProgramListsPage() {
@@ -19,7 +19,7 @@ export default function ProgramListsPage() {
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Care Programs'
-        description='Maintain the program catalog your clients and enrollment flows rely on. Scan codes, pricing, and publication state at a glance; switch list language to verify copy, then open a row to edit overview, translations, or goals.'
+        description='Manage the care program catalog with consistent pricing, goals, localized content, and publication status so listings stay accurate for internal and public use.'
         actions={
           <Button
             asChild
@@ -27,7 +27,7 @@ export default function ProgramListsPage() {
           >
             <Link href={ROUTES.ADMIN.MODULES.PROGRAMS.CREATE}>
               <PlusIcon className='size-3.5' />
-              Create program
+              Add Care Program
             </Link>
           </Button>
         }

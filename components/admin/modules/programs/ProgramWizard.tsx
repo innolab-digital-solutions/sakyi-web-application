@@ -1,8 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertTriangleIcon, ArrowLeftIcon } from 'lucide-react';
-import Link from 'next/link';
+import { HeartHandshakeIcon, SaveIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
@@ -130,37 +129,36 @@ function mapProgramApiErrorsToFieldErrors(
 }
 
 const structureRowSchema = z.object({
-  period: z.string().min(1, 'Period is required.'),
-  title: z.string().min(1, 'Title is required.'),
-  description: z.string().min(1, 'Description is required.'),
+  period: z.string().min(1, 'The period field is required.'),
+  title: z.string().min(1, 'The title field is required.'),
+  description: z.string().min(1, 'The description field is required.'),
 });
 
 const overviewSchema = z.object({
   duration: z
     .string()
-    .min(1, 'Duration is required.')
-    .max(10, 'Duration must be at most 10 characters.'),
+    .min(1, 'The duration field is required.')
+    .max(10, 'The duration field must not be greater than 10 characters.'),
   price: z.number().int().nonnegative('Price must be zero or greater.'),
 });
 
 /** Per-locale content + list/structure rules (used for `en` always, `my` when started). */
 const translationContentSchema = z.object({
-  title: z.string().min(1, 'Title is required.').max(255),
-  tagline: z.string().min(1, 'Tagline is required.').max(255),
-  excerpt: z.string().min(1, 'Excerpt is required.'),
-  about: z.string().min(1, 'About is required.'),
+  title: z.string().min(1, 'The title field is required.').max(255),
+  tagline: z.string().min(1, 'The tagline field is required.').max(255),
+  excerpt: z.string().min(1, 'The excerpt field is required.'),
+  about: z.string().min(1, 'The about field is required.'),
 });
 
 const translationDetailsSchema = z.object({
-  features: z.array(z.string()).min(1, 'Add at least one feature.'),
-  ideals: z.array(z.string()).min(1, 'Add at least one ideal.'),
-  expectations: z.array(z.string()).min(1, 'Add at least one expectation.'),
+  features: z.array(z.string()).min(1, 'The features field is required.'),
+  ideals: z.array(z.string()).min(1, 'The ideals field is required.'),
+  expectations: z
+    .array(z.string())
+    .min(1, 'The expectations field is required.'),
   structures: z
     .array(structureRowSchema)
-    .min(
-      1,
-      'Add at least one structure block with period, title, and description.',
-    ),
+    .min(1, 'The structures field is required.'),
 });
 
 function mergeTranslationValidationErrors(
@@ -172,7 +170,7 @@ function mergeTranslationValidationErrors(
     title: t.title,
     tagline: t.tagline,
     excerpt: t.excerpt,
-    about: t.about,
+    about: normalizeRichTextValue(t.about),
   });
   if (!content.success) {
     for (const issue of content.error.issues) {
@@ -225,17 +223,12 @@ function normalizeStructureRows(
     .filter((s) => s.period && s.title && s.description);
 }
 
-function isMyTranslationStarted(t: TranslationData): boolean {
-  return (
-    t.title.trim() !== '' ||
-    t.tagline.trim() !== '' ||
-    t.excerpt.trim() !== '' ||
-    t.about.trim() !== '' ||
-    t.features.length > 0 ||
-    t.ideals.length > 0 ||
-    t.expectations.length > 0 ||
-    t.structures.length > 0
-  );
+function normalizeRichTextValue(value: string): string {
+  const plainText = value
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .trim();
+  return plainText.length === 0 ? '' : value;
 }
 
 function mimeFromThumbnailFilename(fileName: string): string {
@@ -272,34 +265,72 @@ function programThumbnailToRemoteFiles(
   ];
 }
 
-function resolveSaveStatus(
-  isEditMode: boolean,
-  current: AdminProgram | undefined,
-  publish: boolean,
-  catalogVis: boolean,
-): 'draft' | 'published' | 'hidden' {
-  if (!isEditMode) {
-    return publish ? 'published' : 'draft';
-  }
-  const s = current?.status;
-  if (s === STATUS.DRAFT || s === STATUS.ARCHIVED) {
-    return publish ? 'published' : 'draft';
-  }
-  if (s === STATUS.PUBLISHED) {
-    return catalogVis ? 'published' : 'hidden';
-  }
-  if (s === STATUS.HIDDEN) {
-    return catalogVis ? 'published' : 'hidden';
-  }
-  return 'draft';
-}
-
 export type ProgramWizardProps = {
   mode: 'create' | 'edit';
   program?: AdminProgram;
   enTranslation?: ProgramTranslation;
   myTranslation?: ProgramTranslation;
 };
+
+function getProgramPriceAmount(
+  price: AdminProgram['price'] | undefined,
+): number {
+  if (typeof price === 'number') return price;
+  return price?.amount ?? 0;
+}
+
+type ProgramChangeSnapshot = {
+  duration: string;
+  price: number;
+  goalIds: number[];
+  status:
+    | typeof STATUS.DRAFT
+    | typeof STATUS.PUBLISHED
+    | typeof STATUS.ARCHIVED;
+  translations: Array<{
+    locale: 'en' | 'my';
+    title: string;
+    tagline: string;
+    excerpt: string;
+    about: string;
+    features: string[];
+    ideals: string[];
+    expectations: string[];
+    structures: ProgramStructureItem[];
+  }>;
+};
+
+function buildProgramChangeSnapshot(input: {
+  duration: string;
+  price: number;
+  goalIds: number[];
+  status:
+    | typeof STATUS.DRAFT
+    | typeof STATUS.PUBLISHED
+    | typeof STATUS.ARCHIVED;
+  translations: TranslationData[];
+}): ProgramChangeSnapshot {
+  return {
+    duration: input.duration.trim(),
+    price: Number.isFinite(input.price) ? input.price : 0,
+    goalIds: [...new Set(input.goalIds)].sort((a, b) => a - b),
+    status: input.status,
+    translations: input.translations
+      .filter((t) => t.locale === 'en' || t.locale === 'my')
+      .map((t) => ({
+        locale: t.locale,
+        title: t.title.trim(),
+        tagline: t.tagline.trim(),
+        excerpt: t.excerpt.trim(),
+        about: normalizeRichTextValue(t.about),
+        features: t.features.map((s) => s.trim()).filter(Boolean),
+        ideals: t.ideals.map((s) => s.trim()).filter(Boolean),
+        expectations: t.expectations.map((s) => s.trim()).filter(Boolean),
+        structures: normalizeStructureRows(t.structures),
+      }))
+      .sort((a, b) => a.locale.localeCompare(b.locale)),
+  };
+}
 
 export default function ProgramWizard({
   mode,
@@ -310,12 +341,15 @@ export default function ProgramWizard({
   const router = useRouter();
   const queryClient = useQueryClient();
   const isEdit = mode === 'edit';
+  const formRef = React.useRef<HTMLFormElement | null>(null);
 
   const [activeLocale, setActiveLocale] = React.useState<'en' | 'my'>('en');
   const [errors, setErrors] = React.useState<FieldErrors>({});
 
   const [duration, setDuration] = React.useState(program?.duration ?? '');
-  const [price, setPrice] = React.useState(program?.price?.amount ?? 0);
+  const [price, setPrice] = React.useState(
+    getProgramPriceAmount(program?.price),
+  );
   const [goalIds, setGoalIds] = React.useState<number[]>(
     () => program?.goals?.map((g) => Number(g.id)) ?? [],
   );
@@ -324,12 +358,20 @@ export default function ProgramWizard({
     FileUploadFieldRemoteFile[]
   >(() => programThumbnailToRemoteFiles(program?.thumbnail_url));
 
-  /** Create / draft edit: save and publish to catalog when true. */
-  const [publishOnSave, setPublishOnSave] = React.useState(false);
-  /** Published / hidden edit: when false, program is hidden from catalog. */
-  const [catalogVisible, setCatalogVisible] = React.useState(
-    () => program?.status !== STATUS.HIDDEN,
-  );
+  const [status, setStatus] = React.useState<
+    typeof STATUS.DRAFT | typeof STATUS.PUBLISHED | typeof STATUS.ARCHIVED
+  >(() => {
+    if (
+      program?.status === STATUS.PUBLISHED ||
+      program?.status === STATUS.ARCHIVED ||
+      program?.status === STATUS.HIDDEN
+    ) {
+      return program.status === STATUS.HIDDEN
+        ? STATUS.ARCHIVED
+        : program.status;
+    }
+    return STATUS.DRAFT;
+  });
 
   const [translations, setTranslations] = React.useState<TranslationData[]>(
     () =>
@@ -355,6 +397,50 @@ export default function ProgramWizard({
       }),
   );
 
+  const initialChangeSnapshot = React.useMemo<ProgramChangeSnapshot>(() => {
+    if (!isEdit || !program) {
+      return buildProgramChangeSnapshot({
+        duration: '',
+        price: 0,
+        goalIds: [],
+        status: STATUS.DRAFT,
+        translations: [emptyTranslation('en'), emptyTranslation('my')],
+      });
+    }
+
+    return buildProgramChangeSnapshot({
+      duration: program.duration ?? '',
+      price: getProgramPriceAmount(program.price),
+      goalIds: program.goals?.map((g) => Number(g.id)) ?? [],
+      status:
+        program.status === STATUS.HIDDEN
+          ? STATUS.ARCHIVED
+          : program.status === STATUS.PUBLISHED
+            ? STATUS.PUBLISHED
+            : program.status === STATUS.ARCHIVED
+              ? STATUS.ARCHIVED
+              : STATUS.DRAFT,
+      translations: LANGUAGES.map((lang) => {
+        const src = lang.code === 'en' ? enTranslation : myTranslation;
+        if (!src) return emptyTranslation(lang.code);
+        return {
+          locale: lang.code,
+          title: src.title ?? '',
+          tagline: src.tagline ?? '',
+          excerpt: src.excerpt ?? '',
+          about: src.about ?? '',
+          features: src.features ?? [],
+          ideals: src.ideals ?? [],
+          expectations: src.expectations ?? [],
+          structures:
+            src.structures?.length > 0
+              ? src.structures.map((s) => ({ ...s }))
+              : [],
+        };
+      }),
+    });
+  }, [isEdit, program, enTranslation, myTranslation]);
+
   const { data: goalsData } = useQuery({
     queryKey: ['lookup', LOOKUP_ENDPOINTS.GOALS],
     queryFn: async () => {
@@ -377,8 +463,14 @@ export default function ProgramWizard({
     field: keyof Omit<TranslationData, 'locale'>,
     value: TranslationData[typeof field],
   ) => {
+    const normalizedValue =
+      field === 'about' && typeof value === 'string'
+        ? normalizeRichTextValue(value)
+        : value;
     setTranslations((prev) =>
-      prev.map((t) => (t.locale === locale ? { ...t, [field]: value } : t)),
+      prev.map((t) =>
+        t.locale === locale ? { ...t, [field]: normalizedValue } : t,
+      ),
     );
     const key = `translations.${locale}.${field}`;
     setErrors((prev) => {
@@ -397,14 +489,31 @@ export default function ProgramWizard({
   const hasLocaleFieldErrors = (locale: string) =>
     Object.keys(errors).some((k) => k.startsWith(`translations.${locale}.`));
 
-  const showCatalogVisibilitySwitch =
-    isEdit &&
-    (program?.status === STATUS.PUBLISHED || program?.status === STATUS.HIDDEN);
+  const scrollToFirstInvalidField = React.useCallback(() => {
+    const formEl = formRef.current;
+    if (!formEl) return;
 
-  const showPublishOnSaveSwitch =
-    !isEdit ||
-    program?.status === STATUS.DRAFT ||
-    program?.status === STATUS.ARCHIVED;
+    requestAnimationFrame(() => {
+      const invalidEl = formEl.querySelector<HTMLElement>(
+        '[aria-invalid="true"]',
+      );
+
+      if (invalidEl) {
+        invalidEl.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest',
+        });
+        if (typeof invalidEl.focus === 'function') {
+          invalidEl.focus({ preventScroll: true });
+        }
+        return;
+      }
+
+      // Fallback to form top when no invalid control exposes aria-invalid.
+      formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, []);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -418,20 +527,17 @@ export default function ProgramWizard({
         }
       }
       if (goalIds.length === 0) {
-        errs.goal_ids = 'Select at least one goal.';
+        errs.goal_ids = 'The goals field is required.';
       }
       if (!thumbnailFile && existingThumbnail.length === 0) {
-        errs.thumbnail = 'Thumbnail is required.';
+        errs.thumbnail = 'The thumbnail field is required.';
       }
 
       const en = translations.find((t) => t.locale === 'en')!;
       mergeTranslationValidationErrors(errs, en, 'translations.en');
 
       const myT = translations.find((t) => t.locale === 'my')!;
-      const includesMy = isMyTranslationStarted(myT);
-      if (includesMy) {
-        mergeTranslationValidationErrors(errs, myT, 'translations.my');
-      }
+      mergeTranslationValidationErrors(errs, myT, 'translations.my');
 
       if (Object.keys(errs).length > 0) {
         setErrors(errs);
@@ -442,17 +548,18 @@ export default function ProgramWizard({
         ) {
           setActiveLocale('my');
         }
+        scrollToFirstInvalidField();
         throw new Error('Fix the highlighted fields and try again.');
       }
 
       const translationPayload = translations
-        .filter((t) => t.locale === 'en' || (t.locale === 'my' && includesMy))
+        .filter((t) => t.locale === 'en' || t.locale === 'my')
         .map((t) => ({
           locale: t.locale,
           title: t.title.trim(),
           tagline: t.tagline.trim(),
           excerpt: t.excerpt.trim(),
-          about: t.about.trim(),
+          about: normalizeRichTextValue(t.about),
           features: t.features.map((s) => s.trim()).filter(Boolean),
           ideals: t.ideals.map((s) => s.trim()).filter(Boolean),
           expectations: t.expectations.map((s) => s.trim()).filter(Boolean),
@@ -469,12 +576,7 @@ export default function ProgramWizard({
         price,
         goal_ids: goalIds,
         translations: translationPayload,
-        status: resolveSaveStatus(
-          isEdit,
-          program,
-          publishOnSave,
-          catalogVisible,
-        ),
+        status: status === STATUS.ARCHIVED ? STATUS.HIDDEN : status,
       };
 
       const saveRes = await saveProgram(saveBody, thumbnailFile);
@@ -495,6 +597,7 @@ export default function ProgramWizard({
           ) {
             setActiveLocale('my');
           }
+          scrollToFirstInvalidField();
           throw new ServerFieldValidationError();
         }
         throw new Error(saveRes.message ?? 'Failed to save program.');
@@ -512,7 +615,11 @@ export default function ProgramWizard({
       queryClient.invalidateQueries({
         queryKey: [ENDPOINTS.ADMIN.MODULES.PROGRAMS.DETAIL(String(programId))],
       });
-      toast.success(isEdit ? 'Program saved.' : 'Program created.');
+      toast.success(
+        isEdit
+          ? 'The program has been updated successfully.'
+          : 'The program has been created successfully.',
+      );
       router.push(ROUTES.ADMIN.MODULES.PROGRAMS.LIST);
     },
     onError: (error: Error) => {
@@ -523,67 +630,294 @@ export default function ProgramWizard({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isEdit) {
+      const currentSnapshot = buildProgramChangeSnapshot({
+        duration,
+        price,
+        goalIds,
+        status,
+        translations,
+      });
+      const changedValues =
+        JSON.stringify(currentSnapshot) !==
+        JSON.stringify(initialChangeSnapshot);
+      const thumbnailChanged = thumbnailFile !== null;
+
+      if (!changedValues && !thumbnailChanged) {
+        toast.info('There are no changes to save.');
+        return;
+      }
+    }
     mutation.mutate();
   };
 
+  const isArchived = status === STATUS.ARCHIVED;
+  const isPublished = status === STATUS.PUBLISHED;
+
   return (
-    <div className='space-y-6'>
-      <form onSubmit={handleSubmit} className='space-y-6' noValidate>
-        <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5'>
-          <div className='flex flex-wrap items-start justify-between gap-4'>
-            <div className='min-w-0 space-y-1'>
-              <h3 className='text-foreground text-sm font-semibold'>
-                Catalog &amp; pricing
+    <form ref={formRef} onSubmit={handleSubmit} noValidate>
+      <div className='grid min-w-0 gap-6 lg:grid-cols-3 lg:items-start'>
+        <section className='border-border min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:col-span-2'>
+          <div className='space-y-6'>
+            <div>
+              <h3 className='text-foreground/90 text-sm font-semibold'>
+                Program Content
               </h3>
-              <p className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
-                Thumbnail, goals, duration, and pricing apply across every
-                language version of this program.
+              <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
+                Complete localized content so title, highlights, and structure
+                are clear and consistent for each language.
               </p>
             </div>
-            <Button
-              variant='outline'
-              asChild
-              className='bg-background hover:bg-muted h-10 w-full gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold sm:w-auto'
-            >
-              <Link href={ROUTES.ADMIN.MODULES.PROGRAMS.LIST}>
-                <ArrowLeftIcon className='size-3.5' />
-                Back to programs
-              </Link>
-            </Button>
-          </div>
-          <div className='mt-5 space-y-4'>
-            <FileUploadField
-              label='Thumbnail'
-              required
-              accept='image/*'
-              maxFileSize={5 * 1024 * 1024}
-              existingFiles={existingThumbnail}
-              onExistingFilesChange={(files) => {
-                setExistingThumbnail(files);
-                if (files.length === 0) setThumbnailFile(null);
-                setErrors((prev) => {
-                  const n = { ...prev };
-                  delete n.thumbnail;
-                  return n;
-                });
-              }}
-              onFilesChange={(files) => {
-                setThumbnailFile(files[0] ?? null);
-                setErrors((prev) => {
-                  const n = { ...prev };
-                  delete n.thumbnail;
-                  return n;
-                });
-              }}
-              emptyHint='Click or drag image here (max 5 MB)'
-              error={errors.thumbnail}
-            />
 
-            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+            <div className='mt-5'>
+              <Tabs
+                value={activeLocale}
+                onValueChange={(v) => setActiveLocale(v as 'en' | 'my')}
+              >
+                <TabsList
+                  variant='line'
+                  className='bg-muted! border-border mb-4 w-full border'
+                >
+                  <TabsTrigger
+                    value='en'
+                    className='relative flex-1 cursor-pointer gap-1.5 text-[13px] font-semibold'
+                  >
+                    English
+                    {hasLocaleFieldErrors('en') ? (
+                      <span
+                        className='bg-destructive size-1.5 shrink-0 rounded-full'
+                        aria-hidden
+                      />
+                    ) : null}
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value='my'
+                    className='relative flex-1 cursor-pointer gap-1.5 text-[13px] font-semibold'
+                  >
+                    Myanmar
+                    {hasLocaleFieldErrors('my') ? (
+                      <span
+                        className='bg-destructive size-1.5 shrink-0 rounded-full'
+                        aria-hidden
+                      />
+                    ) : null}
+                  </TabsTrigger>
+                </TabsList>
+
+                {LANGUAGES.map((lang) => {
+                  const t = translations.find((tr) => tr.locale === lang.code)!;
+                  return (
+                    <TabsContent
+                      key={lang.code}
+                      value={lang.code}
+                      className='space-y-4'
+                    >
+                      <TextField
+                        label='Title'
+                        required
+                        placeholder={
+                          lang.code === 'en'
+                            ? 'Enter program title (e.g. Weight Loss & Wellness)'
+                            : 'ပရိုဂရမ် ခေါင်းစဉ်ကို ထည့်ပါ (ဥပမာ ကိုယ်အလေးချိန် လျှော့ချခြင်းနှင့် ကျန်းမာခြင်း)'
+                        }
+                        value={t.title}
+                        onChange={(e) =>
+                          updateTranslation(lang.code, 'title', e.target.value)
+                        }
+                        error={getTranslationError(lang.code, 'title')}
+                      />
+                      <TextField
+                        label='Tagline'
+                        required
+                        placeholder={
+                          lang.code === 'en'
+                            ? 'Enter program tagline (e.g. Transform Your Life)'
+                            : 'ပရိုဂရမ် tagline ကိုထည့်ပါ (ဥပမာ၊ သင့်ဘဝကို ပြောင်းလဲပါ)'
+                        }
+                        value={t.tagline}
+                        onChange={(e) =>
+                          updateTranslation(
+                            lang.code,
+                            'tagline',
+                            e.target.value,
+                          )
+                        }
+                        error={getTranslationError(lang.code, 'tagline')}
+                      />
+                      <TextAreaField
+                        label='Excerpt'
+                        required
+                        placeholder={
+                          lang.code === 'en'
+                            ? 'Enter a short summary for this program'
+                            : 'ဤပရိုဂရမ်အတွက် အတိုချုံးကို ထည့်ပါ'
+                        }
+                        rows={4}
+                        value={t.excerpt}
+                        onChange={(e) =>
+                          updateTranslation(
+                            lang.code,
+                            'excerpt',
+                            e.target.value,
+                          )
+                        }
+                        error={getTranslationError(lang.code, 'excerpt')}
+                      />
+                      <RichTextField
+                        label='About'
+                        required
+                        placeholder={
+                          lang.code === 'en'
+                            ? 'Enter a detailed description for this program'
+                            : 'ဤပရိုဂရမ်အတွက် အကြောင်းအရာအပြည့်အစုံကို ထည့်သွင်းပါ'
+                        }
+                        value={t.about}
+                        onChange={(val) =>
+                          updateTranslation(lang.code, 'about', val)
+                        }
+                        error={getTranslationError(lang.code, 'about')}
+                      />
+
+                      <div className='border-border space-y-4 border-t pt-6'>
+                        <div>
+                          <h3 className='text-foreground/90 text-sm font-semibold'>
+                            Lists and Program Structure
+                          </h3>
+                          <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
+                            Define feature lists, ideal audience, expectations,
+                            and the multi-phase structure for this program.
+                          </p>
+                        </div>
+                        <StringListField
+                          label='Key Features'
+                          description='List the core features and benefits participants will receive from this program.'
+                          value={t.features}
+                          placeholder={
+                            lang.code === 'en'
+                              ? 'Enter a key feature for this program'
+                              : 'ပရိုဂရမ်အတွက် သော့ချက်အင်္ဂါရပ်ကို ထည့်သွင်းပါ'
+                          }
+                          onChange={(val) =>
+                            updateTranslation(lang.code, 'features', val)
+                          }
+                          error={getTranslationError(lang.code, 'features')}
+                        />
+                        <StringListField
+                          label='Ideal Participants'
+                          description='Specify the target audience who would benefit the most from this program.'
+                          value={t.ideals}
+                          placeholder={
+                            lang.code === 'en'
+                              ? 'Enter an ideal audience for this program'
+                              : 'ဤပရိုဂရမ်အတွက် သင့်လျော်သောပါဝင်သူများကို ထည့်သွင်းပါ'
+                          }
+                          onChange={(val) =>
+                            updateTranslation(lang.code, 'ideals', val)
+                          }
+                          error={getTranslationError(lang.code, 'ideals')}
+                        />
+                        <StringListField
+                          label='Participant Expectations'
+                          description='Outline what participants should anticipate from this program, including commitments, deliverables, and overall experience.'
+                          value={t.expectations}
+                          onChange={(val) =>
+                            updateTranslation(lang.code, 'expectations', val)
+                          }
+                          error={getTranslationError(lang.code, 'expectations')}
+                        />
+                        <StructureRepeaterField
+                          label='Program Structure'
+                          description='Define each program phase. For each phase, specify a period label, a title, and a descriptive summary to clearly outline the participant journey.'
+                          value={t.structures}
+                          locale={lang.code}
+                          onChange={(val) =>
+                            updateTranslation(lang.code, 'structures', val)
+                          }
+                          error={getTranslationError(lang.code, 'structures')}
+                        />
+                      </div>
+                    </TabsContent>
+                  );
+                })}
+              </Tabs>
+            </div>
+
+            <div className='border-border flex flex-nowrap items-center justify-end gap-2 border-t pt-5'>
+              <Button
+                type='button'
+                variant='outline'
+                disabled={mutation.isPending}
+                className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+                onClick={() => router.push(ROUTES.ADMIN.MODULES.PROGRAMS.LIST)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type='submit'
+                disabled={mutation.isPending}
+                className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
+              >
+                {isEdit ? (
+                  <SaveIcon className='size-3.5' />
+                ) : (
+                  <HeartHandshakeIcon className='size-3.5' />
+                )}
+                {mutation.isPending
+                  ? 'Saving…'
+                  : isEdit
+                    ? 'Save Changes'
+                    : 'Create Care Program'}
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        <section className='border-border min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:col-span-1'>
+          <div className='space-y-5'>
+            <div>
+              <h3 className='text-foreground/90 text-sm font-semibold'>
+                Program Settings
+              </h3>
+              <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
+                Configure thumbnail, goals, duration, price, and status before
+                saving this program.
+              </p>
+            </div>
+
+            <div className='border-border space-y-2 border-t pt-4'>
+              <FileUploadField
+                label='Thumbnail'
+                required
+                accept='.jpg,.jpeg,.png'
+                maxFileSize={5 * 1024 * 1024}
+                existingFiles={existingThumbnail}
+                onExistingFilesChange={(files) => {
+                  setExistingThumbnail(files);
+                  if (files.length === 0) setThumbnailFile(null);
+                  setErrors((prev) => {
+                    const n = { ...prev };
+                    delete n.thumbnail;
+                    return n;
+                  });
+                }}
+                onFilesChange={(files) => {
+                  setThumbnailFile(files[0] ?? null);
+                  setErrors((prev) => {
+                    const n = { ...prev };
+                    delete n.thumbnail;
+                    return n;
+                  });
+                }}
+                emptyHint='Browse'
+                error={errors.thumbnail}
+              />
+            </div>
+
+            <div className='border-border grid grid-cols-1 gap-4 border-t pt-4 sm:grid-cols-1'>
               <TextField
                 label='Duration'
                 required
-                placeholder='e.g. 8 weeks'
+                placeholder='Enter program duration (e.g. 8 weeks)'
                 value={duration}
                 onChange={(e) => {
                   setDuration(e.target.value);
@@ -616,322 +950,108 @@ export default function ProgramWizard({
               />
             </div>
 
-            <ComboboxField
-              label='Goals'
-              required
-              multiple
-              placeholder='Select goals…'
-              searchPlaceholder='Search goals…'
-              emptyMessage='No goals found.'
-              options={goalOptions}
-              value={goalIds.map((id) => String(id))}
-              onChange={(vals) => {
-                setGoalIds((vals ?? []).map((v) => Number(v)));
-                setErrors((prev) => {
-                  const n = { ...prev };
-                  delete n.goal_ids;
-                  return n;
-                });
-              }}
-              error={errors.goal_ids}
-            />
-          </div>
-        </section>
-
-        <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5'>
-          <h3 className='text-foreground text-sm font-semibold'>Visibility</h3>
-          <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
-            {showCatalogVisibilitySwitch
-              ? 'Published programs can be hidden from the catalog without deleting them.'
-              : 'Drafts stay internal until you publish. Thumbnail, goals, duration, and price are required to save.'}
-          </p>
-          {errors.status ? (
-            <p className='text-destructive mt-2 text-sm font-medium'>
-              {errors.status}
-            </p>
-          ) : null}
-          <div className='mt-5 space-y-4'>
-            {showPublishOnSaveSwitch ? (
-              <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-                <div className='min-w-0 space-y-1'>
-                  <Label
-                    htmlFor='program-publish-on-save'
-                    className='text-foreground text-sm font-semibold'
-                  >
-                    Publish to catalog
-                  </Label>
-                  <p className='text-muted-foreground text-xs leading-relaxed font-medium'>
-                    When on, the program is published after save (if validation
-                    passes). When off, it remains a draft.
-                  </p>
-                </div>
-                <Switch
-                  id='program-publish-on-save'
-                  className='shrink-0'
-                  checked={publishOnSave}
-                  onCheckedChange={(v) => {
-                    setPublishOnSave(v);
-                    setErrors((prev) => {
-                      if (!('status' in prev)) return prev;
-                      const n = { ...prev };
-                      delete n.status;
-                      return n;
-                    });
-                  }}
-                />
-              </div>
-            ) : null}
-
-            {showCatalogVisibilitySwitch ? (
-              <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-                <div className='min-w-0 space-y-1'>
-                  <Label
-                    htmlFor='program-catalog-visible'
-                    className='text-foreground text-sm font-semibold'
-                  >
-                    Visible in catalog
-                  </Label>
-                  <p className='text-muted-foreground text-xs leading-relaxed font-medium'>
-                    Turn off to hide this program from public listings while
-                    keeping data for reactivation.
-                  </p>
-                </div>
-                <Switch
-                  id='program-catalog-visible'
-                  className='shrink-0'
-                  checked={catalogVisible}
-                  onCheckedChange={(v) => {
-                    setCatalogVisible(v);
-                    setErrors((prev) => {
-                      if (!('status' in prev)) return prev;
-                      const n = { ...prev };
-                      delete n.status;
-                      return n;
-                    });
-                  }}
-                />
-              </div>
-            ) : null}
-          </div>
-        </section>
-
-        <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5'>
-          <div className='space-y-6'>
-            <div>
-              <h3 className='text-foreground text-sm font-semibold'>Content</h3>
-              <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
-                Titles, lists, and structure blocks are translated per language.
-              </p>
-
-              <div className='mt-5'>
-                <Tabs
-                  value={activeLocale}
-                  onValueChange={(v) => setActiveLocale(v as 'en' | 'my')}
-                >
-                  <TabsList
-                    variant='line'
-                    className='bg-muted! border-border mb-4 w-full border'
-                  >
-                    <TabsTrigger
-                      value='en'
-                      className='relative flex-1 cursor-pointer gap-1.5 text-[13px] font-semibold'
-                    >
-                      English
-                      {hasLocaleFieldErrors('en') ? (
-                        <span
-                          className='bg-destructive size-1.5 shrink-0 rounded-full'
-                          aria-hidden
-                        />
-                      ) : null}
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value='my'
-                      className='relative flex-1 cursor-pointer gap-1.5 text-[13px] font-semibold'
-                    >
-                      Myanmar
-                      {hasLocaleFieldErrors('my') ? (
-                        <span
-                          className='bg-destructive size-1.5 shrink-0 rounded-full'
-                          aria-hidden
-                        />
-                      ) : null}
-                    </TabsTrigger>
-                  </TabsList>
-
-                  {LANGUAGES.map((lang) => {
-                    const t = translations.find(
-                      (tr) => tr.locale === lang.code,
-                    )!;
-                    return (
-                      <TabsContent
-                        key={lang.code}
-                        value={lang.code}
-                        className='space-y-4'
-                      >
-                        {lang.code === 'my' && !isMyTranslationStarted(t) ? (
-                          <div className='flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-400'>
-                            <AlertTriangleIcon className='mt-0.5 size-3.5 shrink-0' />
-                            <span>
-                              Myanmar is optional until you start filling
-                              it—then all fields and lists must be complete.
-                            </span>
-                          </div>
-                        ) : null}
-
-                        <TextField
-                          label='Title'
-                          required={lang.code === 'en'}
-                          placeholder={
-                            lang.code === 'en'
-                              ? 'e.g. Weight Loss & Wellness'
-                              : 'ခေါင်းစဉ်…'
-                          }
-                          value={t.title}
-                          onChange={(e) =>
-                            updateTranslation(
-                              lang.code,
-                              'title',
-                              e.target.value,
-                            )
-                          }
-                          error={getTranslationError(lang.code, 'title')}
-                        />
-                        <TextField
-                          label='Tagline'
-                          required={lang.code === 'en'}
-                          placeholder='Short phrase for cards'
-                          value={t.tagline}
-                          onChange={(e) =>
-                            updateTranslation(
-                              lang.code,
-                              'tagline',
-                              e.target.value,
-                            )
-                          }
-                          error={getTranslationError(lang.code, 'tagline')}
-                        />
-                        <TextAreaField
-                          label='Excerpt'
-                          required={lang.code === 'en'}
-                          placeholder='Summary for listings'
-                          rows={4}
-                          value={t.excerpt}
-                          onChange={(e) =>
-                            updateTranslation(
-                              lang.code,
-                              'excerpt',
-                              e.target.value,
-                            )
-                          }
-                          error={getTranslationError(lang.code, 'excerpt')}
-                        />
-                        <RichTextField
-                          label='About'
-                          required={lang.code === 'en'}
-                          value={t.about}
-                          onChange={(val) =>
-                            updateTranslation(lang.code, 'about', val)
-                          }
-                          error={getTranslationError(lang.code, 'about')}
-                        />
-
-                        <div className='border-border space-y-4 border-t pt-6'>
-                          <div>
-                            <p className='text-foreground text-sm font-semibold'>
-                              Lists &amp; program structure
-                            </p>
-                            <p className='text-muted-foreground mt-1 text-xs leading-relaxed font-medium'>
-                              {lang.code === 'en'
-                                ? 'Bullet lists and phased structure for this language.'
-                                : 'ဤဘာသာစကားအတွက် စာရင်းများနှင့် အဆင့်ဆင့် ဖွဲ့စည်းပုံ။'}
-                            </p>
-                          </div>
-                          <div className='grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start'>
-                            <StringListField
-                              label='Features'
-                              description={
-                                lang.code === 'en'
-                                  ? 'What this program offers.'
-                                  : 'ဤပရိုဂရမ်က ပေးသမျှ။'
-                              }
-                              value={t.features}
-                              onChange={(val) =>
-                                updateTranslation(lang.code, 'features', val)
-                              }
-                              error={getTranslationError(lang.code, 'features')}
-                            />
-                            <StringListField
-                              label='Ideals'
-                              description={
-                                lang.code === 'en'
-                                  ? 'Who this program is ideal for.'
-                                  : 'ဤပရိုဂရမ်သည် ဘယ်သူ့အတွက် သင့်တော်သည်။'
-                              }
-                              value={t.ideals}
-                              onChange={(val) =>
-                                updateTranslation(lang.code, 'ideals', val)
-                              }
-                              error={getTranslationError(lang.code, 'ideals')}
-                            />
-                          </div>
-                          <StringListField
-                            label='Expectations'
-                            description={
-                              lang.code === 'en'
-                                ? 'What clients can expect.'
-                                : 'ဖောက်သည်များ မျှော်လင့်နိုင်သည်များ။'
-                            }
-                            value={t.expectations}
-                            onChange={(val) =>
-                              updateTranslation(lang.code, 'expectations', val)
-                            }
-                            error={getTranslationError(
-                              lang.code,
-                              'expectations',
-                            )}
-                          />
-                          <StructureRepeaterField
-                            label='Program structure'
-                            description={
-                              lang.code === 'en'
-                                ? 'Each block is a phase: period label, title, and description.'
-                                : 'အဆင့်တစ်ခုစီ — ကာလ၊ ခေါင်းစဉ်၊ ဖော်ပြချက်။'
-                            }
-                            value={t.structures}
-                            onChange={(val) =>
-                              updateTranslation(lang.code, 'structures', val)
-                            }
-                            error={getTranslationError(lang.code, 'structures')}
-                          />
-                        </div>
-                      </TabsContent>
-                    );
-                  })}
-                </Tabs>
-              </div>
+            <div className='border-border border-t pt-4'>
+              <ComboboxField
+                label='Related Goals'
+                required
+                multiple
+                placeholder='Please select related goals'
+                searchPlaceholder='Search related goals…'
+                emptyMessage='No goals found.'
+                options={goalOptions}
+                value={goalIds.map((id) => String(id))}
+                onChange={(vals) => {
+                  setGoalIds((vals ?? []).map((v) => Number(v)));
+                  setErrors((prev) => {
+                    const n = { ...prev };
+                    delete n.goal_ids;
+                    return n;
+                  });
+                }}
+                error={errors.goal_ids}
+              />
             </div>
 
-            <div className='border-border flex flex-nowrap items-center justify-end gap-2 border-t pt-6'>
-              <Button
-                type='button'
-                variant='outline'
-                disabled={mutation.isPending}
-                className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
-                onClick={() => router.push(ROUTES.ADMIN.MODULES.PROGRAMS.LIST)}
-              >
-                Cancel
-              </Button>
-              <Button
-                type='submit'
-                disabled={mutation.isPending}
-                className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-              >
-                {mutation.isPending ? 'Saving…' : 'Save program'}
-              </Button>
+            <div className='border-border border-t pt-4'>
+              <div className='bg-muted/30 border-border space-y-1 rounded-md border p-3.5'>
+                <div className='flex items-center justify-between gap-3'>
+                  <Label
+                    htmlFor='program-published'
+                    className='text-foreground text-[13px] font-semibold'
+                  >
+                    Publication Status
+                  </Label>
+                  {isEdit ? (
+                    <span className='text-muted-foreground text-[10px] font-bold uppercase'>
+                      {isArchived
+                        ? 'Archived'
+                        : isPublished
+                          ? 'Published'
+                          : 'Draft'}
+                    </span>
+                  ) : (
+                    <Switch
+                      id='program-published'
+                      className='h-5 w-9 shrink-0 **:data-[slot=switch-thumb]:size-4 **:data-[slot=switch-thumb]:data-[state=checked]:translate-x-4'
+                      checked={isPublished}
+                      onCheckedChange={(checked) => {
+                        setStatus(checked ? STATUS.PUBLISHED : STATUS.DRAFT);
+                        setErrors((prev) => {
+                          const n = { ...prev };
+                          delete n.status;
+                          return n;
+                        });
+                      }}
+                    />
+                  )}
+                </div>
+                <p className='text-muted-foreground text-[12px] leading-relaxed font-medium'>
+                  {isPublished
+                    ? 'This program is published and visible in catalog listings.'
+                    : isArchived
+                      ? 'This program is archived and no longer visible in catalog listings.'
+                      : 'This program is in draft status and not visible in catalog listings.'}
+                </p>
+                {isEdit ? (
+                  <div className='pt-1'>
+                    <Button
+                      type='button'
+                      variant='outline'
+                      disabled={mutation.isPending}
+                      className='text-foreground bg-background hover:bg-muted h-9 shrink-0 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+                      onClick={() => {
+                        setStatus(
+                          isArchived
+                            ? STATUS.PUBLISHED
+                            : isPublished
+                              ? STATUS.ARCHIVED
+                              : STATUS.PUBLISHED,
+                        );
+                        setErrors((prev) => {
+                          const n = { ...prev };
+                          delete n.status;
+                          return n;
+                        });
+                      }}
+                    >
+                      {isArchived
+                        ? 'Move to Published'
+                        : isPublished
+                          ? 'Move to Archived'
+                          : 'Move to Published'}
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
+              {errors.status ? (
+                <p className='text-destructive mt-2 text-xs font-medium'>
+                  {errors.status}
+                </p>
+              ) : null}
             </div>
           </div>
         </section>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 }

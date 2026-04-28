@@ -14,6 +14,10 @@ export type NutritionCategory = {
     id: number;
     name: string;
   }[];
+  actions: {
+    deletable: boolean;
+    delete_block_reason?: string | null;
+  };
   created_at: string;
   updated_at: string;
 };

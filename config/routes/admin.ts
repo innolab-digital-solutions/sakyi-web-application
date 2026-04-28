@@ -92,6 +92,25 @@ export const ADMIN_ROUTES = {
       LIST: `${BASE}/client-profiles`,
       DETAIL: (id: string) => `${BASE}/client-profiles/${id}`,
     },
+    CARE_PLANS: {
+      LIST: `${BASE}/care-plans`,
+      CREATE: `${BASE}/care-plans/create`,
+      WORKSPACE: (id: string) => `${BASE}/care-plans/${id}/workspace`,
+      REPORT: (id: string) => `${BASE}/care-plans/${id}/report`,
+      DETAIL: (id: string) => `${BASE}/care-plans/${id}`,
+    },
+    CARE_PLAN_LOGS: {
+      LIST: `${BASE}/care-plan-logs`,
+      DETAIL: (id: string) => `${BASE}/care-plan-logs/${id}`,
+    },
+    OPERATIONAL_LOGS: {
+      LIST: `${BASE}/operational-logs`,
+      /** Care-plan report workspace (query: `operational_log_id`, `report_run_id`, or period). */
+      WORKSPACE: (id: string) => `${BASE}/operational-logs/${id}/workspace`,
+    },
+    PERIOD_REPORTS: {
+      LIST: `${BASE}/period-reports`,
+    },
     USERS: {
       LIST: `${BASE}/users`,
       CREATE: `${BASE}/users/create`,

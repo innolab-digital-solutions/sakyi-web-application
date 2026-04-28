@@ -26,19 +26,25 @@ export const ProgramTranslationSchema = z.object({
   locale: z.enum(['en', 'my']),
   title: z
     .string()
-    .min(1, 'Title is required.')
-    .max(255, 'Title must be at most 255 characters.'),
+    .min(1, 'The title field is required.')
+    .max(255, 'The title field must not be greater than 255 characters.'),
   tagline: z
     .string()
-    .max(500, 'Tagline must be at most 500 characters.')
+    .max(500, 'The tagline field must not be greater than 500 characters.')
     .nullish(),
   excerpt: z
     .string()
-    .max(20_000, 'Excerpt must be at most 20,000 characters.')
+    .max(
+      20_000,
+      'The excerpt field must not be greater than 20,000 characters.',
+    )
     .nullish(),
   about: z
     .string()
-    .max(200_000, 'About must be at most 200,000 characters.')
+    .max(
+      200_000,
+      'The about field must not be greater than 200,000 characters.',
+    )
     .nullish(),
   features: z.array(z.string()).default([]),
   ideals: z.array(z.string()).default([]),
@@ -56,8 +62,8 @@ export type ProgramTranslationInput = z.infer<typeof ProgramTranslationSchema>;
 export const ProgramBodySchema = z.object({
   slug: z
     .string()
-    .min(1, 'Slug is required.')
-    .max(255, 'Slug must be at most 255 characters.')
+    .min(1, 'The slug field is required.')
+    .max(255, 'The slug field must not be greater than 255 characters.')
     .regex(
       /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
       'Slug must use lowercase letters, numbers, and single hyphens between segments.',
@@ -69,7 +75,7 @@ export const ProgramBodySchema = z.object({
   status: programStatusSchema,
   translations: z
     .array(ProgramTranslationSchema)
-    .min(1, 'At least one translation (English) is required.'),
+    .min(1, 'The translations field is required.'),
 });
 
 export type ProgramBodyInput = z.infer<typeof ProgramBodySchema>;

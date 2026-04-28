@@ -10,7 +10,7 @@ import { ROUTES } from '@/config/routes';
 export const metadata: Metadata = {
   title: 'Enrollment request | SaKyi Admin',
   description:
-    'Review a single enrollment request: applicant, requested program, handler, status, and linked intake.',
+    'Review one enrollment request with applicant details, requested program, handling status, and linked intake context to decide the right next action.',
 };
 
 type EnrollmentRequestDetailPageProps = {
@@ -31,7 +31,7 @@ export default async function EnrollmentRequestDetailPage({
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Enrollment request'
-        description='Full context for this submission: who applied, which program they want, how the case was handled, and any linked intake assessment.'
+        description='See full context for this request, including applicant, requested program, case handling history, and any linked intake assessment for follow-up.'
         actions={
           <Button
             asChild

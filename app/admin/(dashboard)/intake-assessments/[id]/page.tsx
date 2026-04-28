@@ -36,8 +36,8 @@ export async function generateMetadata({
       ? 'Intake Interview Session'
       : 'Intake Assessment Overview',
     description: isInterview
-      ? 'Conduct and record the intake interview, ensuring all client information is accurately captured and responses are validated throughout the process.'
-      : 'Access a comprehensive overview of this intake assessment, including client details, interview responses, processing status, and next recommended actions.',
+      ? 'Run and record the intake interview step by step, capturing accurate client responses with built-in validation to keep the assessment complete and reliable.'
+      : 'Review this intake assessment in full, including client details, interview responses, processing status, and recommended next actions for follow-up.',
   };
 }
 
@@ -66,8 +66,8 @@ export default async function IntakeAssessmentDetailPage({
         }
         description={
           isInterview
-            ? 'Conduct and record the intake interview, ensuring all client information is accurately captured and responses are validated throughout the process.'
-            : 'Access a comprehensive overview of this intake assessment, including client details, interview responses, processing status, and next recommended actions.'
+            ? 'Run and record the intake interview step by step, capturing accurate client responses with built-in validation to keep the assessment complete and reliable.'
+            : 'Review this intake assessment in full, including client details, interview responses, processing status, and recommended next actions for follow-up.'
         }
         actions={
           <Button

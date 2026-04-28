@@ -1,6 +1,6 @@
 'use client';
 
-import { Ban, CircleQuestionMark } from 'lucide-react';
+import { AlertTriangleIcon, Ban } from 'lucide-react';
 
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import {
@@ -42,7 +42,7 @@ export default function EnrollmentCancelConfirmation({
         <AlertDialogHeader className='border-border border-b p-6'>
           <div className='flex items-start gap-3'>
             <div className='border-destructive/25 bg-destructive/10 text-destructive mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-md border'>
-              <CircleQuestionMark className='size-5' aria-hidden />
+              <AlertTriangleIcon className='size-5' aria-hidden />
             </div>
             <div className='space-y-1.5'>
               <AlertDialogTitle className='text-foreground/90 text-sm font-bold capitalize'>
@@ -72,6 +72,11 @@ export default function EnrollmentCancelConfirmation({
             placeholder='Please provide a reason for cancellation'
             className='text-[13px]!'
           />
+          <div className='flex items-center justify-end'>
+            <p className='text-muted-foreground text-[11px] font-medium'>
+              {cancellationNote.length}/2000
+            </p>
+          </div>
         </div>
 
         <AlertDialogFooter className='bg-muted/30 border-border gap-2 border-t p-4 sm:justify-end'>

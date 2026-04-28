@@ -31,6 +31,12 @@ export interface AdminEnrollment {
   cancelled_at: string | null;
   cancellation_note: string | null;
   notes: string | null;
+  current_active_plan?: {
+    id: number;
+    code: string;
+    starts_on: string | null;
+    ends_on: string | null;
+  } | null;
   client?: {
     id: number;
     client_code: string | null;

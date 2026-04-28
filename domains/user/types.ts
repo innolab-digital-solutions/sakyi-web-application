@@ -1,11 +1,6 @@
 import type { ApiResponse } from '@/types/api';
 
-export type Status = 'pending' | 'active' | 'suspended' | 'archived';
-
-export type UserRole = {
-  id: number;
-  name: string;
-};
+export type Status = 'pending' | 'active';
 
 export type User = {
   id: number;
@@ -13,7 +8,16 @@ export type User = {
   name: string;
   email: string;
   status: Status;
-  role: UserRole | null;
+  picture_url: string;
+  role: 'Admin' | 'Client' | 'Prospect';
+  sign_in_options: {
+    email_password: 'set' | 'not_set';
+    google: 'connected' | 'not_connected';
+  };
+  actions: {
+    deletable: boolean;
+    delete_block_reason: string | null;
+  };
   last_login_at: string | null;
 };
 

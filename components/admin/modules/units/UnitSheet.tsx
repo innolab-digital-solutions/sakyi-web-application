@@ -44,22 +44,24 @@ export default function UnitSheet({ mode, unit, open, onOpenChange }: Props) {
         <SheetTrigger asChild>
           <Button
             type='button'
-            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
           >
             <PlusIcon className='size-3.5' />
-            Add Measurement
+            Add measurement
           </Button>
         </SheetTrigger>
       )}
       <SheetContent className='overflow-y-auto px-6 sm:max-w-md [&>button]:cursor-pointer'>
         <SheetHeader className='px-0'>
-          <SheetTitle className='text-foreground text-md font-bold'>
-            {isEdit ? 'Edit Measurement' : 'Add Measurement'}
-          </SheetTitle>
-          <SheetDescription className='text-muted-foreground text-sm font-medium'>
+          <SheetTitle className='text-foreground text-[15.5px] font-bold capitalize'>
             {isEdit
-              ? 'Update name, abbreviation, and type so labels stay consistent wherever this reference is used.'
-              : 'Provide a clear abbreviation and type so portions, doses, and labels stay consistent wherever this reference is used.'}
+              ? 'Edit measurement reference'
+              : 'Create measurement reference'}
+          </SheetTitle>
+          <SheetDescription className='text-muted-foreground text-[13.5px] font-medium'>
+            {isEdit
+              ? 'Update the measurement name, abbreviation, or type so quantity records stay clear and consistent across planning, operations, and reporting.'
+              : 'Add a measurement reference so staff can capture quantities with clear, consistent units across planning, operations, and reporting.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (

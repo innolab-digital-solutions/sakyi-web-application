@@ -26,12 +26,12 @@ export const unitTypeSchema = z.enum(
 export const UnitBodySchema = z.object({
   name: z
     .string()
-    .min(1, 'Name is required.')
-    .max(255, 'Name must be at most 255 characters.'),
+    .min(1, 'The name field is required.')
+    .max(255, 'The name field must not be greater than 255 characters.'),
   abbreviation: z
     .string()
-    .min(1, 'Abbreviation is required.')
-    .max(10, 'Abbreviation must be at most 10 characters.'),
+    .min(1, 'The abbreviation field is required.')
+    .max(10, 'The abbreviation field must not be greater than 10 characters.'),
   type: unitTypeSchema,
   is_active: z.boolean().default(true),
 });

@@ -3,10 +3,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   CheckCircle2Icon,
-  DumbbellIcon,
   FlameIcon,
   GaugeIcon,
-  PencilIcon,
+  SquarePenIcon,
   Trash2Icon,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
@@ -16,6 +15,7 @@ import { toast } from 'sonner';
 import TableListShell from '@/components/admin/layout/TableListShell';
 import ExerciseFilters from '@/components/admin/modules/movement-exercises/ExerciseFilters';
 import ExerciseSheet from '@/components/admin/modules/movement-exercises/ExerciseSheet';
+import MovementExerciseRemovalBlockedAlert from '@/components/admin/modules/movement-exercises/MovementExerciseRemovalBlockedAlert';
 import RemoveExerciseConfirmation from '@/components/admin/modules/movement-exercises/RemoveExerciseConfirmation';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
@@ -93,6 +93,8 @@ export default function ExerciseListTable() {
   const [deleteExercise, setDeleteExercise] = useState<MovementExercise | null>(
     null,
   );
+  const [blockedDeleteExercise, setBlockedDeleteExercise] =
+    useState<MovementExercise | null>(null);
 
   const { mutateAsync: confirmDelete, isPending: isDeleting } = useMutation({
     mutationFn: async (id: number) => {
@@ -102,7 +104,7 @@ export default function ExerciseListTable() {
       }
     },
     onSuccess: (_data, deletedId) => {
-      toast.success('The exercise was removed from the movement library.');
+      toast.success('The exercise has been removed successfully.');
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.MOVEMENT_EXERCISES.LIST],
       });
@@ -126,6 +128,14 @@ export default function ExerciseListTable() {
     } catch {
       // onError already toasts
     }
+  };
+
+  const handleDeleteClick = (exercise: MovementExercise) => {
+    if (exercise.actions.deletable) {
+      setDeleteExercise(exercise);
+      return;
+    }
+    setBlockedDeleteExercise(exercise);
   };
 
   const { rows, controls } = useTable<MovementExercise>(
@@ -156,7 +166,7 @@ export default function ExerciseListTable() {
     <>
       <TableListShell
         controls={controls}
-        searchPlaceholder='Search exercise or category'
+        searchPlaceholder='Search ...'
         filters={
           <ExerciseFilters
             difficultyFilter={difficultyParam}
@@ -203,9 +213,8 @@ export default function ExerciseListTable() {
               rows.length === 0 && (
                 <TableEmptyStateRow
                   colSpan={COLUMN_COUNT}
-                  icon={DumbbellIcon}
-                  title='No Exercises Yet'
-                  description='Exercises you add will appear here for the movement library. Use Add in the header to define movements with category, difficulty, equipment, and optional media.'
+                  title='No Exercises Found'
+                  description='No exercises found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
                 />
               )}
 
@@ -273,17 +282,18 @@ export default function ExerciseListTable() {
                     <div className='flex flex-nowrap items-center justify-start gap-2'>
                       <Button
                         type='button'
-                        className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                        variant='outline'
+                        className='text-foreground bg-background hover:bg-muted h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
                         onClick={() => setEditExercise(exercise)}
                       >
-                        <PencilIcon className='size-3.5' />
+                        <SquarePenIcon className='size-3.5' />
                         Edit
                       </Button>
                       <Button
                         type='button'
                         variant='outline'
-                        className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-10 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-                        onClick={() => setDeleteExercise(exercise)}
+                        className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                        onClick={() => handleDeleteClick(exercise)}
                       >
                         <Trash2Icon className='size-3.5' />
                         Remove
@@ -315,6 +325,14 @@ export default function ExerciseListTable() {
         exerciseName={deleteExercise?.name}
         isRemoving={isDeleting}
         onConfirm={handleDelete}
+      />
+      <MovementExerciseRemovalBlockedAlert
+        open={!!blockedDeleteExercise}
+        onOpenChange={(o) => {
+          if (!o) setBlockedDeleteExercise(null);
+        }}
+        exerciseName={blockedDeleteExercise?.name}
+        reason={blockedDeleteExercise?.actions.delete_block_reason ?? undefined}
       />
     </>
   );

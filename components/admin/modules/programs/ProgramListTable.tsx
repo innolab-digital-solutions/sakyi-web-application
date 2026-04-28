@@ -5,10 +5,9 @@ import { format, parseISO } from 'date-fns';
 import {
   ArchiveIcon,
   CheckCircle2Icon,
-  ClipboardListIcon,
   EyeOffIcon,
   FilePenLineIcon,
-  PencilIcon,
+  SquarePenIcon,
   Trash2Icon,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -21,7 +20,8 @@ import ProgramFilters, {
   type ProgramListLocale,
   type ProgramTableStatusFilter,
 } from '@/components/admin/modules/programs/ProgramFilters';
-import DeleteAlertDialog from '@/components/shared/dialogs/DeleteAlertDialog';
+import ProgramRemovalBlockedAlert from '@/components/admin/modules/programs/ProgramRemovalBlockedAlert';
+import RemoveProgramConfirmation from '@/components/admin/modules/programs/RemoveProgramConfirmation';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Button } from '@/components/ui/button';
@@ -138,19 +138,16 @@ function formatDateCell(iso: string | null | undefined): string | null {
 }
 
 function formatProgramPrice(program: Program): string {
-  const amount = program.price?.amount;
-  const currency = (program.price?.currency ?? 'USD').trim() || 'USD';
+  const amount =
+    typeof program.price === 'number' ? program.price : program.price?.amount;
+  const currency =
+    typeof program.price === 'number'
+      ? 'MMK'
+      : (program.price?.currency ?? 'MMK').trim() || 'MMK';
   if (amount == null || Number.isNaN(amount)) return '—';
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency,
-      currencyDisplay: 'narrowSymbol',
-      maximumFractionDigits: 0,
-    }).format(amount);
-  } catch {
-    return `${amount} ${currency}`;
-  }
+  return `${new Intl.NumberFormat(undefined, {
+    maximumFractionDigits: 0,
+  }).format(amount)} ${currency.toUpperCase()}`;
 }
 
 function stripHtmlToPlain(text: string): string {
@@ -198,6 +195,8 @@ function listLocaleFromParams(raw: string | undefined): ProgramListLocale {
 export default function ProgramListTable() {
   const queryClient = useQueryClient();
   const [deleteTarget, setDeleteTarget] = useState<Program | null>(null);
+  const [blockedDeleteTarget, setBlockedDeleteTarget] =
+    useState<Program | null>(null);
 
   const { mutateAsync: confirmDelete, isPending: isDeleting } = useMutation({
     mutationFn: async (id: number) => {
@@ -207,7 +206,7 @@ export default function ProgramListTable() {
       }
     },
     onSuccess: () => {
-      toast.success('Program deleted.');
+      toast.success('The program has been removed successfully.');
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.PROGRAMS.LIST],
       });
@@ -225,6 +224,14 @@ export default function ProgramListTable() {
     } catch {
       // onError already toasts; swallow so unhandled rejection is avoided
     }
+  };
+
+  const handleDeleteClick = (program: Program) => {
+    if (program.actions.deletable) {
+      setDeleteTarget(program);
+      return;
+    }
+    setBlockedDeleteTarget(program);
   };
 
   const { rows, controls } = useTable<Program>(
@@ -266,7 +273,7 @@ export default function ProgramListTable() {
     <>
       <TableListShell
         controls={controls}
-        searchPlaceholder='Search title, code, or tagline'
+        searchPlaceholder='Search ...'
         filters={
           <ProgramFilters
             status={statusFilter}
@@ -300,7 +307,7 @@ export default function ProgramListTable() {
           <TableBody>
             {showSkeleton && (
               <TableSkeletonRows
-                rowCount={3}
+                rowCount={15}
                 columnCount={COLUMN_COUNT}
                 cellWidths={[...SKELETON_WIDTHS]}
               />
@@ -323,9 +330,8 @@ export default function ProgramListTable() {
               rows.length === 0 && (
                 <TableEmptyStateRow
                   colSpan={COLUMN_COUNT}
-                  icon={ClipboardListIcon}
-                  title='No Programs Available'
-                  description='Programs you publish appear here with reference code, duration, price, dates, enrollment counts, and thumbnails. Filter by status and list language, or use Create program in the header to add a bilingual track with goals and pricing.'
+                  title='No Care Programs Found'
+                  description='No care programs found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
                 />
               )}
 
@@ -341,13 +347,13 @@ export default function ProgramListTable() {
                 const priceLabel = formatProgramPrice(program);
                 return (
                   <TableRow key={program.id}>
-                    <TableCell className='align-center min-w-45 whitespace-normal'>
+                    <TableCell className='min-w-42'>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {program.code.trim()}
                       </p>
                     </TableCell>
 
-                    <TableCell className='align-center min-w-96 whitespace-normal'>
+                    <TableCell className='min-w-72'>
                       <div className='flex items-start gap-3'>
                         <ProgramThumbnail
                           thumbnailUrl={program.thumbnail_url}
@@ -363,7 +369,7 @@ export default function ProgramListTable() {
                       </div>
                     </TableCell>
 
-                    <TableCell className='text-foreground/80 align-center whitespace-normal'>
+                    <TableCell>
                       <p
                         className='line-clamp-2 text-[13px] wrap-break-word'
                         title={getTrackLabel(program)}
@@ -371,17 +377,17 @@ export default function ProgramListTable() {
                         {getTrackLabel(program)}
                       </p>
                     </TableCell>
-                    <TableCell className='text-foreground/80 align-center tabular-nums'>
+                    <TableCell>
                       {priceLabel === '—' ? (
                         <TableCellEmpty label='Not set' />
                       ) : (
                         priceLabel
                       )}
                     </TableCell>
-                    <TableCell className='text-foreground/80 align-center tabular-nums'>
+                    <TableCell className='min-w-40'>
                       {publishedAt ?? <TableCellEmpty label='Not published' />}
                     </TableCell>
-                    <TableCell className='align-center'>
+                    <TableCell>
                       <span
                         className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
                       >
@@ -390,7 +396,7 @@ export default function ProgramListTable() {
                       </span>
                     </TableCell>
 
-                    <TableCell className='text-foreground/80 align-center tabular-nums'>
+                    <TableCell className='min-w-36'>
                       {program.enrolled_count != null &&
                       !Number.isNaN(program.enrolled_count) ? (
                         program.enrolled_count.toLocaleString()
@@ -399,11 +405,12 @@ export default function ProgramListTable() {
                       )}
                     </TableCell>
 
-                    <TableCell className='align-center whitespace-nowrap'>
+                    <TableCell>
                       <div className='flex flex-nowrap items-center justify-start gap-2'>
                         <Button
                           type='button'
-                          className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                          variant='outline'
+                          className='text-foreground bg-background hover:bg-muted h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
                           asChild
                         >
                           <Link
@@ -411,15 +418,15 @@ export default function ProgramListTable() {
                               String(program.id),
                             )}
                           >
-                            <PencilIcon className='size-3.5' />
+                            <SquarePenIcon className='size-3.5' />
                             Edit
                           </Link>
                         </Button>
                         <Button
                           type='button'
                           variant='outline'
-                          className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-10 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-                          onClick={() => setDeleteTarget(program)}
+                          className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                          onClick={() => handleDeleteClick(program)}
                         >
                           <Trash2Icon className='size-3.5' />
                           Delete
@@ -433,29 +440,32 @@ export default function ProgramListTable() {
         </Table>
       </TableListShell>
 
-      <DeleteAlertDialog
+      <RemoveProgramConfirmation
         open={deleteTarget !== null}
         onOpenChange={(open) => {
           if (!open) setDeleteTarget(null);
         }}
-        title='Delete program?'
-        description={
-          deleteTarget ? (
-            <>
-              This will permanently delete{' '}
-              <strong>
-                {deleteTarget.title?.trim() ||
-                  deleteTarget.code ||
-                  `program #${deleteTarget.id}`}
-              </strong>
-              . This action cannot be undone.
-            </>
-          ) : (
-            'This action cannot be undone.'
-          )
+        programName={
+          deleteTarget?.title?.trim() ||
+          deleteTarget?.code ||
+          (deleteTarget ? `program #${deleteTarget.id}` : undefined)
         }
         onConfirm={handleDelete}
-        isDeleting={isDeleting}
+        isRemoving={isDeleting}
+      />
+      <ProgramRemovalBlockedAlert
+        open={blockedDeleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setBlockedDeleteTarget(null);
+        }}
+        programName={
+          blockedDeleteTarget?.title?.trim() ||
+          blockedDeleteTarget?.code ||
+          (blockedDeleteTarget
+            ? `program #${blockedDeleteTarget.id}`
+            : undefined)
+        }
+        reason={blockedDeleteTarget?.actions.delete_block_reason ?? undefined}
       />
     </>
   );

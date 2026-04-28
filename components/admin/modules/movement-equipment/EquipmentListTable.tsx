@@ -1,12 +1,13 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { PackageIcon, PencilIcon, Trash2Icon } from 'lucide-react';
+import { SquarePenIcon, Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import MovementEquipmentSheet from '@/components/admin/modules/movement-equipment/EquipmentSheet';
+import MovementEquipmentRemovalBlockedAlert from '@/components/admin/modules/movement-equipment/MovementEquipmentRemovalBlockedAlert';
 import RemoveEquipmentConfirmation from '@/components/admin/modules/movement-equipment/RemoveEquipmentConfirmation';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
@@ -37,6 +38,8 @@ export default function MovementEquipmentListTable() {
   );
   const [deleteEquipment, setDeleteEquipment] =
     useState<MovementEquipment | null>(null);
+  const [blockedDeleteEquipment, setBlockedDeleteEquipment] =
+    useState<MovementEquipment | null>(null);
 
   const { mutateAsync: confirmDelete, isPending: isDeleting } = useMutation({
     mutationFn: async (id: number) => {
@@ -46,7 +49,7 @@ export default function MovementEquipmentListTable() {
       }
     },
     onSuccess: () => {
-      toast.success('The equipment was removed from your movement library.');
+      toast.success('The equipment has been removed successfully.');
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.MOVEMENT_EQUIPMENT.LIST],
       });
@@ -69,6 +72,14 @@ export default function MovementEquipmentListTable() {
     }
   };
 
+  const handleDeleteClick = (item: MovementEquipment) => {
+    if (item.actions.deletable) {
+      setDeleteEquipment(item);
+      return;
+    }
+    setBlockedDeleteEquipment(item);
+  };
+
   const { rows, controls } = useTable<MovementEquipment>(
     ENDPOINTS.ADMIN.MODULES.MOVEMENT_EQUIPMENT.LIST,
     {
@@ -88,10 +99,7 @@ export default function MovementEquipmentListTable() {
 
   return (
     <>
-      <TableListShell
-        controls={controls}
-        searchPlaceholder='Search equipment by name'
-      >
+      <TableListShell controls={controls} searchPlaceholder='Search ...'>
         <Table className='w-full min-w-2xl'>
           <TableHeader className='bg-muted/50 [&_tr]:border-border'>
             <TableRow className='border-border hover:bg-transparent'>
@@ -102,7 +110,7 @@ export default function MovementEquipmentListTable() {
           <TableBody>
             {showSkeleton && (
               <TableSkeletonRows
-                rowCount={3}
+                rowCount={15}
                 columnCount={COLUMN_COUNT}
                 cellWidths={[...SKELETON_WIDTHS]}
               />
@@ -125,9 +133,8 @@ export default function MovementEquipmentListTable() {
               rows.length === 0 && (
                 <TableEmptyStateRow
                   colSpan={COLUMN_COUNT}
-                  icon={PackageIcon}
-                  title='No equipment yet'
-                  description='Add kettlebells, bands, benches, and other gear so exercises and programs can reference a single, consistent catalog.'
+                  title='No Equipment Found'
+                  description='No equipment found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
                 />
               )}
 
@@ -149,17 +156,18 @@ export default function MovementEquipmentListTable() {
                     <div className='flex flex-nowrap items-center justify-start gap-2'>
                       <Button
                         type='button'
-                        className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                        variant='outline'
+                        className='text-foreground bg-background hover:bg-muted h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
                         onClick={() => setEditEquipment(item)}
                       >
-                        <PencilIcon className='size-3.5' />
+                        <SquarePenIcon className='size-3.5' />
                         Edit
                       </Button>
                       <Button
                         type='button'
                         variant='outline'
-                        className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-10 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-                        onClick={() => setDeleteEquipment(item)}
+                        className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                        onClick={() => handleDeleteClick(item)}
                       >
                         <Trash2Icon className='size-3.5' />
                         Remove
@@ -191,6 +199,16 @@ export default function MovementEquipmentListTable() {
         equipmentName={deleteEquipment?.name}
         isRemoving={isDeleting}
         onConfirm={handleDelete}
+      />
+      <MovementEquipmentRemovalBlockedAlert
+        open={!!blockedDeleteEquipment}
+        onOpenChange={(o) => {
+          if (!o) setBlockedDeleteEquipment(null);
+        }}
+        equipmentName={blockedDeleteEquipment?.name}
+        reason={
+          blockedDeleteEquipment?.actions.delete_block_reason ?? undefined
+        }
       />
     </>
   );

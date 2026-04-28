@@ -52,12 +52,9 @@ const LanguageContext = React.createContext<LanguageContextValue | null>(null);
  *   Wrap application components in <LanguageProvider> to enable localization and language switching.
  */
 export const LanguageProvider = ({ children }: React.PropsWithChildren) => {
-  const [language, setLanguage] =
-    React.useState<SupportedLanguage>(DEFAULT_LANGUAGE);
-
-  React.useEffect(() => {
-    setLanguage(getInitialLanguage());
-  }, []);
+  const [language, setLanguage] = React.useState<SupportedLanguage>(() =>
+    getInitialLanguage(),
+  );
 
   React.useEffect(() => {
     if (typeof document === 'undefined') return;

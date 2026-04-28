@@ -189,7 +189,9 @@ function ImageThumbWithFallback({
   );
 
   React.useEffect(() => {
-    setPhase('primary');
+    queueMicrotask(() => {
+      setPhase('primary');
+    });
   }, [src]);
 
   if (phase === 'icon') {
@@ -238,7 +240,9 @@ function AvatarImageWithFallback({
   );
 
   React.useEffect(() => {
-    setPhase('primary');
+    queueMicrotask(() => {
+      setPhase('primary');
+    });
   }, [src]);
 
   if (phase === 'gone') return null;
@@ -310,9 +314,11 @@ function useObjectUrlsForFiles(files: File[]) {
         next[fileKey(file)] = URL.createObjectURL(file);
       }
     });
-    setUrls((prev) => {
-      Object.values(prev).forEach((u) => URL.revokeObjectURL(u));
-      return next;
+    queueMicrotask(() => {
+      setUrls((prev) => {
+        Object.values(prev).forEach((u) => URL.revokeObjectURL(u));
+        return next;
+      });
     });
     return () => {
       Object.values(next).forEach((u) => URL.revokeObjectURL(u));
@@ -578,7 +584,7 @@ function FileUploadField(props: FileUploadFieldProps) {
         </ShadCNLabel>
       )}
       {description ? (
-        <p className='text-muted-foreground text-xs md:text-sm'>
+        <p className='text-muted-foreground text-xs font-semibold'>
           {description}
         </p>
       ) : null}
@@ -696,7 +702,9 @@ function FileUploadField(props: FileUploadFieldProps) {
           >
             <div className='text-muted-foreground flex items-center gap-2 text-xs md:text-sm'>
               <Upload className='size-4 shrink-0' aria-hidden />
-              <span className='text-foreground font-medium'>{emptyHint}</span>
+              <span className='text-foreground text-[13px] font-medium capitalize'>
+                {emptyHint}
+              </span>
             </div>
             {!hasListContent ? (
               <span className='text-muted-foreground text-xs'>

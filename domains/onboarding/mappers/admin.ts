@@ -168,6 +168,30 @@ export function buildSaveSectionPayload(
 }
 
 /**
+ * Stable fingerprint of what would be sent in a section save (for skipping redundant API calls).
+ * File uploads are represented by name and size so {@link File} instances compare predictably.
+ */
+export function saveSectionPayloadFingerprint(
+  section: OnboardingIntakeSection,
+  sectionDraft: SectionDraftAnswers,
+): string {
+  const payload = buildSaveSectionPayload(section, sectionDraft);
+  const normalized = payload.answers
+    .map((item) => {
+      if (item.file instanceof File) {
+        return {
+          question_id: item.question_id,
+          answer: item.answer,
+          file: `__file__:${item.file.name}:${item.file.size}`,
+        };
+      }
+      return { question_id: item.question_id, answer: item.answer };
+    })
+    .sort((a, b) => a.question_id - b.question_id);
+  return JSON.stringify(normalized);
+}
+
+/**
  * Builds `multipart/form-data` for PUT section save.
  *
  * Laravel cannot validate uploaded files from a JSON body; nested {@link File} values are also

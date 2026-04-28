@@ -82,6 +82,7 @@ export const ADMIN_ENDPOINTS = {
       DETAIL: (id: string) => `${BASE}/enrollment-requests/${id}`,
       ASSIGN_CONTRACT: (id: string) =>
         `${BASE}/enrollment-requests/${id}/assign-contract`,
+      CANCEL: (id: string) => `${BASE}/enrollment-requests/${id}/cancel`,
     },
     ENROLLMENT_CONTRACTS: {
       LIST: `${BASE}/enrollment-contracts`,
@@ -108,6 +109,56 @@ export const ADMIN_ENDPOINTS = {
     CLIENT_PROFILES: {
       LIST: `${BASE}/client-profiles`,
       DETAIL: (id: string) => `${BASE}/client-profiles/${id}`,
+      MEDIA_UPLOAD: (id: string) => `${BASE}/client-profiles/${id}/media`,
+    },
+    CARE_PLANS: {
+      LIST: `${BASE}/care-plans`,
+      CREATE: `${BASE}/care-plans`,
+      DETAIL: (id: string) => `${BASE}/care-plans/${id}`,
+      BASICS_UPDATE: (id: string) => `${BASE}/care-plans/${id}/basics`,
+      DAYS_GENERATE: (id: string) => `${BASE}/care-plans/${id}/days/generate`,
+      BUILDER: (id: string) => `${BASE}/care-plans/${id}/builder`,
+      DAY_SECTION_ITEMS: (id: string, dayId: string, section: string) =>
+        `${BASE}/care-plans/${id}/days/${dayId}/sections/${section}/items`,
+      VALIDATE: (id: string) => `${BASE}/care-plans/${id}/validate`,
+      ACTIVATE: (id: string) => `${BASE}/care-plans/${id}/activate`,
+      CANCEL: (id: string) => `${BASE}/care-plans/${id}/cancel`,
+      REVISION: (id: string) => `${BASE}/care-plans/${id}/revision`,
+      DAY_NOTES_UPDATE: (id: string, dayId: string) =>
+        `${BASE}/care-plans/${id}/days/${dayId}/notes`,
+      REPORT_WORKSPACE: (id: string) =>
+        `${BASE}/care-plans/${id}/report-workspace`,
+      REPORT_RUNS: (id: string) => `${BASE}/care-plans/${id}/report-runs`,
+      REPORT_RUN: (carePlanId: string, runId: string) =>
+        `${BASE}/care-plans/${carePlanId}/report-runs/${runId}`,
+      REPORT_RUN_PUBLISH: (carePlanId: string, runId: string) =>
+        `${BASE}/care-plans/${carePlanId}/report-runs/${runId}/publish`,
+      /** Preferred: create / update internal metrics (same body as legacy `report-runs` store). */
+      OPERATIONAL_LOGS: (carePlanId: string) =>
+        `${BASE}/care-plans/${carePlanId}/operational-logs`,
+      /** Create a `draft` row (period defaults to the care plan window; optional sub-range in the body). */
+      OPERATIONAL_LOG_DRAFT: (carePlanId: string) =>
+        `${BASE}/care-plans/${carePlanId}/operational-logs/draft`,
+      OPERATIONAL_LOG: (carePlanId: string, operationalLogId: string) =>
+        `${BASE}/care-plans/${carePlanId}/operational-logs/${operationalLogId}`,
+      OPERATIONAL_LOG_SUBMIT_FOR_REVIEW: (
+        carePlanId: string,
+        operationalLogId: string,
+      ) =>
+        `${BASE}/care-plans/${carePlanId}/operational-logs/${operationalLogId}/submit-for-review`,
+    },
+    CARE_PLAN_LOGS: {
+      LIST: `${BASE}/care-plan-logs`,
+      DETAIL: (id: string) => `${BASE}/care-plan-logs/${id}`,
+      ENTRIES: (id: string) => `${BASE}/care-plan-logs/${id}/entries`,
+    },
+    /** Internal operational logs (`CarePlanOperationalLog` rows). */
+    OPERATIONAL_LOGS: {
+      LIST: `${BASE}/operational-logs`,
+    },
+    /** Client-facing period report runs (`care_plan_report_runs`). */
+    PERIOD_REPORTS: {
+      LIST: `${BASE}/period-reports`,
     },
     USERS: {
       LIST: `${BASE}/users`,

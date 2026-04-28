@@ -11,6 +11,10 @@ export type BlogCategory = {
   name: string;
   slug: string;
   description: string;
+  actions: {
+    deletable: boolean;
+    delete_block_reason?: string | null;
+  };
   timestamps: {
     created_at: string;
     updated_at: string;

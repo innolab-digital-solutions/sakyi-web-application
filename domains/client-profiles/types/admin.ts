@@ -2,6 +2,19 @@ import type { AdminEnrollment } from '@/domains/enrollment-records/types/admin';
 
 export type { AdminEnrollment };
 
+export interface ClientProfileMedia {
+  id: number;
+  label: string;
+  path: string;
+  disk: string;
+  mime_type: string;
+  size_bytes: number;
+  original_name: string;
+  url: string;
+  created_at: string;
+  updated_at: string;
+}
+
 /** `profile` on list: only `picture_url`. On show: full shape below. */
 export interface ClientProfileUserProfile {
   picture_url: string | null;
@@ -27,4 +40,5 @@ export interface ClientProfile {
   };
   /** Present on show (`GET .../client-profiles/:id`), omitted on index. */
   enrollments?: AdminEnrollment[];
+  media: ClientProfileMedia[];
 }

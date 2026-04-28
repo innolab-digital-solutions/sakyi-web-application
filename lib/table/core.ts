@@ -183,7 +183,9 @@ export const useTable = <TItem>(
 
   // Ref so the URL sync effect can read the current appliedSearch without it becoming a dep.
   const appliedSearchRef = useRef(appliedSearch);
-  appliedSearchRef.current = appliedSearch;
+  useEffect(() => {
+    appliedSearchRef.current = appliedSearch;
+  }, [appliedSearch]);
 
   // Align local search state with URL changes (back/forward, external navigation).
   useEffect(() => {

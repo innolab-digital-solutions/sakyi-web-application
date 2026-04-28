@@ -9,18 +9,12 @@ import {
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { PropsWithChildren, useState } from 'react';
 
-import { reportNotableApiClientError } from '@/lib/sentry/client';
-
 const TanstackQueryProvider = ({ children }: PropsWithChildren) => {
   const [client] = useState(
     () =>
       new QueryClient({
-        queryCache: new QueryCache({
-          onError: reportNotableApiClientError,
-        }),
-        mutationCache: new MutationCache({
-          onError: reportNotableApiClientError,
-        }),
+        queryCache: new QueryCache(),
+        mutationCache: new MutationCache(),
         defaultOptions: {
           queries: {
             staleTime: 1000 * 60 * 1,

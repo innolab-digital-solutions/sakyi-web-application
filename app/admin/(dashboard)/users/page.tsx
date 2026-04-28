@@ -8,7 +8,7 @@ import UserSheet from '@/components/admin/modules/users/UserSheet';
 export const metadata: Metadata = {
   title: 'User Accounts | SaKyi Admin',
   description:
-    'Manage system user accounts: view, search, filter by status and role, and add or edit staff, coaches, and clients.',
+    'Manage user accounts, role assignments, and access status so permissions stay accurate across daily operations.',
 };
 
 export default function UserListPage() {
@@ -16,7 +16,7 @@ export default function UserListPage() {
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='User Accounts'
-        description='Review all system accounts here. Search by name or email, filter by status or role, then open a user to update their details or remove them from the system.'
+        description='Manage user accounts, role assignments, and access status so permissions remain accurate and secure across daily operations.'
         actions={<UserSheet mode='create' />}
       />
 

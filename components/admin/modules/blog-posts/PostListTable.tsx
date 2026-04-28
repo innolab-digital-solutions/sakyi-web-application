@@ -6,8 +6,7 @@ import {
   ArchiveIcon,
   CheckCircle2Icon,
   FilePenLineIcon,
-  FileTextIcon,
-  PencilIcon,
+  SquarePenIcon,
   Trash2Icon,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -16,6 +15,7 @@ import { type ComponentType, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
+import BlogPostRemovalBlockedAlert from '@/components/admin/modules/blog-posts/BlogPostRemovalBlockedAlert';
 import BlogPostFilters, {
   type BlogPostListLocale,
 } from '@/components/admin/modules/blog-posts/PostFilters';
@@ -135,6 +135,8 @@ function formatDateCell(iso: string | null | undefined): string | null {
 export default function BlogPostListTable() {
   const queryClient = useQueryClient();
   const [deletePost, setDeletePost] = useState<AdminBlogPost | null>(null);
+  const [blockedDeletePost, setBlockedDeletePost] =
+    useState<AdminBlogPost | null>(null);
 
   const { mutateAsync: confirmDelete, isPending: isDeleting } = useMutation({
     mutationFn: async (id: number) => {
@@ -144,7 +146,7 @@ export default function BlogPostListTable() {
       }
     },
     onSuccess: () => {
-      toast.success('The blog post was removed from your library.');
+      toast.success('The blog post has been removed successfully.');
       queryClient.invalidateQueries({
         queryKey: ['table', BLOG_POST_LIST_ENDPOINT],
       });
@@ -162,6 +164,15 @@ export default function BlogPostListTable() {
     } catch {
       // onError already toasts
     }
+  };
+
+  const handleDeleteClick = (post: AdminBlogPost) => {
+    if (post.actions.deletable) {
+      setDeletePost(post);
+      return;
+    }
+
+    setBlockedDeletePost(post);
   };
 
   const { rows, controls } = useTable<AdminBlogPost>(BLOG_POST_LIST_ENDPOINT, {
@@ -197,7 +208,7 @@ export default function BlogPostListTable() {
     <>
       <TableListShell
         controls={controls}
-        searchPlaceholder='Search title, excerpt, or content'
+        searchPlaceholder='Search ...'
         filters={
           <BlogPostFilters
             status={statusFilter}
@@ -228,7 +239,7 @@ export default function BlogPostListTable() {
           <TableBody>
             {showSkeleton && (
               <TableSkeletonRows
-                rowCount={3}
+                rowCount={15}
                 columnCount={COLUMN_COUNT}
                 cellWidths={[...SKELETON_WIDTHS]}
               />
@@ -251,9 +262,8 @@ export default function BlogPostListTable() {
               rows.length === 0 && (
                 <TableEmptyStateRow
                   colSpan={COLUMN_COUNT}
-                  icon={FileTextIcon}
-                  title='No Blog Posts Available'
-                  description='Articles you create will appear here with category, status, publication date, and thumbnails. Use Add blog post in the header to draft bilingual content, and switch the list language to review English or Myanmar titles without opening each post.'
+                  title='No Blog Post Found'
+                  description='No blog posts found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
                 />
               )}
 
@@ -308,7 +318,8 @@ export default function BlogPostListTable() {
                       <div className='flex flex-nowrap items-center justify-start gap-2'>
                         <Button
                           type='button'
-                          className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                          variant='outline'
+                          className='text-foreground bg-background hover:bg-muted h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
                           asChild
                         >
                           <Link
@@ -316,15 +327,15 @@ export default function BlogPostListTable() {
                               String(post.id),
                             )}
                           >
-                            <PencilIcon className='size-3.5' />
+                            <SquarePenIcon className='size-3.5' />
                             Edit
                           </Link>
                         </Button>
                         <Button
                           type='button'
                           variant='outline'
-                          className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-10 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-                          onClick={() => setDeletePost(post)}
+                          className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                          onClick={() => handleDeleteClick(post)}
                         >
                           <Trash2Icon className='size-3.5' />
                           Remove
@@ -346,6 +357,14 @@ export default function BlogPostListTable() {
         postTitle={deletePost?.title}
         isRemoving={isDeleting}
         onConfirm={handleDelete}
+      />
+      <BlogPostRemovalBlockedAlert
+        open={!!blockedDeletePost}
+        onOpenChange={(o) => {
+          if (!o) setBlockedDeletePost(null);
+        }}
+        postTitle={blockedDeletePost?.title}
+        reason={blockedDeletePost?.actions.delete_block_reason ?? undefined}
       />
     </>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertCircle, PlusIcon, Trash2Icon } from 'lucide-react';
+import { PlusIcon, Trash2Icon } from 'lucide-react';
 import * as React from 'react';
 
 import TextField from '@/components/shared/form/TextField';
@@ -53,16 +53,11 @@ export default function StringListField({
   };
 
   return (
-    <div
-      className={cn(
-        'space-y-3 rounded-md border p-4 sm:p-4',
-        error
-          ? 'border-destructive bg-destructive/4'
-          : 'border-border bg-muted/15',
-      )}
-    >
+    <div className='border-border bg-muted/15 space-y-3 rounded-md border p-4 sm:p-4'>
       <div className='space-y-1'>
-        <p className='text-foreground text-sm font-semibold'>{label}</p>
+        <p className='text-foreground text-[13px] font-semibold'>
+          {label} <span className='text-destructive'>*</span>
+        </p>
         {description ? (
           <p className='text-muted-foreground text-xs leading-relaxed font-medium'>
             {description}
@@ -75,12 +70,12 @@ export default function StringListField({
           {value.map((item, index) => (
             <li
               key={index}
-              className='border-border bg-background flex items-center gap-2 rounded-md border px-3 py-2.5 text-sm shadow-xs'
+              className='border-border bg-background flex items-center rounded-md border p-3 text-[13px] font-medium shadow-xs'
             >
-              <span className='text-muted-foreground w-6 shrink-0 text-xs font-semibold tabular-nums'>
-                {index + 1}
+              <span className='text-foreground/90 w-6 shrink-0 tabular-nums'>
+                {index + 1}.
               </span>
-              <span className='min-w-0 flex-1 leading-snug wrap-break-word'>
+              <span className='text-foreground/90 min-w-0 flex-1 leading-snug wrap-break-word'>
                 {item}
               </span>
               <button
@@ -103,16 +98,14 @@ export default function StringListField({
         <div
           className={cn(
             'rounded-md border border-dashed py-8 text-center text-xs font-medium',
-            error
-              ? 'border-destructive/60 bg-destructive/4 text-destructive/90'
-              : 'border-border/70 bg-background/60 text-muted-foreground',
+            'border-border/70 bg-background/60 text-muted-foreground',
           )}
         >
-          No items yet. Add one below.
+          No entries available. Please add a new item below.
         </div>
       )}
 
-      <div className='flex flex-col gap-2 sm:flex-row sm:items-end'>
+      <div className='flex flex-col gap-2 sm:flex-row sm:items-start'>
         <div className='min-w-0 flex-1'>
           <TextField
             ref={inputRef}
@@ -121,11 +114,7 @@ export default function StringListField({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={disabled}
-            className={
-              error
-                ? 'border-destructive bg-destructive/4 focus-visible:ring-destructive/20'
-                : undefined
-            }
+            error={error}
           />
         </div>
         <Button
@@ -135,25 +124,13 @@ export default function StringListField({
           onClick={handleAdd}
           className={cn(
             'h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold sm:w-auto md:h-12',
-            error
-              ? 'border-destructive/60 bg-destructive/4 text-destructive hover:bg-destructive/8'
-              : 'text-foreground bg-background hover:bg-muted border-neutral-300',
+            'text-foreground bg-background hover:bg-muted border-neutral-300',
           )}
         >
           <PlusIcon className='size-3.5' />
           Add
         </Button>
       </div>
-
-      {error ? (
-        <p
-          className='text-destructive flex items-center gap-2 text-xs font-medium md:text-[13px]'
-          role='alert'
-        >
-          <AlertCircle className='size-4 shrink-0' />
-          <span>{error}</span>
-        </p>
-      ) : null}
     </div>
   );
 }

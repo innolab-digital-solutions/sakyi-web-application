@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeftIcon } from 'lucide-react';
+import { ArrowLeftIcon, DumbbellIcon, SaveIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
@@ -165,6 +165,11 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
 
   const submit = async () => {
     if (isEdit) {
+      if (!form.isDirty) {
+        toast.info('There are no changes to save.');
+        return;
+      }
+
       await form.patch(
         ENDPOINTS.ADMIN.MODULES.MOVEMENT_EXERCISES.DETAIL(String(exercise.id)),
         {
@@ -183,7 +188,7 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
                 exercise.id,
               ],
             });
-            toast.success('Exercise updated successfully.');
+            toast.success('The exercise has been updated successfully.');
             if (onSuccess) onSuccess();
             else router.push(ROUTES.ADMIN.MODULES.MOVEMENT_EXERCISES.LIST);
           },
@@ -200,7 +205,7 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
         queryClient.invalidateQueries({
           queryKey: ['table', ENDPOINTS.ADMIN.MODULES.MOVEMENT_EXERCISES.LIST],
         });
-        toast.success('Exercise created successfully.');
+        toast.success('The exercise has been created successfully.');
         if (onSuccess) onSuccess();
         else router.push(ROUTES.ADMIN.MODULES.MOVEMENT_EXERCISES.LIST);
       },
@@ -239,9 +244,9 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
       >
         <div className='space-y-6'>
           <TextField
-            label='Name'
+            label='Exercise Name'
             required
-            placeholder='e.g. Barbell Back Squat'
+            placeholder='Enter exercise name (e.g. Barbell Back Squat)'
             value={String(form.fields.name ?? '')}
             onChange={(e) => form.setData('name', e.target.value)}
             error={form.errors.name}
@@ -249,7 +254,7 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
           <TextAreaField
             label='Description'
             name='description'
-            placeholder='Optional description for this exercise…'
+            placeholder='Enter a brief description for this exercise'
             rows={3}
             value={String(form.fields.description ?? '')}
             onChange={(e) => form.setData('description', e.target.value)}
@@ -261,7 +266,7 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
                 className='min-w-0'
                 label='Category'
                 required
-                placeholder='Select category…'
+                placeholder='Please select a category'
                 searchPlaceholder='Search categories…'
                 emptyMessage='No categories found.'
                 options={categoryOptions}
@@ -281,7 +286,7 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
                 className='min-w-0'
                 label='Difficulty'
                 required
-                placeholder='Select difficulty…'
+                placeholder='Please select a difficulty'
                 options={DIFFICULTY_OPTIONS}
                 value={
                   form.fields.difficulty != null
@@ -328,7 +333,7 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
               type='button'
               variant='outline'
               disabled={loading}
-              className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+              className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
               onClick={() =>
                 onSuccess
                   ? onSuccess()
@@ -340,8 +345,13 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
             <Button
               type='submit'
               disabled={loading}
-              className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+              className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
             >
+              {isEdit ? (
+                <SaveIcon className='size-3.5' />
+              ) : (
+                <DumbbellIcon className='size-3.5' />
+              )}
               {loading
                 ? isEdit
                   ? 'Saving Changes…'

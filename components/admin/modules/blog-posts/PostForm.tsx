@@ -1,7 +1,7 @@
 'use client';
 
 import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertTriangleIcon } from 'lucide-react';
+import { NewspaperIcon, SaveIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -84,6 +84,28 @@ type BlogPostFormFieldsProps =
       myPost: AdminBlogPost;
     };
 
+type ComparableBlogPostState = {
+  status: string;
+  blog_category_id: number | null;
+  thumbnail_url: string | null;
+  has_existing_thumbnail: boolean;
+  has_new_thumbnail: boolean;
+  translations: Array<{
+    locale: string;
+    title: string;
+    excerpt: string;
+    content: string;
+  }>;
+};
+
+function normalizeRichTextValue(value: string): string {
+  const plainText = value
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .trim();
+  return plainText.length === 0 ? '' : value;
+}
+
 function buildTranslationsFromPosts(
   enPost: AdminBlogPost,
   myPost: AdminBlogPost,
@@ -97,6 +119,33 @@ function buildTranslationsFromPosts(
       content: src.content ?? '',
     };
   });
+}
+
+function buildComparableBlogPostState(args: {
+  status: unknown;
+  blogCategoryId: unknown;
+  thumbnailUrl: unknown;
+  existingThumbnailCount: number;
+  hasNewThumbnail: boolean;
+  translations: BlogPostTranslationInput[];
+}): ComparableBlogPostState {
+  return {
+    status: String(args.status ?? 'draft'),
+    blog_category_id:
+      typeof args.blogCategoryId === 'number' ? args.blogCategoryId : null,
+    thumbnail_url:
+      typeof args.thumbnailUrl === 'string' && args.thumbnailUrl.trim()
+        ? args.thumbnailUrl.trim()
+        : null,
+    has_existing_thumbnail: args.existingThumbnailCount > 0,
+    has_new_thumbnail: args.hasNewThumbnail,
+    translations: args.translations.map((translation) => ({
+      locale: translation.locale,
+      title: (translation.title ?? '').trim(),
+      excerpt: (translation.excerpt ?? '').trim(),
+      content: normalizeRichTextValue(translation.content ?? '').trim(),
+    })),
+  };
 }
 
 function BlogPostEditFormLoader({ postId }: { postId: number }) {
@@ -229,8 +278,10 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
     field: keyof Omit<BlogPostTranslationInput, 'locale'>,
     value: string,
   ) => {
+    const normalizedValue =
+      field === 'content' ? normalizeRichTextValue(value) : value;
     const updated = translations.map((t) =>
-      t.locale === locale ? { ...t, [field]: value } : t,
+      t.locale === locale ? { ...t, [field]: normalizedValue } : t,
     );
     form.setData('translations', updated);
   };
@@ -245,11 +296,6 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
     return form.errors[key] as string | undefined;
   };
 
-  const isTranslationEmpty = (locale: string) => {
-    const t = translations.find((tr) => tr.locale === locale);
-    return !t?.title?.trim() && !t?.content?.trim();
-  };
-
   const hasLocaleFieldErrors = (locale: string) =>
     Boolean(
       getTranslationError(locale, 'title') ||
@@ -258,33 +304,39 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
     );
 
   const submit = async () => {
-    const handleFormError = (error: ApiError) => {
-      const errs = error.errors as FormErrors | undefined;
-      if (errs && Object.keys(errs).length > 0) {
-        const hasTranslationIssue = Object.keys(errs).some((k) =>
-          k.startsWith('translations.'),
-        );
-        if (hasTranslationIssue) {
-          setActiveLocale(firstLocaleTabForBlogPostErrors(errs));
-        }
-        toast.error(
-          error.message ??
-            'One or more fields require your attention. Please correct the highlighted issues.',
-          {
-            description: hasTranslationIssue
-              ? 'Each language needs a complete title and body. The tab with missing information is opened below.'
-              : 'Check the highlighted fields in the form.',
-            duration: 5000,
-          },
-        );
+    if (isEdit) {
+      if (!form.isDirty) {
+        toast.info('There are no changes to save.');
         return;
       }
-      toast.error(
-        error.message ??
-          'One or more fields require your attention. Please correct the highlighted issues.',
-        { duration: 5000 },
-      );
-    };
+
+      const initialComparable = buildComparableBlogPostState({
+        status: enPost?.status ?? 'draft',
+        blogCategoryId: enPost?.blog_category?.id ?? null,
+        thumbnailUrl: enPost?.thumbnail ?? null,
+        existingThumbnailCount: enPost?.thumbnail?.trim() ? 1 : 0,
+        hasNewThumbnail: false,
+        translations: buildTranslationsFromPosts(
+          enPost as AdminBlogPost,
+          myPost as AdminBlogPost,
+        ),
+      });
+      const currentComparable = buildComparableBlogPostState({
+        status: form.fields.status,
+        blogCategoryId: form.fields.blog_category_id,
+        thumbnailUrl: form.fields.thumbnail_url,
+        existingThumbnailCount: existingThumbnail.length,
+        hasNewThumbnail: form.fields.thumbnail instanceof File,
+        translations,
+      });
+
+      if (
+        JSON.stringify(initialComparable) === JSON.stringify(currentComparable)
+      ) {
+        toast.info('There are no changes to save.');
+        return;
+      }
+    }
 
     const callbacks = {
       onSuccess: () => {
@@ -297,11 +349,22 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
           });
         }
         toast.success(
-          isEdit ? 'Post updated successfully.' : 'Post created successfully.',
+          isEdit
+            ? 'The blog post has been updated successfully.'
+            : 'The blog post has been created successfully.',
         );
         router.push(ROUTES.ADMIN.MODULES.BLOG_POSTS.LIST);
       },
-      onError: handleFormError,
+      onError: (error: ApiError) => {
+        const errs = error.errors as FormErrors | undefined;
+        if (!errs || Object.keys(errs).length === 0) return;
+        const hasTranslationIssue = Object.keys(errs).some((k) =>
+          k.startsWith('translations.'),
+        );
+        if (hasTranslationIssue) {
+          setActiveLocale(firstLocaleTabForBlogPostErrors(errs));
+        }
+      },
       onFailure: (error: ApiError) => {
         toast.error(
           error.message ??
@@ -323,6 +386,7 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
   const loading = form.isSubmitting;
   const status = form.fields.status ?? 'draft';
   const isArchived = status === 'archived';
+  const isPublished = status === 'published';
 
   return (
     <form
@@ -332,16 +396,19 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
       }}
       noValidate
     >
-      <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5'>
-        <div className='space-y-6'>
-          <div>
-            <h3 className='text-foreground text-sm font-semibold capitalize'>
-              Post content
-            </h3>
-            <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
-              Write the title, excerpt, and body for each language, then set
-              category and visibility below.
-            </p>
+      <div className='grid min-w-0 gap-6 lg:grid-cols-3 lg:items-start'>
+        <section className='border-border min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:col-span-2'>
+          <div className='space-y-6'>
+            <div>
+              <h3 className='text-foreground/90 text-sm font-semibold'>
+                Post Content
+              </h3>
+              <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
+                Provide the multilingual content for this post. Please enter a
+                clear and engaging title, an informative excerpt, and the
+                complete body text for each supported language.
+              </p>
+            </div>
 
             <div className='mt-5'>
               <Tabs
@@ -380,12 +447,6 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
 
                 {LANGUAGES.map((lang) => {
                   const t = translations.find((tr) => tr.locale === lang.code);
-                  const slugForLocale =
-                    isEdit && enPost && myPost
-                      ? lang.code === 'en'
-                        ? enPost.slug
-                        : myPost.slug
-                      : undefined;
 
                   return (
                     <TabsContent
@@ -393,22 +454,13 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
                       value={lang.code}
                       className='space-y-4'
                     >
-                      {lang.code === 'my' && isTranslationEmpty('my') && (
-                        <div className='flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-400'>
-                          <AlertTriangleIcon className='mt-0.5 size-3.5 shrink-0' />
-                          <span>
-                            Myanmar translation is empty. Fill in the title and
-                            content to reach Myanmar-speaking readers.
-                          </span>
-                        </div>
-                      )}
                       <TextField
                         label='Title'
-                        required={lang.code === 'en'}
+                        required
                         placeholder={
                           lang.code === 'en'
-                            ? 'e.g. Getting Started with Wellness'
-                            : 'ဥပမာ — ကျန်းမာရေးနှင့် ကောင်းကျိုး'
+                            ? 'Enter post title (e.g. Getting Started with Wellness)'
+                            : 'ပို့စ်ခေါင်းစဉ်ကို ထည့်ပါ (ဥပမာ- ကျန်းမာရေးနှင့် ကောင်းကျိုးများအကြောင်း)'
                         }
                         value={t?.title ?? ''}
                         onChange={(e) =>
@@ -416,24 +468,13 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
                         }
                         error={getTranslationError(lang.code, 'title')}
                       />
-                      {isEdit &&
-                        slugForLocale &&
-                        slugForLocale.trim().length > 0 && (
-                          <div className='space-y-1.5'>
-                            <p className='text-muted-foreground text-xs font-medium'>
-                              Slug
-                            </p>
-                            <div className='border-border bg-muted/50 text-muted-foreground truncate rounded-md border px-3 py-2 font-mono text-xs'>
-                              {slugForLocale}
-                            </div>
-                            <p className='text-muted-foreground text-xs'>
-                              Auto-generated from title. Updates on save.
-                            </p>
-                          </div>
-                        )}
                       <TextAreaField
                         label='Excerpt'
-                        placeholder='Short summary shown in post listings…'
+                        placeholder={
+                          lang.code === 'en'
+                            ? 'Enter a short summary for this post'
+                            : 'ဤပို့စ်အတွက် အတိုချုံးကို ထည့်ပါ။'
+                        }
                         rows={3}
                         value={t?.excerpt ?? ''}
                         onChange={(e) =>
@@ -447,7 +488,12 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
                       />
                       <RichTextField
                         label='Content'
-                        required={lang.code === 'en'}
+                        required
+                        placeholder={
+                          lang.code === 'en'
+                            ? 'Enter the complete content for this post'
+                            : 'ဤပို့စ်အတွက် အကြောင်းအရာအပြည့်အစုံကို ထည့်သွင်းပါ။'
+                        }
                         value={t?.content ?? ''}
                         onChange={(val) =>
                           updateTranslation(lang.code, 'content', val)
@@ -459,68 +505,59 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
                 })}
               </Tabs>
             </div>
-          </div>
 
-          <div className='border-border space-y-4 border-t pt-6'>
-            <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-              <div className='min-w-0 space-y-1'>
-                <Label
-                  htmlFor='blog-post-published'
-                  className='text-foreground text-sm font-semibold'
-                >
-                  Published
-                </Label>
-                <p className='text-muted-foreground text-xs leading-relaxed font-medium'>
-                  When on, the post is live for visitors. When off, it stays a
-                  draft.
-                </p>
-                {isArchived ? (
-                  <p className='text-muted-foreground text-xs leading-relaxed font-medium'>
-                    This post is currently archived. Turn Published on to
-                    restore it as live content, or save to keep it archived.
-                  </p>
-                ) : null}
-              </div>
-              <Switch
-                id='blog-post-published'
-                className='shrink-0'
-                checked={status === 'published'}
-                onCheckedChange={(checked) =>
-                  form.setData('status', checked ? 'published' : 'draft')
+            <div className='border-border flex flex-nowrap items-center justify-end gap-2 border-t pt-5'>
+              <Button
+                type='button'
+                variant='outline'
+                disabled={loading}
+                className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+                onClick={() =>
+                  router.push(ROUTES.ADMIN.MODULES.BLOG_POSTS.LIST)
                 }
-              />
+              >
+                Cancel
+              </Button>
+              <Button
+                type='submit'
+                disabled={loading}
+                className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
+              >
+                {isEdit ? (
+                  <SaveIcon className='size-3.5' />
+                ) : (
+                  <NewspaperIcon className='size-3.5' />
+                )}
+                {loading
+                  ? isEdit
+                    ? 'Saving…'
+                    : 'Creating...'
+                  : isEdit
+                    ? 'Save Changes'
+                    : 'Create Blog Post'}
+              </Button>
             </div>
-            {form.errors.status ? (
-              <p className='text-destructive text-xs font-medium'>
-                {form.errors.status}
-              </p>
-            ) : null}
+          </div>
+        </section>
 
-            <ComboboxField
-              label='Category'
-              required
-              placeholder='Select category…'
-              searchPlaceholder='Search categories…'
-              emptyMessage='No categories found.'
-              options={categoryOptions}
-              value={
-                form.fields.blog_category_id
-                  ? String(form.fields.blog_category_id)
-                  : ''
-              }
-              onChange={(val) =>
-                form.setData('blog_category_id', val ? Number(val) : null)
-              }
-              error={form.errors.blog_category_id as string | undefined}
-            />
-
-            <div className='space-y-1.5'>
-              <p className='text-foreground text-sm font-semibold'>Thumbnail</p>
-              <p className='text-muted-foreground text-xs leading-relaxed font-medium'>
-                Optional image for listings and previews.
+        <section className='border-border min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:col-span-1'>
+          <div className='space-y-5'>
+            <div>
+              <h3 className='text-foreground/90 text-sm font-semibold'>
+                Post Settings
+              </h3>
+              <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
+                Configure the visibility, category, and featured image settings
+                for this blog post.
               </p>
+            </div>
+
+            <div className='border-border space-y-2 border-t pt-4'>
               <FileUploadField
-                accept='image/*'
+                label='Thumbnail'
+                accept='.jpg,.jpeg,.png'
+                required
+                maxFiles={1}
                 maxFileSize={5 * 1024 * 1024}
                 existingFiles={existingThumbnail}
                 onExistingFilesChange={(files) => {
@@ -534,7 +571,7 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
                   form.setData('thumbnail', file);
                   if (file) form.setData('thumbnail_url', null);
                 }}
-                emptyHint='Click or drag image here'
+                emptyHint='Browse'
                 error={
                   (form.errors.thumbnail ?? form.errors.thumbnail_url) as
                     | string
@@ -542,34 +579,86 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
                 }
               />
             </div>
-          </div>
 
-          <div className='border-border flex flex-nowrap items-center justify-end gap-2 border-t pt-6'>
-            <Button
-              type='button'
-              variant='outline'
-              disabled={loading}
-              className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
-              onClick={() => router.push(ROUTES.ADMIN.MODULES.BLOG_POSTS.LIST)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type='submit'
-              disabled={loading}
-              className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-            >
-              {loading
-                ? isEdit
-                  ? 'Saving…'
-                  : 'Creating...'
-                : isEdit
-                  ? 'Save Changes'
-                  : 'Create Blog Post'}
-            </Button>
+            <div className='border-border border-t pt-4'>
+              <ComboboxField
+                label='Category'
+                required
+                placeholder='Please select a blog category'
+                searchPlaceholder='Search categories…'
+                emptyMessage='No categories found.'
+                options={categoryOptions}
+                value={
+                  form.fields.blog_category_id
+                    ? String(form.fields.blog_category_id)
+                    : ''
+                }
+                onChange={(val) =>
+                  form.setData('blog_category_id', val ? Number(val) : null)
+                }
+                error={form.errors.blog_category_id as string | undefined}
+              />
+            </div>
+
+            <div className='border-border border-t pt-4'>
+              <div className='bg-muted/30 border-border space-y-1 rounded-md border p-3.5'>
+                <div className='flex items-center justify-between gap-3'>
+                  <Label
+                    htmlFor='blog-post-published'
+                    className='text-foreground text-[13px] font-semibold'
+                  >
+                    Publication Status
+                  </Label>
+                  {isEdit ? (
+                    <span className='text-muted-foreground text-[10px] font-bold uppercase'>
+                      {isArchived ? 'Archived' : 'Published'}
+                    </span>
+                  ) : (
+                    <Switch
+                      id='blog-post-published'
+                      className='h-5 w-9 shrink-0 **:data-[slot=switch-thumb]:size-4 **:data-[slot=switch-thumb]:data-[state=checked]:translate-x-4'
+                      checked={isPublished}
+                      onCheckedChange={(checked) =>
+                        form.setData('status', checked ? 'published' : 'draft')
+                      }
+                    />
+                  )}
+                </div>
+                <p className='text-muted-foreground text-[12px] leading-relaxed font-medium'>
+                  {isPublished
+                    ? 'This post is published and visible to all visitors.'
+                    : isArchived
+                      ? 'This post is archived and no longer accessible to visitors.'
+                      : 'This post is in draft status and not visible to visitors.'}
+                </p>
+                {isEdit ? (
+                  <div className='pt-1'>
+                    <Button
+                      type='button'
+                      variant='outline'
+                      disabled={loading}
+                      className='text-foreground bg-background hover:bg-muted h-9 shrink-0 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+                      onClick={() =>
+                        form.setData(
+                          'status',
+                          isArchived ? 'published' : 'archived',
+                        )
+                      }
+                    >
+                      {isArchived ? 'Move to Published' : 'Move to Archived'}
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
+              {form.errors.status ? (
+                <p className='text-destructive text-xs font-medium'>
+                  {form.errors.status}
+                </p>
+              ) : null}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </form>
   );
 }

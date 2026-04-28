@@ -54,9 +54,6 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 
-# Sentry Config File
-.env.sentry-build-plugin
-
 # MCP Config File
 .mcp.json
 CLAUDE.md

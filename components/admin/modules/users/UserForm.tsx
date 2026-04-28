@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { SaveIcon, UserPlus2Icon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 
@@ -19,8 +20,7 @@ type EditProps = { mode: 'edit'; userId: number; onSuccess?: () => void };
 type Props = CreateProps | EditProps;
 
 function isAdminRole(user: User | undefined): boolean {
-  const name = user?.role?.name ?? '';
-  return name === 'admin' || name === 'super_admin';
+  return user?.role === 'Admin';
 }
 
 function UserFormFields({
@@ -90,8 +90,8 @@ function UserFormFields({
         }
         toast.success(
           isEdit
-            ? 'User account updated successfully.'
-            : 'User account created successfully.',
+            ? 'The user account has been updated successfully.'
+            : 'The user account has been created successfully.',
         );
         onSuccess?.();
       },
@@ -120,7 +120,7 @@ function UserFormFields({
         <TextField
           label='Full Name'
           required
-          placeholder='e.g. John Doe'
+          placeholder='Enter full name'
           value={String(form.fields.name ?? '')}
           onChange={(e) => form.setData('name', e.target.value)}
           error={form.errors.name}
@@ -129,7 +129,7 @@ function UserFormFields({
           label='Email Address'
           required
           type='email'
-          placeholder='e.g. john@example.com'
+          placeholder='Enter email address'
           value={String(form.fields.email ?? '')}
           onChange={(e) => form.setData('email', e.target.value)}
           error={form.errors.email}
@@ -141,7 +141,7 @@ function UserFormFields({
           placeholder={
             isEdit
               ? 'Leave blank to keep current password'
-              : 'Minimum 8 characters'
+              : 'Enter password (minimum 8 characters)'
           }
           value={String(fields.password ?? '')}
           onChange={(e) =>
@@ -164,7 +164,7 @@ function UserFormFields({
           error={errors.password_confirmation}
         />
 
-        <div className='flex items-center justify-between rounded-md border border-neutral-200 px-4 py-3'>
+        <div className='border-input flex items-center justify-between rounded-md border px-4 py-3 shadow'>
           <div className='space-y-0.5'>
             <Label className='text-foreground text-[13px] font-semibold'>
               Admin Access
@@ -185,7 +185,7 @@ function UserFormFields({
             type='button'
             variant='outline'
             disabled={loading}
-            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
             onClick={() => onSuccess?.()}
           >
             Cancel
@@ -193,15 +193,20 @@ function UserFormFields({
           <Button
             type='submit'
             disabled={loading}
-            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
           >
+            {isEdit ? (
+              <SaveIcon className='size-3.5' />
+            ) : (
+              <UserPlus2Icon className='size-3.5' />
+            )}
             {loading
               ? isEdit
                 ? 'Saving Changes…'
                 : 'Creating…'
               : isEdit
                 ? 'Save Changes'
-                : 'Create User'}
+                : 'Create Account'}
           </Button>
         </div>
       </div>

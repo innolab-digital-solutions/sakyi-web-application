@@ -9,21 +9,21 @@ import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/config/routes';
 
 export const metadata: Metadata = {
-  title: 'Blog posts | SaKyi Admin',
+  title: 'Blog Posts | SaKyi Admin',
   description:
-    'Browse and maintain blog articles with bilingual English and Myanmar content, categories, thumbnails, and publish status.',
+    'Manage bilingual blog posts with clear editorial controls for category, thumbnail, and publish status so content stays accurate and ready for release.',
 };
 
 export default function BlogPostListPage() {
   return (
     <div className='min-w-0 space-y-8'>
       <PageHeader
-        title='Blog posts'
-        description='Articles in this library feed your public blog. Review status and dates at a glance, switch list language to check bilingual titles, then open a post to adjust copy, category, thumbnail, or publish settings.'
+        title='Blog Posts'
+        description='Manage bilingual blog posts with clear editorial controls for category, thumbnail, and publish status so content stays accurate and ready for release.'
         actions={
           <Button
             asChild
-            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
           >
             <Link href={ROUTES.ADMIN.MODULES.BLOG_POSTS.CREATE}>
               <PlusIcon className='size-3.5' />

@@ -17,6 +17,11 @@ export async function getEnrollmentRequestById(
 
 export type UpdateEnrollmentRequestStatusPayload = {
   status: EnrollmentRequestStatus;
+  cancellation_note?: string;
+};
+
+export type CancelEnrollmentRequestPayload = {
+  cancellation_note: string;
 };
 
 /**
@@ -39,6 +44,19 @@ export async function updateEnrollmentRequestStatus(
 ): Promise<ApiResponse<EnrollmentRequestResource>> {
   return http.patch<EnrollmentRequestResource>(
     ENDPOINTS.ADMIN.MODULES.ENROLLMENT_REQUESTS.UPDATE(String(id)),
+    payload,
+  );
+}
+
+/**
+ * Cancels an enrollment request with a required cancellation note.
+ */
+export async function cancelEnrollmentRequest(
+  id: number,
+  payload: CancelEnrollmentRequestPayload,
+): Promise<ApiResponse<EnrollmentRequestResource>> {
+  return http.post<EnrollmentRequestResource>(
+    ENDPOINTS.ADMIN.MODULES.ENROLLMENT_REQUESTS.CANCEL(String(id)),
     payload,
   );
 }

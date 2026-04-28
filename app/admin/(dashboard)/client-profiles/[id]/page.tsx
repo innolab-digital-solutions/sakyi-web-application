@@ -10,7 +10,7 @@ import { ROUTES } from '@/config/routes';
 export const metadata: Metadata = {
   title: 'Client profile | SaKyi Admin',
   description:
-    'Review a single client account: contact details, profile fields from onboarding, and linked program enrollments.',
+    'Review one client profile with account details, onboarding information, and linked enrollments so you can understand current context before taking action.',
 };
 
 type ClientProfilePageProps = {
@@ -31,7 +31,7 @@ export default async function ClientProfilePage({
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Client profile'
-        description='Account overview, extended profile from intake, and enrollment history for this client.'
+        description='View this client’s account summary, intake profile details, and enrollment history to support informed next steps and consistent case handling.'
         actions={
           <Button
             asChild

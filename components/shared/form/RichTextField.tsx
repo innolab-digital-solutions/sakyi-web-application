@@ -86,6 +86,7 @@ export type RichTextFieldProps = {
   label?: string;
   error?: string;
   description?: string;
+  placeholder?: string;
   value?: string;
   onChange?: (value: string) => void;
   required?: boolean;
@@ -103,6 +104,7 @@ export default function RichTextField({
   label,
   error,
   description,
+  placeholder,
   value,
   onChange,
   required = false,
@@ -139,13 +141,17 @@ export default function RichTextField({
         attributes: {
           id,
           class:
-            'focus:outline-none min-h-[160px] px-3 py-2.5 text-xs font-medium leading-relaxed md:px-4 md:py-3 md:text-sm',
+            'focus:outline-none relative min-h-[160px] px-3 py-2.5 text-xs font-medium leading-relaxed before:pointer-events-none before:absolute before:top-2.5 before:left-3 before:text-xs before:font-medium before:text-muted-foreground/80 before:content-[attr(data-placeholder)] data-[empty=false]:before:content-none md:px-4 md:py-3 md:text-sm md:before:top-3 md:before:left-4 md:before:text-sm',
+          'data-placeholder': placeholder ?? '',
+          'data-empty': value ? 'false' : 'true',
           ...(error ? { 'aria-invalid': 'true' as const } : {}),
           ...(describedBy ? { 'aria-describedby': describedBy } : {}),
         },
       },
       editable: !disabled,
-      onUpdate: ({ editor }: { editor: { getHTML: () => string } }) => {
+      onUpdate: ({ editor }) => {
+        const dom = editor.view.dom as HTMLElement;
+        dom.setAttribute('data-empty', editor.isEmpty ? 'true' : 'false');
         onChange?.(editor.getHTML());
       },
     },
@@ -169,7 +175,19 @@ export default function RichTextField({
     if (value !== undefined && value !== current) {
       editor.commands.setContent(value, { emitUpdate: false });
     }
+    (editor.view.dom as HTMLElement).setAttribute(
+      'data-empty',
+      editor.isEmpty ? 'true' : 'false',
+    );
   }, [editor, value]);
+
+  React.useEffect(() => {
+    if (!editor) return;
+    (editor.view.dom as HTMLElement).setAttribute(
+      'data-placeholder',
+      placeholder ?? '',
+    );
+  }, [editor, placeholder]);
 
   React.useEffect(() => {
     if (!editor) return;

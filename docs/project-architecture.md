@@ -26,13 +26,11 @@ Next.js App Router, React, TypeScript, Tailwind, shared primitives under `compon
 - `context/` — React context for client boundaries (`LanguageContext`, `AuthContext`).
 - `domains/` — feature modules: types, services, Zod schemas, small pure transforms.
 - `hooks/` — small reusable hooks (e.g. `use-mobile.ts`).
-- `lib/` — infrastructure: API client, `lib/form`, **paginated admin tables** (`lib/table` — `useTable` + types), Sentry, localization, `lib/providers` (e.g. TanStack Query).
+- `lib/` — infrastructure: API client, `lib/form`, **paginated admin tables** (`lib/table` — `useTable` + types), localization, `lib/providers` (e.g. TanStack Query).
 - `public/` — static assets (images, SVG, icons).
 - `types/` — cross-cutting TypeScript; **`types/api.ts`** is the canonical `ApiResponse` / `ApiSuccess` / `ApiError` contract (also re-used by `lib/api/client/types.ts`).
 - `proxy.ts` — Next.js proxy, matcher `/admin/:path*` (see Security).
 - `docs/` — internal documentation.
-- `instrumentation.ts`, `instrumentation-client.ts` — Next.js hooks for Sentry and runtime wiring.
-- `sentry.server.config.ts`, `sentry.edge.config.ts` — Sentry SDK entrypoints for server/edge.
 - `scripts/` — e.g. `verify-env.mjs`, optional git hooks under `scripts/git-hooks/`.
 
 Rule of thumb: if it describes **what the API returns** or **how we validate a payload**, it belongs in `domains/`. If it is **layout, routing, or presentation**, it belongs in `app/` or `components/`.
@@ -168,15 +166,13 @@ The Laravel API owns authentication, authorization, and validation. The admin UI
 - If the session cookie is **only** on the API host and never on the Next origin, listing names here would mis-route users; align cookie domain strategy with backend and ops before enabling hints.
 - `/admin/login` is treated as the login entry; when a listed cookie is present and the user hits login, they are redirected toward the admin root. Real session validity still comes from the API (e.g. `/me` and guarded routes).
 
-**Headers and build** — Baseline security headers and `images.remotePatterns` (API hosts and other remotes) live in `next.config.ts`, which is wrapped with `withSentryConfig` for Sentry. Tighten further (e.g. CSP) per environment if needed.
+**Headers and build** — Baseline security headers and `images.remotePatterns` (API hosts and other remotes) live in `next.config.ts`. Tighten further (e.g. CSP) per environment if needed.
 
 **Rich text** — If the API stores HTML, sanitize before rendering; avoid unsanitized `dangerouslySetInnerHTML`.
 
 ## Errors and observability
 
-Segment error UI: `app/error.tsx`, `app/admin/error.tsx`, `app/global-error.tsx`. They receive `unstable_retry` from Next for recovery attempts and can report to Sentry.
-
-Sentry: server-safe helpers from `@/lib/sentry`. In Client Components, import reporters from `@/lib/sentry/client` so the client boundary stays explicit. Disabling reporting is done via env (see `.env.example` for DSN and enable flags). Root-level `instrumentation.ts`, `instrumentation-client.ts`, and `sentry.*.config.ts` connect the SDK to Next.js.
+Segment error UI: `app/error.tsx`, `app/admin/error.tsx`, `app/global-error.tsx`. They receive `unstable_retry` from Next for recovery attempts.
 
 ## Performance
 

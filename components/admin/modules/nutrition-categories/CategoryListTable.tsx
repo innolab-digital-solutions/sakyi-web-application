@@ -1,12 +1,13 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Apple, PencilIcon, Trash2Icon } from 'lucide-react';
+import { SquarePenIcon, Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import NutritionCategorySheet from '@/components/admin/modules/nutrition-categories/CategorySheet';
+import NutritionCategoryRemovalBlockedAlert from '@/components/admin/modules/nutrition-categories/NutritionCategoryRemovalBlockedAlert';
 import RemoveFoodCategoryConfirmation from '@/components/admin/modules/nutrition-categories/RemoveFoodCategoryConfirmation';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
@@ -40,6 +41,8 @@ export default function NutritionCategoryListTable() {
   );
   const [deleteCategory, setDeleteCategory] =
     useState<NutritionCategory | null>(null);
+  const [blockedDeleteCategory, setBlockedDeleteCategory] =
+    useState<NutritionCategory | null>(null);
 
   const { mutateAsync: confirmDelete, isPending: isDeleting } = useMutation({
     mutationFn: async (id: number) => {
@@ -49,7 +52,7 @@ export default function NutritionCategoryListTable() {
       }
     },
     onSuccess: () => {
-      toast.success('The food category was removed from your library.');
+      toast.success('The food category has been removed successfully.');
       queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST],
       });
@@ -75,6 +78,14 @@ export default function NutritionCategoryListTable() {
     }
   };
 
+  const handleDeleteClick = (category: NutritionCategory) => {
+    if (category.actions.deletable) {
+      setDeleteCategory(category);
+      return;
+    }
+    setBlockedDeleteCategory(category);
+  };
+
   const { rows, controls } = useTable<NutritionCategory>(
     ENDPOINTS.ADMIN.MODULES.NUTRITION_CATEGORIES.LIST,
     {
@@ -94,10 +105,7 @@ export default function NutritionCategoryListTable() {
 
   return (
     <>
-      <TableListShell
-        controls={controls}
-        searchPlaceholder='Search category name or parent'
-      >
+      <TableListShell controls={controls} searchPlaceholder='Search ...'>
         <Table className='w-full min-w-3xl'>
           <TableHeader className='bg-muted/50 [&_tr]:border-border'>
             <TableRow className='border-border hover:bg-transparent'>
@@ -109,7 +117,7 @@ export default function NutritionCategoryListTable() {
           <TableBody>
             {showSkeleton && (
               <TableSkeletonRows
-                rowCount={3}
+                rowCount={15}
                 columnCount={COLUMN_COUNT}
                 cellWidths={[...SKELETON_WIDTHS]}
               />
@@ -132,9 +140,8 @@ export default function NutritionCategoryListTable() {
               rows.length === 0 && (
                 <TableEmptyStateRow
                   colSpan={COLUMN_COUNT}
-                  icon={Apple}
-                  title='No Food Categories Yet'
-                  description='Categories you add will appear here for organizing food items in the nutrition library. Use Add in the header to create groups such as macronutrients or meal types.'
+                  title='No Food Categories Found'
+                  description='No food categories found. It’s possible none exist yet, or your filters may be hiding results. Adjust your filters or check back later.'
                 />
               )}
 
@@ -174,17 +181,18 @@ export default function NutritionCategoryListTable() {
                     <div className='flex flex-nowrap items-center justify-start gap-2'>
                       <Button
                         type='button'
-                        className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                        variant='outline'
+                        className='text-foreground bg-background hover:bg-muted h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
                         onClick={() => setEditCategory(category)}
                       >
-                        <PencilIcon className='size-3.5' />
+                        <SquarePenIcon className='size-3.5' />
                         Edit
                       </Button>
                       <Button
                         type='button'
                         variant='outline'
-                        className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-10 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-                        onClick={() => setDeleteCategory(category)}
+                        className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                        onClick={() => handleDeleteClick(category)}
                       >
                         <Trash2Icon className='size-3.5' />
                         Remove
@@ -216,6 +224,14 @@ export default function NutritionCategoryListTable() {
         categoryName={deleteCategory?.name}
         isRemoving={isDeleting}
         onConfirm={handleDelete}
+      />
+      <NutritionCategoryRemovalBlockedAlert
+        open={!!blockedDeleteCategory}
+        onOpenChange={(o) => {
+          if (!o) setBlockedDeleteCategory(null);
+        }}
+        categoryName={blockedDeleteCategory?.name}
+        reason={blockedDeleteCategory?.actions.delete_block_reason ?? undefined}
       />
     </>
   );

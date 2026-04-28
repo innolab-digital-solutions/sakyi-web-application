@@ -3,7 +3,6 @@ import * as React from 'react';
 import { base } from '@/config/api/base';
 import { client } from '@/lib/api/client';
 
-import { buildSubmitShortcuts } from './shortcuts';
 import {
   ApiError,
   FormErrors,
@@ -328,6 +327,22 @@ export const useForm = (
     [fields, options.schema],
   );
 
+  const shortcuts = React.useMemo(
+    () => ({
+      get: (url: string, submitOptions?: FormSubmitOptions) =>
+        submit('GET', url, submitOptions),
+      post: (url: string, submitOptions?: FormSubmitOptions) =>
+        submit('POST', url, submitOptions),
+      put: (url: string, submitOptions?: FormSubmitOptions) =>
+        submit('PUT', url, submitOptions),
+      patch: (url: string, submitOptions?: FormSubmitOptions) =>
+        submit('PATCH', url, submitOptions),
+      destroy: (url: string, submitOptions?: FormSubmitOptions) =>
+        submit('DELETE', url, submitOptions),
+    }),
+    [submit],
+  );
+
   return {
     fields,
     errors,
@@ -341,6 +356,6 @@ export const useForm = (
     clearErrors,
     cancel,
     submit,
-    ...buildSubmitShortcuts(submit),
+    ...shortcuts,
   };
 };

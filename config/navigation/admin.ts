@@ -1,9 +1,9 @@
 import {
   Activity,
-  Apple,
   ClipboardCheck,
   Dumbbell,
-  FolderKanban,
+  Fish,
+  HeartHandshakeIcon,
   LayoutDashboard,
   NotebookPen,
   Scale,
@@ -76,32 +76,31 @@ export const ADMIN_NAVIGATION: NavItem[] = [
       },
       {
         name: 'Care Plans',
-        path: '#',
+        path: ADMIN_ROUTES.MODULES.CARE_PLANS.LIST,
       },
       {
         name: 'Daily Task Logs',
-        path: '#',
+        path: ADMIN_ROUTES.MODULES.CARE_PLAN_LOGS.LIST,
       },
       {
         name: 'Operational Logs',
-        path: '#',
+        path: ADMIN_ROUTES.MODULES.OPERATIONAL_LOGS.LIST,
       },
       {
         name: 'Period Reports',
-        path: '#',
+        path: ADMIN_ROUTES.MODULES.PERIOD_REPORTS.LIST,
       },
     ],
   },
-  /** Primary entry to the admin program catalog (`/programs` list + create/edit flows). */
   {
     name: 'Care Programs',
-    icon: FolderKanban,
+    icon: HeartHandshakeIcon,
     path: ADMIN_ROUTES.MODULES.PROGRAMS.LIST,
     subitems: [],
   },
   {
     name: 'Nutrition Library',
-    icon: Apple,
+    icon: Fish,
     path: '#',
     subitems: [
       {
@@ -128,7 +127,7 @@ export const ADMIN_NAVIGATION: NavItem[] = [
         path: ADMIN_ROUTES.MODULES.MOVEMENT_EXERCISES.LIST,
       },
       {
-        name: 'Exercise equipment',
+        name: 'Equipment',
         path: ADMIN_ROUTES.MODULES.MOVEMENT_EQUIPMENT.LIST,
       },
     ],

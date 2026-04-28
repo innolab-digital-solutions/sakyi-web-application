@@ -11,10 +11,7 @@ import DashboardNotification from './DashboardNotification';
 const DashboardHeader = () => {
   const { user } = useAuth();
 
-  const roleName =
-    typeof user?.role === 'object' && user?.role !== null
-      ? user.role.name
-      : String(user?.role ?? '');
+  const roleName = user?.role != null ? String(user.role) : '';
 
   return (
     <header className='border-border bg-background sticky top-0 z-10 w-full shrink-0 border-b px-2.5'>

@@ -11,3 +11,22 @@ export async function getClientProfileById(
     ENDPOINTS.ADMIN.MODULES.CLIENT_PROFILES.DETAIL(String(id)),
   );
 }
+
+export type UploadClientProfileMediaPayload = {
+  files: File[];
+};
+
+export async function uploadClientProfileMedia(
+  id: number,
+  payload: UploadClientProfileMediaPayload,
+): Promise<ApiResponse<ClientProfile>> {
+  const body = new FormData();
+  for (const file of payload.files) {
+    body.append('files[]', file);
+  }
+
+  return http.post<ClientProfile>(
+    ENDPOINTS.ADMIN.MODULES.CLIENT_PROFILES.MEDIA_UPLOAD(String(id)),
+    body,
+  );
+}

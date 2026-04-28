@@ -7,16 +7,19 @@ import { z } from 'zod';
 export const NutritionItemBodySchema = z.object({
   name: z
     .string()
-    .min(1, 'Name is required.')
-    .max(255, 'Name must be at most 255 characters.'),
+    .min(1, 'The name field is required.')
+    .max(255, 'The name field must not be greater than 255 characters.'),
   description: z
     .string()
-    .max(5000, 'Description must be at most 5000 characters.')
+    .max(
+      5000,
+      'The description field must not be greater than 5000 characters.',
+    )
     .nullish(),
   nutrition_category_id: z
-    .number({ error: 'Category is required.' })
+    .number({ error: 'The category field is required.' })
     .int()
-    .positive('Category is required.'),
+    .positive('The category field is required.'),
   default_unit_id: z.number().int().positive().nullish(),
   is_active: z.boolean().default(true),
 });

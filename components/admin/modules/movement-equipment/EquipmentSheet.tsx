@@ -49,7 +49,7 @@ export default function MovementEquipmentSheet({
         <SheetTrigger asChild>
           <Button
             type='button'
-            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
           >
             <PlusIcon className='size-3.5' />
             Add equipment
@@ -58,13 +58,13 @@ export default function MovementEquipmentSheet({
       )}
       <SheetContent className='overflow-y-auto px-6 sm:max-w-md [&>button]:cursor-pointer'>
         <SheetHeader className='px-0'>
-          <SheetTitle className='text-foreground text-md font-bold'>
-            {isEdit ? 'Edit equipment' : 'Add equipment'}
+          <SheetTitle className='text-foreground text-[15.5px] font-bold capitalize'>
+            {isEdit ? 'Edit equipment' : 'Create equipment'}
           </SheetTitle>
-          <SheetDescription className='text-muted-foreground text-sm font-medium'>
+          <SheetDescription className='text-muted-foreground text-[13.5px] font-medium'>
             {isEdit
-              ? 'Update the display name so exercises and programs stay aligned with what clients and coaches expect in the movement library.'
-              : 'Add a catalog entry for gear used in exercises (weights, mats, machines, and similar). New items are available immediately in exercise forms.'}
+              ? 'Update this equipment entry so exercise instructions and movement programs continue using clear, consistent terminology.'
+              : 'Add a movement equipment reference so exercise setup instructions and coaching guidance stay consistent across programs.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (

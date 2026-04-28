@@ -1,7 +1,7 @@
 'use client';
 
 import { format, parseISO } from 'date-fns';
-import { CheckCircle2Icon, FileSignatureIcon } from 'lucide-react';
+import { BanIcon, CheckCircle2Icon, FileSignatureIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -32,11 +32,13 @@ import { getInitials } from '@/lib/utils/string';
 const STATUS_LABEL: Record<EnrollmentContractStatus, string> = {
   assigned: 'Assigned',
   signed: 'Signed',
+  voided: 'Voided',
 };
 
 const CONTRACT_STATUSES: readonly EnrollmentContractStatus[] = [
   'assigned',
   'signed',
+  'voided',
 ];
 
 type ContractColumnKey =
@@ -153,6 +155,11 @@ const STATUS_STYLES: Record<
     className:
       'border-emerald-300/80 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200',
   },
+  voided: {
+    icon: BanIcon,
+    className:
+      'border-rose-300/80 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200',
+  },
 };
 
 function formatDateCell(iso: string | null): string | null {
@@ -223,6 +230,7 @@ export default function EnrollmentContractListTable() {
     const value = controls.params.values.status;
     if (value === 'assigned') return 'assigned';
     if (value === 'signed') return 'signed';
+    if (value === 'voided') return 'voided';
     return 'all';
   }, [controls.params.values.status]);
 
@@ -326,7 +334,7 @@ export default function EnrollmentContractListTable() {
           <TableBody>
             {showSkeleton && (
               <TableSkeletonRows
-                rowCount={3}
+                rowCount={15}
                 columnCount={visibleColumnCount}
                 cellWidths={visibleSkeletonWidths}
               />

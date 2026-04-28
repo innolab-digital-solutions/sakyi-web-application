@@ -2,8 +2,8 @@ import './globals.css';
 
 import type { Metadata } from 'next';
 import type { PropsWithChildren } from 'react';
-import { Toaster } from 'sonner';
 
+import CustomToastProvider from '@/components/providers/CustomToastProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { interFont, notoSansMyanmarFont } from '@/config/fonts';
 import { LanguageProvider } from '@/context/LanguageContext';
@@ -26,7 +26,7 @@ export default function RootLayout({ children }: Readonly<PropsWithChildren>) {
             <LanguageProvider>{children}</LanguageProvider>
           </TooltipProvider>
         </TanstackQueryProvider>
-        <Toaster position='top-right' />
+        <CustomToastProvider />
       </body>
     </html>
   );

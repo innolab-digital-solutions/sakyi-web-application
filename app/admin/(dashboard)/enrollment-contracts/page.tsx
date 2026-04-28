@@ -7,7 +7,7 @@ import EnrollmentContractListTable from '@/components/admin/modules/enrollment-c
 export const metadata: Metadata = {
   title: 'Contracts & E-Signatures | SaKyi Admin',
   description:
-    'Browse and manage all enrollment contracts and e-signature requests. Track signature status, notifications, and match each contract to its related intake and enrollment request.',
+    'Browse and manage enrollment contracts and e-signature requests, with visibility into signature progress, notification activity, and related intake or enrollment records.',
 };
 
 export default function EnrollmentContractsPage() {
@@ -15,7 +15,7 @@ export default function EnrollmentContractsPage() {
     <div className='space-y-8'>
       <PageHeader
         title='Contracts & E-Signatures'
-        description='Browse and manage all enrollment contracts and e-signature requests. Track signature status, notifications, and match each contract to its related intake and enrollment request.'
+        description='Browse and manage enrollment contracts and e-signature requests, with visibility into signature progress, notification activity, and related intake or enrollment records.'
       />
 
       <Suspense

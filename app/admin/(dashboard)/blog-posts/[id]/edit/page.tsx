@@ -1,9 +1,13 @@
 'use client';
 
+import { ArrowLeftIcon } from 'lucide-react';
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
 import PageHeader from '@/components/admin/layout/PageHeader';
 import BlogPostForm from '@/components/admin/modules/blog-posts/PostForm';
+import { Button } from '@/components/ui/button';
+import { ROUTES } from '@/config/routes';
 
 export default function BlogPostEditPage() {
   const params = useParams<{ id: string }>();
@@ -12,8 +16,21 @@ export default function BlogPostEditPage() {
   return (
     <div className='space-y-8'>
       <PageHeader
-        title='Edit blog post'
-        description='Updates both language versions of this post. Revise titles, excerpts, and rich text; change category, thumbnail, or published switch as needed. Save when the library and public blog should show the latest content and visibility.'
+        title='Edit Blog Post'
+        description='Edit bilingual blog content and update category, thumbnail, or publish status so the article remains accurate and aligned with editorial standards.'
+        actions={
+          <Button
+            asChild
+            type='button'
+            variant='outline'
+            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+          >
+            <Link href={ROUTES.ADMIN.MODULES.BLOG_POSTS.LIST}>
+              <ArrowLeftIcon className='size-3.5' />
+              Back to Blog Posts
+            </Link>
+          </Button>
+        }
       />
 
       {Number.isNaN(id) ? (

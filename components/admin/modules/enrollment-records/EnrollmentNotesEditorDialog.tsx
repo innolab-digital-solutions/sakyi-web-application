@@ -69,8 +69,9 @@ export default function EnrollmentNotesEditorDialog({
               onSubmit={onSubmit}
               className='flex min-h-0'
             >
-              <div className='min-h-0 flex-1 overflow-y-auto p-4'>
+              <div className='min-h-0 flex-1 overflow-y-auto p-6'>
                 <TextAreaField
+                  label='Notes'
                   placeholder='Enter any relevant internal notes for this enrollment (visible to staff only)'
                   value={notesBody}
                   onChange={(e) => {

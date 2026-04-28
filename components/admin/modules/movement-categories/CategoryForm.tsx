@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useQueryClient } from '@tanstack/react-query';
+import { FolderPlusIcon, SaveIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -97,6 +98,11 @@ export default function MovementCategoryForm({
 
   const submit = async () => {
     if (isEdit) {
+      if (!form.isDirty) {
+        toast.info('There are no changes to save.');
+        return;
+      }
+
       await form.patch(
         ENDPOINTS.ADMIN.MODULES.MOVEMENT_CATEGORIES.DETAIL(String(category.id)),
         {
@@ -113,7 +119,9 @@ export default function MovementCategoryForm({
             queryClient.invalidateQueries({
               queryKey: movementCategoryParentPickerQueryKey,
             });
-            toast.success('Movement category updated successfully.');
+            toast.success(
+              'The movement category has been updated successfully.',
+            );
             if (onSuccess) onSuccess();
             else router.push(ROUTES.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST);
           },
@@ -136,7 +144,7 @@ export default function MovementCategoryForm({
         queryClient.invalidateQueries({
           queryKey: movementCategoryParentPickerQueryKey,
         });
-        toast.success('Movement category created successfully.');
+        toast.success('The movement category has been created successfully.');
         if (onSuccess) onSuccess();
         else router.push(ROUTES.ADMIN.MODULES.MOVEMENT_CATEGORIES.LIST);
       },
@@ -158,9 +166,9 @@ export default function MovementCategoryForm({
     >
       <div className='space-y-6'>
         <TextField
-          label='Name'
+          label='Category Name'
           required
-          placeholder='e.g. Strength Training'
+          placeholder='Enter category name (e.g. Strength Training)'
           value={String(form.fields.name ?? '')}
           onChange={(e) => form.setData('name', e.target.value)}
           error={form.errors.name}
@@ -168,17 +176,17 @@ export default function MovementCategoryForm({
         <TextAreaField
           label='Description'
           name='description'
-          placeholder='Optional description for this movement category…'
+          placeholder='Enter a brief description for this category'
           rows={3}
           value={String(form.fields.description ?? '')}
           onChange={(e) => form.setData('description', e.target.value)}
           error={form.errors.description}
         />
         <ComboboxField
-          label='Parent movement category'
-          placeholder='Select a top-level movement category…'
-          searchPlaceholder='Search top-level movement categories…'
-          emptyMessage='No top-level movement categories found.'
+          label='Parent Category'
+          placeholder='Please select a root category'
+          searchPlaceholder='Search root categories…'
+          emptyMessage='No categories found.'
           options={parentOptions}
           value={form.fields.parent_id ? String(form.fields.parent_id) : null}
           onChange={(val) =>
@@ -192,7 +200,7 @@ export default function MovementCategoryForm({
             type='button'
             variant='outline'
             disabled={loading}
-            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
             onClick={() =>
               onSuccess
                 ? onSuccess()
@@ -204,8 +212,13 @@ export default function MovementCategoryForm({
           <Button
             type='submit'
             disabled={loading}
-            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
           >
+            {isEdit ? (
+              <SaveIcon className='size-3.5' />
+            ) : (
+              <FolderPlusIcon className='size-3.5' />
+            )}
             {loading
               ? isEdit
                 ? 'Saving Changes…'

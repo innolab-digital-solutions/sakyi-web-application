@@ -8,9 +8,13 @@ export type EnrollmentRequestResource = {
   id: number;
   code: string;
   phone: string;
+  /** Free-form notes when returned by the admin API. */
+  notes?: string | null;
   status: EnrollmentRequestStatus;
-  notes: string | null;
-  contacted_at: string | null; // ISO 8601
+  cancellation_note: string | null;
+  contacted_at: string | null;
+  completed_at: string | null;
+  cancelled_at: string | null;
   client?: {
     id: number;
     name: string;
@@ -36,6 +40,7 @@ export type EnrollmentRequestResource = {
   onboarding_intake?: {
     id: number;
     code: string;
+    status: 'draft' | 'in_progress' | 'completed' | 'cancelled';
   } | null;
   timestamps: {
     created_at: string | null; // ISO 8601

@@ -49,22 +49,22 @@ export default function NutritionCategorySheet({
         <SheetTrigger asChild>
           <Button
             type='button'
-            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
           >
             <PlusIcon className='size-3.5' />
-            Add Food Category
+            Add food category
           </Button>
         </SheetTrigger>
       )}
       <SheetContent className='overflow-y-auto px-6 sm:max-w-md [&>button]:cursor-pointer'>
         <SheetHeader className='px-0'>
-          <SheetTitle className='text-foreground text-md font-bold'>
-            {isEdit ? 'Edit Food Category' : 'Add Food Category'}
+          <SheetTitle className='text-foreground text-[15.5px] font-bold capitalize'>
+            {isEdit ? 'Edit food category' : 'Create food category'}
           </SheetTitle>
-          <SheetDescription className='text-muted-foreground text-sm font-medium'>
+          <SheetDescription className='text-muted-foreground text-[13.5px] font-medium'>
             {isEdit
-              ? 'Update name, description, and parent so items stay organized in the nutrition library.'
-              : 'Add a category to group food items. Optional parent links build a simple hierarchy.'}
+              ? 'Update the category name, description, or parent link so food items remain organized across nutrition planning and tracking.'
+              : 'Create a food category to group nutrition items clearly and keep planning and operational records consistent.'}
           </SheetDescription>
         </SheetHeader>
         {isEdit ? (

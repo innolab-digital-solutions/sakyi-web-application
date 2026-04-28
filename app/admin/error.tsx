@@ -1,41 +1,42 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect } from 'react';
 
-import { Button } from '@/components/ui/button';
+import ErrorStatusPage from '@/components/shared/ErrorStatusPage';
 import { ROUTES } from '@/config/routes';
-import { reportClientError } from '@/lib/sentry/client';
+import {
+  getErrorPresentation,
+  resolveStatusFromUnknownError,
+} from '@/lib/errors/http-status';
 
 type AdminErrorProps = {
   error: Error & { digest?: string };
+  unstable_retry?: () => void;
   reset: () => void;
 };
 
-export default function AdminError({ error, reset }: AdminErrorProps) {
+export default function AdminError({
+  error,
+  unstable_retry,
+  reset,
+}: AdminErrorProps) {
   useEffect(() => {
-    reportClientError(error, { digest: error.digest, segment: 'admin' });
+    console.error(error);
   }, [error]);
 
+  const status = resolveStatusFromUnknownError(error, 500);
+  const presentation = getErrorPresentation(status);
+  const retry = unstable_retry ?? reset;
+
   return (
-    <div className='flex min-h-[40vh] flex-col items-center justify-center gap-6 px-4 py-12'>
-      <div className='max-w-md space-y-2 text-center'>
-        <h1 className='text-foreground text-lg font-semibold'>
-          Admin area error
-        </h1>
-        <p className='text-muted-foreground text-sm'>
-          This section hit an unexpected error. Try again or go back to the
-          dashboard.
-        </p>
-      </div>
-      <div className='flex flex-wrap justify-center gap-3'>
-        <Button type='button' onClick={() => reset()}>
-          Try again
-        </Button>
-        <Button asChild variant='outline'>
-          <Link href={ROUTES.ADMIN.MODULES.OVERVIEW}>Overview</Link>
-        </Button>
-      </div>
-    </div>
+    <ErrorStatusPage
+      presentation={presentation}
+      onRetry={retry}
+      retryLabel='Try again'
+      primaryHref={ROUTES.ADMIN.MODULES.OVERVIEW}
+      primaryLabel='Back to overview'
+      secondaryHref='/'
+      secondaryLabel='Go to website'
+    />
   );
 }

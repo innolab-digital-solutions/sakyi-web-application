@@ -1,6 +1,7 @@
 'use client';
 
-import { AlertCircle, PlusIcon, Trash2Icon } from 'lucide-react';
+import { PlusIcon, Trash2Icon } from 'lucide-react';
+import * as React from 'react';
 
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
@@ -13,6 +14,7 @@ type Props = {
   description?: string;
   value: ProgramStructureItem[];
   onChange: (value: ProgramStructureItem[]) => void;
+  locale?: 'en' | 'my';
   error?: string;
   disabled?: boolean;
 };
@@ -28,41 +30,43 @@ export default function StructureRepeaterField({
   description,
   value,
   onChange,
+  locale = 'en',
   error,
   disabled = false,
 }: Props) {
-  const rows = value.length > 0 ? value : [];
-
-  const updateRow = (
-    index: number,
-    field: keyof ProgramStructureItem,
-    fieldValue: string,
-  ) => {
-    const next = rows.map((row, i) =>
-      i === index ? { ...row, [field]: fieldValue } : row,
-    );
-    onChange(next);
-  };
+  const rows = value.filter(
+    (row) => row.period.trim() || row.title.trim() || row.description.trim(),
+  );
+  const [draftRow, setDraftRow] = React.useState<ProgramStructureItem>(() =>
+    emptyRow(),
+  );
+  const periodError = error ? 'The period field is required.' : undefined;
+  const titleError = error ? 'The title field is required.' : undefined;
+  const descriptionError = error
+    ? 'The description field is required.'
+    : undefined;
 
   const removeRow = (index: number) => {
     onChange(rows.filter((_, i) => i !== index));
   };
 
   const addRow = () => {
-    onChange([...rows, emptyRow()]);
+    const nextRow = {
+      period: draftRow.period.trim(),
+      title: draftRow.title.trim(),
+      description: draftRow.description.trim(),
+    };
+    if (!nextRow.period || !nextRow.title || !nextRow.description) return;
+    onChange([...rows, nextRow]);
+    setDraftRow(emptyRow());
   };
 
   return (
-    <div
-      className={cn(
-        'space-y-3 rounded-md border p-4 sm:p-4',
-        error
-          ? 'border-destructive bg-destructive/4'
-          : 'border-border bg-muted/15',
-      )}
-    >
+    <div className='border-border bg-muted/15 space-y-3 rounded-md border p-4 sm:p-4'>
       <div className='space-y-1'>
-        <p className='text-foreground text-sm font-semibold'>{label}</p>
+        <p className='text-foreground text-[13px] font-semibold'>
+          {label} <span className='text-destructive'>*</span>
+        </p>
         {description ? (
           <p className='text-muted-foreground text-xs leading-relaxed font-medium'>
             {description}
@@ -74,97 +78,114 @@ export default function StructureRepeaterField({
         <div
           className={cn(
             'rounded-md border border-dashed py-8 text-center text-xs font-medium',
-            error
-              ? 'border-destructive/60 bg-destructive/4 text-destructive/90'
-              : 'border-border/70 bg-background/60 text-muted-foreground',
+            'border-border/70 bg-background/60 text-muted-foreground',
           )}
         >
-          No structure blocks yet. Add a period with title and description.
+          No structure items available. Add a period, title, and description to
+          begin.
         </div>
       ) : (
         <ul className='space-y-3'>
           {rows.map((row, index) => (
             <li
               key={index}
-              className='border-border bg-background space-y-3 rounded-md border p-3 shadow-xs sm:p-4'
+              className='border-border bg-background rounded-md border px-3 py-2.5 text-sm shadow-xs'
             >
-              <div className='flex items-center justify-between gap-2'>
-                <span className='text-muted-foreground text-[11px] font-semibold tracking-wide uppercase'>
-                  Phase {index + 1}
+              <div className='flex items-center'>
+                <span className='text-foreground/90 w-6 shrink-0 text-[13px] font-medium tabular-nums'>
+                  {index + 1}.
                 </span>
-                <Button
+                <p className='text-foreground/90 line-clamp-1 min-w-0 flex-1 text-[13px] font-medium wrap-break-word'>
+                  {row.period} - {row.title}
+                </p>
+                <button
                   type='button'
-                  variant='ghost'
-                  size='sm'
                   disabled={disabled}
                   onClick={() => removeRow(index)}
-                  className='text-destructive hover:text-destructive h-8 gap-1 px-2 text-[13px]! font-semibold'
+                  className={cn(
+                    'text-muted-foreground hover:text-destructive shrink-0 rounded-sm p-1 transition-colors',
+                    'focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none',
+                    'disabled:pointer-events-none disabled:opacity-40',
+                  )}
+                  aria-label={`Remove structure block ${index + 1}`}
                 >
                   <Trash2Icon className='size-3.5' />
-                  Remove
-                </Button>
+                </button>
               </div>
-              <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
-                <TextField
-                  label='Period'
-                  disabled={disabled}
-                  placeholder='e.g. Week 1–2'
-                  value={row.period}
-                  onChange={(e) => updateRow(index, 'period', e.target.value)}
-                />
-                <div className='sm:col-span-2'>
-                  <TextField
-                    label='Title'
-                    disabled={disabled}
-                    placeholder='Phase title'
-                    value={row.title}
-                    onChange={(e) => updateRow(index, 'title', e.target.value)}
-                  />
-                </div>
-                <div className='sm:col-span-3'>
-                  <TextAreaField
-                    label='Description'
-                    disabled={disabled}
-                    placeholder='What happens in this phase'
-                    value={row.description}
-                    onChange={(e) =>
-                      updateRow(index, 'description', e.target.value)
-                    }
-                    rows={3}
-                    className='min-h-18'
-                  />
-                </div>
-              </div>
+              <p className='text-muted-foreground pt-1 pl-6 text-xs leading-snug font-medium wrap-break-word'>
+                {row.description}
+              </p>
             </li>
           ))}
         </ul>
       )}
 
+      <div className='border-border my-4 border-t' />
+
+      <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
+        <TextField
+          label='Phase Period'
+          disabled={disabled}
+          placeholder={
+            locale === 'en'
+              ? 'Enter period (e.g. Week 1-2)'
+              : 'ကာလအပိုင်းကို ထည့်ပါ (ဥပမာ - အပတ် ၁-၂)'
+          }
+          value={draftRow.period}
+          onChange={(e) =>
+            setDraftRow((prev) => ({ ...prev, period: e.target.value }))
+          }
+          error={periodError}
+        />
+        <div className='sm:col-span-2'>
+          <TextField
+            label='Title'
+            disabled={disabled}
+            placeholder={
+              locale === 'en' ? 'Enter phase title' : 'အဆင့်ခေါင်းစဉ်ကို ထည့်ပါ'
+            }
+            value={draftRow.title}
+            onChange={(e) =>
+              setDraftRow((prev) => ({ ...prev, title: e.target.value }))
+            }
+            error={titleError}
+          />
+        </div>
+        <div className='sm:col-span-3'>
+          <TextAreaField
+            label='Description'
+            disabled={disabled}
+            placeholder={
+              locale === 'en'
+                ? 'Enter a description for this phase'
+                : 'ဤအဆင့်အတွက် ဖော်ပြချက်ကို ထည့်ပါ'
+            }
+            value={draftRow.description}
+            onChange={(e) =>
+              setDraftRow((prev) => ({ ...prev, description: e.target.value }))
+            }
+            rows={3}
+            className='min-h-18'
+            error={descriptionError}
+          />
+        </div>
+      </div>
+
       <Button
         type='button'
         variant='outline'
-        disabled={disabled}
+        disabled={
+          disabled ||
+          !draftRow.period.trim() ||
+          !draftRow.title.trim() ||
+          !draftRow.description.trim()
+        }
         onClick={addRow}
-        className={cn(
-          'h-10 w-full gap-1.5 rounded-md px-3 text-[13px]! font-semibold sm:w-auto md:h-12',
-          error
-            ? 'border-destructive/60 bg-destructive/4 text-destructive hover:bg-destructive/10'
-            : 'text-foreground bg-background hover:bg-muted border-neutral-300',
-        )}
+        className='text-foreground bg-background hover:bg-muted h-10 w-full gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold md:h-12'
       >
         <PlusIcon className='size-3.5' />
-        Add structure block
+        Add Structure Block
       </Button>
-
-      {error ? (
-        <p
-          className='text-destructive flex items-center gap-2 text-xs font-medium md:text-[13px]'
-          role='alert'
-        >
-          <AlertCircle className='size-4 shrink-0' />
-          <span>{error}</span>
-        </p>
-      ) : null}
     </div>
   );
 }

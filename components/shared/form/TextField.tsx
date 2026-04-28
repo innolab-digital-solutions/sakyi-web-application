@@ -10,12 +10,18 @@ import { cn } from '@/lib/utils/styles';
 /**
  * Props for the TextField component. Extends the underlying input with optional label and error display.
  */
+export type TextFieldVariant = 'default' | 'tableDense';
+
 export type CustomInputProps = Omit<
   React.ComponentPropsWithoutRef<typeof ShadCNInput>,
   'aria-invalid' | 'aria-describedby'
 > & {
   label?: string;
   error?: string;
+  /**
+   * `tableDense`: short flat inputs for data tables (smaller than summary row fields).
+   */
+  variant?: TextFieldVariant;
 };
 
 /**
@@ -36,6 +42,7 @@ const TextField = React.forwardRef<HTMLInputElement, CustomInputProps>(
       disabled,
       className,
       placeholder,
+      variant = 'default',
       ...rest
     },
     ref,
@@ -47,9 +54,13 @@ const TextField = React.forwardRef<HTMLInputElement, CustomInputProps>(
     const [showPassword, setShowPassword] = React.useState(false);
     const inputType = isPassword && showPassword ? 'text' : type;
 
+    const isTableDense = variant === 'tableDense';
     const responsiveInputClass = cn(
-      'text-xs h-10 px-3 font-medium border-neutral-200',
-      'md:text-sm md:h-12 md:px-4',
+      isTableDense
+        ? // Page surface bg; no shadow; focus ring matches components/ui/input.tsx
+          'h-[2.1875rem]! min-h-[2.1875rem]! w-full min-w-0 rounded-sm border! border-neutral-200! bg-background! px-2! py-0! text-xs! font-medium! leading-tight! tabular-nums! text-foreground! shadow-none! transition-[color,box-shadow] outline-none! focus-visible:border-ring! focus-visible:ring-[3px]! focus-visible:ring-ring/50! md:h-[2.1875rem]! md:min-h-[2.1875rem]! md:px-2! md:py-0! md:text-xs!'
+        : 'text-xs h-10 px-3 font-medium border-neutral-200',
+      !isTableDense && 'md:text-sm md:h-12 md:px-4',
       isPassword && 'pr-10',
       error &&
         'border-destructive bg-destructive/4 focus-visible:ring-destructive/20',
@@ -85,7 +96,7 @@ const TextField = React.forwardRef<HTMLInputElement, CustomInputProps>(
     const inputElement = <ShadCNInput {...inputProps} />;
 
     return (
-      <div className='space-y-2'>
+      <div className={isTableDense ? 'w-full space-y-0' : 'space-y-2'}>
         {label && (
           <ShadCNLabel htmlFor={id} className={responsiveLabelClass}>
             {label}

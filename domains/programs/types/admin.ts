@@ -40,17 +40,23 @@ export type Program = {
   }[];
   thumbnail_url?: string | null;
   duration?: string | null;
-  price: {
-    amount: number;
-    currency: string;
-  };
+  price:
+    | number
+    | {
+        amount: number;
+        currency: string;
+      };
   status: (typeof STATUS)[keyof typeof STATUS];
+  actions: {
+    deletable: boolean;
+    delete_block_reason?: string | null;
+  };
   timestamps: {
     published_at: string | null;
     archived_at: string | null;
     created_at: string;
     updated_at: string;
   };
-  goals?: { id: string; name: string; slug: string }[];
+  goals?: { id: number | string; name: string; slug: string }[];
   enrolled_count?: number;
 };

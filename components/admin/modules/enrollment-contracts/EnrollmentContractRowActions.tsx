@@ -102,7 +102,7 @@ export default function EnrollmentContractRowActions({
             className='inline-flex items-center gap-1.5'
           >
             <EyeIcon className='size-3.5 shrink-0' />
-            View detail
+            View Detail
           </Link>
         </Button>
       ) : null}
@@ -115,7 +115,7 @@ export default function EnrollmentContractRowActions({
           onClick={() => onOpenCreateEnrollment(contract.id)}
         >
           <FileSignatureIcon className='size-3.5 shrink-0' />
-          Create enrollment
+          Create Enrollment
         </Button>
       ) : null}
 
@@ -155,7 +155,7 @@ export default function EnrollmentContractRowActions({
                     )}
                   >
                     <EyeIcon className='size-3.5 shrink-0' />
-                    View detail
+                    View Detail
                   </Link>
                 </DropdownMenuItem>
               ) : null}
@@ -178,7 +178,7 @@ export default function EnrollmentContractRowActions({
                   onClick={() => onOpenCreateEnrollment(contract.id)}
                 >
                   <FileSignatureIcon className='size-3.5 shrink-0' />
-                  Create enrollment
+                  Create Enrollment
                 </DropdownMenuItem>
               ) : null}
             </>

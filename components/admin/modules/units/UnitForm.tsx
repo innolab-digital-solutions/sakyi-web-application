@@ -1,6 +1,7 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
+import { SaveIcon, Scale } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -87,12 +88,17 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
 
   const submit = async () => {
     if (isEdit) {
+      if (!form.isDirty) {
+        toast.info('There are no changes to save.');
+        return;
+      }
+
       await form.patch(ENDPOINTS.ADMIN.MODULES.UNITS.DETAIL(String(unit.id)), {
         onSuccess: () => {
           queryClient.invalidateQueries({
             queryKey: ['table', ENDPOINTS.ADMIN.MODULES.UNITS.LIST],
           });
-          toast.success('Measurement reference updated successfully.');
+          toast.success('The measurement has been updated successfully.');
           if (onSuccess) onSuccess();
           else router.push(ROUTES.ADMIN.MODULES.UNITS.LIST);
         },
@@ -108,7 +114,7 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
         queryClient.invalidateQueries({
           queryKey: ['table', ENDPOINTS.ADMIN.MODULES.UNITS.LIST],
         });
-        toast.success('Measurement reference added to the catalog.');
+        toast.success('The measurement has been created successfully.');
         if (onSuccess) onSuccess();
         else router.push(ROUTES.ADMIN.MODULES.UNITS.LIST);
       },
@@ -137,9 +143,9 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
     >
       <div className='space-y-6'>
         <TextField
-          label='Name'
+          label='Measurement Name'
           required
-          placeholder='e.g. Kilogram'
+          placeholder='Enter measurement name (e.g., Kilograms)'
           value={String(form.fields.name ?? '')}
           onChange={(e) => form.setData('name', e.target.value)}
           error={form.errors.name}
@@ -147,7 +153,7 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
         <TextField
           label='Abbreviation'
           required
-          placeholder='e.g. kg'
+          placeholder='Enter short label (e.g., kg)'
           value={String(form.fields.abbreviation ?? '')}
           onChange={(e) => form.setData('abbreviation', e.target.value)}
           error={form.errors.abbreviation}
@@ -158,10 +164,10 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
               ? `edit-type-${unit.id}-${typeSelectValue ?? 'none'}`
               : 'create-type'
           }
-          label='Type'
+          label='Measurement Type'
           name='type'
           required
-          placeholder='Select a type…'
+          placeholder='Choose measurement group'
           options={UNIT_TYPE_OPTIONS}
           value={typeSelectValue}
           onChange={(val) =>
@@ -175,7 +181,7 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
             type='button'
             variant='outline'
             disabled={loading}
-            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+            className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
             onClick={() =>
               onSuccess
                 ? onSuccess()
@@ -187,8 +193,13 @@ export default function UnitForm({ mode, unit, onSuccess }: Props) {
           <Button
             type='submit'
             disabled={loading}
-            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+            className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
           >
+            {isEdit ? (
+              <SaveIcon className='size-3.5' />
+            ) : (
+              <Scale className='size-3.5' />
+            )}
             {loading
               ? isEdit
                 ? 'Saving Changes…'
