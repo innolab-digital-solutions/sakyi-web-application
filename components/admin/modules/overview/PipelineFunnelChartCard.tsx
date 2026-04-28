@@ -22,7 +22,7 @@ export default function PipelineFunnelChartCard({
 }: PipelineFunnelChartCardProps) {
   return (
     <div className='border-border bg-background rounded-md border p-4 md:p-5'>
-      <div className='space-y-1.5 mb-3'>
+      <div className='mb-3 space-y-1.5'>
         <h3 className='text-foreground text-[13.5px]! font-semibold'>
           Enrollment Pipeline Funnel
         </h3>
@@ -33,7 +33,10 @@ export default function PipelineFunnelChartCard({
       </div>
       <div className='pt-3'>
         {stages.length ? (
-          <ChartContainer className='ml-1 h-72 w-[calc(100%+0.75rem)]' config={chartConfig}>
+          <ChartContainer
+            className='ml-1 h-72 w-[calc(100%+0.75rem)]'
+            config={chartConfig}
+          >
             <BarChart
               data={stages}
               margin={{ top: 8, right: 4, bottom: 0, left: -8 }}
@@ -56,7 +59,12 @@ export default function PipelineFunnelChartCard({
                 cursor={false}
                 content={<ChartTooltipContent indicator='line' />}
               />
-              <Bar dataKey='count' fill='var(--color-count)' radius={10} barSize={72}>
+              <Bar
+                dataKey='count'
+                fill='var(--color-count)'
+                radius={10}
+                barSize={72}
+              >
                 {stages.map((entry) => (
                   <Cell key={entry.key} fill='var(--color-count)' />
                 ))}

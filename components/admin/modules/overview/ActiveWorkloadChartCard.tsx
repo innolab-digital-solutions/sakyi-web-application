@@ -24,27 +24,37 @@ export default function ActiveWorkloadChartCard({
   bars,
 }: ActiveWorkloadChartCardProps) {
   return (
-    <div className='rounded-md border border-border bg-white p-4 shadow-xs md:p-5'>
-      <div className='space-y-2'>
-        <h3 className='text-foreground text-base font-semibold'>
-          Active workload by program
+    <div className='border-border bg-background rounded-md border p-4 md:p-5'>
+    <div className='mb-3 space-y-1.5'>
+      <h3 className='text-foreground text-[13.5px]! font-semibold'>
+          Program Workload Distribution
         </h3>
-        <p className='text-muted-foreground text-sm'>
-          Current active enrollments distributed by program.
+        <p className='text-muted-foreground text-xs font-medium'>
+          Compare active enrollment volume by program to balance operational
+          capacity and prioritize delivery planning.
         </p>
       </div>
       <div className='pt-3'>
         {bars.length ? (
-          <ChartContainer className='h-80 w-full' config={chartConfig}>
-            <BarChart data={bars} layout='vertical' margin={{ left: 24, right: 12 }}>
+          <ChartContainer className='ml-1 h-80 w-[calc(100%+0.75rem)]' config={chartConfig}>
+            <BarChart
+              data={bars}
+              layout='vertical'
+              margin={{ top: 8, right: 6, bottom: 0, left: -8 }}
+            >
               <CartesianGrid horizontal={false} />
-              <XAxis type='number' allowDecimals={false} />
+              <XAxis
+                type='number'
+                allowDecimals={false}
+                tick={{ fontSize: 12, fontWeight: 500 }}
+              />
               <YAxis
                 type='category'
                 dataKey='program_title'
-                width={170}
+                width={178}
                 tickLine={false}
                 axisLine={false}
+                tick={{ fontSize: 12, fontWeight: 500 }}
               />
               <ChartTooltip
                 cursor={false}
@@ -53,7 +63,8 @@ export default function ActiveWorkloadChartCard({
               <Bar
                 dataKey='active_enrollments'
                 fill='var(--color-active_enrollments)'
-                radius={8}
+                radius={10}
+                barSize={34}
               />
             </BarChart>
           </ChartContainer>

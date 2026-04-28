@@ -26,8 +26,8 @@ export default function OperationalOverviewCard({
             Operational Performance Summary
           </h2>
           <p className='text-muted-foreground text-[12.5px]! font-medium'>
-            Track key service indicators across enrollment pipeline health, care
-            plan oversight, report readiness, and active program workload.
+            Review stage-by-stage pipeline conversion, monthly request versus
+            enrollment movement, and active workload distribution across programs.
           </p>
         </div>
         <div className='lg:ml-6 lg:pt-0.5'>

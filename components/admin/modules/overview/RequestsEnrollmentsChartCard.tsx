@@ -28,7 +28,7 @@ export default function RequestsEnrollmentsChartCard({
           Request vs Enrollment Trend
         </h3>
         <p className='text-muted-foreground text-xs font-medium'>
-          Track monthly request intake against enrollment conversion to monitor
+          Track monthly enrollment requests against enrollment records to monitor
           growth momentum and operational throughput.
         </p>
       </div>
