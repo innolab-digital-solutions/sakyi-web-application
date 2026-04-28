@@ -19,6 +19,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
 
+import { AdminWorkspaceSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import OperationalLogMediaPreviewModal from '@/components/admin/modules/care-plans/OperationalLogMediaPreviewModal';
 import ReviewOperationalLogMetricsDialog from '@/components/admin/modules/care-plans/ReviewOperationalLogMetricsDialog';
 import SaveCarePlanDataConfirmation from '@/components/admin/modules/care-plans/SaveCarePlanDataConfirmation';
@@ -1248,10 +1249,7 @@ export default function CarePlanReportWorkspace({
           ) : !workspace && workspaceFetching ? (
             <>
               <div className='border-border/70 border-t' />
-              <div className='text-muted-foreground border-border/80 bg-muted/10 flex items-center justify-center gap-2 rounded-md border border-dashed p-10 text-sm'>
-                <Loader2Icon className='size-4 animate-spin' />
-                Loading workspace…
-              </div>
+              <AdminWorkspaceSkeleton />
             </>
           ) : workspace ? (
             <>

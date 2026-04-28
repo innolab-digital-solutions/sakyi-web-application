@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
 
+import { AdminWorkspaceSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import CarePlanDayNoteModal from '@/components/admin/modules/care-plans/CarePlanDayNoteModal';
 import CarePlanFinalizeConfirmation from '@/components/admin/modules/care-plans/CarePlanFinalizeConfirmation';
 import CarePlanGenerateDaysModal from '@/components/admin/modules/care-plans/CarePlanGenerateDaysModal';
@@ -1700,11 +1701,7 @@ export default function CarePlanBuilder({
   };
 
   if (builderQuery.isPending) {
-    return (
-      <div className='text-muted-foreground text-sm'>
-        Loading care plan workspace...
-      </div>
-    );
+    return <AdminWorkspaceSkeleton />;
   }
 
   if (builderQuery.isError) {

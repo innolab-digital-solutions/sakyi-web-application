@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import { AdminFormPageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
 import { Button } from '@/components/ui/button';
@@ -174,9 +175,7 @@ function BlogCategoryEditFormLoader({
   });
 
   if (enDetailQuery.isPending || myDetailQuery.isPending) {
-    return (
-      <p className='text-muted-foreground text-sm'>Loading translations…</p>
-    );
+    return <AdminFormPageSkeleton />;
   }
 
   if (enDetailQuery.isError || myDetailQuery.isError) {

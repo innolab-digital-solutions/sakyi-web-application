@@ -13,6 +13,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
+import { AdminWorkspaceSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -296,7 +297,7 @@ export default function IntakeDetailPanel({
   });
 
   if (intakeQuery.isPending) {
-    return <p className='text-muted-foreground text-sm'>Loading intake...</p>;
+    return <AdminWorkspaceSkeleton />;
   }
 
   if (intakeQuery.data?.status === 'error') {

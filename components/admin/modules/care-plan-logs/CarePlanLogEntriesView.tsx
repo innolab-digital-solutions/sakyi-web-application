@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { ExternalLinkIcon } from 'lucide-react';
 
+import { Skeleton } from '@/components/ui/skeleton';
 import TableListShell from '@/components/admin/layout/TableListShell';
 import TextField from '@/components/shared/form/TextField';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
@@ -124,7 +125,11 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
     <div className='space-y-5'>
       <div className='border-border rounded-md border bg-white p-4 shadow-xs'>
         {summaryQuery.isPending ? (
-          <p className='text-muted-foreground text-sm'>Loading summary...</p>
+          <div className='space-y-3'>
+            <Skeleton className='h-4 w-40 rounded-sm' />
+            <Skeleton className='h-3 w-60 rounded-sm' />
+            <Skeleton className='h-2.5 w-full rounded-full' />
+          </div>
         ) : summaryQuery.isError ? (
           <p className='text-destructive text-sm'>
             {summaryQuery.error instanceof Error

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
+import { AdminTablePageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import PageHeader from '@/components/admin/layout/PageHeader';
 import NutritionItemListTable from '@/components/admin/modules/nutrition-items/ItemListTable';
 import NutritionItemSheet from '@/components/admin/modules/nutrition-items/ItemSheet';
@@ -20,13 +21,7 @@ export default function NutritionItemListPage() {
         actions={<NutritionItemSheet mode='create' />}
       />
 
-      <Suspense
-        fallback={
-          <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-            Loading…
-          </div>
-        }
-      >
+      <Suspense fallback={<AdminTablePageSkeleton />}>
         <NutritionItemListTable />
       </Suspense>
     </div>

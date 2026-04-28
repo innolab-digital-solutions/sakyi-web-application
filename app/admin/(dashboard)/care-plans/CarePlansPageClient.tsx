@@ -3,6 +3,7 @@
 import { PlusIcon } from 'lucide-react';
 import { Suspense, useState } from 'react';
 
+import { AdminTablePageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import PageHeader from '@/components/admin/layout/PageHeader';
 import CarePlanCreateModal from '@/components/admin/modules/care-plans/CarePlanCreateModal';
 import CarePlanListTable from '@/components/admin/modules/care-plans/CarePlanListTable';
@@ -30,13 +31,7 @@ export default function CarePlansPageClient() {
 
       <CarePlanCreateModal open={createOpen} onOpenChange={setCreateOpen} />
 
-      <Suspense
-        fallback={
-          <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-            Loading care plans…
-          </div>
-        }
-      >
+      <Suspense fallback={<AdminTablePageSkeleton />}>
         <CarePlanListTable />
       </Suspense>
     </div>

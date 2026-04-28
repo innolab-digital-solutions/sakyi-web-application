@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
+import { AdminTablePageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import PageHeader from '@/components/admin/layout/PageHeader';
 import EnrollmentRequestListTable from '@/components/admin/modules/enrollment-requests/EnrollmentRequestListTable';
 
@@ -18,11 +19,7 @@ export default function EnrollmentRequestsPage() {
         description='Triage incoming enrollment requests with status-based filtering, full request context, first-contact tracking, and clear handoff into intake when the client is ready.'
       />
 
-      <Suspense
-        fallback={
-          <div className='text-muted-foreground text-sm'>Loading...</div>
-        }
-      >
+      <Suspense fallback={<AdminTablePageSkeleton />}>
         <EnrollmentRequestListTable />
       </Suspense>
     </div>

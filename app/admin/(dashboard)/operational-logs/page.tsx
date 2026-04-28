@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
+import { AdminTablePageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import PageHeader from '@/components/admin/layout/PageHeader';
 import OperationalLogListTable from '@/components/admin/modules/operational-logs/OperationalLogListTable';
 
@@ -17,13 +18,7 @@ export default function OperationalLogsPage() {
         title='Operational logs'
         description='Browse internal operational logs across care plans. Use search and status filters to find draft, in-progress, or locked work, then open a row to review evidence, edit metrics, and continue the reporting workflow in the workspace.'
       />
-      <Suspense
-        fallback={
-          <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-            Loading operational logs…
-          </div>
-        }
-      >
+      <Suspense fallback={<AdminTablePageSkeleton />}>
         <OperationalLogListTable />
       </Suspense>
     </div>

@@ -26,6 +26,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils/styles';
 
 export type EnrollmentCareTeamRow = {
@@ -95,9 +96,11 @@ export default function EnrollmentCareTeamEditorDialog({
 
           <div className={enrollmentWizardDialogBodyClass}>
             {detailLoading ? (
-              <p className='text-muted-foreground py-8 text-center text-sm font-medium'>
-                Loading roster…
-              </p>
+              <div className='space-y-2 py-4'>
+                <Skeleton className='h-10 w-full rounded-md' />
+                <Skeleton className='h-10 w-full rounded-md' />
+                <Skeleton className='h-10 w-full rounded-md' />
+              </div>
             ) : detailError ? (
               <div className='space-y-4 py-4'>
                 <p className='text-destructive text-sm font-medium'>
@@ -166,9 +169,7 @@ export default function EnrollmentCareTeamEditorDialog({
                                     Staff · {index + 1}
                                   </span>
                                   <ComboboxField
-                                    placeholder={
-                                      teamLoading ? 'Loading…' : 'Select member'
-                                    }
+                                    placeholder='Select member'
                                     disabled={teamLoading}
                                     options={optionsForTeamRow(index)}
                                     value={row.userId || null}

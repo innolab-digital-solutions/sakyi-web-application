@@ -5,6 +5,7 @@ import { SaveIcon, UserPlus2Icon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 
+import { AdminFormPageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import TextField from '@/components/shared/form/TextField';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -234,11 +235,7 @@ function UserFormEdit({
   });
 
   if (isPending) {
-    return (
-      <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-        Loading user…
-      </div>
-    );
+    return <AdminFormPageSkeleton />;
   }
 
   if (isError || !data || data.status === 'error') {

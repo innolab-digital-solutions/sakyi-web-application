@@ -2,6 +2,7 @@
 
 import { useQueries } from '@tanstack/react-query';
 
+import { AdminFormPageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import { getProgramById } from '@/domains/programs/services';
 import type {
   Program,
@@ -73,7 +74,7 @@ function ProgramEditLoader({ programId }: { programId: number }) {
   });
 
   if (enQuery.isPending || myQuery.isPending) {
-    return <p className='text-muted-foreground text-sm'>Loading program…</p>;
+    return <AdminFormPageSkeleton />;
   }
 
   if (
