@@ -182,5 +182,8 @@ export const ADMIN_ENDPOINTS = {
       MARK_AS_READ: (id: string) => `${BASE}/notifications/${id}/read`,
       MARK_ALL_AS_READ: `${BASE}/notifications/read-all`,
     },
+    DASHBOARD: {
+      OVERVIEW: `${BASE}/dashboard/overview`,
+    },
   },
 } as const;
