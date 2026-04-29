@@ -54,7 +54,7 @@ const AboutOverviewSection = () => {
         <div className='relative min-w-0' data-aos='fade-right'>
           <div className='relative'>
             <DecorativeImage
-              src='/images/home-about.jpg'
+              src='/images/home-about1.jpg'
               alt='Doctor video consultation with patient at home on laptop'
               width={600}
               height={600}
