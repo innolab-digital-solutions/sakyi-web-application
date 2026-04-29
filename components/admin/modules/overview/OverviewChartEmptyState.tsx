@@ -27,7 +27,7 @@ export function OverviewChartEmptyState({
   return (
     <div
       className={cn(
-        'flex w-full flex-col items-center justify-center rounded-md border border-dashed border-border/70 bg-muted/20 px-5 py-10 text-center',
+        'border-border/70 bg-muted/20 flex w-full flex-col items-center justify-center rounded-md border border-dashed px-5 py-10 text-center',
         variant === 'tall' ? 'min-h-80' : 'min-h-72',
         className,
       )}
@@ -35,10 +35,7 @@ export function OverviewChartEmptyState({
       aria-live='polite'
     >
       <div className='border-border bg-background mb-3 flex size-11 items-center justify-center rounded-md border shadow-xs'>
-        <BarChart3
-          className='text-muted-foreground size-5.5'
-          aria-hidden
-        />
+        <BarChart3 className='text-muted-foreground size-5.5' aria-hidden />
       </div>
       <p className='text-foreground text-sm font-semibold tracking-tight'>
         {title}

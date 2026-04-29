@@ -12,7 +12,7 @@ export default function Loading() {
         {Array.from({ length: 8 }).map((_, index) => (
           <div
             key={`overview-kpi-skeleton-${index}`}
-            className='rounded-md border border-border bg-white p-4'
+            className='border-border rounded-md border bg-white p-4'
           >
             <div className='mb-2 flex items-center justify-between gap-3'>
               <Skeleton className='h-3 w-28 rounded-sm' />

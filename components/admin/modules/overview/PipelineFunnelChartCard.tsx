@@ -53,10 +53,7 @@ export default function PipelineFunnelChartCard({
             </div>
           </div>
         ) : showChart ? (
-          <ChartContainer
-            className='h-72 w-full pr-2'
-            config={chartConfig}
-          >
+          <ChartContainer className='h-72 w-full pr-2' config={chartConfig}>
             <BarChart
               data={stages}
               margin={{ top: 8, right: 14, bottom: 0, left: 0 }}

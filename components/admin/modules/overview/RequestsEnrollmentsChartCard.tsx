@@ -29,9 +29,7 @@ type RequestsEnrollmentsChartCardProps = {
 };
 
 function hasTrendChartData(points: DashboardTrendPoint[]) {
-  return points.some(
-    (point) => point.requests > 0 || point.enrollments > 0,
-  );
+  return points.some((point) => point.requests > 0 || point.enrollments > 0);
 }
 
 export default function RequestsEnrollmentsChartCard({
@@ -47,8 +45,8 @@ export default function RequestsEnrollmentsChartCard({
           Request vs Enrollment Trend
         </h3>
         <p className='text-muted-foreground text-xs font-medium'>
-          Track monthly enrollment requests against enrollment records to monitor
-          growth momentum and operational throughput.
+          Track monthly enrollment requests against enrollment records to
+          monitor growth momentum and operational throughput.
         </p>
       </div>
       <div className='pt-3'>
@@ -65,16 +63,19 @@ export default function RequestsEnrollmentsChartCard({
             </div>
           </div>
         ) : showChart ? (
-          <ChartContainer
-            className='h-72 w-full pr-2'
-            config={chartConfig}
-          >
+          <ChartContainer className='h-72 w-full pr-2' config={chartConfig}>
             <ComposedChart
               data={points}
               margin={{ top: 8, right: 14, bottom: 0, left: 0 }}
             >
               <defs>
-                <linearGradient id='overview-requests-fill' x1='0' y1='0' x2='0' y2='1'>
+                <linearGradient
+                  id='overview-requests-fill'
+                  x1='0'
+                  y1='0'
+                  x2='0'
+                  y2='1'
+                >
                   <stop
                     offset='0%'
                     stopColor='var(--color-requests)'

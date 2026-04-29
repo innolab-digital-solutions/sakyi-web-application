@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { ExternalLinkIcon } from 'lucide-react';
 
-import { Skeleton } from '@/components/ui/skeleton';
 import TableListShell from '@/components/admin/layout/TableListShell';
 import TextField from '@/components/shared/form/TextField';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
@@ -17,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,

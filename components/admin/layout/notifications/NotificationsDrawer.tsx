@@ -4,7 +4,6 @@ import { Bell, CheckCheck, X } from 'lucide-react';
 import { useMemo } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Sheet,
   SheetClose,
@@ -12,6 +11,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import { NotificationCard } from './NotificationCard';
 import type { Notification } from './types';

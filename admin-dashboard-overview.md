@@ -43,16 +43,22 @@ Follows standard API response format:
   "charts": {
     "pipeline_funnel": {
       "stages": [
-        { "key": "request_submitted", "label": "Request Submitted", "count": 0 },
+        {
+          "key": "request_submitted",
+          "label": "Request Submitted",
+          "count": 0
+        },
         { "key": "intake_completed", "label": "Intake Completed", "count": 0 },
         { "key": "contract_signed", "label": "Contract Signed", "count": 0 },
-        { "key": "enrollment_created", "label": "Enrollment Created", "count": 0 }
+        {
+          "key": "enrollment_created",
+          "label": "Enrollment Created",
+          "count": 0
+        }
       ]
     },
     "request_enrollment_trend": {
-      "points": [
-        { "period": "2026-04", "requests": 0, "enrollments": 0 }
-      ]
+      "points": [{ "period": "2026-04", "requests": 0, "enrollments": 0 }]
     },
     "active_workload_by_program": {
       "bars": [

@@ -40,7 +40,7 @@ export function KpiCard({
   tone?: KpiTone;
 }) {
   return (
-    <div className='group rounded-md border border-border bg-white p-4 transition-shadow hover:shadow-sm'>
+    <div className='group border-border rounded-md border bg-white p-4 transition-shadow hover:shadow-sm'>
       <div className='mb-2 flex items-start justify-between gap-3'>
         <p className='text-muted-foreground line-clamp-1 text-[10px] font-semibold tracking-wider uppercase'>
           {title}
@@ -70,7 +70,7 @@ export function KpiCard({
 
 export function KpiCardSkeleton() {
   return (
-    <div className='rounded-md border border-border bg-white p-4'>
+    <div className='border-border rounded-md border bg-white p-4'>
       <div className='mb-2 flex items-center justify-between gap-3'>
         <Skeleton className='h-3 w-28 rounded-sm' />
         <Skeleton className='size-7 rounded-md' />
