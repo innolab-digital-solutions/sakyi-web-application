@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import CallToActionSection from '@/components/marketing/sections/contact/CallToActionSection';
+import ContactHashScroll from '@/components/marketing/sections/contact/ContactHashScroll';
 import ConnectWithUsSection from '@/components/marketing/sections/contact/ConnectWithUsSection';
 import ContactIntroSection from '@/components/marketing/sections/contact/ContactIntroSection';
 import OurContactDetailSection from '@/components/marketing/sections/contact/OurContactDetailSection';
@@ -15,6 +16,8 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <>
+      <ContactHashScroll />
+
       <ContactIntroSection />
 
       <OurContactDetailSection />
