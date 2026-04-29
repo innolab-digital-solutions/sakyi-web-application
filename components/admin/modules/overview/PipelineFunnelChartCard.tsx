@@ -2,6 +2,7 @@
 
 import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from 'recharts';
 
+import { OverviewChartEmptyState } from '@/components/admin/modules/overview/OverviewChartEmptyState';
 import {
   ChartContainer,
   ChartTooltip,
@@ -19,10 +20,16 @@ type PipelineFunnelChartCardProps = {
   isLoading?: boolean;
 };
 
+function hasPipelineChartData(stages: DashboardPipelineStage[]) {
+  return stages.some((stage) => stage.count > 0);
+}
+
 export default function PipelineFunnelChartCard({
   stages,
   isLoading = false,
 }: PipelineFunnelChartCardProps) {
+  const showChart = hasPipelineChartData(stages);
+
   return (
     <div className='border-border bg-background rounded-md border p-4 md:p-5'>
       <div className='mb-3 space-y-1.5'>
@@ -45,7 +52,7 @@ export default function PipelineFunnelChartCard({
               <Skeleton className='h-3 w-full rounded-sm' />
             </div>
           </div>
-        ) : stages.length ? (
+        ) : showChart ? (
           <ChartContainer
             className='h-72 w-full pr-2'
             config={chartConfig}
@@ -85,9 +92,10 @@ export default function PipelineFunnelChartCard({
             </BarChart>
           </ChartContainer>
         ) : (
-          <p className='text-muted-foreground text-sm'>
-            No pipeline activity yet.
-          </p>
+          <OverviewChartEmptyState
+            title='No pipeline data to display'
+            description='Stage counts are empty for this workspace. Volume will appear here once submissions move through enrollment.'
+          />
         )}
       </div>
     </div>

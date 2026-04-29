@@ -2,6 +2,7 @@
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
+import { OverviewChartEmptyState } from '@/components/admin/modules/overview/OverviewChartEmptyState';
 import {
   ChartContainer,
   ChartTooltip,
@@ -22,14 +23,20 @@ type ActiveWorkloadChartCardProps = {
   isLoading?: boolean;
 };
 
+function hasWorkloadChartData(bars: DashboardProgramWorkload[]) {
+  return bars.some((bar) => bar.active_enrollments > 0);
+}
+
 export default function ActiveWorkloadChartCard({
   bars,
   isLoading = false,
 }: ActiveWorkloadChartCardProps) {
+  const showChart = hasWorkloadChartData(bars);
+
   return (
     <div className='border-border bg-background rounded-md border p-4 md:p-5'>
-    <div className='mb-3 space-y-1.5'>
-      <h3 className='text-foreground text-[13.5px]! font-semibold'>
+      <div className='mb-3 space-y-1.5'>
+        <h3 className='text-foreground text-[13.5px]! font-semibold'>
           Program Workload Distribution
         </h3>
         <p className='text-muted-foreground text-xs font-medium'>
@@ -47,7 +54,7 @@ export default function ActiveWorkloadChartCard({
               <Skeleton className='h-3 w-[84%] rounded-sm' />
             </div>
           </div>
-        ) : bars.length ? (
+        ) : showChart ? (
           <ChartContainer className='h-80 w-full pr-2' config={chartConfig}>
             <BarChart
               data={bars}
@@ -81,9 +88,11 @@ export default function ActiveWorkloadChartCard({
             </BarChart>
           </ChartContainer>
         ) : (
-          <p className='text-muted-foreground text-sm'>
-            No active enrollments by program.
-          </p>
+          <OverviewChartEmptyState
+            variant='tall'
+            title='No program workload to display'
+            description='Active enrollments by program will appear here when at least one program carries active enrollment volume.'
+          />
         )}
       </div>
     </div>

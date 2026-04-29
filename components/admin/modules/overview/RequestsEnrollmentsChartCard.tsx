@@ -9,6 +9,7 @@ import {
   YAxis,
 } from 'recharts';
 
+import { OverviewChartEmptyState } from '@/components/admin/modules/overview/OverviewChartEmptyState';
 import {
   ChartContainer,
   ChartTooltip,
@@ -27,10 +28,18 @@ type RequestsEnrollmentsChartCardProps = {
   isLoading?: boolean;
 };
 
+function hasTrendChartData(points: DashboardTrendPoint[]) {
+  return points.some(
+    (point) => point.requests > 0 || point.enrollments > 0,
+  );
+}
+
 export default function RequestsEnrollmentsChartCard({
   points,
   isLoading = false,
 }: RequestsEnrollmentsChartCardProps) {
+  const showChart = hasTrendChartData(points);
+
   return (
     <div className='border-border bg-background rounded-md border p-4 md:p-5'>
       <div className='mb-3 space-y-1.5'>
@@ -55,7 +64,7 @@ export default function RequestsEnrollmentsChartCard({
               <Skeleton className='h-3 w-full rounded-sm' />
             </div>
           </div>
-        ) : points.length ? (
+        ) : showChart ? (
           <ChartContainer
             className='h-72 w-full pr-2'
             config={chartConfig}
@@ -148,9 +157,10 @@ export default function RequestsEnrollmentsChartCard({
             </ComposedChart>
           </ChartContainer>
         ) : (
-          <p className='text-muted-foreground text-sm'>
-            No request/enrollment activity yet.
-          </p>
+          <OverviewChartEmptyState
+            title='No request or enrollment trend yet'
+            description='Monthly request and enrollment series will chart here once there is measurable activity.'
+          />
         )}
       </div>
     </div>
