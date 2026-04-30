@@ -145,7 +145,7 @@ const overviewSchema = z.object({
   duration: z
     .string()
     .min(1, 'The duration field is required.')
-    .max(10, 'The duration field must not be greater than 10 characters.'),
+    .max(255, 'The duration field must not be greater than 255 characters.'),
   price: z.number().int().nonnegative('Price must be zero or greater.').optional(),
 });
 
