@@ -9,7 +9,7 @@ export type Program = {
   status: 'draft' | 'published' | 'archived';
   features: string[];
   ideals: string[];
-  expectations: string[];
+  expectations: { title: string; description: string }[];
   structures: {
     period: string;
     title: string;

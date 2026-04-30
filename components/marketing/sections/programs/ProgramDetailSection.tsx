@@ -358,17 +358,27 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                     key={index}
                     data-aos='fade-up'
                     data-aos-delay={`${index * 100}`}
-                    className='group flex items-center gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:border-[#35bec5]/50 hover:shadow-lg'
+                    className='group flex items-start gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:border-[#35bec5]/50 hover:shadow-lg'
                   >
-                    <div className='flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r from-[#35bec5] to-[#0c96c4] transition-all duration-300 group-hover:scale-105'>
+                    <div className='flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-linear-to-r from-[#35bec5] to-[#0c96c4] transition-all duration-300 group-hover:scale-105'>
                       <CheckCircle className='h-6 w-6 text-white' />
                     </div>
-                    <p
-                      className='text-xl font-semibold text-slate-900'
-                      style={{ fontFamily: 'Poppins, sans-serif' }}
-                    >
-                      {Array.isArray(item) ? item.join(', ') : item}
-                    </p>
+                    <div className='space-y-1'>
+                      <p
+                        className='text-xl font-semibold text-slate-900'
+                        style={{ fontFamily: 'Poppins, sans-serif' }}
+                      >
+                        {item.title}
+                      </p>
+                      {item.description ? (
+                        <p
+                          className='text-slate-600'
+                          style={{ fontFamily: 'Inter, sans-serif' }}
+                        >
+                          {item.description}
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
                 ))}
           </div>

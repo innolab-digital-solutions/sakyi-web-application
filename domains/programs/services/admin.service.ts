@@ -3,7 +3,11 @@ import { ENDPOINTS } from '@/config/api/endpoints';
 import type { ApiResponse } from '@/lib/api/client';
 import { http } from '@/lib/api/client';
 
-import type { Program, ProgramStructureItem } from '../types/admin';
+import type {
+  Program,
+  ProgramExpectationItem,
+  ProgramStructureItem,
+} from '../types/admin';
 
 export type ProgramTranslationPayload = {
   locale: 'en' | 'my';
@@ -13,7 +17,7 @@ export type ProgramTranslationPayload = {
   about: string;
   features: string[];
   ideals: string[];
-  expectations: string[];
+  expectations: ProgramExpectationItem[];
   structures: ProgramStructureItem[];
 };
 
@@ -62,8 +66,12 @@ function appendProgramSaveToFormData(
     t.ideals.forEach((f, j) => {
       form.append(`translations[${i}][ideals][${j}]`, f);
     });
-    t.expectations.forEach((f, j) => {
-      form.append(`translations[${i}][expectations][${j}]`, f);
+    t.expectations.forEach((e, j) => {
+      form.append(`translations[${i}][expectations][${j}][title]`, e.title);
+      form.append(
+        `translations[${i}][expectations][${j}][description]`,
+        e.description,
+      );
     });
     t.structures.forEach((s, k) => {
       form.append(`translations[${i}][structures][${k}][period]`, s.period);

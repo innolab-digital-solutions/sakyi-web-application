@@ -48,7 +48,9 @@ export const ProgramTranslationSchema = z.object({
     .nullish(),
   features: z.array(z.string()).default([]),
   ideals: z.array(z.string()).default([]),
-  expectations: z.array(z.string()).default([]),
+  expectations: z
+    .array(z.object({ title: z.string(), description: z.string() }))
+    .default([]),
   structures: z.array(programStructureItemSchema).default([]),
 });
 
