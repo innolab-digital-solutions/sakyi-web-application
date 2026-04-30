@@ -85,7 +85,6 @@
   --text-hero-title: clamp(1.875rem, 5vw, 3.75rem); /* ~30–60px */
 }
 
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

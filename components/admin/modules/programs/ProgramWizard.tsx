@@ -146,7 +146,11 @@ const overviewSchema = z.object({
     .string()
     .min(1, 'The duration field is required.')
     .max(255, 'The duration field must not be greater than 255 characters.'),
-  price: z.number().int().nonnegative('Price must be zero or greater.').optional(),
+  price: z
+    .number()
+    .int()
+    .nonnegative('Price must be zero or greater.')
+    .optional(),
 });
 
 /** Per-locale content + list/structure rules (used for `en` always, `my` when started). */
