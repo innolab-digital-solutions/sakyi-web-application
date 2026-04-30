@@ -47,9 +47,11 @@ export default function PeriodReportPublishConfirmation({
                 <span className='text-primary text-xs font-semibold'>
                   {reportLabel}
                 </span>{' '}
-                to the client-facing flow as the official report for this period.
-                After publishing, the report status moves to{' '}
-                <span className='text-foreground/90 font-semibold'>published</span>{' '}
+                to the client-facing flow as the official report for this
+                period. After publishing, the report status moves to{' '}
+                <span className='text-foreground/90 font-semibold'>
+                  published
+                </span>{' '}
                 and further review edits should be handled through the defined
                 regeneration workflow.
               </AlertDialogDescription>

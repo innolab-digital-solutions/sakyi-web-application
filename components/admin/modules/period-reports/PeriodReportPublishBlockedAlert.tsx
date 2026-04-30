@@ -44,8 +44,8 @@ export default function PeriodReportPublishBlockedAlert({
                 <span className='text-xs font-semibold text-amber-600'>
                   {reportLabel}
                 </span>{' '}
-                cannot be published yet. Publishing is allowed only after the care
-                plan period ends. This care plan reaches its end date on{' '}
+                cannot be published yet. Publishing is allowed only after the
+                care plan period ends. This care plan reaches its end date on{' '}
                 <strong className='text-amber-700'>{endDateLabel}</strong>.
               </AlertDialogDescription>
             </div>
