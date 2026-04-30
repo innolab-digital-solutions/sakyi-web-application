@@ -677,8 +677,8 @@ export default function CarePlanReportWorkspace({
         next.delete('report_run_id');
         router.replace(`${workspacePath}?${next.toString()}`);
       }
-      if (result.mode === 'create' && isOperationalLogsWorkspace) {
-        router.replace(workspacePath, { scroll: false });
+      if (isOperationalLogsWorkspace) {
+        router.push(ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.LIST);
       }
       void queryClient.invalidateQueries({
         queryKey: [WORKSPACE_QUERY_KEY, carePlanId],
