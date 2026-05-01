@@ -28,7 +28,7 @@ export type ProgramTranslationPayload = {
 export type ProgramSavePayload = {
   id?: number;
   duration: string;
-  price: number;
+  price: number | null;
   goal_ids: number[];
   translations: ProgramTranslationPayload[];
   status: 'draft' | 'published' | 'hidden';
@@ -49,7 +49,7 @@ function appendProgramSaveToFormData(
   body: ProgramSaveFormFields,
 ): void {
   form.append('duration', body.duration);
-  form.append('price', String(body.price));
+  if (body.price !== null) form.append('price', String(body.price));
   form.append('status', body.status);
   for (const gid of body.goal_ids) {
     form.append('goal_ids[]', String(gid));

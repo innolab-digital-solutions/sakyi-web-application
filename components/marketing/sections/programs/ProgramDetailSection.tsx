@@ -6,6 +6,7 @@ import {
   CheckCircle,
   ChevronRight,
   Clock,
+  DollarSign,
   Grid3X3,
   Heart,
   Play,
@@ -151,6 +152,30 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                       style={{ fontFamily: 'Poppins, sans-serif' }}
                     >
                       {program?.duration}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Price */}
+              {!isLoading && program?.price?.amount != null && (
+                <div className='flex items-center gap-3'>
+                  <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-r from-[#35bec5]/10 to-[#0c96c4]/10'>
+                    <DollarSign className='h-5 w-5 text-[#35bec5]' />
+                  </div>
+                  <div>
+                    <div
+                      className='text-sm text-slate-600'
+                      style={{ fontFamily: 'Inter, sans-serif' }}
+                    >
+                      Price
+                    </div>
+                    <div
+                      className='font-semibold text-slate-900'
+                      style={{ fontFamily: 'Poppins, sans-serif' }}
+                    >
+                      {program.price.amount.toLocaleString()}{' '}
+                      {program.price.currency}
                     </div>
                   </div>
                 </div>

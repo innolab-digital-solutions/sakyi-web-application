@@ -147,10 +147,12 @@ const overviewSchema = z.object({
     .min(1, 'The duration field is required.')
     .max(255, 'The duration field must not be greater than 255 characters.'),
   price: z
-    .number()
-    .int()
-    .nonnegative('Price must be zero or greater.')
-    .optional(),
+    .string()
+    .optional()
+    .refine(
+      (v) => !v?.trim() || /^\d+$/.test(v.trim()),
+      'Price must be a non-negative whole number.',
+    ),
 });
 
 /** Per-locale content + list/structure rules (used for `en` always, `my` when started). */
@@ -296,14 +298,15 @@ export type ProgramWizardProps = {
 
 function getProgramPriceAmount(
   price: AdminProgram['price'] | undefined,
-): number {
-  if (typeof price === 'number') return price;
-  return price?.amount ?? 0;
+): string {
+  if (typeof price === 'number') return String(price);
+  if (price?.amount != null) return String(price.amount);
+  return '';
 }
 
 type ProgramChangeSnapshot = {
   duration: string;
-  price: number;
+  price: string;
   goalIds: number[];
   status:
     | typeof STATUS.DRAFT
@@ -324,7 +327,7 @@ type ProgramChangeSnapshot = {
 
 function buildProgramChangeSnapshot(input: {
   duration: string;
-  price: number;
+  price: string;
   goalIds: number[];
   status:
     | typeof STATUS.DRAFT
@@ -334,7 +337,7 @@ function buildProgramChangeSnapshot(input: {
 }): ProgramChangeSnapshot {
   return {
     duration: input.duration.trim(),
-    price: Number.isFinite(input.price) ? input.price : 0,
+    price: input.price.trim(),
     goalIds: [...new Set(input.goalIds)].sort((a, b) => a - b),
     status: input.status,
     translations: input.translations
@@ -423,7 +426,7 @@ export default function ProgramWizard({
     if (!isEdit || !program) {
       return buildProgramChangeSnapshot({
         duration: '',
-        price: 0,
+        price: '',
         goalIds: [],
         status: STATUS.DRAFT,
         translations: [emptyTranslation('en'), emptyTranslation('my')],
@@ -592,10 +595,13 @@ export default function ProgramWizard({
         (t) => t.locale,
       );
 
+      const parsedPrice =
+        price.trim() === '' ? null : Number.parseInt(price.trim(), 10);
+
       const saveBody = {
         ...(isEdit && program?.id != null ? { id: program.id } : {}),
         duration,
-        price,
+        price: parsedPrice,
         goal_ids: goalIds,
         translations: translationPayload,
         status: status === STATUS.ARCHIVED ? STATUS.HIDDEN : status,
@@ -953,20 +959,20 @@ export default function ProgramWizard({
                 error={errors.duration}
               />
               <TextField
-                label='Price'
-                type='number'
-                min={0}
-                step={1}
-                placeholder='0'
-                value={Number.isNaN(price) ? '' : String(price)}
+                label='Price (optional)'
+                inputMode='numeric'
+                placeholder='Enter program price'
+                value={price}
                 onChange={(e) => {
                   const v = e.target.value;
-                  setPrice(v === '' ? 0 : Number.parseInt(v, 10) || 0);
-                  setErrors((prev) => {
-                    const n = { ...prev };
-                    delete n.price;
-                    return n;
-                  });
+                  if (v === '' || /^\d+$/.test(v)) {
+                    setPrice(v);
+                    setErrors((prev) => {
+                      const n = { ...prev };
+                      delete n.price;
+                      return n;
+                    });
+                  }
                 }}
                 error={errors.price}
               />
