@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
+import { AdminWorkspaceSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import PageHeader from '@/components/admin/layout/PageHeader';
 import CarePlanBuilder from '@/components/admin/modules/care-plans/CarePlanBuilder';
 import { Button } from '@/components/ui/button';
@@ -42,13 +43,7 @@ export default async function CarePlanBuilderPage({
           </Button>
         }
       />
-      <Suspense
-        fallback={
-          <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-            Loading care plan workspace…
-          </div>
-        }
-      >
+      <Suspense fallback={<AdminWorkspaceSkeleton />}>
         {Number.isFinite(numericId) ? (
           <CarePlanBuilder carePlanId={numericId} mode='edit' />
         ) : (

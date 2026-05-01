@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
+import { AdminFormPageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import ComboboxField, {
   type ComboboxOption,
 } from '@/components/shared/form/ComboBoxField';
@@ -179,9 +180,7 @@ function BlogPostEditFormLoader({ postId }: { postId: number }) {
   });
 
   if (enDetailQuery.isPending || myDetailQuery.isPending) {
-    return (
-      <p className='text-muted-foreground text-sm'>Loading post content…</p>
-    );
+    return <AdminFormPageSkeleton />;
   }
 
   if (enDetailQuery.isError || myDetailQuery.isError) {

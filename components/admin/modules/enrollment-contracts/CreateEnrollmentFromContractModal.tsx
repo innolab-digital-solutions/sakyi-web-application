@@ -41,6 +41,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
@@ -391,9 +392,11 @@ export default function CreateEnrollmentFromContractModal({
 
           <div className='flex min-h-0 flex-1 flex-col px-6 py-4'>
             {contractLoading ? (
-              <p className='text-muted-foreground py-8 text-center text-sm font-medium'>
-                Loading contract…
-              </p>
+              <div className='space-y-2 py-4'>
+                <Skeleton className='h-10 w-full rounded-md' />
+                <Skeleton className='h-10 w-full rounded-md' />
+                <Skeleton className='h-10 w-full rounded-md' />
+              </div>
             ) : contractError || !contract ? (
               <div className='space-y-4 py-4'>
                 <p className='text-destructive text-sm font-medium'>
@@ -580,11 +583,7 @@ export default function CreateEnrollmentFromContractModal({
                                         Staff · {index + 1}
                                       </span>
                                       <ComboboxField
-                                        placeholder={
-                                          teamMembersLoading
-                                            ? 'Loading…'
-                                            : 'Select member'
-                                        }
+                                        placeholder='Select member'
                                         disabled={teamMembersLoading}
                                         options={optionsForRow(index)}
                                         value={row.userId || null}

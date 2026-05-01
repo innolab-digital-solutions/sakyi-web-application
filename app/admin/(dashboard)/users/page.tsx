@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
+import { AdminTablePageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import PageHeader from '@/components/admin/layout/PageHeader';
 import UserListTable from '@/components/admin/modules/users/UserListTable';
 import UserSheet from '@/components/admin/modules/users/UserSheet';
@@ -20,13 +21,7 @@ export default function UserListPage() {
         actions={<UserSheet mode='create' />}
       />
 
-      <Suspense
-        fallback={
-          <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-            Loading users…
-          </div>
-        }
-      >
+      <Suspense fallback={<AdminTablePageSkeleton />}>
         <UserListTable />
       </Suspense>
     </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
+import { AdminTablePageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import PageHeader from '@/components/admin/layout/PageHeader';
 import EnrollmentContractListTable from '@/components/admin/modules/enrollment-contracts/EnrollmentContractListTable';
 
@@ -18,11 +19,7 @@ export default function EnrollmentContractsPage() {
         description='Browse and manage enrollment contracts and e-signature requests, with visibility into signature progress, notification activity, and related intake or enrollment records.'
       />
 
-      <Suspense
-        fallback={
-          <div className='text-muted-foreground text-sm'>Loading...</div>
-        }
-      >
+      <Suspense fallback={<AdminTablePageSkeleton />}>
         <EnrollmentContractListTable />
       </Suspense>
     </div>
