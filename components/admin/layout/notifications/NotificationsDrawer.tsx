@@ -11,6 +11,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import { NotificationCard } from './NotificationCard';
 import type { Notification } from './types';
@@ -96,8 +97,22 @@ export function NotificationsDrawer({
         <div className='flex-1 overflow-y-auto'>
           <div className='flex flex-col gap-2 px-4'>
             {isLoading ? (
-              <div className='text-muted-foreground py-12 text-center text-sm'>
-                Loading notifications...
+              <div className='space-y-2 py-4'>
+                {Array.from({ length: 5 }).map((_, idx) => (
+                  <div
+                    key={`notification-skeleton-${idx}`}
+                    className='border-border bg-background space-y-2 rounded-md border p-3'
+                  >
+                    <div className='flex items-center gap-2'>
+                      <Skeleton className='size-8 rounded-full' />
+                      <div className='flex-1 space-y-1'>
+                        <Skeleton className='h-3 w-2/3 rounded-sm' />
+                        <Skeleton className='h-3 w-1/2 rounded-sm' />
+                      </div>
+                    </div>
+                    <Skeleton className='h-3 w-full rounded-sm' />
+                  </div>
+                ))}
               </div>
             ) : orderedNotifications.length === 0 ? (
               <div className='text-muted-foreground flex flex-col items-center justify-center py-12 text-center text-sm'>

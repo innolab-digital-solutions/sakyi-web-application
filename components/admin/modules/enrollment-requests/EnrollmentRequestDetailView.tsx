@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { type ComponentType } from 'react';
 import { useState } from 'react';
 
+import { AdminDetailCardSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import TableCellEmpty from '@/components/ui/table-cell-empty';
@@ -163,11 +164,7 @@ export default function EnrollmentRequestDetailView({
   });
 
   if (isPending) {
-    return (
-      <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-        Loading enrollment request…
-      </div>
-    );
+    return <AdminDetailCardSkeleton />;
   }
 
   if (isError || !data) {

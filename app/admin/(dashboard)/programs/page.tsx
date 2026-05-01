@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
+import { AdminTablePageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import PageHeader from '@/components/admin/layout/PageHeader';
 import ProgramListTable from '@/components/admin/modules/programs/ProgramListTable';
 import { Button } from '@/components/ui/button';
@@ -33,13 +34,7 @@ export default function ProgramListsPage() {
         }
       />
 
-      <Suspense
-        fallback={
-          <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-            Loading programs…
-          </div>
-        }
-      >
+      <Suspense fallback={<AdminTablePageSkeleton />}>
         <ProgramListTable />
       </Suspense>
     </div>

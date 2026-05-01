@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
 import { OnboardingIntakeCreateSchema } from '@/domains/intake-assessments/schemas';
@@ -151,7 +152,7 @@ export default function IntakeCreateForm() {
           />
 
           {templateQuery.isPending && (
-            <p className='text-muted-foreground text-xs'>Loading template...</p>
+            <Skeleton className='h-3 w-40 rounded-sm' />
           )}
           {templateQuery.data?.status === 'success' && (
             <p className='text-muted-foreground text-xs'>

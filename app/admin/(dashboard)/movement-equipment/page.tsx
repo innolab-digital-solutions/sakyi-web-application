@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
+import { AdminTablePageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import PageHeader from '@/components/admin/layout/PageHeader';
 import MovementEquipmentListTable from '@/components/admin/modules/movement-equipment/EquipmentListTable';
 import MovementEquipmentSheet from '@/components/admin/modules/movement-equipment/EquipmentSheet';
@@ -20,13 +21,7 @@ export default function MovementEquipmentListPage() {
         actions={<MovementEquipmentSheet mode='create' />}
       />
 
-      <Suspense
-        fallback={
-          <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-            Loading…
-          </div>
-        }
-      >
+      <Suspense fallback={<AdminTablePageSkeleton />}>
         <MovementEquipmentListTable />
       </Suspense>
     </div>

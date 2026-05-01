@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { type ComponentType } from 'react';
 
+import { AdminDetailCardSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import CreateEnrollmentFromContractModal from '@/components/admin/modules/enrollment-contracts/CreateEnrollmentFromContractModal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -95,11 +96,7 @@ export default function EnrollmentContractDetailView({
   });
 
   if (isPending) {
-    return (
-      <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-        Loading contract…
-      </div>
-    );
+    return <AdminDetailCardSkeleton />;
   }
 
   if (isError || !data) {

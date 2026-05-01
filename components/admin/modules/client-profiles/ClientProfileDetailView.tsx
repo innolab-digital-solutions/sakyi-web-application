@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 
+import { AdminDetailCardSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Table,
@@ -73,11 +74,7 @@ export default function ClientProfileDetailView({
   });
 
   if (isPending) {
-    return (
-      <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-        Loading profile…
-      </div>
-    );
+    return <AdminDetailCardSkeleton />;
   }
 
   if (isError || !data) {

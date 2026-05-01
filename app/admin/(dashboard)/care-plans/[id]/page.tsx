@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
+import { AdminWorkspaceSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import PageHeader from '@/components/admin/layout/PageHeader';
 import CarePlanBuilder from '@/components/admin/modules/care-plans/CarePlanBuilder';
 
@@ -26,13 +27,7 @@ export default async function CarePlanDetailPage({
         title='Care Plan Detail'
         description={`Review care plan #${id} in read-only mode, including day sections and validation context, to confirm structure and quality before editing.`}
       />
-      <Suspense
-        fallback={
-          <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-            Loading care plan details…
-          </div>
-        }
-      >
+      <Suspense fallback={<AdminWorkspaceSkeleton />}>
         {Number.isFinite(numericId) ? (
           <CarePlanBuilder carePlanId={numericId} mode='detail' />
         ) : (

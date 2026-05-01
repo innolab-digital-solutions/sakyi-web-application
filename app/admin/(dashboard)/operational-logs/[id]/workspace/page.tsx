@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
+import { AdminWorkspaceSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import PageHeader from '@/components/admin/layout/PageHeader';
 import CarePlanReportWorkspace from '@/components/admin/modules/care-plans/CarePlanReportWorkspace';
 import { Button } from '@/components/ui/button';
@@ -45,13 +46,7 @@ export default async function OperationalLogsWorkspacePage({
           </Button>
         }
       />
-      <Suspense
-        fallback={
-          <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-            Loading operational logs workspace…
-          </div>
-        }
-      >
+      <Suspense fallback={<AdminWorkspaceSkeleton />}>
         {Number.isFinite(numericId) ? (
           <CarePlanReportWorkspace
             carePlanId={numericId}

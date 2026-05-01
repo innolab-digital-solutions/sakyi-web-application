@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
+import { AdminTablePageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import PageHeader from '@/components/admin/layout/PageHeader';
 import PeriodReportListTable from '@/components/admin/modules/period-reports/PeriodReportListTable';
 
@@ -17,13 +18,7 @@ export default function PeriodReportsPage() {
         title='Period reports'
         description='Review client-facing period reports across care plans. Filter and search, compare submitted and published dates, then open a report to work in-review narrative, read finalized output, or consult archived items.'
       />
-      <Suspense
-        fallback={
-          <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-            Loading period reports…
-          </div>
-        }
-      >
+      <Suspense fallback={<AdminTablePageSkeleton />}>
         <PeriodReportListTable />
       </Suspense>
     </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
+import { AdminTablePageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import PageHeader from '@/components/admin/layout/PageHeader';
 import BlogCategoryListTable from '@/components/admin/modules/blog-categories/CategoryListTable';
 import BlogCategorySheet from '@/components/admin/modules/blog-categories/CategorySheet';
@@ -20,13 +21,7 @@ export default function BlogCategoryListPage() {
         actions={<BlogCategorySheet mode='create' />}
       />
 
-      <Suspense
-        fallback={
-          <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-            Loading categories…
-          </div>
-        }
-      >
+      <Suspense fallback={<AdminTablePageSkeleton />}>
         <BlogCategoryListTable />
       </Suspense>
     </div>

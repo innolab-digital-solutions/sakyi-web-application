@@ -20,6 +20,7 @@ import {
 } from 'react';
 import { toast } from 'sonner';
 
+import { AdminWorkspaceSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ENDPOINTS } from '@/config/api/endpoints';
@@ -412,7 +413,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
   });
 
   if (intakeQuery.isPending) {
-    return <p className='text-muted-foreground text-sm'>Loading intake...</p>;
+    return <AdminWorkspaceSkeleton />;
   }
 
   if (intakeQuery.data?.status === 'error') {

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
+import { AdminTablePageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import PageHeader from '@/components/admin/layout/PageHeader';
 import ExerciseListTable from '@/components/admin/modules/movement-exercises/ExerciseListTable';
 import ExerciseSheet from '@/components/admin/modules/movement-exercises/ExerciseSheet';
@@ -20,13 +21,7 @@ export default function MovementExerciseListPage() {
         actions={<ExerciseSheet mode='create' />}
       />
 
-      <Suspense
-        fallback={
-          <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-            Loading…
-          </div>
-        }
-      >
+      <Suspense fallback={<AdminTablePageSkeleton />}>
         <ExerciseListTable />
       </Suspense>
     </div>

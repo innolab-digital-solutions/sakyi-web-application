@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
+import { AdminTablePageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import PageHeader from '@/components/admin/layout/PageHeader';
 import ClientProfileListTable from '@/components/admin/modules/client-profiles/ClientProfileListTable';
 
@@ -18,13 +19,7 @@ export default function ClientProfilesPage() {
         description='Review client profiles with contact details, demographics, and client reference codes, and upload supporting files and documents to each record so support and care teams can coordinate with accurate, shared context.'
       />
 
-      <Suspense
-        fallback={
-          <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-            Loading client profiles…
-          </div>
-        }
-      >
+      <Suspense fallback={<AdminTablePageSkeleton />}>
         <ClientProfileListTable />
       </Suspense>
     </div>

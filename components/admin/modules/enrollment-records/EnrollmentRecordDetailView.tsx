@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import Link from 'next/link';
 
+import { AdminDetailCardSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import { Button } from '@/components/ui/button';
 import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { ROUTES } from '@/config/routes';
@@ -47,11 +48,7 @@ export default function EnrollmentRecordDetailView({
   });
 
   if (isPending) {
-    return (
-      <div className='text-muted-foreground rounded-md border border-dashed p-8 text-center text-sm'>
-        Loading enrollment…
-      </div>
-    );
+    return <AdminDetailCardSkeleton />;
   }
 
   if (isError || !data) {

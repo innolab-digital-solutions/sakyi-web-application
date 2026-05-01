@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
+import { AdminTablePageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import PageHeader from '@/components/admin/layout/PageHeader';
 import IntakeListTable from '@/components/admin/modules/intake-assessments/IntakeListTable';
 
@@ -18,11 +19,7 @@ export default function IntakeAssessmentsPage() {
         description='Review all intake assessments in one workspace, with tools to filter by status, manage assignments, continue interviews, and monitor completion progress.'
       />
 
-      <Suspense
-        fallback={
-          <div className='text-muted-foreground text-sm'>Loading...</div>
-        }
-      >
+      <Suspense fallback={<AdminTablePageSkeleton />}>
         <IntakeListTable />
       </Suspense>
     </div>

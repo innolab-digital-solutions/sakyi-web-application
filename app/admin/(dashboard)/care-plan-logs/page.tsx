@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
+import { AdminTablePageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import PageHeader from '@/components/admin/layout/PageHeader';
 import CarePlanLogListTable from '@/components/admin/modules/care-plan-logs/CarePlanLogListTable';
 
@@ -17,11 +18,7 @@ export default function CarePlanLogsPage() {
         title='Daily Task Logs'
         description='Track daily task logging across active care plans with recency indicators, timeline progress context, and clear visibility into completion patterns. Open each care plan to review detailed entries for operational follow-up.'
       />
-      <Suspense
-        fallback={
-          <div className='text-muted-foreground text-sm'>Loading...</div>
-        }
-      >
+      <Suspense fallback={<AdminTablePageSkeleton />}>
         <CarePlanLogListTable />
       </Suspense>
     </div>
