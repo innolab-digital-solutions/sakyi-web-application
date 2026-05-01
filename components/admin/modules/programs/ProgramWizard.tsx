@@ -28,11 +28,13 @@ import { STATUS } from '@/domains/programs/constants';
 import { saveProgram } from '@/domains/programs/services';
 import type {
   Program as AdminProgram,
+  ProgramExpectationItem,
   ProgramStructureItem,
   ProgramTranslation,
 } from '@/domains/programs/types/admin';
 import { http } from '@/lib/api/client';
 
+import ExpectationRepeaterField from './ExpectationRepeaterField';
 import StringListField from './StringListField';
 import StructureRepeaterField from './StructureRepeaterField';
 
@@ -128,6 +130,11 @@ function mapProgramApiErrorsToFieldErrors(
   return out;
 }
 
+const expectationRowSchema = z.object({
+  title: z.string().min(1, 'The title field is required.'),
+  description: z.string().min(1, 'The description field is required.'),
+});
+
 const structureRowSchema = z.object({
   period: z.string().min(1, 'The period field is required.'),
   title: z.string().min(1, 'The title field is required.'),
@@ -138,8 +145,14 @@ const overviewSchema = z.object({
   duration: z
     .string()
     .min(1, 'The duration field is required.')
-    .max(10, 'The duration field must not be greater than 10 characters.'),
-  price: z.number().int().nonnegative('Price must be zero or greater.'),
+    .max(255, 'The duration field must not be greater than 255 characters.'),
+  price: z
+    .string()
+    .optional()
+    .refine(
+      (v) => !v?.trim() || /^\d+$/.test(v.trim()),
+      'Price must be a non-negative whole number.',
+    ),
 });
 
 /** Per-locale content + list/structure rules (used for `en` always, `my` when started). */
@@ -154,7 +167,7 @@ const translationDetailsSchema = z.object({
   features: z.array(z.string()).min(1, 'The features field is required.'),
   ideals: z.array(z.string()).min(1, 'The ideals field is required.'),
   expectations: z
-    .array(z.string())
+    .array(expectationRowSchema)
     .min(1, 'The expectations field is required.'),
   structures: z
     .array(structureRowSchema)
@@ -223,6 +236,17 @@ function normalizeStructureRows(
     .filter((s) => s.period && s.title && s.description);
 }
 
+function normalizeExpectationRows(
+  rows: ProgramExpectationItem[],
+): ProgramExpectationItem[] {
+  return rows
+    .map((e) => ({
+      title: (e.title ?? '').trim(),
+      description: (e.description ?? '').trim(),
+    }))
+    .filter((e) => e.title && e.description);
+}
+
 function normalizeRichTextValue(value: string): string {
   const plainText = value
     .replace(/<[^>]*>/g, '')
@@ -274,14 +298,15 @@ export type ProgramWizardProps = {
 
 function getProgramPriceAmount(
   price: AdminProgram['price'] | undefined,
-): number {
-  if (typeof price === 'number') return price;
-  return price?.amount ?? 0;
+): string {
+  if (typeof price === 'number') return String(price);
+  if (price?.amount != null) return String(price.amount);
+  return '';
 }
 
 type ProgramChangeSnapshot = {
   duration: string;
-  price: number;
+  price: string;
   goalIds: number[];
   status:
     | typeof STATUS.DRAFT
@@ -295,14 +320,14 @@ type ProgramChangeSnapshot = {
     about: string;
     features: string[];
     ideals: string[];
-    expectations: string[];
+    expectations: ProgramExpectationItem[];
     structures: ProgramStructureItem[];
   }>;
 };
 
 function buildProgramChangeSnapshot(input: {
   duration: string;
-  price: number;
+  price: string;
   goalIds: number[];
   status:
     | typeof STATUS.DRAFT
@@ -312,7 +337,7 @@ function buildProgramChangeSnapshot(input: {
 }): ProgramChangeSnapshot {
   return {
     duration: input.duration.trim(),
-    price: Number.isFinite(input.price) ? input.price : 0,
+    price: input.price.trim(),
     goalIds: [...new Set(input.goalIds)].sort((a, b) => a - b),
     status: input.status,
     translations: input.translations
@@ -325,7 +350,7 @@ function buildProgramChangeSnapshot(input: {
         about: normalizeRichTextValue(t.about),
         features: t.features.map((s) => s.trim()).filter(Boolean),
         ideals: t.ideals.map((s) => s.trim()).filter(Boolean),
-        expectations: t.expectations.map((s) => s.trim()).filter(Boolean),
+        expectations: normalizeExpectationRows(t.expectations),
         structures: normalizeStructureRows(t.structures),
       }))
       .sort((a, b) => a.locale.localeCompare(b.locale)),
@@ -401,7 +426,7 @@ export default function ProgramWizard({
     if (!isEdit || !program) {
       return buildProgramChangeSnapshot({
         duration: '',
-        price: 0,
+        price: '',
         goalIds: [],
         status: STATUS.DRAFT,
         translations: [emptyTranslation('en'), emptyTranslation('my')],
@@ -562,7 +587,7 @@ export default function ProgramWizard({
           about: normalizeRichTextValue(t.about),
           features: t.features.map((s) => s.trim()).filter(Boolean),
           ideals: t.ideals.map((s) => s.trim()).filter(Boolean),
-          expectations: t.expectations.map((s) => s.trim()).filter(Boolean),
+          expectations: normalizeExpectationRows(t.expectations),
           structures: normalizeStructureRows(t.structures),
         }));
 
@@ -570,10 +595,13 @@ export default function ProgramWizard({
         (t) => t.locale,
       );
 
+      const parsedPrice =
+        price.trim() === '' ? null : Number.parseInt(price.trim(), 10);
+
       const saveBody = {
         ...(isEdit && program?.id != null ? { id: program.id } : {}),
         duration,
-        price,
+        price: parsedPrice,
         goal_ids: goalIds,
         translations: translationPayload,
         status: status === STATUS.ARCHIVED ? STATUS.HIDDEN : status,
@@ -816,10 +844,11 @@ export default function ProgramWizard({
                           }
                           error={getTranslationError(lang.code, 'ideals')}
                         />
-                        <StringListField
+                        <ExpectationRepeaterField
                           label='Participant Expectations'
                           description='Outline what participants should anticipate from this program, including commitments, deliverables, and overall experience.'
                           value={t.expectations}
+                          locale={lang.code}
                           onChange={(val) =>
                             updateTranslation(lang.code, 'expectations', val)
                           }
@@ -930,21 +959,20 @@ export default function ProgramWizard({
                 error={errors.duration}
               />
               <TextField
-                label='Price'
-                required
-                type='number'
-                min={0}
-                step={1}
-                placeholder='0'
-                value={Number.isNaN(price) ? '' : String(price)}
+                label='Price (optional)'
+                inputMode='numeric'
+                placeholder='Enter program price'
+                value={price}
                 onChange={(e) => {
                   const v = e.target.value;
-                  setPrice(v === '' ? 0 : Number.parseInt(v, 10) || 0);
-                  setErrors((prev) => {
-                    const n = { ...prev };
-                    delete n.price;
-                    return n;
-                  });
+                  if (v === '' || /^\d+$/.test(v)) {
+                    setPrice(v);
+                    setErrors((prev) => {
+                      const n = { ...prev };
+                      delete n.price;
+                      return n;
+                    });
+                  }
                 }}
                 error={errors.price}
               />

@@ -27,7 +27,11 @@ function programLocaleToTranslation(
     about: p.about ?? '',
     features: p.features ?? [],
     ideals: p.ideals ?? [],
-    expectations: p.expectations ?? [],
+    expectations: (p.expectations ?? []).map((e) =>
+      typeof e === 'string'
+        ? { title: e, description: '' }
+        : { title: e.title ?? '', description: e.description ?? '' },
+    ),
     structures: (p.structures ?? []).map((s) => ({
       period: s.period ?? '',
       title: s.title ?? '',

@@ -7,6 +7,12 @@ export type ProgramStructureItem = {
   description: string;
 };
 
+/** One expectation item within a program translation. */
+export type ProgramExpectationItem = {
+  title: string;
+  description: string;
+};
+
 /** Per-locale content for admin forms and translation save step. */
 export type ProgramTranslation = {
   locale: 'en' | 'my';
@@ -18,7 +24,7 @@ export type ProgramTranslation = {
   about: string;
   features: string[];
   ideals: string[];
-  expectations: string[];
+  expectations: ProgramExpectationItem[];
   structures: ProgramStructureItem[];
 };
 
@@ -32,7 +38,7 @@ export type Program = {
   about: string;
   features: string[];
   ideals: string[];
-  expectations: string[];
+  expectations: ProgramExpectationItem[];
   structures: {
     period: string;
     title: string;
