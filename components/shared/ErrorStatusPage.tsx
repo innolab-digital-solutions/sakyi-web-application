@@ -1,4 +1,10 @@
-import { House, LifeBuoy, RotateCcw } from 'lucide-react';
+import {
+  House,
+  LayoutDashboard,
+  LifeBuoy,
+  RotateCcw,
+  type LucideIcon,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
@@ -7,34 +13,103 @@ import { Button } from '@/components/ui/button';
 import type { ErrorPresentation } from '@/lib/errors/http-status';
 import { cn } from '@/lib/utils/styles';
 
+/** Link navigation action (used in primary or outline slot). */
+export type ErrorPageLinkAction = {
+  kind: 'link';
+  href: string;
+  label: string;
+};
+
+/** Button action, e.g. retry from an error boundary (used in primary or outline slot). */
+export type ErrorPageButtonAction = {
+  kind: 'button';
+  onClick: () => void;
+  label: string;
+};
+
+export type ErrorPageAction = ErrorPageLinkAction | ErrorPageButtonAction;
+
 type ErrorStatusPageProps = {
   presentation: ErrorPresentation;
   note?: ReactNode;
-  onRetry?: () => void;
-  retryLabel?: string;
-  primaryHref?: string;
-  primaryLabel?: string;
-  secondaryHref?: string;
-  secondaryLabel?: string;
+  /**
+   * Main CTA (default / solid button). Use the error boundary `reset` callback here
+   * when you want “Try again” to be the primary action. At most two actions total
+   * with `outline`.
+   */
+  primary: ErrorPageAction;
+  /** Secondary CTA (outline), e.g. go home or admin overview. */
+  outline?: ErrorPageAction;
   className?: string;
 };
+
+const primaryButtonClass =
+  'h-11 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold';
+const outlineButtonClass =
+  'bg-background hover:bg-muted h-11 gap-1.5 rounded-md border-neutral-300 px-3.5 text-[13px]! font-semibold';
+
+function iconForAction(action: ErrorPageAction): LucideIcon {
+  if (action.kind === 'button') {
+    return RotateCcw;
+  }
+  const { href } = action;
+  if (href === '/' || href === '') {
+    return House;
+  }
+  if (href.startsWith('/admin')) {
+    return LayoutDashboard;
+  }
+  if (href.includes('contact')) {
+    return LifeBuoy;
+  }
+  return House;
+}
+
+function ErrorPageActionControl({
+  action,
+  slot,
+}: {
+  action: ErrorPageAction;
+  slot: 'primary' | 'outline';
+}) {
+  const Icon = iconForAction(action);
+  const isOutline = slot === 'outline';
+
+  if (action.kind === 'link') {
+    return (
+      <Button
+        asChild
+        variant={isOutline ? 'outline' : 'default'}
+        className={isOutline ? outlineButtonClass : primaryButtonClass}
+      >
+        <Link href={action.href}>
+          <Icon className='size-3.5' />
+          {action.label}
+        </Link>
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      type='button'
+      variant={isOutline ? 'outline' : 'default'}
+      className={isOutline ? outlineButtonClass : primaryButtonClass}
+      onClick={action.onClick}
+    >
+      <Icon className='size-3.5' />
+      {action.label}
+    </Button>
+  );
+}
 
 export default function ErrorStatusPage({
   presentation,
   note,
-  onRetry,
-  retryLabel = 'Try again',
-  primaryHref = '/',
-  primaryLabel = 'Go home',
-  secondaryHref,
-  secondaryLabel,
+  primary,
+  outline,
   className,
 }: ErrorStatusPageProps) {
-  const primaryButtonClass =
-    'h-11 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold';
-  const outlineButtonClass =
-    'bg-background hover:bg-muted h-11 gap-1.5 rounded-md border-neutral-300 px-3.5 text-[13px]! font-semibold';
-
   return (
     <section
       className={cn(
@@ -57,30 +132,9 @@ export default function ErrorStatusPage({
             <div className='text-muted-foreground text-xs'>{note}</div>
           ) : null}
           <div className='flex flex-wrap items-center justify-center gap-2.5 pt-2 sm:gap-3 md:justify-start'>
-            {onRetry ? (
-              <Button
-                type='button'
-                variant='outline'
-                className={outlineButtonClass}
-                onClick={onRetry}
-              >
-                <RotateCcw className='size-3.5' />
-                {retryLabel}
-              </Button>
-            ) : null}
-            <Button asChild className={primaryButtonClass}>
-              <Link href={primaryHref}>
-                <House className='size-3.5' />
-                {primaryLabel}
-              </Link>
-            </Button>
-            {secondaryHref && secondaryLabel ? (
-              <Button asChild variant='outline' className={outlineButtonClass}>
-                <Link href={secondaryHref}>
-                  <LifeBuoy className='size-3.5' />
-                  {secondaryLabel}
-                </Link>
-              </Button>
+            <ErrorPageActionControl action={primary} slot='primary' />
+            {outline ? (
+              <ErrorPageActionControl action={outline} slot='outline' />
             ) : null}
           </div>
         </div>

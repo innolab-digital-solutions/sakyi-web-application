@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 
 import ErrorStatusPage from '@/components/shared/ErrorStatusPage';
+import { ROUTES } from '@/config/routes';
 import {
   getErrorPresentation,
   resolveStatusFromUnknownError,
@@ -36,8 +37,16 @@ export default function GlobalError({
       <body className='font-sans antialiased'>
         <ErrorStatusPage
           presentation={presentation}
-          onRetry={retry}
-          retryLabel='Try again'
+          primary={{
+            kind: 'button',
+            onClick: retry,
+            label: 'Try again',
+          }}
+          outline={{
+            kind: 'link',
+            href: ROUTES.MARKETING.HOME,
+            label: 'Go home',
+          }}
         />
       </body>
     </html>

@@ -1,16 +1,17 @@
 import { notFound } from 'next/navigation';
 
 import ErrorStatusPage from '@/components/shared/ErrorStatusPage';
+import { ROUTES } from '@/config/routes';
 import {
   getErrorPresentation,
   isSupportedErrorStatus,
 } from '@/lib/errors/http-status';
 
-type ErrorStatusPageProps = {
+type ErrorStatusRoutePageProps = {
   params: Promise<{ code: string }>;
 };
 
-export default async function ErrorStatus({ params }: ErrorStatusPageProps) {
+export default async function ErrorStatus({ params }: ErrorStatusRoutePageProps) {
   const { code } = await params;
   const statusCode = Number(code);
 
@@ -21,10 +22,16 @@ export default async function ErrorStatus({ params }: ErrorStatusPageProps) {
   return (
     <ErrorStatusPage
       presentation={getErrorPresentation(statusCode)}
-      primaryHref='/'
-      primaryLabel='Back to home'
-      secondaryHref='/contact'
-      secondaryLabel='Contact support'
+      primary={{
+        kind: 'link',
+        href: ROUTES.MARKETING.HOME,
+        label: 'Back to home',
+      }}
+      outline={{
+        kind: 'link',
+        href: ROUTES.MARKETING.CONTACT,
+        label: 'Contact support',
+      }}
     />
   );
 }
