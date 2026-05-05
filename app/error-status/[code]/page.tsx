@@ -11,7 +11,9 @@ type ErrorStatusRoutePageProps = {
   params: Promise<{ code: string }>;
 };
 
-export default async function ErrorStatus({ params }: ErrorStatusRoutePageProps) {
+export default async function ErrorStatus({
+  params,
+}: ErrorStatusRoutePageProps) {
   const { code } = await params;
   const statusCode = Number(code);
 

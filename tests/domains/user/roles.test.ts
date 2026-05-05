@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { isSuperAdminUser, SUPER_ADMIN_ROLE_SLUG } from '@/domains/user/roles';
 import type { User } from '@/domains/user/types';
-import { SUPER_ADMIN_ROLE_SLUG, isSuperAdminUser } from '@/domains/user/roles';
 
 function userWithRole(role: User['role']): User {
   return {
@@ -51,6 +51,11 @@ describe('isSuperAdminUser', () => {
   });
 
   it('handles surrounding whitespace', () => {
-    expect(isSuperAdminUser({ ...userWithRole('super_admin'), role: '  super_admin  ' as User['role'] })).toBe(true);
+    expect(
+      isSuperAdminUser({
+        ...userWithRole('super_admin'),
+        role: '  super_admin  ' as User['role'],
+      }),
+    ).toBe(true);
   });
 });

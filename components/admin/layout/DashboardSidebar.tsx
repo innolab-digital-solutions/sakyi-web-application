@@ -8,11 +8,6 @@ import type { ReactNode } from 'react';
 import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
-  ADMIN_NAVIGATION,
-  createSuperAdminBackendObservabilityNav,
-} from '@/config/navigation/admin';
-
-import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -30,6 +25,10 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
+import {
+  ADMIN_NAVIGATION,
+  createSuperAdminBackendObservabilityNav,
+} from '@/config/navigation/admin';
 import type { NavItem, NavSubItem } from '@/config/navigation/types';
 import { useAuth } from '@/context/AuthContext';
 import { isSuperAdminUser } from '@/domains/user/roles';

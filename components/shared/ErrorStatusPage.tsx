@@ -2,12 +2,12 @@ import {
   House,
   LayoutDashboard,
   LifeBuoy,
-  RotateCcw,
   type LucideIcon,
+  RotateCcw,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import type { ReactNode } from 'react';
+import { createElement, type ReactNode } from 'react';
 
 import { Button } from '@/components/ui/button';
 import type { ErrorPresentation } from '@/lib/errors/http-status';
@@ -72,8 +72,10 @@ function ErrorPageActionControl({
   action: ErrorPageAction;
   slot: 'primary' | 'outline';
 }) {
-  const Icon = iconForAction(action);
   const isOutline = slot === 'outline';
+  const icon = createElement(iconForAction(action), {
+    className: 'size-3.5',
+  });
 
   if (action.kind === 'link') {
     return (
@@ -83,7 +85,7 @@ function ErrorPageActionControl({
         className={isOutline ? outlineButtonClass : primaryButtonClass}
       >
         <Link href={action.href}>
-          <Icon className='size-3.5' />
+          {icon}
           {action.label}
         </Link>
       </Button>
@@ -97,7 +99,7 @@ function ErrorPageActionControl({
       className={isOutline ? outlineButtonClass : primaryButtonClass}
       onClick={action.onClick}
     >
-      <Icon className='size-3.5' />
+      {icon}
       {action.label}
     </Button>
   );

@@ -189,7 +189,6 @@ export function createSuperAdminBackendObservabilityNav(): NavItem {
         path: absoluteLaravelDiagnosticUrl('APPLICATION_TELEMETRY'),
         external: true,
       },
- 
     ],
   };
 }
