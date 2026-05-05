@@ -5,6 +5,7 @@ import { format, parseISO } from 'date-fns';
 import {
   CheckCircle2Icon,
   ClockIcon,
+  ShieldCheckIcon,
   SquarePenIcon,
   Trash2Icon,
   UserCheck2Icon,
@@ -40,6 +41,15 @@ import type { Status, User } from '@/domains/user/types';
 import { useTable } from '@/lib/table';
 import { getInitials } from '@/lib/utils/string';
 
+const SUPER_ADMIN_BADGE: {
+  icon: ComponentType<{ className?: string }>;
+  className: string;
+} = {
+  icon: ShieldCheckIcon,
+  className:
+    'border-amber-400/85 bg-amber-50 text-amber-950 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-50',
+};
+
 const ROLE_BADGE_STYLES: Record<
   User['role'],
   {
@@ -62,6 +72,8 @@ const ROLE_BADGE_STYLES: Record<
     className:
       'border-violet-300/80 bg-violet-50 text-violet-800 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-200',
   },
+  super_admin: SUPER_ADMIN_BADGE,
+  'Super Admin': SUPER_ADMIN_BADGE,
 };
 
 const COLUMN_COUNT = 7;

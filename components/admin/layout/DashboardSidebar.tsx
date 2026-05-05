@@ -4,7 +4,13 @@ import { ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { startTransition, useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
+import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
+
+import {
+  ADMIN_NAVIGATION,
+  createSuperAdminBackendObservabilityNav,
+} from '@/config/navigation/admin';
 
 import {
   Collapsible,
@@ -24,13 +30,49 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
-import { NAVIGATION } from '@/config/navigation';
-import type { NavItem } from '@/config/navigation/types';
+import type { NavItem, NavSubItem } from '@/config/navigation/types';
+import { useAuth } from '@/context/AuthContext';
+import { isSuperAdminUser } from '@/domains/user/roles';
 
 import LogoutConfirmationDialog from './LogoutConfirmationDialog';
 
+const EXTERNAL_HREF_RE = /^https?:\/\//i;
+
+function AdminNavHref({
+  href,
+  external,
+  className,
+  children,
+}: {
+  href: string;
+  external?: boolean;
+  className?: string;
+  children: ReactNode;
+}) {
+  const isOutbound = external === true || EXTERNAL_HREF_RE.test(href);
+
+  if (isOutbound) {
+    return (
+      <a
+        href={href}
+        target='_blank'
+        rel='noopener noreferrer'
+        className={className}
+      >
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={href} prefetch={false} className={className}>
+      {children}
+    </Link>
+  );
+}
+
 const isNavPathActive = (pathname: string, navPath: string): boolean => {
-  if (!navPath || navPath === '#') {
+  if (!navPath || navPath === '#' || EXTERNAL_HREF_RE.test(navPath)) {
     return false;
   }
 
@@ -42,7 +84,7 @@ const isNavPathActive = (pathname: string, navPath: string): boolean => {
 };
 
 type NavItemWithSubitems = NavItem & {
-  subitems: NonNullable<NavItem['subitems']>;
+  subitems: NavSubItem[];
 };
 
 function AdminNavCollapsibleSection({
@@ -111,11 +153,14 @@ function AdminNavCollapsibleSection({
                     isActive={isSubActive}
                     className='data-[active=true]:text-sidebar-primary-foreground! hover:text-sidebar-primary-foreground! px-3 py-5 hover:bg-white/15! data-[active=true]:bg-white/15!'
                   >
-                    <Link href={subitem.path}>
+                    <AdminNavHref
+                      href={subitem.path}
+                      external={subitem.external}
+                    >
                       <span className='text-[12.5px] font-semibold'>
                         {subitem.name}
                       </span>
-                    </Link>
+                    </AdminNavHref>
                   </SidebarMenuSubButton>
                 </SidebarMenuSubItem>
               );
@@ -129,6 +174,15 @@ function AdminNavCollapsibleSection({
 
 const DashboardSidebar = () => {
   const pathname = usePathname();
+  const { user } = useAuth();
+
+  const adminNavItems = useMemo(() => {
+    const items = [...ADMIN_NAVIGATION];
+    if (isSuperAdminUser(user)) {
+      items.push(createSuperAdminBackendObservabilityNav());
+    }
+    return items;
+  }, [user]);
 
   return (
     <Sidebar className='z-50!'>
@@ -157,7 +211,7 @@ const DashboardSidebar = () => {
       <SidebarContent className='scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent py-3.5'>
         <SidebarGroup>
           <SidebarMenu>
-            {NAVIGATION.ADMIN.map((item, index) => {
+            {adminNavItems.map((item, index) => {
               const hasSubitems = item.subitems && item.subitems.length > 0;
 
               const isItemActive = isNavPathActive(pathname, item.path);
@@ -188,12 +242,12 @@ const DashboardSidebar = () => {
                     tooltip={item.name}
                     className='data-[active=true]:text-sidebar-primary-foreground! hover:text-sidebar-primary-foreground! px-3 py-5 hover:bg-white/15! data-[active=true]:bg-white/15!'
                   >
-                    <Link href={item.path}>
+                    <AdminNavHref href={item.path}>
                       {Icon ? <Icon className='mr-1 h-4 w-4' /> : null}
                       <span className='text-[12.5px] font-semibold'>
                         {item.name}
                       </span>
-                    </Link>
+                    </AdminNavHref>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               );

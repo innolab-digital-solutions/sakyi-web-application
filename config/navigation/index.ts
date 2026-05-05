@@ -7,7 +7,7 @@ import { HEADER_NAVIGATION } from './marketing';
  * Groups together admin and marketing navigation objects for unified, type-safe navigation access throughout the codebase.
  *
  * References:
- * - {@link ADMIN_NAVIGATION} - Admin navigation objects
+ * - {@link ADMIN_NAVIGATION} - Admin navigation items rendered in-cluster (super-admin-only backend links are appended in `DashboardSidebar` when applicable)
  * - {@link HEADER_NAVIGATION} - Marketing header navigation objects
  *
  * @example
