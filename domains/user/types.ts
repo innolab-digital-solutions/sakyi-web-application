@@ -9,7 +9,7 @@ export type User = {
   email: string;
   status: Status;
   picture_url: string;
-  role: 'Admin' | 'Client' | 'Prospect';
+  role: 'Admin' | 'Client' | 'Prospect' | 'super_admin' | 'Super Admin';
   sign_in_options: {
     email_password: 'set' | 'not_set';
     google: 'connected' | 'not_connected';

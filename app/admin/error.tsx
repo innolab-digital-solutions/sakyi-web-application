@@ -31,12 +31,16 @@ export default function AdminError({
   return (
     <ErrorStatusPage
       presentation={presentation}
-      onRetry={retry}
-      retryLabel='Try again'
-      primaryHref={ROUTES.ADMIN.MODULES.OVERVIEW}
-      primaryLabel='Back to overview'
-      secondaryHref='/'
-      secondaryLabel='Go to website'
+      primary={{
+        kind: 'button',
+        onClick: retry,
+        label: 'Try again',
+      }}
+      outline={{
+        kind: 'link',
+        href: ROUTES.ADMIN.MODULES.OVERVIEW,
+        label: 'Back to overview',
+      }}
     />
   );
 }

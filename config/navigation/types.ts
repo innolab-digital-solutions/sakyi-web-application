@@ -1,4 +1,13 @@
 /**
+ * Nested admin sidebar link. Use `external` for absolute URLs (e.g. Laravel diagnostics off this app).
+ */
+export type NavSubItem = {
+  name: string;
+  path: string;
+  external?: boolean;
+};
+
+/**
  * Represents a navigation item for use in navigation menus.
  *
  * - For Admin navigation: Represents primary and (optionally) nested sidebar links.
@@ -8,5 +17,5 @@ export type NavItem = {
   name: string;
   path: string;
   icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  subitems?: NavItem[];
+  subitems?: NavSubItem[];
 };

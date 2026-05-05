@@ -7,9 +7,11 @@ import {
   LayoutDashboard,
   NotebookPen,
   Scale,
+  Server,
   UserCog,
 } from 'lucide-react';
 
+import { absoluteLaravelDiagnosticUrl } from '@/config/api/laravel-backend-diagnostics';
 import { ADMIN_ROUTES } from '@/config/routes/admin';
 
 import type { NavItem } from './types';
@@ -21,7 +23,8 @@ import type { NavItem } from './types';
  * target route, and any associated subitems (for dropdown or nested nav items).
  *
  * Important:
- * - `path` must reference a value from {@link ADMIN_ROUTES} to ensure route consistency and type safety across the application.
+ * - `path` should reference {@link ADMIN_ROUTES} for in-app destinations. Exceptions (e.g. backend
+ *   Laravel diagnostics) use absolute URLs produced from the API domain — see {@link createSuperAdminBackendObservabilityNav}.
  *
  * @see NavItem - Type definition for navigation items
  * @see ADMIN_ROUTES - Centralized admin route definitions
@@ -154,3 +157,38 @@ export const ADMIN_NAVIGATION: NavItem[] = [
     subitems: [],
   },
 ] as const;
+
+/**
+ * Collapsible sidebar group linking to Laravel diagnostics (Telescope, Horizon, Pulse) on the API host.
+ *
+ * URLs are derived from `.env` via {@link absoluteLaravelDiagnosticUrl} (`NEXT_PUBLIC_API_DOMAIN_ENDPOINT`).
+ *
+ * Merge into the sidebar only when `user` satisfies `isSuperAdminUser` from `@/domains/user/roles`.
+ * Authorization remains enforced by the Laravel API — this navigation is UX only.
+ *
+ * Labels use operational language rather than vendor product names.
+ */
+export function createSuperAdminBackendObservabilityNav(): NavItem {
+  return {
+    name: 'Backend Observability',
+    icon: Server,
+    path: '#',
+    subitems: [
+      {
+        name: 'Application Debugging',
+        path: absoluteLaravelDiagnosticUrl('APPLICATION_DEBUGGING'),
+        external: true,
+      },
+      {
+        name: 'Queue Monitoring',
+        path: absoluteLaravelDiagnosticUrl('QUEUE_MONITORING'),
+        external: true,
+      },
+      {
+        name: 'Performance Monitoring',
+        path: absoluteLaravelDiagnosticUrl('APPLICATION_TELEMETRY'),
+        external: true,
+      },
+    ],
+  };
+}
