@@ -3,6 +3,7 @@
 import { SearchIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
+import AdminTableReloadButton from '@/components/admin/layout/AdminTableReloadButton';
 import TextField from '@/components/shared/form/TextField';
 import {
   Pagination,
@@ -132,9 +133,10 @@ const TableListShell = <TItem,>({
               </div>
             </div>
           ) : null}
-          {filters ? (
-            <div className='flex items-center gap-2'>{filters}</div>
-          ) : null}
+          <div className='flex items-center gap-2'>
+            {filters}
+            <AdminTableReloadButton />
+          </div>
         </div>
       ) : null}
       <div className='border-border bg-card min-w-0 overflow-hidden rounded-lg border shadow-xs'>
