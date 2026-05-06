@@ -59,6 +59,8 @@ type ComboboxFieldSharedProps = {
   required?: boolean;
   /** Disables opening the list and selection. */
   disabled?: boolean;
+  /** Keeps visual style intact but prevents opening and changing selection. */
+  readOnly?: boolean;
   /** Shown when no option is selected. */
   placeholder?: string;
   /** Options to list and filter. */
@@ -109,6 +111,7 @@ function ComboboxField(props: ComboboxFieldProps) {
     error,
     required,
     disabled,
+    readOnly,
     placeholder = 'Select…',
     options,
     emptyMessage = 'No results found.',
@@ -131,6 +134,7 @@ function ComboboxField(props: ComboboxFieldProps) {
   const listboxId = `${id}-listbox`;
   const errorId = error ? `${id}-error` : undefined;
   const [open, setOpen] = React.useState(false);
+  const interactionLocked = disabled || readOnly;
 
   const optionMap = React.useMemo(() => {
     const m = new Map<string, ComboboxOption>();
@@ -169,7 +173,7 @@ function ComboboxField(props: ComboboxFieldProps) {
   const removeChip = (optionValue: string, e: React.SyntheticEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isMulti || disabled) return;
+    if (!isMulti || interactionLocked) return;
     const current = value as string[];
     (onChange as ComboboxFieldMultiProps['onChange'])?.(
       current.filter((v) => v !== optionValue),
@@ -179,7 +183,7 @@ function ComboboxField(props: ComboboxFieldProps) {
   const clearSingleSelection = (e: React.SyntheticEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isMulti || disabled || !onChange) return;
+    if (isMulti || interactionLocked || !onChange) return;
     (onChange as ComboboxFieldSingleProps['onChange'])?.(null);
   };
 
@@ -187,7 +191,7 @@ function ComboboxField(props: ComboboxFieldProps) {
     !isMulti &&
     clearableSingle &&
     hasSelection &&
-    !disabled &&
+    !interactionLocked &&
     onChange !== undefined;
 
   /**
@@ -215,6 +219,7 @@ function ComboboxField(props: ComboboxFieldProps) {
         ? 'border-destructive ring-[3px] ring-destructive/20'
         : 'border-ring ring-[3px] ring-ring/50'),
     disabled && 'pointer-events-none cursor-not-allowed opacity-50',
+    readOnly && !disabled && 'cursor-default',
     !hasSelection && 'text-muted-foreground',
   );
 
@@ -256,7 +261,13 @@ function ComboboxField(props: ComboboxFieldProps) {
           {label}
         </ShadCNLabel>
       )}
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover
+        open={open}
+        onOpenChange={(nextOpen) => {
+          if (interactionLocked && nextOpen) return;
+          setOpen(nextOpen);
+        }}
+      >
         {name != null && !isMulti ? (
           <input
             type='hidden'
@@ -290,13 +301,14 @@ function ComboboxField(props: ComboboxFieldProps) {
             aria-invalid={error ? true : undefined}
             aria-describedby={errorId}
             aria-disabled={disabled ? true : undefined}
+            aria-readonly={readOnly ? true : undefined}
             className={cn(
               responsiveTriggerClass,
               !isMulti && 'px-3 md:px-4',
               isMulti && 'px-2 md:px-3',
             )}
             onKeyDown={(e) => {
-              if (disabled) return;
+              if (interactionLocked) return;
               if (e.target !== e.currentTarget) return;
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
@@ -326,7 +338,7 @@ function ComboboxField(props: ComboboxFieldProps) {
                         </span>
                         <button
                           type='button'
-                          tabIndex={disabled ? -1 : 0}
+                          tabIndex={interactionLocked ? -1 : 0}
                           className='text-muted-foreground hover:text-foreground focus-visible:ring-ring -mr-0.5 shrink-0 rounded-sm p-0.5 outline-none focus-visible:ring-2'
                           onClick={(e) => removeChip(v, e)}
                           onKeyDown={(e) => {
@@ -367,7 +379,7 @@ function ComboboxField(props: ComboboxFieldProps) {
             {showSingleClear ? (
               <button
                 type='button'
-                tabIndex={disabled ? -1 : 0}
+                tabIndex={interactionLocked ? -1 : 0}
                 className='text-muted-foreground hover:text-foreground focus-visible:ring-ring -mr-0.5 shrink-0 rounded-sm p-0.5 outline-none focus-visible:ring-2'
                 onClick={clearSingleSelection}
                 onPointerDown={(e) => {
