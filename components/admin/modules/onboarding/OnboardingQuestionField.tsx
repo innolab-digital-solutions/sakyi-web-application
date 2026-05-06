@@ -85,6 +85,17 @@ function getSelectOptions(
   return uniqueOptions;
 }
 
+function normalizeNonNegativeNumberInput(raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) return '';
+  if (trimmed === '-') return '0';
+
+  const parsed = Number(trimmed);
+  if (Number.isNaN(parsed)) return raw;
+
+  return parsed < 0 ? '0' : raw;
+}
+
 export default function OnboardingQuestionField({
   question,
   value,
@@ -113,12 +124,15 @@ export default function OnboardingQuestionField({
         placeholder={buildPlaceholder(question)}
         required={question.required}
         type='number'
+        min={0}
         disabled={disabled}
         value={
           typeof value === 'number' || typeof value === 'string' ? value : ''
         }
         error={error}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(event) =>
+          onChange(normalizeNonNegativeNumberInput(event.target.value))
+        }
       />
     );
   }
