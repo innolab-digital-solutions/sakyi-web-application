@@ -708,14 +708,18 @@ export default function CarePlanBuilder({
     const kcalRow = rows.find((row) => {
       const abbreviation = toLookupToken(row.abbreviation);
       const name = toLookupToken(row.name);
-      return abbreviation === 'kcal' || name.includes('kilocal') || name === 'kcal';
+      return (
+        abbreviation === 'kcal' || name.includes('kilocal') || name === 'kcal'
+      );
     });
     return kcalRow ? String(kcalRow.id) : null;
   }, [unitsLookupQuery.data]);
 
   const nutritionUnitOptions = React.useMemo<ComboboxOption[]>(() => {
     if (!nutritionKcalUnitValue) return [];
-    return unitOptions.filter((option) => option.value === nutritionKcalUnitValue);
+    return unitOptions.filter(
+      (option) => option.value === nutritionKcalUnitValue,
+    );
   }, [nutritionKcalUnitValue, unitOptions]);
 
   const unitIdByToken = React.useMemo(() => {
@@ -893,21 +897,6 @@ export default function CarePlanBuilder({
       setLocalItems(sectionItems);
     });
   }, [activeSection, editable, nutritionKcalUnitValue, sectionItems]);
-
-  React.useEffect(() => {
-    if (activeSection !== 'nutrition') return;
-    if (!nutritionKcalUnitValue) return;
-
-    setLocalItems((prev) => {
-      const next = prev.map((item) =>
-        normalizeValue(item.target_unit) === nutritionKcalUnitValue
-          ? item
-          : { ...item, target_unit: nutritionKcalUnitValue },
-      );
-      const changed = next.some((item, idx) => item !== prev[idx]);
-      return changed ? next : prev;
-    });
-  }, [activeSection, nutritionKcalUnitValue]);
 
   React.useEffect(() => {
     queueMicrotask(() => {
@@ -2423,8 +2412,8 @@ export default function CarePlanBuilder({
                                           index,
                                           'target_unit',
                                           activeSection === 'nutrition'
-                                            ? nutritionKcalUnitValue ?? ''
-                                            : value ?? '',
+                                            ? (nutritionKcalUnitValue ?? '')
+                                            : (value ?? ''),
                                         )
                                       }
                                       error={
@@ -2435,9 +2424,7 @@ export default function CarePlanBuilder({
                                         nutritionKcalUnitValue != null &&
                                         editable
                                       }
-                                      disabled={
-                                        !editable
-                                      }
+                                      disabled={!editable}
                                     />
                                   </div>
                                 )}
