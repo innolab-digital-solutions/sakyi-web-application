@@ -703,6 +703,25 @@ export default function CarePlanBuilder({
     }));
   }, [unitsLookupQuery.data]);
 
+  const nutritionKcalUnitValue = React.useMemo<string | null>(() => {
+    const rows = unitsLookupQuery.data ?? [];
+    const kcalRow = rows.find((row) => {
+      const abbreviation = toLookupToken(row.abbreviation);
+      const name = toLookupToken(row.name);
+      return (
+        abbreviation === 'kcal' || name.includes('kilocal') || name === 'kcal'
+      );
+    });
+    return kcalRow ? String(kcalRow.id) : null;
+  }, [unitsLookupQuery.data]);
+
+  const nutritionUnitOptions = React.useMemo<ComboboxOption[]>(() => {
+    if (!nutritionKcalUnitValue) return [];
+    return unitOptions.filter(
+      (option) => option.value === nutritionKcalUnitValue,
+    );
+  }, [nutritionKcalUnitValue, unitOptions]);
+
   const unitIdByToken = React.useMemo(() => {
     const map = new Map<string, number>();
     const rows = unitsLookupQuery.data ?? [];
@@ -852,13 +871,32 @@ export default function CarePlanBuilder({
         );
         return;
       }
+      if (activeSection === 'nutrition') {
+        if (editable && sectionItems.length === 0) {
+          setLocalItems([
+            {
+              ...createEmptySectionItem(),
+              target_unit: nutritionKcalUnitValue ?? '',
+            },
+          ]);
+          return;
+        }
+        setLocalItems(
+          sectionItems.map((item) => ({
+            ...item,
+            target_unit:
+              normalizeValue(item.target_unit) || nutritionKcalUnitValue || '',
+          })),
+        );
+        return;
+      }
       if (editable && sectionItems.length === 0) {
         setLocalItems([createEmptySectionItem()]);
         return;
       }
       setLocalItems(sectionItems);
     });
-  }, [activeSection, editable, sectionItems]);
+  }, [activeSection, editable, nutritionKcalUnitValue, sectionItems]);
 
   React.useEffect(() => {
     queueMicrotask(() => {
@@ -1689,6 +1727,17 @@ export default function CarePlanBuilder({
       scrollToLastItemCard();
       return;
     }
+    if (activeSection === 'nutrition') {
+      setLocalItems((prev) => [
+        ...prev,
+        {
+          ...createEmptySectionItem(),
+          target_unit: nutritionKcalUnitValue ?? '',
+        },
+      ]);
+      scrollToLastItemCard();
+      return;
+    }
     setLocalItems((prev) => [...prev, createEmptySectionItem()]);
     scrollToLastItemCard();
   };
@@ -2335,22 +2384,45 @@ export default function CarePlanBuilder({
                                     />
                                     <ComboboxField
                                       label='Measurement'
-                                      placeholder='Please select a measurement unit…'
+                                      placeholder={
+                                        activeSection === 'nutrition'
+                                          ? 'kcal'
+                                          : 'Please select a measurement unit…'
+                                      }
                                       searchPlaceholder='Search measurement unit…'
-                                      emptyMessage='No measurement units found.'
-                                      options={unitOptions}
-                                      value={resolveUnitComboboxValue(
-                                        item.target_unit,
-                                      )}
+                                      emptyMessage={
+                                        activeSection === 'nutrition'
+                                          ? 'kcal unit is not available.'
+                                          : 'No measurement units found.'
+                                      }
+                                      options={
+                                        activeSection === 'nutrition'
+                                          ? nutritionUnitOptions
+                                          : unitOptions
+                                      }
+                                      value={
+                                        activeSection === 'nutrition'
+                                          ? nutritionKcalUnitValue
+                                          : resolveUnitComboboxValue(
+                                              item.target_unit,
+                                            )
+                                      }
                                       onChange={(value) =>
                                         setItemField(
                                           index,
                                           'target_unit',
-                                          value ?? '',
+                                          activeSection === 'nutrition'
+                                            ? (nutritionKcalUnitValue ?? '')
+                                            : (value ?? ''),
                                         )
                                       }
                                       error={
                                         itemFieldErrors[index]?.target_unit
+                                      }
+                                      readOnly={
+                                        activeSection === 'nutrition' &&
+                                        nutritionKcalUnitValue != null &&
+                                        editable
                                       }
                                       disabled={!editable}
                                     />
