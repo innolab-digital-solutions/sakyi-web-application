@@ -118,6 +118,46 @@ function formatDateCell(iso: string | null | undefined): string | null {
   }
 }
 
+function isEmailSignInEnabled(user: User): boolean {
+  const raw = String(user.sign_in_options?.email_password ?? '')
+    .trim()
+    .toLowerCase();
+
+  // Backends can evolve enum wording (e.g. "set" -> "enabled").
+  // Treat only explicit negative markers as disabled to prevent false negatives.
+  const disabledMarkers = new Set([
+    '',
+    'not_set',
+    'not configured',
+    'not_configured',
+    'disabled',
+    'false',
+    '0',
+    'none',
+  ]);
+
+  return !disabledMarkers.has(raw);
+}
+
+function isGoogleSignInConnected(user: User): boolean {
+  const raw = String(user.sign_in_options?.google ?? '')
+    .trim()
+    .toLowerCase();
+
+  const disconnectedMarkers = new Set([
+    '',
+    'not_connected',
+    'not connected',
+    'disconnected',
+    'disabled',
+    'false',
+    '0',
+    'none',
+  ]);
+
+  return !disconnectedMarkers.has(raw);
+}
+
 function statusFilterFromParams(raw: string | undefined): UserStatusFilter {
   const valid: Status[] = ['pending', 'active'];
   return valid.includes(raw as Status) ? (raw as Status) : 'all';
@@ -332,13 +372,11 @@ export default function UserListTable() {
                     </TableCell>
 
                     <TableCell>
-                      {user.sign_in_options.email_password === 'set'
-                        ? 'Enabled'
-                        : 'Not configured'}
+                      {isEmailSignInEnabled(user) ? 'Enabled' : 'Not configured'}
                     </TableCell>
 
                     <TableCell>
-                      {user.sign_in_options.google === 'connected'
+                      {isGoogleSignInConnected(user)
                         ? 'Connected'
                         : 'Not connected'}
                     </TableCell>

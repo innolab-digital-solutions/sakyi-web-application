@@ -50,6 +50,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { base } from '@/config/api/base';
+import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
 import {
   getCarePlanById,
@@ -84,6 +85,10 @@ import { cn } from '@/lib/utils/styles';
 
 const WORKSPACE_QUERY_KEY = 'care-plan-report-workspace' as const;
 const RUNS_QUERY_KEY = 'care-plan-report-runs' as const;
+const OPERATIONAL_LOG_LIST_QUERY_KEY = [
+  'table',
+  ENDPOINTS.ADMIN.MODULES.OPERATIONAL_LOGS.LIST,
+] as const;
 
 /** Same format as `CarePlanBuilder` day schedule (short weekday + date). */
 function formatTargetDateLabel(ymd: string | null | undefined): string {
@@ -666,7 +671,7 @@ export default function CarePlanReportWorkspace({
       }
       return { mode: 'create' as const, data: res.data };
     },
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       if (
         result.mode === 'create' &&
         result.data?.id != null &&
@@ -678,6 +683,9 @@ export default function CarePlanReportWorkspace({
         router.replace(`${workspacePath}?${next.toString()}`);
       }
       if (isOperationalLogsWorkspace) {
+        await queryClient.invalidateQueries({
+          queryKey: [...OPERATIONAL_LOG_LIST_QUERY_KEY],
+        });
         router.push(ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.LIST);
       }
       void queryClient.invalidateQueries({
