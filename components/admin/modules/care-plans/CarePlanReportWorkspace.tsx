@@ -532,6 +532,40 @@ export default function CarePlanReportWorkspace({
   const reportGenerationDefaults =
     workspace?.report_generation_defaults?.average_inputs;
 
+  type ReportAverageInputs = {
+    avg_intake?: { value: number | null } | number | null;
+    avg_burn?: { value: number | null } | number | null;
+    avg_steps?: { value: number | null } | number | null;
+    avg_training_time?: { value: number | null } | number | null;
+  };
+
+  type ReportHighlight = {
+    metric_key?: unknown;
+    value?: unknown;
+    is_visible_to_client?: unknown;
+    source?: unknown;
+  };
+
+  type ExistingReportDraftState = {
+    included_metric_keys?: unknown;
+    average_inputs?: ReportAverageInputs | null;
+    highlights?: unknown;
+  };
+
+  const existingReportDraftState = React.useMemo<ExistingReportDraftState | null>(
+    () =>
+      clientReport
+        ? (clientReport as unknown as ExistingReportDraftState)
+        : null,
+    [clientReport],
+  );
+
+  const reportHighlights = React.useMemo<ReportHighlight[]>(() => {
+    const raw = existingReportDraftState?.highlights;
+    if (!Array.isArray(raw)) return [];
+    return raw as ReportHighlight[];
+  }, [existingReportDraftState?.highlights]);
+
   const formatAverageInputDefault = React.useCallback(
     (value: number | null | undefined) => {
       if (value == null || !Number.isFinite(value)) return '0';
@@ -539,6 +573,86 @@ export default function CarePlanReportWorkspace({
     },
     [],
   );
+
+  const resolveAverageInputForDialog = React.useCallback(
+    (
+      key: 'avg_intake' | 'avg_burn' | 'avg_steps' | 'avg_training_time',
+      fallbackValue: number | null | undefined,
+      currentValue: string,
+    ) => {
+      const fromHighlights = reportHighlights.find((h) => {
+        if (h.metric_key !== key) return false;
+        if (h.is_visible_to_client === false) return false;
+        return true;
+      });
+      if (
+        fromHighlights &&
+        typeof fromHighlights.value === 'number' &&
+        Number.isFinite(fromHighlights.value)
+      ) {
+        return String(fromHighlights.value);
+      }
+
+      const fromExisting = existingReportDraftState?.average_inputs?.[key];
+
+      if (typeof fromExisting === 'number' && Number.isFinite(fromExisting)) {
+        return String(fromExisting);
+      }
+
+      if (
+        fromExisting &&
+        typeof fromExisting === 'object' &&
+        'value' in fromExisting
+      ) {
+        const value = (fromExisting as { value?: unknown }).value;
+        if (typeof value === 'number' && Number.isFinite(value)) {
+          return String(value);
+        }
+      }
+
+      const normalizedCurrent = currentValue.trim();
+      if (normalizedCurrent.length > 0) return normalizedCurrent;
+
+      return formatAverageInputDefault(fallbackValue);
+    },
+    [existingReportDraftState, formatAverageInputDefault, reportHighlights],
+  );
+
+  const resolveIncludedMetricKeysForDialog = React.useCallback(() => {
+    const allowed = new Set(submitReviewMetricOptions.map((m) => m.metricKey));
+
+    const fromHighlights = reportHighlights
+      .filter((h) => h.is_visible_to_client !== false)
+      .map((h) => (typeof h.metric_key === 'string' ? h.metric_key.trim() : ''))
+      .filter((k) => k.length > 0 && allowed.has(k));
+    if (fromHighlights.length > 0) {
+      return Array.from(new Set(fromHighlights));
+    }
+
+    const raw = existingReportDraftState?.included_metric_keys;
+    if (Array.isArray(raw)) {
+      const normalized = raw
+        .filter((k): k is string => typeof k === 'string')
+        .map((k) => k.trim())
+        .filter((k) => k.length > 0 && allowed.has(k));
+      const deduped = Array.from(new Set(normalized));
+      if (deduped.length > 0) return deduped;
+    }
+
+    const existingSelection = submitReviewIncludedMetricKeys
+      .map((k) => k.trim())
+      .filter((k) => k.length > 0);
+    if (existingSelection.length > 0) {
+      return Array.from(new Set(existingSelection));
+    }
+
+    return submitReviewMetricOptions.map((metric) => metric.metricKey);
+  }, [
+    existingReportDraftState,
+    reportHighlights,
+    submitReviewIncludedMetricKeys,
+    submitReviewMetricOptions,
+  ]);
 
   const operationalLogsSummaryCardsProps = React.useMemo(() => {
     const enrollment = carePlan?.enrollment;
@@ -830,6 +944,14 @@ export default function CarePlanReportWorkspace({
     },
     onSuccess: (data) => {
       setSubmitForReviewDialogOpen(false);
+      setFormFeedback({
+        summary: data?.feedback?.summary ?? submitReviewFeedback.summary ?? '',
+        focus_next_period:
+          data?.feedback?.focus_next_period ??
+          submitReviewFeedback.focus_next_period ??
+          '',
+        notes: data?.feedback?.notes ?? submitReviewFeedback.notes ?? '',
+      });
       void queryClient.invalidateQueries({
         queryKey: [WORKSPACE_QUERY_KEY, carePlanId],
       });
@@ -851,31 +973,45 @@ export default function CarePlanReportWorkspace({
   });
 
   const openSubmitForReviewDialog = React.useCallback(() => {
+    const reportFeedback = clientReport?.feedback;
     setSubmitReviewFeedback({
-      summary: formFeedback.summary ?? '',
-      focus_next_period: formFeedback.focus_next_period ?? '',
-      notes: formFeedback.notes ?? '',
+      summary: reportFeedback?.summary ?? formFeedback.summary ?? '',
+      focus_next_period:
+        reportFeedback?.focus_next_period ?? formFeedback.focus_next_period ?? '',
+      notes: reportFeedback?.notes ?? formFeedback.notes ?? '',
     });
-    setSubmitReviewIncludedMetricKeys(
-      submitReviewMetricOptions.map((metric) => metric.metricKey),
-    );
+    setSubmitReviewIncludedMetricKeys(resolveIncludedMetricKeysForDialog());
     setSubmitReviewAverageIntake(
-      formatAverageInputDefault(reportGenerationDefaults?.avg_intake?.value),
+      resolveAverageInputForDialog(
+        'avg_intake',
+        reportGenerationDefaults?.avg_intake?.value,
+        submitReviewAverageIntake,
+      ),
     );
     setSubmitReviewAverageBurn(
-      formatAverageInputDefault(reportGenerationDefaults?.avg_burn?.value),
+      resolveAverageInputForDialog(
+        'avg_burn',
+        reportGenerationDefaults?.avg_burn?.value,
+        submitReviewAverageBurn,
+      ),
     );
     setSubmitReviewAverageSteps(
-      formatAverageInputDefault(reportGenerationDefaults?.avg_steps?.value),
+      resolveAverageInputForDialog(
+        'avg_steps',
+        reportGenerationDefaults?.avg_steps?.value,
+        submitReviewAverageSteps,
+      ),
     );
     setSubmitReviewAverageTrainingMinutes(
-      formatAverageInputDefault(
+      resolveAverageInputForDialog(
+        'avg_training_time',
         reportGenerationDefaults?.avg_training_time?.value,
+        submitReviewAverageTrainingMinutes,
       ),
     );
     setSubmitForReviewDialogOpen(true);
   }, [
-    formatAverageInputDefault,
+    clientReport?.feedback,
     formFeedback.focus_next_period,
     formFeedback.notes,
     formFeedback.summary,
@@ -883,7 +1019,12 @@ export default function CarePlanReportWorkspace({
     reportGenerationDefaults?.avg_intake?.value,
     reportGenerationDefaults?.avg_steps?.value,
     reportGenerationDefaults?.avg_training_time?.value,
-    submitReviewMetricOptions,
+    resolveAverageInputForDialog,
+    resolveIncludedMetricKeysForDialog,
+    submitReviewAverageBurn,
+    submitReviewAverageIntake,
+    submitReviewAverageSteps,
+    submitReviewAverageTrainingMinutes,
   ]);
 
   const publishMutation = useMutation({
