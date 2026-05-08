@@ -45,11 +45,21 @@ export function NotificationCard({
   selected = false,
   onSelectChange,
 }: NotificationCardProps) {
+  const isSystemLogoAvatar = notification.pictureUrl === '/images/logo-3d.png';
+
   const content = (
     <>
-      <Avatar size='lg' className='mt-0.5 shrink-0 rounded-md' aria-hidden>
+      <Avatar
+        size='lg'
+        className='border-border/80 mt-0.5 shrink-0 rounded-md border'
+        aria-hidden
+      >
         {notification.pictureUrl?.trim() ? (
-          <AvatarImage src={notification.pictureUrl} alt='' />
+          <AvatarImage
+            src={notification.pictureUrl}
+            alt=''
+            className={cn(isSystemLogoAvatar && 'scale-[0.78] object-contain')}
+          />
         ) : null}
         <AvatarFallback className='rounded-md p-0'>
           <Image

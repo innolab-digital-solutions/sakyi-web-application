@@ -22,9 +22,21 @@ const NOTIFICATION_CATEGORY_MAP: Record<string, NotificationCategory> = {
   'program.updated': 'program',
   'doctor.instruction.created': 'doctor-instruction',
   'onboarding.intake.submitted': 'intake',
+  'admin.care_plan.operational_log.missing': 'system',
+  'admin.care_plan.report.publish_overdue': 'system',
+  'admin.care_plan.report.in_review_stale': 'system',
+  'admin.care_plan.client_logging_streak': 'system',
   system: 'system',
   reminder: 'reminder',
 };
+
+const SYSTEM_NOTIFICATION_IMAGE = '/images/logo-3d.png';
+const SYSTEM_NOTIFICATION_TYPES = new Set<string>([
+  'admin.care_plan.operational_log.missing',
+  'admin.care_plan.report.publish_overdue',
+  'admin.care_plan.report.in_review_stale',
+  'admin.care_plan.client_logging_streak',
+]);
 
 /**
  * Safely resolves sender picture URL from notification meta payload.
@@ -65,19 +77,22 @@ const extractNotificationPictureUrl = (
 const normalizeNotification = (
   notification: BackendNotification,
 ): Notification => {
-  const category =
-    NOTIFICATION_CATEGORY_MAP[notification.data?.type ?? ''] ?? 'default';
+  const normalizedType = notification.data?.type ?? 'default';
+  const category = NOTIFICATION_CATEGORY_MAP[normalizedType] ?? 'default';
+  const pictureUrl = SYSTEM_NOTIFICATION_TYPES.has(normalizedType)
+    ? SYSTEM_NOTIFICATION_IMAGE
+    : extractNotificationPictureUrl(notification.data?.meta);
 
   return {
     id: notification.id,
     category,
-    type: notification.data?.type ?? 'default',
+    type: normalizedType,
     title: notification.data?.title ?? 'Notification',
     message: notification.data?.message ?? 'You have a new update.',
     createdAt: new Date(notification.created_at),
     read: notification.read_at !== null,
     href: notification.data?.action_url,
-    pictureUrl: extractNotificationPictureUrl(notification.data?.meta),
+    pictureUrl,
   };
 };
 
