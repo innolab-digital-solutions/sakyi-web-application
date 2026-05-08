@@ -1,9 +1,9 @@
 'use client';
 
-import { CheckCircle2, Smartphone } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/config/routes';
@@ -31,11 +31,6 @@ export default function ResetPasswordSuccessContent() {
     return isValid;
   });
 
-  const mobileAppDeepLink = useMemo(
-    () => process.env.NEXT_PUBLIC_MOBILE_APP_DEEP_LINK?.trim() ?? '',
-    [],
-  );
-
   useEffect(() => {
     if (!isAllowed) {
       router.replace('/error-status/404');
@@ -54,12 +49,13 @@ export default function ResetPasswordSuccessContent() {
             </div>
 
             <div className='space-y-2'>
-              <h1 className='text-foreground text-xl font-bold tracking-tight sm:text-2xl'>
+              <h1 className='text-foreground text-lg font-bold tracking-tight sm:text-xl'>
                 Password updated
               </h1>
-              <p className='text-muted-foreground text-sm leading-relaxed'>
-                Your password has been reset successfully. You can now sign in
-                using your new password.
+              <p className='text-muted-foreground text-sm leading-relaxed font-medium'>
+                Your password has been reset successfully. Open the SaKyi Health
+                &amp; Wellness app on your device and sign in with your new
+                password to continue.
               </p>
             </div>
 
@@ -68,22 +64,8 @@ export default function ResetPasswordSuccessContent() {
               size='lg'
               className='from-primary to-accent hover:from-primary/90 hover:to-accent/90 h-11 w-full bg-linear-to-r font-semibold normal-case text-white'
             >
-              <Link href={ROUTES.ADMIN.AUTH.LOGIN}>Continue to sign in</Link>
+              <Link href={ROUTES.MARKETING.HOME}>Done</Link>
             </Button>
-
-            {mobileAppDeepLink ? (
-              <Button
-                asChild
-                size='lg'
-                variant='outline'
-                className='h-11 w-full font-semibold normal-case'
-              >
-                <Link href={mobileAppDeepLink}>
-                  <Smartphone className='size-4' />
-                  Open mobile app
-                </Link>
-              </Button>
-            ) : null}
           </section>
         </ResetPasswordSurface>
       </div>
