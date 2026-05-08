@@ -1,12 +1,11 @@
 'use client';
 
-import { Bell, CheckCheck, X } from 'lucide-react';
+import { Bell, CheckCheck, Trash2 } from 'lucide-react';
 import { useMemo } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
@@ -23,6 +22,12 @@ interface NotificationsDrawerProps {
   isLoading: boolean;
   onMarkAsRead: (id: string) => void;
   onMarkAllAsRead: () => void;
+  selectMode: boolean;
+  onSelectModeChange: (enabled: boolean) => void;
+  selectedIds: string[];
+  onSelectChange: (notificationId: string, selected: boolean) => void;
+  onDeleteSelected: () => void;
+  isDeletingSelected: boolean;
 }
 
 /**
@@ -35,6 +40,12 @@ export function NotificationsDrawer({
   isLoading,
   onMarkAsRead,
   onMarkAllAsRead,
+  selectMode,
+  onSelectModeChange,
+  selectedIds,
+  onSelectChange,
+  onDeleteSelected,
+  isDeletingSelected,
 }: NotificationsDrawerProps) {
   const unreadCount = useMemo(
     () => notifications.filter((notification) => !notification.read).length,
@@ -48,6 +59,7 @@ export function NotificationsDrawer({
       }),
     [notifications],
   );
+  const selectedCount = selectedIds.length;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -58,39 +70,26 @@ export function NotificationsDrawer({
       >
         <SheetHeader className='border-border/80 bg-background border-b px-5 py-4'>
           <div className='flex items-center justify-between gap-3'>
-            <SheetTitle className='text-foreground text-md flex items-center gap-2 font-semibold capitalize'>
-              <span className='flex size-9 items-center justify-center rounded-lg bg-[#0c96c4]/10 text-[#0c96c4]'>
-                <Bell className='size-5' />
+            <div className='flex min-w-0 items-center gap-3'>
+              <span className='bg-primary relative flex size-8 shrink-0 items-center justify-center rounded-md text-white'>
+                <Bell className='size-4' />
+                {unreadCount > 0 && (
+                  <span className='bg-primary-foreground text-primary absolute -top-1 -right-1 inline-flex min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-4 font-semibold shadow-sm border border-primary-foreground'>
+                    {unreadCount}
+                  </span>
+                )}
               </span>
-              Notifications
-              {unreadCount > 0 && (
-                <span className='text-primary-foreground rounded-full bg-[#0c96c4] px-1.5 py-0.5 text-xs font-medium'>
-                  {unreadCount}
-                </span>
-              )}
-            </SheetTitle>
-            <div className='flex items-center gap-1.5'>
-              {unreadCount > 0 && (
-                <Button
-                  variant='outline'
-                  size='sm'
-                  className='bg-muted/35 border-border text-foreground hover:bg-muted hover:text-foreground h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-3 text-xs font-medium'
-                  onClick={onMarkAllAsRead}
-                >
-                  <CheckCheck className='size-3.5' />
-                  Mark all as read
-                </Button>
-              )}
-              <SheetClose asChild>
-                <Button
-                  variant='ghost'
-                  className='cursor-pointer bg-transparent!'
-                  aria-label='Close notifications'
-                >
-                  <X className='size-4' />
-                </Button>
-              </SheetClose>
+              <div className='min-w-0 space-y-1'>
+                <SheetTitle className='text-foreground/90 text-[15.5px] font-bold capitalize'>
+                  Notifications
+                </SheetTitle>
+                {/* <SheetDescription className='text-muted-foreground text-xs leading-relaxed font-medium'>
+                  Review recent operational updates and clear items after you
+                  have acknowledged them.
+                </SheetDescription> */}
+              </div>
             </div>
+            <div className='flex items-center gap-1.5' />
           </div>
         </SheetHeader>
 
@@ -128,13 +127,70 @@ export function NotificationsDrawer({
                 <NotificationCard
                   key={notification.id}
                   notification={notification}
+                  selectMode={selectMode}
+                  selected={selectedIds.includes(notification.id)}
+                  onSelectChange={(item, selected) =>
+                    onSelectChange(item.id, selected)
+                  }
                   onOpen={(item) => {
+                    if (selectMode) return;
                     if (!item.read) onMarkAsRead(item.id);
                     onOpenChange(false);
                   }}
                 />
               ))
             )}
+          </div>
+        </div>
+
+        <div className='border-border/80 bg-background shrink-0 border-t px-4 py-3'>
+          <div className='grid grid-cols-2 gap-2'>
+            {selectMode ? (
+              <Button
+                variant='outline'
+                className='text-foreground bg-background hover:bg-muted h-10 w-full shrink-0 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold normal-case'
+                onClick={() => onSelectModeChange(false)}
+                disabled={isDeletingSelected}
+              >
+                Cancel
+              </Button>
+            ) : (
+              <Button
+                variant='outline'
+                className='text-foreground bg-background hover:bg-muted h-10 w-full shrink-0 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold normal-case'
+                onClick={onMarkAllAsRead}
+                disabled={isDeletingSelected || unreadCount === 0}
+              >
+                <CheckCheck className='size-3.5' />
+                Mark all as read
+              </Button>
+            )}
+
+            <Button
+              variant={selectMode ? 'destructive' : 'outline'}
+              className={
+                selectMode
+                  ? 'h-10 w-full shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold normal-case'
+                  : 'text-foreground bg-background hover:bg-muted h-10 w-full shrink-0 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold normal-case'
+              }
+              onClick={() => {
+                if (!selectMode) {
+                  onSelectModeChange(true);
+                  return;
+                }
+                onDeleteSelected();
+              }}
+              disabled={
+                isDeletingSelected || (selectMode && selectedCount === 0)
+              }
+            >
+              <Trash2 className='size-3.5' />
+              {!selectMode
+                ? 'Select notifications'
+                : isDeletingSelected
+                  ? 'Deleting...'
+                  : `Delete selected (${selectedCount})`}
+            </Button>
           </div>
         </div>
       </SheetContent>

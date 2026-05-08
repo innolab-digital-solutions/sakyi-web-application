@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils/styles';
 
 import type { Notification, NotificationCategory } from './types';
@@ -93,6 +94,9 @@ interface NotificationCardProps {
   notification: Notification;
   className?: string;
   onOpen?: (notification: Notification) => void;
+  selectMode?: boolean;
+  selected?: boolean;
+  onSelectChange?: (notification: Notification, selected: boolean) => void;
 }
 
 /**
@@ -103,6 +107,9 @@ export function NotificationCard({
   notification,
   className,
   onOpen,
+  selectMode = false,
+  selected = false,
+  onSelectChange,
 }: NotificationCardProps) {
   const config =
     TYPE_EVENT_CONFIG[notification.type] ?? TYPE_CONFIG[notification.category];
@@ -110,6 +117,20 @@ export function NotificationCard({
 
   const content = (
     <>
+      <div className='flex items-start pt-0.5'>
+        {selectMode ? (
+          <Checkbox
+            checked={selected}
+            onCheckedChange={(value) =>
+              onSelectChange?.(notification, value === true)
+            }
+            onClick={(event) => event.stopPropagation()}
+            aria-label={`Select notification: ${notification.title}`}
+          />
+        ) : (
+          <span className='inline-block size-4.5' aria-hidden />
+        )}
+      </div>
       <div
         className={cn(
           'flex size-9 shrink-0 items-center justify-center rounded-md',
@@ -146,8 +167,29 @@ export function NotificationCard({
   const cardClass = cn(
     'border-border bg-card flex gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted/30',
     !notification.read && 'border-[#0c96c4]/30 bg-[#0c96c4]/[0.04]',
+    selectMode && 'cursor-pointer',
+    selectMode && selected && 'border-primary/50 bg-primary/5',
     className,
   );
+
+  if (selectMode) {
+    return (
+      <div
+        role='button'
+        tabIndex={0}
+        className={cardClass}
+        onClick={() => onSelectChange?.(notification, !selected)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onSelectChange?.(notification, !selected);
+          }
+        }}
+      >
+        {content}
+      </div>
+    );
+  }
 
   if (notification.href) {
     return (

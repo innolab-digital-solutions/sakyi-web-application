@@ -183,6 +183,7 @@ export const ADMIN_ENDPOINTS = {
       LIST: `${BASE}/notifications`,
       MARK_AS_READ: (id: string) => `${BASE}/notifications/${id}/read`,
       MARK_ALL_AS_READ: `${BASE}/notifications/read-all`,
+      DELETE_SELECTED: `${BASE}/notifications`,
     },
     DASHBOARD: {
       OVERVIEW: `${BASE}/dashboard/overview`,
