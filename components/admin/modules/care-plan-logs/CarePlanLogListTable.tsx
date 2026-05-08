@@ -1,7 +1,12 @@
 'use client';
 
 import { format, parseISO } from 'date-fns';
-import { AlertTriangleIcon, CheckCircle2Icon, ClockIcon } from 'lucide-react';
+import {
+  AlertTriangleIcon,
+  CheckCircle2Icon,
+  ClockIcon,
+  LockIcon,
+} from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -194,6 +199,17 @@ function statusTone(summary: CarePlanLogSummary): {
 } {
   const recent = summary.completion_signal?.is_logging_recent === true;
   const progress = summary.completion_signal?.logging_progress_percentage ?? 0;
+  const carePlanStatus = (summary.status ?? '').trim().toLowerCase();
+
+  if (carePlanStatus === 'completed') {
+    return {
+      label: 'Closed',
+      icon: LockIcon,
+      className:
+        'border-zinc-300/90 bg-zinc-100 text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900/45 dark:text-zinc-200',
+    };
+  }
+
   if (recent) {
     return {
       label: 'On Track',
