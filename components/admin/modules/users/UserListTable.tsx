@@ -372,7 +372,9 @@ export default function UserListTable() {
                     </TableCell>
 
                     <TableCell>
-                      {isEmailSignInEnabled(user) ? 'Enabled' : 'Not configured'}
+                      {isEmailSignInEnabled(user)
+                        ? 'Enabled'
+                        : 'Not configured'}
                     </TableCell>
 
                     <TableCell>

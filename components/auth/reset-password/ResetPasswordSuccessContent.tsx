@@ -62,7 +62,7 @@ export default function ResetPasswordSuccessContent() {
             <Button
               asChild
               size='lg'
-              className='from-primary to-accent hover:from-primary/90 hover:to-accent/90 h-11 w-full bg-linear-to-r font-semibold normal-case text-white'
+              className='from-primary to-accent hover:from-primary/90 hover:to-accent/90 h-11 w-full bg-linear-to-r font-semibold text-white normal-case'
             >
               <Link href={ROUTES.MARKETING.HOME}>Done</Link>
             </Button>

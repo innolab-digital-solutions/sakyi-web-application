@@ -203,7 +203,9 @@ const DashboardNotification = () => {
     if (response.status === 'error') {
       setNotifications(previous);
       setSelectedNotificationIds(idsToDelete);
-      toast.error(response.message || 'Failed to delete selected notifications.');
+      toast.error(
+        response.message || 'Failed to delete selected notifications.',
+      );
     } else {
       setNotificationSelectMode(false);
       toast.success('Selected notifications have been deleted.');

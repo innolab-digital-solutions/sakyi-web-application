@@ -66,7 +66,7 @@ export function NotificationsDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side='right'
-        className='border-border/80 bg-white flex w-full flex-col gap-0 border-l p-0 sm:max-w-md'
+        className='border-border/80 flex w-full flex-col gap-0 border-l bg-white p-0 sm:max-w-md'
       >
         <SheetHeader className='border-border/80 bg-background border-b px-5 py-4'>
           <div className='flex items-center justify-between gap-3'>
@@ -74,7 +74,7 @@ export function NotificationsDrawer({
               <span className='bg-primary relative flex size-8 shrink-0 items-center justify-center rounded-md text-white'>
                 <Bell className='size-4' />
                 {unreadCount > 0 && (
-                  <span className='bg-primary-foreground text-primary absolute -top-1 -right-1 inline-flex min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-4 font-semibold shadow-sm border border-primary-foreground'>
+                  <span className='bg-primary-foreground text-primary border-primary-foreground absolute -top-1 -right-1 inline-flex min-w-4 items-center justify-center rounded-full border px-1 text-[10px] leading-4 font-semibold shadow-sm'>
                     {unreadCount}
                   </span>
                 )}
@@ -150,7 +150,7 @@ export function NotificationsDrawer({
           </div>
         </div>
 
-        <div className='border-border/80 bg-white shrink-0 border-t px-4 py-3'>
+        <div className='border-border/80 shrink-0 border-t bg-white px-4 py-3'>
           <div className='grid grid-cols-2 gap-2'>
             {selectMode ? (
               <Button

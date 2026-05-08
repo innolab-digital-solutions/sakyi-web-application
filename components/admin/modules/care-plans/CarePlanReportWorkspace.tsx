@@ -552,13 +552,14 @@ export default function CarePlanReportWorkspace({
     highlights?: unknown;
   };
 
-  const existingReportDraftState = React.useMemo<ExistingReportDraftState | null>(
-    () =>
-      clientReport
-        ? (clientReport as unknown as ExistingReportDraftState)
-        : null,
-    [clientReport],
-  );
+  const existingReportDraftState =
+    React.useMemo<ExistingReportDraftState | null>(
+      () =>
+        clientReport
+          ? (clientReport as unknown as ExistingReportDraftState)
+          : null,
+      [clientReport],
+    );
 
   const reportHighlights = React.useMemo<ReportHighlight[]>(() => {
     const raw = existingReportDraftState?.highlights;
@@ -977,7 +978,9 @@ export default function CarePlanReportWorkspace({
     setSubmitReviewFeedback({
       summary: reportFeedback?.summary ?? formFeedback.summary ?? '',
       focus_next_period:
-        reportFeedback?.focus_next_period ?? formFeedback.focus_next_period ?? '',
+        reportFeedback?.focus_next_period ??
+        formFeedback.focus_next_period ??
+        '',
       notes: reportFeedback?.notes ?? formFeedback.notes ?? '',
     });
     setSubmitReviewIncludedMetricKeys(resolveIncludedMetricKeysForDialog());
