@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,7 +21,21 @@ function formatTimeAgo(date: Date): string {
   return date.toLocaleDateString();
 }
 
-const NOTIFICATION_FALLBACK_IMAGE_SRC = '/images/logo-gray.png';
+function getInitials(name: string, count = 2): string {
+  const normalized = name.trim();
+  if (!normalized) return '';
+
+  const words = normalized.split(/\s+/).filter(Boolean);
+  if (words.length === 1) {
+    return words[0].slice(0, count).toUpperCase();
+  }
+
+  return words
+    .slice(0, count)
+    .map((word) => word[0] ?? '')
+    .join('')
+    .toUpperCase();
+}
 
 interface NotificationCardProps {
   notification: Notification;
@@ -46,6 +59,8 @@ export function NotificationCard({
   onSelectChange,
 }: NotificationCardProps) {
   const isSystemLogoAvatar = notification.pictureUrl === '/images/logo-3d.png';
+  const fallbackLabel =
+    getInitials(notification.clientName?.trim() ?? '', 2) || 'UN';
 
   const content = (
     <>
@@ -61,14 +76,8 @@ export function NotificationCard({
             className={cn(isSystemLogoAvatar && 'scale-[0.78] object-contain')}
           />
         ) : null}
-        <AvatarFallback className='rounded-md p-0'>
-          <Image
-            src={NOTIFICATION_FALLBACK_IMAGE_SRC}
-            alt=''
-            fill
-            sizes='32px'
-            className='object-cover'
-          />
+        <AvatarFallback className='bg-muted text-muted-foreground rounded-md text-xs font-semibold'>
+          {fallbackLabel}
         </AvatarFallback>
       </Avatar>
       <div className='min-w-0 flex-1'>

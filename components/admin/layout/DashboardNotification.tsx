@@ -74,11 +74,37 @@ const extractNotificationPictureUrl = (
   return null;
 };
 
+/**
+ * Safely resolves client name from notification meta payload.
+ */
+const extractNotificationClientName = (
+  meta: Record<string, unknown> | undefined,
+): string | null => {
+  if (!meta) return null;
+
+  const direct = meta.client_name;
+  if (typeof direct === 'string' && direct.trim()) return direct.trim();
+
+  const client = meta.client;
+  if (
+    client &&
+    typeof client === 'object' &&
+    'name' in client &&
+    typeof client.name === 'string' &&
+    client.name.trim()
+  ) {
+    return client.name.trim();
+  }
+
+  return null;
+};
+
 const normalizeNotification = (
   notification: BackendNotification,
 ): Notification => {
   const normalizedType = notification.data?.type ?? 'default';
   const category = NOTIFICATION_CATEGORY_MAP[normalizedType] ?? 'default';
+  const clientName = extractNotificationClientName(notification.data?.meta);
   const pictureUrl = SYSTEM_NOTIFICATION_TYPES.has(normalizedType)
     ? SYSTEM_NOTIFICATION_IMAGE
     : extractNotificationPictureUrl(notification.data?.meta);
@@ -93,6 +119,7 @@ const normalizeNotification = (
     read: notification.read_at !== null,
     href: notification.data?.action_url,
     pictureUrl,
+    clientName,
   };
 };
 

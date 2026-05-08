@@ -18,4 +18,5 @@ export interface Notification {
   read: boolean;
   href?: string;
   pictureUrl?: string | null;
+  clientName?: string | null;
 }
