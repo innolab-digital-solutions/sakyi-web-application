@@ -26,6 +26,42 @@ const NOTIFICATION_CATEGORY_MAP: Record<string, NotificationCategory> = {
   reminder: 'reminder',
 };
 
+/**
+ * Safely resolves sender picture URL from notification meta payload.
+ */
+const extractNotificationPictureUrl = (
+  meta: Record<string, unknown> | undefined,
+): string | null => {
+  if (!meta) return null;
+
+  const direct = meta.picture_url;
+  if (typeof direct === 'string' && direct.trim()) return direct.trim();
+
+  const client = meta.client;
+  if (
+    client &&
+    typeof client === 'object' &&
+    'picture_url' in client &&
+    typeof client.picture_url === 'string' &&
+    client.picture_url.trim()
+  ) {
+    return client.picture_url.trim();
+  }
+
+  const user = meta.user;
+  if (
+    user &&
+    typeof user === 'object' &&
+    'picture_url' in user &&
+    typeof user.picture_url === 'string' &&
+    user.picture_url.trim()
+  ) {
+    return user.picture_url.trim();
+  }
+
+  return null;
+};
+
 const normalizeNotification = (
   notification: BackendNotification,
 ): Notification => {
@@ -41,6 +77,7 @@ const normalizeNotification = (
     createdAt: new Date(notification.created_at),
     read: notification.read_at !== null,
     href: notification.data?.action_url,
+    pictureUrl: extractNotificationPictureUrl(notification.data?.meta),
   };
 };
 

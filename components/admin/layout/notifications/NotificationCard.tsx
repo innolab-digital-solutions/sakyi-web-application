@@ -1,21 +1,12 @@
 'use client';
 
-import {
-  Bell,
-  ClipboardPlus,
-  FileText,
-  type LucideIcon,
-  Package,
-  Stethoscope,
-  User,
-  UserPlus,
-} from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 
-import { Checkbox } from '@/components/ui/checkbox';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils/styles';
 
-import type { Notification, NotificationCategory } from './types';
+import type { Notification } from './types';
 
 function formatTimeAgo(date: Date): string {
   const now = new Date();
@@ -31,64 +22,7 @@ function formatTimeAgo(date: Date): string {
   return date.toLocaleDateString();
 }
 
-const TYPE_CONFIG: Record<
-  NotificationCategory,
-  { icon: LucideIcon; bgClass: string; iconClass: string }
-> = {
-  enrollment: {
-    icon: UserPlus,
-    bgClass: 'bg-[#0c96c4]/10',
-    iconClass: 'text-[#0c96c4]',
-  },
-  client: {
-    icon: User,
-    bgClass: 'bg-emerald-500/10',
-    iconClass: 'text-emerald-600',
-  },
-  program: {
-    icon: Package,
-    bgClass: 'bg-violet-500/10',
-    iconClass: 'text-violet-600',
-  },
-  'doctor-instruction': {
-    icon: Stethoscope,
-    bgClass: 'bg-amber-500/10',
-    iconClass: 'text-amber-600',
-  },
-  intake: {
-    icon: FileText,
-    bgClass: 'bg-sky-500/10',
-    iconClass: 'text-sky-600',
-  },
-  system: {
-    icon: Bell,
-    bgClass: 'bg-slate-500/10',
-    iconClass: 'text-slate-600',
-  },
-  reminder: {
-    icon: Bell,
-    bgClass: 'bg-rose-500/10',
-    iconClass: 'text-rose-600',
-  },
-  default: {
-    icon: Bell,
-    bgClass: 'bg-slate-500/10',
-    iconClass: 'text-slate-600',
-  },
-};
-
-const TYPE_EVENT_CONFIG: Partial<
-  Record<
-    Notification['type'],
-    { icon: LucideIcon; bgClass: string; iconClass: string }
-  >
-> = {
-  'enrollment.request.submitted': {
-    icon: ClipboardPlus,
-    bgClass: 'bg-[#0c96c4]/12',
-    iconClass: 'text-[#0c96c4]',
-  },
-};
+const NOTIFICATION_FALLBACK_IMAGE_SRC = '/images/logo-gray.png';
 
 interface NotificationCardProps {
   notification: Notification;
@@ -111,35 +45,22 @@ export function NotificationCard({
   selected = false,
   onSelectChange,
 }: NotificationCardProps) {
-  const config =
-    TYPE_EVENT_CONFIG[notification.type] ?? TYPE_CONFIG[notification.category];
-  const Icon = config.icon;
-
   const content = (
     <>
-      <div className='flex items-start pt-0.5'>
-        {selectMode ? (
-          <Checkbox
-            checked={selected}
-            onCheckedChange={(value) =>
-              onSelectChange?.(notification, value === true)
-            }
-            onClick={(event) => event.stopPropagation()}
-            aria-label={`Select notification: ${notification.title}`}
+      <Avatar size='lg' className='mt-0.5 shrink-0 rounded-md' aria-hidden>
+        {notification.pictureUrl?.trim() ? (
+          <AvatarImage src={notification.pictureUrl} alt='' />
+        ) : null}
+        <AvatarFallback className='rounded-md p-0'>
+          <Image
+            src={NOTIFICATION_FALLBACK_IMAGE_SRC}
+            alt=''
+            fill
+            sizes='32px'
+            className='object-cover'
           />
-        ) : (
-          <span className='inline-block size-4.5' aria-hidden />
-        )}
-      </div>
-      <div
-        className={cn(
-          'flex size-9 shrink-0 items-center justify-center rounded-md',
-          config.bgClass,
-          config.iconClass,
-        )}
-      >
-        <Icon className='size-4' />
-      </div>
+        </AvatarFallback>
+      </Avatar>
       <div className='min-w-0 flex-1'>
         <div className='flex items-start justify-between gap-3'>
           <p className='text-foreground text-[13px] leading-tight font-semibold'>
@@ -165,18 +86,21 @@ export function NotificationCard({
   );
 
   const cardClass = cn(
-    'border-border bg-card flex gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted/30',
-    !notification.read && 'border-[#0c96c4]/30 bg-[#0c96c4]/[0.04]',
-    selectMode && 'cursor-pointer',
-    selectMode && selected && 'border-primary/50 bg-primary/5',
+    'flex gap-3 text-left transition-colors',
+    selectMode
+      ? 'border-border bg-card cursor-pointer rounded-lg border p-3'
+      : 'border-border/90 w-full rounded-none border-x-0 border-b px-1 py-3 last:border-b-0 hover:bg-muted/25',
+    selectMode &&
+      selected &&
+      'border-primary bg-primary/10 shadow-primary/15 ring-primary/20 shadow-sm ring-1',
     className,
   );
 
   if (selectMode) {
     return (
-      <div
+      <button
+        type='button'
         role='button'
-        tabIndex={0}
         className={cardClass}
         onClick={() => onSelectChange?.(notification, !selected)}
         onKeyDown={(event) => {
@@ -187,7 +111,7 @@ export function NotificationCard({
         }}
       >
         {content}
-      </div>
+      </button>
     );
   }
 

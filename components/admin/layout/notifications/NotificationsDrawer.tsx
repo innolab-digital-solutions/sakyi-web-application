@@ -11,6 +11,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils/styles';
 
 import { NotificationCard } from './NotificationCard';
 import type { Notification } from './types';
@@ -65,8 +66,7 @@ export function NotificationsDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side='right'
-        className='border-border/80 bg-background flex w-full flex-col border-l p-0 sm:max-w-md'
-        showCloseButton={false}
+        className='border-border/80 bg-white flex w-full flex-col gap-0 border-l p-0 sm:max-w-md'
       >
         <SheetHeader className='border-border/80 bg-background border-b px-5 py-4'>
           <div className='flex items-center justify-between gap-3'>
@@ -94,7 +94,14 @@ export function NotificationsDrawer({
         </SheetHeader>
 
         <div className='flex-1 overflow-y-auto'>
-          <div className='flex flex-col gap-2 px-4'>
+          <div
+            className={cn(
+              'px-4',
+              selectMode
+                ? 'flex flex-col gap-2 py-2'
+                : 'flex flex-col pt-0 pb-2',
+            )}
+          >
             {isLoading ? (
               <div className='space-y-2 py-4'>
                 {Array.from({ length: 5 }).map((_, idx) => (
@@ -143,7 +150,7 @@ export function NotificationsDrawer({
           </div>
         </div>
 
-        <div className='border-border/80 bg-background shrink-0 border-t px-4 py-3'>
+        <div className='border-border/80 bg-white shrink-0 border-t px-4 py-3'>
           <div className='grid grid-cols-2 gap-2'>
             {selectMode ? (
               <Button

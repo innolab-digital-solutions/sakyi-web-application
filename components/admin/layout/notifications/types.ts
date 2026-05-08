@@ -17,4 +17,5 @@ export interface Notification {
   createdAt: Date;
   read: boolean;
   href?: string;
+  pictureUrl?: string | null;
 }
