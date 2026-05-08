@@ -16,6 +16,8 @@ export const ADMIN_ENDPOINTS = {
     ME: `${BASE}/auth/me`,
     LOGIN: `${BASE}/auth/login`,
     LOGOUT: `${BASE}/auth/logout`,
+    /** Uses mobile auth namespace on API (`/v1/mobile/auth/reset-password`). */
+    RESET_PASSWORD: '/mobile/auth/reset-password',
   },
   MODULES: {
     PROGRAMS: {

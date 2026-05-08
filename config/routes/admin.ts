@@ -14,6 +14,13 @@ export const ADMIN_ROUTES = {
   ROOT: BASE,
   AUTH: {
     LOGIN: `${BASE}/login`,
+    /**
+     * Target of Laravel’s reset email (`FRONTEND_URL/reset-password?token=…&email=…`).
+     * Lives at site root, not under `/admin`.
+     */
+    RESET_PASSWORD: '/reset-password',
+    /** Completion screen after successful password reset. */
+    RESET_PASSWORD_SUCCESS: '/reset-password/success',
   },
   MODULES: {
     OVERVIEW: `${BASE}/overview`,
