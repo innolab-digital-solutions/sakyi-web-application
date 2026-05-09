@@ -15,10 +15,10 @@ import { type ReactNode } from 'react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { AdminDetailCardSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import EnrollmentIntakeConfirmation from '@/components/admin/modules/enrollment-requests/EnrollmentIntakeConfirmation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
@@ -53,6 +53,65 @@ const ADMIN_PRIMARY_BUTTON_CLASS =
 /** Primary white card shell (list/detail screens + overview). */
 const CARD_SURFACE =
   'border-border max-w-full min-w-0 rounded-md border bg-white p-6 shadow-xs';
+
+function EnrollmentRequestOverviewSkeleton() {
+  return (
+    <div className='grid gap-3 lg:grid-cols-3 lg:gap-4'>
+      <section className={`${CARD_SURFACE} space-y-5 lg:col-span-2`}>
+        <header className='border-border border-b pb-5'>
+          <Skeleton className='h-5 w-44 rounded-sm' />
+          <Skeleton className='mt-2 h-3 w-80 rounded-sm' />
+        </header>
+        <div className='space-y-7 pt-5'>
+          {Array.from({ length: 4 }).map((_, stepIdx) => (
+            <div key={`pipeline-skeleton-${stepIdx}`} className='flex gap-5'>
+              <div className='pt-0.5'>
+                <Skeleton className='size-9 rounded-full' />
+              </div>
+              <div className='min-w-0 flex-1 space-y-3'>
+                <div>
+                  <Skeleton className='h-5 w-52 rounded-sm' />
+                  <Skeleton className='mt-2 h-3 w-72 rounded-sm' />
+                </div>
+                <div className='border-border bg-muted/20 space-y-3 rounded-md border p-3.5 sm:p-4'>
+                  <div className='grid gap-1.5 md:grid-cols-3'>
+                    {Array.from({ length: 3 }).map((__, metricIdx) => (
+                      <div
+                        key={`pipeline-skeleton-${stepIdx}-metric-${metricIdx}`}
+                        className='bg-muted/50 border-border min-h-18 space-y-2 rounded-md border px-2.5 py-2'
+                      >
+                        <Skeleton className='h-3 w-24 rounded-sm' />
+                        <Skeleton className='h-4 w-32 rounded-sm' />
+                      </div>
+                    ))}
+                  </div>
+                  <Skeleton className='h-10 w-full rounded-md' />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+      <div className='flex min-h-0 min-w-0 flex-col gap-3 lg:gap-4'>
+        {Array.from({ length: 2 }).map((_, idx) => (
+          <section
+            key={`side-skeleton-${idx}`}
+            className={`${CARD_SURFACE} flex min-h-0 flex-col`}
+          >
+            <header className='border-border border-b pb-4'>
+              <Skeleton className='h-5 w-40 rounded-sm' />
+              <Skeleton className='mt-2 h-3 w-64 rounded-sm' />
+            </header>
+            <div className='space-y-3 pt-5'>
+              <Skeleton className='h-12 w-full rounded-md' />
+              <Skeleton className='h-12 w-full rounded-md' />
+            </div>
+          </section>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 /** Field caption — matches `IntakeDetailPanel` DetailItem labels. */
 const DETAIL_LABEL =
@@ -365,7 +424,7 @@ export default function EnrollmentRequestDetailView({
   });
 
   if (isPending) {
-    return <AdminDetailCardSkeleton />;
+    return <EnrollmentRequestOverviewSkeleton />;
   }
 
   if (isError || !data) {
