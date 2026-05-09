@@ -75,6 +75,7 @@ export default function IntakeRowActions({
   const showSend = canSendContract(intake);
   const enrollmentRequestId = intake.enrollment_request?.id ?? null;
   const contractId = intake.enrollment_contract?.id ?? null;
+  const enrollmentRecordId = intake.enrollment?.id ?? null;
   const sendDisabled = enrollmentRequestId == null || isSendingContract;
 
   const handleCopyReference = () => {
@@ -93,12 +94,14 @@ export default function IntakeRowActions({
   const showSendInMenu = primary !== 'send' && showSend;
   const showOpenEnrollmentRequest = enrollmentRequestId != null;
   const showOpenContract = contractId != null;
+  const showOpenEnrollmentRecord = enrollmentRecordId != null;
 
   const hasQuickLinks =
     showViewInMenu ||
     showContinueInMenu ||
     showOpenEnrollmentRequest ||
-    showOpenContract;
+    showOpenContract ||
+    showOpenEnrollmentRecord;
 
   return (
     <div className='flex items-center justify-end gap-1.5'>
@@ -232,6 +235,19 @@ export default function IntakeRowActions({
                   >
                     <ClipboardSignatureIcon className='size-3.5 shrink-0' />
                     Open Contract Record
+                  </Link>
+                </DropdownMenuItem>
+              ) : null}
+              {showOpenEnrollmentRecord ? (
+                <DropdownMenuItem asChild className='cursor-pointer'>
+                  <Link
+                    className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                    href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(
+                      String(enrollmentRecordId),
+                    )}
+                  >
+                    <FileTextIcon className='size-3.5 shrink-0' />
+                    Open Enrollment Record
                   </Link>
                 </DropdownMenuItem>
               ) : null}

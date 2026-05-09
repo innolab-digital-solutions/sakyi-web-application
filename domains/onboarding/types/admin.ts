@@ -113,6 +113,11 @@ export type OnboardingIntake = {
     sent_at: string | null;
     signed_at: string | null;
   } | null;
+  /** Present when enrollment relation is loaded (list/detail resource). */
+  enrollment?: {
+    id: number;
+    code: string;
+  } | null;
   handler?: {
     id: number;
     name: string;
