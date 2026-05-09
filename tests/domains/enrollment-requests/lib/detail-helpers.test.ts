@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import type { EnrollmentRequestResource } from '@/domains/enrollment-requests/types';
 import {
   getEnrollmentSummariesFromRequest,
   pickPrimaryEnrollment,
 } from '@/domains/enrollment-requests/lib/detail-helpers';
+import type { EnrollmentRequestResource } from '@/domains/enrollment-requests/types';
 
 function minimalRequest(
   overrides: Partial<EnrollmentRequestResource> = {},
@@ -38,10 +38,28 @@ describe('getEnrollmentSummariesFromRequest', () => {
 
   it('preserves_backend_ordering_when_present', () => {
     const rows = [
-      { id: 2, code: 'B', status: 'completed', starts_at: null, ends_at: null, completed_at: null, cancelled_at: null },
-      { id: 1, code: 'A', status: 'active', starts_at: null, ends_at: null, completed_at: null, cancelled_at: null },
+      {
+        id: 2,
+        code: 'B',
+        status: 'completed',
+        starts_at: null,
+        ends_at: null,
+        completed_at: null,
+        cancelled_at: null,
+      },
+      {
+        id: 1,
+        code: 'A',
+        status: 'active',
+        starts_at: null,
+        ends_at: null,
+        completed_at: null,
+        cancelled_at: null,
+      },
     ];
-    expect(getEnrollmentSummariesFromRequest(minimalRequest({ enrollments: rows }))).toEqual(rows);
+    expect(
+      getEnrollmentSummariesFromRequest(minimalRequest({ enrollments: rows })),
+    ).toEqual(rows);
   });
 });
 
@@ -52,24 +70,72 @@ describe('pickPrimaryEnrollment', () => {
 
   it('prefers_active_over_scheduled_and_first', () => {
     const primary = pickPrimaryEnrollment([
-      { id: 1, code: 'X', status: 'scheduled', starts_at: null, ends_at: null, completed_at: null, cancelled_at: null },
-      { id: 2, code: 'Y', status: 'active', starts_at: null, ends_at: null, completed_at: null, cancelled_at: null },
+      {
+        id: 1,
+        code: 'X',
+        status: 'scheduled',
+        starts_at: null,
+        ends_at: null,
+        completed_at: null,
+        cancelled_at: null,
+      },
+      {
+        id: 2,
+        code: 'Y',
+        status: 'active',
+        starts_at: null,
+        ends_at: null,
+        completed_at: null,
+        cancelled_at: null,
+      },
     ]);
     expect(primary?.code).toBe('Y');
   });
 
   it('falls_back_to_scheduled_when_no_active', () => {
     const primary = pickPrimaryEnrollment([
-      { id: 1, code: 'done', status: 'completed', starts_at: null, ends_at: null, completed_at: null, cancelled_at: null },
-      { id: 2, code: 'next', status: 'scheduled', starts_at: null, ends_at: null, completed_at: null, cancelled_at: null },
+      {
+        id: 1,
+        code: 'done',
+        status: 'completed',
+        starts_at: null,
+        ends_at: null,
+        completed_at: null,
+        cancelled_at: null,
+      },
+      {
+        id: 2,
+        code: 'next',
+        status: 'scheduled',
+        starts_at: null,
+        ends_at: null,
+        completed_at: null,
+        cancelled_at: null,
+      },
     ]);
     expect(primary?.code).toBe('next');
   });
 
   it('uses_first_when_no_active_or_scheduled', () => {
     const primary = pickPrimaryEnrollment([
-      { id: 9, code: 'first', status: 'cancelled', starts_at: null, ends_at: null, completed_at: null, cancelled_at: null },
-      { id: 8, code: 'second', status: 'completed', starts_at: null, ends_at: null, completed_at: null, cancelled_at: null },
+      {
+        id: 9,
+        code: 'first',
+        status: 'cancelled',
+        starts_at: null,
+        ends_at: null,
+        completed_at: null,
+        cancelled_at: null,
+      },
+      {
+        id: 8,
+        code: 'second',
+        status: 'completed',
+        starts_at: null,
+        ends_at: null,
+        completed_at: null,
+        cancelled_at: null,
+      },
     ]);
     expect(primary?.code).toBe('first');
   });

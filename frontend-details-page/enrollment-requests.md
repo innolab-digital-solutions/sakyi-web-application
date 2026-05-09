@@ -28,33 +28,33 @@ All fields below are documented in **serialization order**. Types are described 
 
 ### Top level (unchanged order for original keys)
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `id` | number | |
-| `code` | string | Business code |
-| `phone` | string | Phone captured on the request (may differ from profile) |
-| `status` | string | Enrollment request status enum value |
-| `cancellation_note` | string \| null | |
-| `contacted_at` | string \| null | ISO 8601 |
-| `completed_at` | string \| null | ISO 8601 |
-| `cancelled_at` | string \| null | ISO 8601 |
-| `client` | object \| null | Present when relation loaded (admin routes load it) |
-| `program` | object \| null | Present when relation loaded |
-| `handler` | object \| null | Last staff handler; present when relation loaded |
-| `contract` | object \| null | Enrollment contract reachable from this pipeline; else `null` |
-| `onboarding_intake` | object \| null | Present when relation loaded |
-| `timestamps` | object | `created_at`, `updated_at` (ISO 8601) |
-| **`enrollments`** | **array** | **New.** See below |
+| Field               | Type           | Notes                                                         |
+| ------------------- | -------------- | ------------------------------------------------------------- |
+| `id`                | number         |                                                               |
+| `code`              | string         | Business code                                                 |
+| `phone`             | string         | Phone captured on the request (may differ from profile)       |
+| `status`            | string         | Enrollment request status enum value                          |
+| `cancellation_note` | string \| null |                                                               |
+| `contacted_at`      | string \| null | ISO 8601                                                      |
+| `completed_at`      | string \| null | ISO 8601                                                      |
+| `cancelled_at`      | string \| null | ISO 8601                                                      |
+| `client`            | object \| null | Present when relation loaded (admin routes load it)           |
+| `program`           | object \| null | Present when relation loaded                                  |
+| `handler`           | object \| null | Last staff handler; present when relation loaded              |
+| `contract`          | object \| null | Enrollment contract reachable from this pipeline; else `null` |
+| `onboarding_intake` | object \| null | Present when relation loaded                                  |
+| `timestamps`        | object         | `created_at`, `updated_at` (ISO 8601)                         |
+| **`enrollments`**   | **array**      | **New.** See below                                            |
 
-### `client` (existing keys unchanged; **`contact_phone` appended`)
+### `client` (existing keys unchanged; \*\*`contact_phone` appended`)
 
-| Field | Type |
-| --- | --- |
-| `id` | number |
-| `client_code` | string \| null |
-| `name` | string \| null |
-| `email` | string \| null |
-| `picture_url` | string \| null |
+| Field               | Type               |
+| ------------------- | ------------------ |
+| `id`                | number             |
+| `client_code`       | string \| null     |
+| `name`              | string \| null     |
+| `email`             | string \| null     |
+| `picture_url`       | string \| null     |
 | **`contact_phone`** | **string \| null** |
 
 Compare **`phone`** on the enrollment request vs **`contact_phone`** on the client for outreach (they can differ).
@@ -67,23 +67,23 @@ Includes `title` and `slug` when **`translation`** is loaded (admin routes load 
 
 ### `contract` (existing keys unchanged; **`voided_at`** / **`void_reason`** appended when contract exists)
 
-| Field | Type |
-| --- | --- |
-| `id` | number |
-| `code` | string |
-| `status` | string |
-| `sent_at` | string \| null |
-| `signed_at` | string \| null |
-| **`voided_at`** | **string \| null** |
+| Field             | Type               |
+| ----------------- | ------------------ |
+| `id`              | number             |
+| `code`            | string             |
+| `status`          | string             |
+| `sent_at`         | string \| null     |
+| `signed_at`       | string \| null     |
+| **`voided_at`**   | **string \| null** |
 | **`void_reason`** | **string \| null** |
 
 ### `onboarding_intake` (existing keys unchanged; timeline fields appended when intake exists)
 
-| Field | Type |
-| --- | --- |
-| `id` | number |
-| `code` | string |
-| `status` | string |
+| Field              | Type               |
+| ------------------ | ------------------ |
+| `id`               | number             |
+| `code`             | string             |
+| `status`           | string             |
 | **`completed_at`** | **string \| null** |
 | **`cancelled_at`** | **string \| null** |
 
@@ -93,15 +93,15 @@ Items are **summaries** for the pipeline detail view, sorted by **`id` descendin
 
 Each item:
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `id` | number | |
-| `code` | string | |
-| `status` | string | e.g. `scheduled`, `active`, `completed`, `cancelled` |
-| `starts_at` | string \| null | Date **`YYYY-MM-DD`** |
-| `ends_at` | string \| null | Date **`YYYY-MM-DD`** |
-| `completed_at` | string \| null | ISO 8601 |
-| `cancelled_at` | string \| null | ISO 8601 |
+| Field          | Type           | Notes                                                |
+| -------------- | -------------- | ---------------------------------------------------- |
+| `id`           | number         |                                                      |
+| `code`         | string         |                                                      |
+| `status`       | string         | e.g. `scheduled`, `active`, `completed`, `cancelled` |
+| `starts_at`    | string \| null | Date **`YYYY-MM-DD`**                                |
+| `ends_at`      | string \| null | Date **`YYYY-MM-DD`**                                |
+| `completed_at` | string \| null | ISO 8601                                             |
+| `cancelled_at` | string \| null | ISO 8601                                             |
 
 **When there is no onboarding intake:** `onboarding_intake` is `null` and **`enrollments` is `[]`**.
 

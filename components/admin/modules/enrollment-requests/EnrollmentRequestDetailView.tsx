@@ -288,11 +288,7 @@ function PipelineMetricStateNote({
   );
 }
 
-function PipelineEmptyState({
-  description,
-}: {
-  description: string;
-}) {
+function PipelineEmptyState({ description }: { description: string }) {
   return (
     <div className='px-1 py-0.5'>
       <p className='text-muted-foreground text-[12.5px] leading-relaxed font-medium'>
@@ -414,7 +410,9 @@ export default function EnrollmentRequestDetailView({
       );
     },
     onError: (mutationError) => {
-      toast.error(mutationError.message ?? 'Could not create intake assessment.');
+      toast.error(
+        mutationError.message ?? 'Could not create intake assessment.',
+      );
     },
   });
 
@@ -611,16 +609,16 @@ export default function EnrollmentRequestDetailView({
                 </div>
               </div>
             ) : (
-              <PipelineEmptyState
-                description='Start or assign an intake from Enrollment Requests when this applicant becomes eligible.'
-              />
+              <PipelineEmptyState description='Start or assign an intake from Enrollment Requests when this applicant becomes eligible.' />
             )}
           </PipelineStepShell>
 
           <PipelineStepShell
             index={3}
             title='Contract & E-signature'
-            contentClassName={data.contract ? undefined : 'border-dashed bg-muted/10'}
+            contentClassName={
+              data.contract ? undefined : 'border-dashed bg-muted/10'
+            }
             subtitle={
               data.contract
                 ? 'Traceable contract and e-signature checkpoints for approval and legal audit'
@@ -695,16 +693,16 @@ export default function EnrollmentRequestDetailView({
                 </div>
               </div>
             ) : (
-              <PipelineEmptyState
-                description='Generate and send the contract after intake is ready to move this applicant forward.'
-              />
+              <PipelineEmptyState description='Generate and send the contract after intake is ready to move this applicant forward.' />
             )}
           </PipelineStepShell>
 
           <PipelineStepShell
             index={4}
             title='Enrollment Record'
-            contentClassName={primaryEnrollment ? undefined : 'border-dashed bg-muted/10'}
+            contentClassName={
+              primaryEnrollment ? undefined : 'border-dashed bg-muted/10'
+            }
             subtitle={
               enrollmentsList.length > 0
                 ? 'Traceable enrollment checkpoints for activation, schedule, and completion monitoring'

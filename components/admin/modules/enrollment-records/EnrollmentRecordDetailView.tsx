@@ -2,20 +2,17 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
-import { ChevronRightIcon, ClipboardListIcon, FileTextIcon } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { type ReactNode, useState } from 'react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { base } from '@/config/api/base';
-import { ROUTES } from '@/config/routes';
 import {
-  getEnrollmentRecordById,
   type AdminEnrollment,
+  type EnrollmentTeamMemberPayload,
+  getEnrollmentRecordById,
 } from '@/domains/enrollment-records/services';
 import { getInitials } from '@/lib/utils/string';
 import { cn } from '@/lib/utils/styles';
@@ -23,10 +20,6 @@ import { cn } from '@/lib/utils/styles';
 /** Primary white card shell — matches {@link EnrollmentContractDetailView}. */
 const CARD_SURFACE =
   'border-border max-w-full min-w-0 rounded-md border bg-white p-6 shadow-xs';
-
-/** Matches admin outline actions on enrollment detail screens. */
-const ADMIN_OUTLINE_BUTTON_CLASS =
-  'normal-case bg-background hover:bg-muted h-10 shrink-0 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold';
 
 const METRIC_TILE_CLASS =
   'bg-muted/50 border-border flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2';
@@ -60,6 +53,21 @@ function EnrollmentRecordDetailSkeleton() {
               </div>
             ))}
           </div>
+          <div className='border-border space-y-3 border-t pt-5'>
+            <Skeleton className='h-3 w-32 rounded-sm' />
+            <div className='space-y-4'>
+              {[0, 1].map((idx) => (
+                <div key={`overview-team-sk-${idx}`} className='flex gap-3'>
+                  <Skeleton className='size-10 shrink-0 rounded-full' />
+                  <div className='min-w-0 flex-1 space-y-2'>
+                    <Skeleton className='h-4 w-36 rounded-sm' />
+                    <Skeleton className='h-3 w-48 rounded-sm' />
+                    <Skeleton className='h-3 w-24 rounded-sm' />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
       <div className='flex min-h-0 min-w-0 flex-col gap-3 lg:gap-4'>
@@ -87,16 +95,6 @@ function EnrollmentRecordDetailSkeleton() {
               <Skeleton className='h-4 w-48 rounded-sm' />
               <Skeleton className='h-3 w-28 rounded-sm' />
             </div>
-          </div>
-        </section>
-        <section className={`${CARD_SURFACE} flex min-h-0 flex-col`}>
-          <header className='border-border border-b pb-4'>
-            <Skeleton className='h-5 w-52 rounded-sm' />
-            <Skeleton className='mt-2 h-3 max-w-md rounded-sm' />
-          </header>
-          <div className='flex flex-col gap-2 pt-5'>
-            <Skeleton className='h-10 w-full rounded-md' />
-            <Skeleton className='h-10 w-full rounded-md' />
           </div>
         </section>
       </div>
@@ -213,6 +211,37 @@ function getProgramCode(data: AdminEnrollment): string {
   return '—';
 }
 
+function TeamMemberRow({ member }: { member: EnrollmentTeamMemberPayload }) {
+  const user = member.user;
+  const pic = resolveClientPictureUrl(user?.picture_url);
+  const positionLabel = member.position?.trim()
+    ? formatStatusLabel(member.position)
+    : 'Role not set';
+
+  return (
+    <li className='flex min-w-0 items-start gap-3'>
+      <Avatar size='lg' className='mt-0.5 shrink-0'>
+        {pic ? <AvatarImage src={pic} alt='' /> : null}
+        <AvatarFallback className='text-xs'>
+          {getInitials(user?.name ?? '', 2) || '?'}
+        </AvatarFallback>
+      </Avatar>
+      <div className='min-w-0 flex-1 space-y-0.5'>
+        <p className='text-foreground/90 text-[13px] font-semibold'>
+          {user?.name?.trim() || (
+            <TableCellEmpty label='No name on file' />
+          )}
+        </p>
+        <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
+          {user?.email?.trim() || 'No email on file'}
+        </p>
+        <p className='text-muted-foreground text-xs font-medium'>{positionLabel}</p>
+      </div>
+    </li>
+  );
+}
+
+/** Same metric-tile shell + divider body as onboarding {@link IntakeDetailPanel} `IntakeStateNote`. */
 function EnrollmentCancellationNote({
   cancelledAt,
   note,
@@ -223,19 +252,22 @@ function EnrollmentCancellationNote({
   return (
     <div
       role='status'
-      className='border-border bg-muted/35 text-muted-foreground space-y-2.5 rounded-md border p-3 text-[13px] font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]'
+      className={cn(
+        METRIC_TILE_CLASS,
+        'min-h-0 justify-start space-y-2 py-3 text-[13px]',
+      )}
     >
-      <div className='px-1'>
-        <p className={METRIC_TILE_LABEL_CLASS}>Enrollment cancellation</p>
-        <div className='text-foreground/90 mt-1 text-[12.5px] leading-snug font-semibold tabular-nums'>
-          {formatDateCell(cancelledAt) ?? '—'}
-        </div>
+      <p className={METRIC_TILE_LABEL_CLASS}>Enrollment cancellation</p>
+      <div className='text-foreground/90 text-[12.5px] leading-snug font-semibold tabular-nums'>
+        {formatDateCell(cancelledAt) ?? '—'}
       </div>
-      <div className='text-foreground/90 space-y-1 px-1 pt-0.5 text-[12.5px] leading-relaxed'>
+      <div className='text-muted-foreground border-border space-y-1 border-t pt-2 text-[12.5px] leading-relaxed font-medium'>
         {note?.trim() ? (
           <p className='whitespace-pre-wrap'>{note.trim()}</p>
         ) : (
-          <p className='text-muted-foreground'>No cancellation note on file.</p>
+          <p className='text-muted-foreground text-[12.5px] leading-relaxed'>
+            No cancellation note was recorded.
+          </p>
         )}
       </div>
     </div>
@@ -285,8 +317,9 @@ export default function EnrollmentRecordDetailView({
         <header className='border-border shrink-0 border-b pb-5'>
           <h3 className='text-foreground text-sm font-semibold'>Overview</h3>
           <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
-            Reference, lifecycle status, program window, completion, and last
-            update for this enrollment record.
+            Reference, lifecycle status, program window, cancellation context
+            when applicable, assigned care team, completion, and last update
+            for this enrollment record.
           </p>
         </header>
 
@@ -303,11 +336,11 @@ export default function EnrollmentRecordDetailView({
               tabularNums={false}
             />
             <EnrollmentMetricTile
-              label='Starts'
+              label='Starts On'
               value={formatDateCell(data.starts_at) ?? OVERVIEW_EMPTY_DASH}
             />
             <EnrollmentMetricTile
-              label='Ends'
+              label='Ends On'
               value={formatDateCell(data.ends_at) ?? OVERVIEW_EMPTY_DASH}
             />
             <EnrollmentMetricTile
@@ -350,11 +383,27 @@ export default function EnrollmentRecordDetailView({
           {data.notes?.trim() ? (
             <div className='border-border space-y-2 border-t pt-5'>
               <p className={METRIC_TILE_LABEL_CLASS}>Staff notes</p>
-              <p className='text-foreground/90 whitespace-pre-wrap text-[12.5px] leading-relaxed font-medium'>
+              <p className='text-foreground/90 text-[12.5px] leading-relaxed font-medium whitespace-pre-wrap'>
                 {data.notes.trim()}
               </p>
             </div>
           ) : null}
+
+          <div className='border-border border-t pt-5'>
+            <p className={METRIC_TILE_LABEL_CLASS}>Team members</p>
+            {Array.isArray(data.team_members) &&
+            data.team_members.length > 0 ? (
+              <ul className='m-0 mt-3 flex list-none flex-col gap-4 p-0'>
+                {data.team_members.map((member) => (
+                  <TeamMemberRow key={member.id} member={member} />
+                ))}
+              </ul>
+            ) : (
+              <p className='text-muted-foreground mt-2 text-sm'>
+                No care team members assigned to this enrollment.
+              </p>
+            )}
+          </div>
         </div>
       </section>
 
@@ -433,64 +482,6 @@ export default function EnrollmentRecordDetailView({
               No program linked to this enrollment.
             </p>
           )}
-        </section>
-
-        <section className={`${CARD_SURFACE} flex min-h-0 flex-col`}>
-          <header className='border-border shrink-0 border-b pb-4'>
-            <h3 className='text-foreground text-sm font-semibold'>
-              Related Workflow
-            </h3>
-            <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
-              Intake assessment and enrollment contract tied to this record for
-              traceability.
-            </p>
-          </header>
-          <div className='flex flex-col gap-2 pt-5'>
-            {data.onboarding_intake?.id != null ? (
-              <Button
-                variant='outline'
-                className={`${ADMIN_OUTLINE_BUTTON_CLASS} w-full justify-center`}
-                asChild
-              >
-                <Link
-                  href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(
-                    String(data.onboarding_intake.id),
-                  )}
-                >
-                  <ClipboardListIcon className='size-3.5' />
-                  Intake:{' '}
-                  {data.onboarding_intake.code?.trim() ||
-                    `#${data.onboarding_intake.id}`}
-                  <ChevronRightIcon className='size-3.5 opacity-70' />
-                </Link>
-              </Button>
-            ) : (
-              <p className='text-muted-foreground text-sm'>No intake linked.</p>
-            )}
-            {data.enrollment_contract?.id != null ? (
-              <Button
-                variant='outline'
-                className={`${ADMIN_OUTLINE_BUTTON_CLASS} w-full justify-center`}
-                asChild
-              >
-                <Link
-                  href={ROUTES.ADMIN.MODULES.ENROLLMENT_CONTRACTS.DETAIL(
-                    String(data.enrollment_contract.id),
-                  )}
-                >
-                  <FileTextIcon className='size-3.5' />
-                  Contract:{' '}
-                  {data.enrollment_contract.code?.trim() ||
-                    `#${data.enrollment_contract.id}`}
-                  <span className='text-muted-foreground font-medium'>
-                    {' '}
-                    ({formatStatusLabel(data.enrollment_contract.status)})
-                  </span>
-                  <ChevronRightIcon className='size-3.5 opacity-70' />
-                </Link>
-              </Button>
-            ) : null}
-          </div>
         </section>
       </div>
     </div>

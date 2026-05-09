@@ -79,7 +79,7 @@ function IntakeInterviewWizardSkeleton() {
         <div className='grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto] md:items-center'>
           <div className='space-y-2'>
             <div className='bg-muted h-2 overflow-hidden rounded-full'>
-              <div className='bg-foreground/15 h-full w-[32%] rounded-full dark:bg-foreground/20' />
+              <div className='bg-foreground/15 dark:bg-foreground/20 h-full w-[32%] rounded-full' />
             </div>
             <div className='flex items-center justify-between'>
               <Skeleton className='h-3 w-48 rounded-sm' />

@@ -69,7 +69,9 @@ function pickPrimaryEnrollmentId(
   const byStatus = (status: string) =>
     rows.find((r: EnrollmentRequestEnrollmentSummary) => r.status === status);
 
-  return byStatus('active')?.id ?? byStatus('scheduled')?.id ?? rows[0]?.id ?? null;
+  return (
+    byStatus('active')?.id ?? byStatus('scheduled')?.id ?? rows[0]?.id ?? null
+  );
 }
 
 const viewDetailButtonClass =

@@ -10,7 +10,7 @@ import { ROUTES } from '@/config/routes';
 export const metadata: Metadata = {
   title: 'Enrollment record overview | SaKyi Admin',
   description:
-    'Review enrollment status, program window, completion and updates, optional care plan context, and open related intake and contract records.',
+    'Review enrollment status, program window, care plan context, staff notes, assigned care team members, and applicant and program details.',
 };
 
 type EnrollmentRecordPageProps = {
@@ -31,7 +31,7 @@ export default async function EnrollmentRecordPage({
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Enrollment record overview'
-        description='Review lifecycle status, dates, and staff notes, confirm the applicant and program, and open the intake assessment or enrollment contract when you need upstream context.'
+        description='Review lifecycle status, dates, active care plan, and staff notes, confirm the applicant and program, and see who is assigned to the care team for this enrollment.'
         actions={
           <Button
             asChild

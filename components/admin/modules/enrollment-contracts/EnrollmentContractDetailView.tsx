@@ -251,8 +251,8 @@ export default function EnrollmentContractDetailView({
           <h3 className='text-foreground text-sm font-semibold'>Overview</h3>
           <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
             Reference, contract status, terms acceptance, notification and
-            signature dates, last updated time, void context when applicable, and
-            the captured signature image for this enrollment contract.
+            signature dates, last updated time, void context when applicable,
+            and the captured signature image for this enrollment contract.
           </p>
         </header>
 

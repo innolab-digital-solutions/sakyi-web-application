@@ -159,9 +159,9 @@ function AdminNavCollapsibleSection({
                   <SidebarMenuSubButton
                     asChild
                     isActive={isSubActive}
-                    className={`px-3 py-5 hover:bg-white/15! hover:text-sidebar-primary-foreground! ${
+                    className={`hover:text-sidebar-primary-foreground! px-3 py-5 hover:bg-white/15! ${
                       isSubActive
-                        ? 'bg-white/15! text-sidebar-primary-foreground!'
+                        ? 'text-sidebar-primary-foreground! bg-white/15!'
                         : ''
                     }`}
                   >
