@@ -77,7 +77,7 @@ export default async function IntakeAssessmentDetailPage({
           >
             <Link href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST}>
               <ArrowLeftIcon className='size-3.5' />
-              Back to intake assessments
+              Back to Intakes
             </Link>
           </Button>
         }

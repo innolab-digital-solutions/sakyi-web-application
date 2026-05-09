@@ -55,7 +55,6 @@ type IntakeColumnKey =
   | 'applicant'
   | 'requestedProgram'
   | 'linkedRequest'
-  | 'handledBy'
   | 'status'
   | 'lastUpdatedAt'
   | 'actions';
@@ -71,14 +70,13 @@ type IntakeColumnDefinition = {
 const INTAKE_VISIBLE_COLUMNS_STORAGE_KEY =
   'sakyi:admin:intake-assessments:visible-columns:v2';
 
-/** First-load defaults; staff can show linked request & handler from Columns. */
+/** First-load defaults; staff can show linked request from Columns. */
 const DEFAULT_VISIBLE_COLUMN_KEYS: readonly IntakeColumnKey[] = [
   'reference',
   'applicant',
   'requestedProgram',
   'linkedRequest',
   'status',
-  'lastUpdatedAt',
   'actions',
 ];
 
@@ -106,12 +104,6 @@ const INTAKE_COLUMNS: readonly IntakeColumnDefinition[] = [
     label: 'Linked Request',
     headerClassName: '',
     skeletonWidth: 'w-28',
-  },
-  {
-    key: 'handledBy',
-    label: 'Handled By',
-    headerClassName: '',
-    skeletonWidth: 'w-36',
   },
   {
     key: 'status',
@@ -170,16 +162,6 @@ function formatDate(iso: string | null): string {
   } catch {
     return iso;
   }
-}
-
-function formatRoleLabel(role: string): string {
-  return role
-    .trim()
-    .replace(/[_-]+/g, ' ')
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join(' ');
 }
 
 const PROGRAM_THUMBNAIL_FALLBACK = '/images/logo-gray.png';
@@ -519,44 +501,6 @@ export default function IntakeListTable() {
                           <TableCellEmpty label='Not linked' />
                         )}
                       </p>
-                    </TableCell>
-                  ) : null}
-
-                  {showColumn('handledBy') ? (
-                    <TableCell>
-                      {intake.handler ? (
-                        <div className='flex items-start gap-3'>
-                          <Avatar
-                            size='default'
-                            className='mt-0.5 shrink-0'
-                            aria-hidden
-                          >
-                            {intake.handler.picture_url?.trim() ? (
-                              <AvatarImage
-                                src={intake.handler.picture_url}
-                                alt=''
-                              />
-                            ) : null}
-                            <AvatarFallback className='text-xs'>
-                              {getInitials(intake.handler.name ?? '', 2) || '?'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className='min-w-0 flex-1 space-y-1'>
-                            <p className='text-foreground text-[13px] font-semibold'>
-                              {intake.handler.name}
-                            </p>
-                            <p className='text-muted-foreground text-xs leading-snug wrap-break-word'>
-                              {intake.handler.role?.trim() ? (
-                                formatRoleLabel(intake.handler.role)
-                              ) : (
-                                <TableCellEmpty label='No role' />
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                      ) : (
-                        <TableCellEmpty label='Not assigned' />
-                      )}
                     </TableCell>
                   ) : null}
 
