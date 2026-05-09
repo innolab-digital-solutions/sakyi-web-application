@@ -37,6 +37,12 @@ import LogoutConfirmationDialog from './LogoutConfirmationDialog';
 
 const EXTERNAL_HREF_RE = /^https?:\/\//i;
 
+const normalizeNavPath = (value: string): string => {
+  if (!value) return '';
+  if (value === '/') return '/';
+  return value.endsWith('/') ? value.slice(0, -1) : value;
+};
+
 function AdminNavHref({
   href,
   external,
@@ -75,11 +81,14 @@ const isNavPathActive = (pathname: string, navPath: string): boolean => {
     return false;
   }
 
-  if (pathname === navPath) {
+  const current = normalizeNavPath(pathname);
+  const target = normalizeNavPath(navPath);
+
+  if (current === target) {
     return true;
   }
 
-  return pathname.startsWith(`${navPath}/`);
+  return current.startsWith(`${target}/`);
 };
 
 type NavItemWithSubitems = NavItem & {
@@ -150,7 +159,11 @@ function AdminNavCollapsibleSection({
                   <SidebarMenuSubButton
                     asChild
                     isActive={isSubActive}
-                    className='data-[active=true]:text-sidebar-primary-foreground! hover:text-sidebar-primary-foreground! px-3 py-5 hover:bg-white/15! data-[active=true]:bg-white/15!'
+                    className={`px-3 py-5 hover:bg-white/15! hover:text-sidebar-primary-foreground! ${
+                      isSubActive
+                        ? 'bg-white/15! text-sidebar-primary-foreground!'
+                        : ''
+                    }`}
                   >
                     <AdminNavHref
                       href={subitem.path}

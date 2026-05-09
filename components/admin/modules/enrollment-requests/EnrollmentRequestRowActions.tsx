@@ -145,7 +145,7 @@ export default function EnrollmentRequestRowActions({
           onClick={() => onStartIntake()}
         >
           <ClipboardListIcon className='size-3.5 shrink-0' />
-          Start Intake Interview
+          Start Interview
         </Button>
       ) : (
         <Button
