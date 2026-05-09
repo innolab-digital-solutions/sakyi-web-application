@@ -157,6 +157,42 @@ function getContractReference(contract: EnrollmentContract): string {
   return `#${contract.id}`;
 }
 
+/**
+ * Void notice — same surface and layout as {@link IntakeDetailPanel}'s `IntakeStateNote`
+ * (metric tile shell, uppercase label, bold date row, bordered body for reason).
+ */
+function ContractVoidStateNote({
+  voidedAt,
+  reason,
+}: {
+  voidedAt: string | null | undefined;
+  reason: string | null | undefined;
+}) {
+  return (
+    <div
+      role='status'
+      className={cn(
+        METRIC_TILE_CLASS,
+        'min-h-0 justify-start space-y-2 py-3 text-[13px]',
+      )}
+    >
+      <p className={METRIC_TILE_LABEL_CLASS}>Contract void</p>
+      <div className='text-foreground/90 text-[12.5px] leading-snug font-semibold tabular-nums'>
+        {formatDateCell(voidedAt) ?? '—'}
+      </div>
+      <div className='text-muted-foreground border-border space-y-1 border-t pt-2 text-[12.5px] leading-relaxed font-medium'>
+        {reason?.trim() ? (
+          <p className='whitespace-pre-wrap'>{reason.trim()}</p>
+        ) : (
+          <p className='text-muted-foreground text-[12.5px] leading-relaxed'>
+            No void reason was recorded.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export type EnrollmentContractDetailViewProps = {
   contractId: number;
 };
@@ -215,8 +251,8 @@ export default function EnrollmentContractDetailView({
           <h3 className='text-foreground text-sm font-semibold'>Overview</h3>
           <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
             Reference, contract status, terms acceptance, notification and
-            signature dates, last updated time, and the captured signature image
-            for this enrollment contract.
+            signature dates, last updated time, void context when applicable, and
+            the captured signature image for this enrollment contract.
           </p>
         </header>
 
@@ -250,6 +286,15 @@ export default function EnrollmentContractDetailView({
               value={updatedAt ?? OVERVIEW_EMPTY_DASH}
             />
           </div>
+
+          {data.status === 'voided' ||
+          data.timestamps.voided_at?.trim() ||
+          data.void_reason?.trim() ? (
+            <ContractVoidStateNote
+              voidedAt={data.timestamps.voided_at}
+              reason={data.void_reason}
+            />
+          ) : null}
 
           {data.signed_by_name?.trim() || signatureSrc ? (
             <div className='border-border space-y-4 border-t pt-5'>

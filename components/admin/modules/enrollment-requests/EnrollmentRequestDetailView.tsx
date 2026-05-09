@@ -256,37 +256,32 @@ function EnrollmentOverviewMetricTile({
   );
 }
 
-function PipelineStateNote({
+/**
+ * State callout matching onboarding {@link IntakeDetailPanel}'s `IntakeStateNote`
+ * (metric tile shell, bordered body for descriptive text).
+ */
+function PipelineMetricStateNote({
   title,
   metaValue,
-  tone = 'warning',
   children,
 }: {
   title: string;
   metaValue: ReactNode;
-  tone?: 'warning' | 'danger';
   children: ReactNode;
 }) {
-  const toneClass =
-    tone === 'danger'
-      ? 'border-border bg-muted/35 text-muted-foreground'
-      : 'border-border bg-muted/25 text-muted-foreground';
-
   return (
     <div
       role='status'
       className={cn(
-        'space-y-2.5 rounded-md border p-3 text-[13px] font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]',
-        toneClass,
+        WORKSPACE_CONTEXT_TILE_CLASS,
+        'min-h-0 justify-start space-y-2 py-3 text-[13px]',
       )}
     >
-      <div className='px-1'>
-        <p className={DETAIL_LABEL}>{title}</p>
-        <div className='text-foreground/90 mt-1 text-[12.5px] leading-snug font-semibold tabular-nums'>
-          {metaValue}
-        </div>
+      <p className={WORKSPACE_CONTEXT_LABEL_CLASS}>{title}</p>
+      <div className='text-foreground/90 text-[12.5px] leading-snug font-semibold tabular-nums'>
+        {metaValue}
       </div>
-      <div className='text-foreground/90 space-y-1 px-1 pt-0.5 text-[12.5px] leading-relaxed'>
+      <div className='text-muted-foreground border-border space-y-1 border-t pt-2 text-[12.5px] leading-relaxed font-medium'>
         {children}
       </div>
     </div>
@@ -505,16 +500,20 @@ export default function EnrollmentRequestDetailView({
                 />
               </div>
               {data.status === 'cancelled' || data.cancelled_at?.trim() ? (
-                <PipelineStateNote
+                <PipelineMetricStateNote
                   title='Request cancellation'
                   metaValue={formatDateCell(data.cancelled_at) ?? '—'}
-                  tone='danger'
                 >
-                  <p className='whitespace-pre-wrap'>
-                    {data.cancellation_note?.trim() ||
-                      'No cancellation note was recorded for this request.'}
-                  </p>
-                </PipelineStateNote>
+                  {data.cancellation_note?.trim() ? (
+                    <p className='whitespace-pre-wrap'>
+                      {data.cancellation_note.trim()}
+                    </p>
+                  ) : (
+                    <p className='text-muted-foreground text-[12.5px] leading-relaxed'>
+                      No cancellation note was recorded for this request.
+                    </p>
+                  )}
+                </PipelineMetricStateNote>
               ) : null}
               {canStartIntake ? (
                 <div className='border-border flex justify-end border-t pt-4'>
@@ -568,17 +567,16 @@ export default function EnrollmentRequestDetailView({
                 </div>
                 {data.onboarding_intake.status === 'cancelled' ||
                 data.onboarding_intake.cancelled_at?.trim() ? (
-                  <PipelineStateNote
+                  <PipelineMetricStateNote
                     title='Intake cancellation'
                     metaValue={
                       formatDateCell(data.onboarding_intake.cancelled_at) ?? '—'
                     }
-                    tone='danger'
                   >
-                    <p>
+                    <p className='text-muted-foreground text-[12.5px] leading-relaxed'>
                       No cancellation note was provided on this intake record.
                     </p>
-                  </PipelineStateNote>
+                  </PipelineMetricStateNote>
                 ) : null}
                 <div className='border-border flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-end'>
                   {data.onboarding_intake.status === 'draft' ||
@@ -660,10 +658,11 @@ export default function EnrollmentRequestDetailView({
                     }
                   />
                 </div>
-                {data.contract.voided_at?.trim() ||
+                {data.contract.status?.toLowerCase() === 'voided' ||
+                data.contract.voided_at?.trim() ||
                 data.contract.void_reason?.trim() ? (
-                  <PipelineStateNote
-                    title='Contract voided'
+                  <PipelineMetricStateNote
+                    title='Contract void'
                     metaValue={formatDateCell(data.contract.voided_at) ?? '—'}
                   >
                     {data.contract.void_reason?.trim() ? (
@@ -671,9 +670,11 @@ export default function EnrollmentRequestDetailView({
                         {data.contract.void_reason.trim()}
                       </p>
                     ) : (
-                      <p>No void reason was provided on this contract.</p>
+                      <p className='text-muted-foreground text-[12.5px] leading-relaxed'>
+                        No void reason was recorded.
+                      </p>
                     )}
-                  </PipelineStateNote>
+                  </PipelineMetricStateNote>
                 ) : null}
                 <div className='border-border flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-end'>
                   <Button
@@ -749,18 +750,17 @@ export default function EnrollmentRequestDetailView({
                   />
                 </div>
                 {primaryEnrollment.cancelled_at?.trim() ? (
-                  <PipelineStateNote
+                  <PipelineMetricStateNote
                     title='Enrollment cancellation'
                     metaValue={
                       formatDateCell(primaryEnrollment.cancelled_at) ?? '—'
                     }
-                    tone='danger'
                   >
-                    <p>
+                    <p className='text-muted-foreground text-[12.5px] leading-relaxed'>
                       No cancellation note is available on enrollment summary
                       rows.
                     </p>
-                  </PipelineStateNote>
+                  </PipelineMetricStateNote>
                 ) : null}
                 <div className='border-border flex justify-end border-t pt-4'>
                   <Button className={ADMIN_PRIMARY_BUTTON_CLASS} asChild>
