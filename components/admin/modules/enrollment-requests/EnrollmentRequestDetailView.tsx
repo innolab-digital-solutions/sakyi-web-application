@@ -1,27 +1,27 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import {
-  CheckCircle2Icon,
   ChevronRightIcon,
-  ClipboardSignatureIcon,
+  ClipboardListIcon,
   FileTextIcon,
-  PhoneCallIcon,
-  TimerResetIcon,
-  UserRoundIcon,
-  XCircleIcon,
+  PenSquareIcon,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { type ComponentType, type ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
+import { type ReactNode } from 'react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import { AdminDetailCardSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
+import EnrollmentIntakeConfirmation from '@/components/admin/modules/enrollment-requests/EnrollmentIntakeConfirmation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { base } from '@/config/api/base';
+import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
 import {
   getEnrollmentSummariesFromRequest,
@@ -33,44 +33,36 @@ import type {
   EnrollmentRequestResource,
   EnrollmentRequestStatus,
 } from '@/domains/enrollment-requests/types';
+import {
+  createOnboardingIntake,
+  getOnboardingTemplateByVersion,
+} from '@/domains/intake-assessments/services';
 import { getInitials } from '@/lib/utils/string';
+import { cn } from '@/lib/utils/styles';
 
 const PROGRAM_THUMBNAIL_FALLBACK = '/images/logo-gray.png';
+
+/** Matches admin back / secondary actions (`enrollment-requests/[id]/page`). */
+const ADMIN_OUTLINE_BUTTON_CLASS =
+  'normal-case bg-background hover:bg-muted h-10 shrink-0 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold';
+
+/** Matches primary list CTAs (`blog-posts/page` “Add blog post”). */
+const ADMIN_PRIMARY_BUTTON_CLASS =
+  'normal-case h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold';
+
+/** Primary white card shell (list/detail screens + overview). */
+const CARD_SURFACE =
+  'border-border max-w-full min-w-0 rounded-md border bg-white p-6 shadow-xs';
+
+/** Field caption — matches `IntakeDetailPanel` DetailItem labels. */
+const DETAIL_LABEL =
+  'text-muted-foreground text-[10px]! font-semibold tracking-wide uppercase';
 
 const STATUS_LABEL: Record<EnrollmentRequestStatus, string> = {
   pending: 'Pending',
   contacted: 'Contacted',
   cancelled: 'Cancelled',
   completed: 'Completed',
-};
-
-const STATUS_STYLES: Record<
-  EnrollmentRequestStatus,
-  {
-    icon: ComponentType<{ className?: string }>;
-    className: string;
-  }
-> = {
-  pending: {
-    icon: TimerResetIcon,
-    className:
-      'border-amber-300/80 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200',
-  },
-  contacted: {
-    icon: PhoneCallIcon,
-    className:
-      'border-sky-300/80 bg-sky-50 text-sky-800 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-200',
-  },
-  completed: {
-    icon: CheckCircle2Icon,
-    className:
-      'border-emerald-300/80 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200',
-  },
-  cancelled: {
-    icon: XCircleIcon,
-    className:
-      'border-rose-300/80 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200',
-  },
 };
 
 function resolveClientPictureUrl(
@@ -138,16 +130,6 @@ function formatDateOnly(value: string | null | undefined): string | null {
   }
 }
 
-function formatRoleLabel(role: string): string {
-  return role
-    .trim()
-    .replace(/[_-]+/g, ' ')
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join(' ');
-}
-
 function formatPipelineLabel(value: string | null | undefined): string {
   if (!value?.trim()) return '—';
   return value
@@ -157,12 +139,6 @@ function formatPipelineLabel(value: string | null | undefined): string {
     .filter(Boolean)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
     .join(' ');
-}
-
-function getRequestReference(request: EnrollmentRequestResource): string {
-  const code = request.code?.trim();
-  if (code) return code;
-  return `#${request.id}`;
 }
 
 function getProgramLabel(request: EnrollmentRequestResource): string {
@@ -178,42 +154,149 @@ function getProgramCode(request: EnrollmentRequestResource): string {
   return '—';
 }
 
+/**
+ * Shared muted tile shell + label typography with
+ * {@link OperationalLogWorkspaceContextBar}.
+ */
+const WORKSPACE_CONTEXT_TILE_CLASS =
+  'bg-muted/50 border-border flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2';
+
+const WORKSPACE_CONTEXT_LABEL_CLASS =
+  'text-muted-foreground mb-1.5 text-[10px] font-semibold tracking-wide uppercase';
+
+/** Minimal placeholder when an overview KPI has no value (no badge styling). */
+const OVERVIEW_EMPTY_DASH = (
+  <span className='text-muted-foreground font-semibold'>-</span>
+);
+
+/** Single metric cell for the enrollment overview KPI grid (same card design as workspace context tiles). */
+function EnrollmentOverviewMetricTile({
+  label,
+  value,
+  tabularNums = true,
+  valueClassName,
+}: {
+  label: string;
+  value: ReactNode;
+  tabularNums?: boolean;
+  valueClassName?: string;
+}) {
+  return (
+    <div className={WORKSPACE_CONTEXT_TILE_CLASS}>
+      <p className={WORKSPACE_CONTEXT_LABEL_CLASS}>{label}</p>
+      <div
+        className={cn(
+          'text-foreground/90 text-[12.5px] leading-snug font-semibold',
+          tabularNums && 'tabular-nums',
+          valueClassName,
+        )}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function PipelineStateNote({
+  title,
+  metaValue,
+  tone = 'warning',
+  children,
+}: {
+  title: string;
+  metaValue: ReactNode;
+  tone?: 'warning' | 'danger';
+  children: ReactNode;
+}) {
+  const toneClass =
+    tone === 'danger'
+      ? 'border-border bg-muted/35 text-muted-foreground'
+      : 'border-border bg-muted/25 text-muted-foreground';
+
+  return (
+    <div
+      role='status'
+      className={cn(
+        'space-y-2.5 rounded-md border p-3 text-[13px] font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]',
+        toneClass,
+      )}
+    >
+      <div className='px-1'>
+        <p className={DETAIL_LABEL}>{title}</p>
+        <div className='text-foreground/90 mt-1 text-[12.5px] leading-snug font-semibold tabular-nums'>
+          {metaValue}
+        </div>
+      </div>
+      <div className='text-foreground/90 space-y-1 px-1 pt-0.5 text-[12.5px] leading-relaxed'>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function PipelineEmptyState({
+  description,
+}: {
+  description: string;
+}) {
+  return (
+    <div className='px-1 py-0.5'>
+      <p className='text-muted-foreground text-[12.5px] leading-relaxed font-medium'>
+        {description}
+      </p>
+    </div>
+  );
+}
+
 function PipelineStepShell({
   index,
   title,
   subtitle,
   isLast,
+  contentClassName,
   children,
 }: {
   index: number;
   title: string;
   subtitle?: string | null;
   isLast?: boolean;
+  contentClassName?: string;
   children: ReactNode;
 }) {
   return (
-    <div className={isLast ? 'relative flex gap-4' : 'relative flex gap-4 pb-8'}>
+    <div
+      className={
+        isLast ? 'relative flex gap-5' : 'relative flex gap-5 pb-10 md:pb-12'
+      }
+    >
       {!isLast ? (
         <div
           aria-hidden
-          className='bg-border absolute top-10 bottom-0 left-[15px] w-px md:left-[17px]'
+          className='bg-border absolute top-11 bottom-0 left-4.25 w-px'
         />
       ) : null}
-      <div className='relative z-[1] flex shrink-0 flex-col items-center'>
-        <span className='border-border bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-full border text-xs font-bold shadow-xs'>
+      <div className='relative z-1 flex shrink-0 flex-col items-center'>
+        <span className='border-border bg-primary text-primary-foreground flex size-9 items-center justify-center rounded-full border text-xs font-semibold shadow-xs'>
           {index}
         </span>
       </div>
-      <div className='min-w-0 flex-1'>
-        <div className='mb-2'>
+      <div className='min-w-0 flex-1 space-y-3'>
+        <div>
           <h3 className='text-foreground text-sm font-semibold'>{title}</h3>
           {subtitle?.trim() ? (
-            <p className='text-muted-foreground mt-0.5 text-[13px] font-medium'>
+            <p className='text-muted-foreground mt-1 text-xs leading-snug font-medium'>
               {subtitle}
             </p>
           ) : null}
         </div>
-        <div>{children}</div>
+        <div
+          className={cn(
+            'border-border bg-muted/20 rounded-md border p-3.5 sm:p-4',
+            contentClassName,
+          )}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -226,6 +309,10 @@ export type EnrollmentRequestDetailViewProps = {
 export default function EnrollmentRequestDetailView({
   requestId,
 }: EnrollmentRequestDetailViewProps) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [showStartIntakeConfirmation, setShowStartIntakeConfirmation] =
+    useState(false);
   const { data, isPending, isError, error } = useQuery({
     queryKey: ['enrollment-request', requestId],
     queryFn: async () => {
@@ -234,6 +321,46 @@ export default function EnrollmentRequestDetailView({
         throw new Error(res.message || 'Could not load enrollment request.');
       }
       return res.data;
+    },
+  });
+  const { mutate: startIntake, isPending: isStartingIntake } = useMutation({
+    mutationFn: async () => {
+      const templateResponse = await getOnboardingTemplateByVersion(1);
+      if (templateResponse.status === 'error') {
+        throw new Error(templateResponse.message || 'Could not load template.');
+      }
+
+      const createResponse = await createOnboardingIntake({
+        enrollment_request_id: requestId,
+        onboarding_template_id: templateResponse.data.id,
+      });
+
+      if (createResponse.status === 'error') {
+        throw new Error(createResponse.message || 'Could not create intake.');
+      }
+
+      return createResponse.data.id;
+    },
+    onSuccess: async (intakeId) => {
+      setShowStartIntakeConfirmation(false);
+      toast.success('The intake assessment has been created successfully.');
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ['enrollment-request', requestId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.ENROLLMENT_REQUESTS.LIST],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST],
+        }),
+      ]);
+      router.push(
+        ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.INTERVIEW(String(intakeId)),
+      );
+    },
+    onError: (mutationError) => {
+      toast.error(mutationError.message ?? 'Could not create intake assessment.');
     },
   });
 
@@ -249,564 +376,350 @@ export default function EnrollmentRequestDetailView({
     );
   }
 
-  const statusStyle = STATUS_STYLES[data.status];
-  const StatusIcon = statusStyle.icon;
   const enrollmentsList = getEnrollmentSummariesFromRequest(data);
   const primaryEnrollment = pickPrimaryEnrollment(enrollmentsList);
 
-  const receivedAt = formatDateCell(data.timestamps?.created_at);
   const requestCompletedAt = formatDateCell(data.completed_at);
-  const requestCancelledAt = formatDateCell(data.cancelled_at);
-  const updatedAt = formatDateCell(data.timestamps?.updated_at);
   const contactedAt = formatDateCell(data.contacted_at);
   const clientPic = resolveClientPictureUrl(data.client?.picture_url);
-  const handlerPic = data.handler
-    ? resolveClientPictureUrl(data.handler.picture_url)
-    : undefined;
   const programLabel = getProgramLabel(data);
   const programCode = getProgramCode(data);
-
-  const showCancellationBanner =
-    data.status === 'cancelled' ||
-    Boolean(data.cancelled_at?.trim());
 
   const secondaryEnrollments = primaryEnrollment
     ? enrollmentsList.filter((e) => e.id !== primaryEnrollment.id)
     : [];
+  const canStartIntake =
+    Boolean(data.client?.id) &&
+    !data.onboarding_intake &&
+    (data.status === 'pending' || data.status === 'contacted');
 
   return (
-    <div className='space-y-6'>
-      <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-6'>
-        <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
-          <div className='min-w-0 space-y-1'>
-            <p className='text-muted-foreground text-[11px] font-bold tracking-wide uppercase'>
-              Enrollment request
-            </p>
-            <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3'>
-              <h2 className='text-foreground text-lg font-bold tracking-tight'>
-                {getRequestReference(data)}
-              </h2>
-              <span
-                className={`inline-flex w-fit items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
-              >
-                <StatusIcon className='size-3.5 shrink-0' />
-                {STATUS_LABEL[data.status]}
-              </span>
-            </div>
-            <p className='text-muted-foreground mt-2 max-w-2xl text-[13px] leading-relaxed font-medium'>
-              Request status and capture fields. Dates follow the lifecycle of
-              this submission.
-            </p>
-          </div>
-        </div>
-
-        {showCancellationBanner ? (
-          <div
-            role='alert'
-            className='border-rose-200 bg-rose-50 text-rose-900 mt-6 rounded-md border px-4 py-3 text-[13px] leading-relaxed font-medium dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-50'
-          >
-            <span className='block text-xs font-bold tracking-wide uppercase'>
-              Cancellation
-            </span>
-            {data.cancellation_note?.trim() ? (
-              <span className='mt-1 block whitespace-pre-wrap'>
-                {data.cancellation_note.trim()}
-              </span>
-            ) : (
-              <span className='text-rose-800/90 dark:text-rose-100/90 mt-1 block'>
-                No cancellation note was recorded for this request.
-              </span>
-            )}
-          </div>
-        ) : null}
-
-        <dl className='mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2'>
-          <div>
-            <dt className='text-muted-foreground text-xs font-semibold'>
-              Phone on request
-            </dt>
-            <dd className='text-foreground mt-0.5 text-[13px] font-medium tabular-nums'>
-              {data.phone?.trim() ? (
-                data.phone.trim()
-              ) : (
-                <TableCellEmpty label='Not provided' />
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt className='text-muted-foreground text-xs font-semibold'>
-              Received
-            </dt>
-            <dd className='text-foreground mt-0.5 text-[13px] font-medium tabular-nums'>
-              {receivedAt ?? <TableCellEmpty label='—' />}
-            </dd>
-          </div>
-          <div>
-            <dt className='text-muted-foreground text-xs font-semibold'>
-              First contacted
-            </dt>
-            <dd className='text-foreground mt-0.5 text-[13px] font-medium tabular-nums'>
-              {contactedAt ?? <TableCellEmpty label='Not yet' />}
-            </dd>
-          </div>
-          <div>
-            <dt className='text-muted-foreground text-xs font-semibold'>
-              Request completed
-            </dt>
-            <dd className='text-foreground mt-0.5 text-[13px] font-medium tabular-nums'>
-              {requestCompletedAt ?? <TableCellEmpty label='—' />}
-            </dd>
-          </div>
-          <div>
-            <dt className='text-muted-foreground text-xs font-semibold'>
-              Request cancelled
-            </dt>
-            <dd className='text-foreground mt-0.5 text-[13px] font-medium tabular-nums'>
-              {requestCancelledAt ?? <TableCellEmpty label='—' />}
-            </dd>
-          </div>
-          <div>
-            <dt className='text-muted-foreground text-xs font-semibold'>
-              Last updated
-            </dt>
-            <dd className='text-foreground mt-0.5 text-[13px] font-medium tabular-nums'>
-              {updatedAt ?? <TableCellEmpty label='—' />}
-            </dd>
-          </div>
-        </dl>
-
-        {data.notes?.trim() ? (
-          <div className='border-border mt-6 border-t pt-6'>
-            <dt className='text-muted-foreground text-xs font-semibold'>
-              Notes
-            </dt>
-            <dd className='text-foreground mt-1 text-[13px] font-medium whitespace-pre-wrap'>
-              {data.notes.trim()}
-            </dd>
-          </div>
-        ) : null}
-      </section>
-
-      <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
-        <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-6'>
-          <h2 className='text-foreground text-sm font-semibold'>Client</h2>
-          <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
-            Applicant linked to this request — compare phones when reaching
-            out.
+    <div className='grid gap-3 lg:grid-cols-3 lg:gap-4'>
+      <section className={`${CARD_SURFACE} space-y-5 lg:col-span-2`}>
+        <header className='border-border border-b pb-5'>
+          <h3 className='text-foreground text-sm font-semibold'>
+            Enrollment Pipeline
+          </h3>
+          <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
+            End-to-end enrollment workflow for this applicant. Use each step to
+            review intake, contract, and enrollment progress.
           </p>
-          {data.client ? (
-            <div className='mt-5 flex items-start gap-4'>
-              <Avatar size='lg' className='size-14 shrink-0'>
-                {clientPic ? <AvatarImage src={clientPic} alt='' /> : null}
-                <AvatarFallback className='text-sm'>
-                  {getInitials(data.client.name ?? '', 2) || '?'}
-                </AvatarFallback>
-              </Avatar>
-              <dl className='min-w-0 flex-1 space-y-3'>
-                <div>
-                  <dt className='text-muted-foreground text-xs font-semibold'>
-                    Client code
-                  </dt>
-                  <dd className='text-foreground text-[13px] font-semibold tabular-nums'>
-                    {data.client.client_code?.trim() || (
-                      <TableCellEmpty label='Not assigned' />
-                    )}
-                  </dd>
-                </div>
-                <div>
-                  <dt className='text-muted-foreground text-xs font-semibold'>
-                    Name
-                  </dt>
-                  <dd className='text-foreground text-[13px] font-semibold'>
-                    {data.client.name?.trim() || (
-                      <TableCellEmpty label='—' />
-                    )}
-                  </dd>
-                </div>
-                <div>
-                  <dt className='text-muted-foreground text-xs font-semibold'>
-                    Email
-                  </dt>
-                  <dd className='text-foreground text-[13px] font-medium wrap-break-word'>
-                    {data.client.email?.trim() || (
-                      <TableCellEmpty label='—' />
-                    )}
-                  </dd>
-                </div>
-                <div>
-                  <dt className='text-muted-foreground text-xs font-semibold'>
-                    Profile contact phone
-                  </dt>
-                  <dd className='text-foreground text-[13px] font-medium tabular-nums'>
-                    {data.client.contact_phone?.trim() ? (
-                      data.client.contact_phone.trim()
-                    ) : (
-                      <TableCellEmpty label='Not on profile' />
-                    )}
-                  </dd>
-                </div>
-                <div>
-                  <dt className='text-muted-foreground text-xs font-semibold'>
-                    Phone on request
-                  </dt>
-                  <dd className='text-muted-foreground/90 text-[13px] font-medium tabular-nums'>
-                    {data.phone?.trim() ? (
-                      data.phone.trim()
-                    ) : (
-                      <TableCellEmpty label='Same as intake form' />
-                    )}
-                  </dd>
-                </div>
-                <div className='flex flex-wrap gap-2 pt-1'>
-                  {data.client.id != null ? (
-                    <Button
-                      variant='outline'
-                      size='sm'
-                      className='h-9 gap-1.5'
-                      asChild
-                    >
-                      <Link
-                        href={ROUTES.ADMIN.MODULES.CLIENT_PROFILES.DETAIL(
-                          String(data.client.id),
-                        )}
-                      >
-                        <UserRoundIcon className='size-3.5' />
-                        Open client profile
-                        <ChevronRightIcon className='size-3.5 opacity-70' />
-                      </Link>
-                    </Button>
-                  ) : null}
-                </div>
-              </dl>
-            </div>
-          ) : (
-            <p className='text-muted-foreground mt-4 text-sm'>
-              No client linked to this request.
-            </p>
-          )}
-        </section>
+        </header>
 
-        <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-6'>
-          <h2 className='text-foreground text-sm font-semibold'>Program</h2>
-          <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
-            Program chosen when this enrollment request was submitted.
-          </p>
-          {data.program ? (
-            <div className='mt-5 flex flex-col gap-4 sm:flex-row sm:items-start'>
-              <ProgramThumbnail thumbnailUrl={data.program.thumbnail_url} />
-              <div className='min-w-0 flex-1 space-y-3'>
-                <div>
-                  <p className='text-foreground text-[13px] font-semibold'>
-                    {programLabel !== '—' ? (
-                      programLabel
-                    ) : (
-                      <TableCellEmpty label='No title' />
-                    )}
-                  </p>
-                  <p className='text-muted-foreground mt-0.5 text-xs font-medium'>
-                    {programCode !== '—' ? programCode : '—'}
-                  </p>
-                </div>
-                {data.program.id != null ? (
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    className='h-9 gap-1.5'
-                    asChild
-                  >
-                    <Link
-                      href={ROUTES.ADMIN.MODULES.PROGRAMS.DETAIL(
-                        String(data.program.id),
-                      )}
-                    >
-                      View program
-                      <ChevronRightIcon className='size-3.5 opacity-70' />
-                    </Link>
-                  </Button>
-                ) : null}
-              </div>
-            </div>
-          ) : (
-            <p className='text-muted-foreground mt-4 text-sm'>
-              No program linked to this request.
-            </p>
-          )}
-        </section>
-      </div>
-
-      <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-6'>
-        <h2 className='text-foreground text-sm font-semibold'>
-          Enrollment pipeline
-        </h2>
-        <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
-          High-level lifecycle for this applicant. Detailed answers and legal
-          copy stay on intake and contract screens — use these links when you
-          need the full records.
-        </p>
-
-        <div className='mt-8'>
+        <div className='min-w-0 pt-5'>
           <PipelineStepShell
             index={1}
-            title='Enrollment request'
-            subtitle='Submission and outreach milestones'
+            title='Enrollment Request'
+            subtitle='Traceable enrollment request checkpoints for operations, outreach, and audit follow-up'
           >
-            <dl className='grid gap-3 sm:grid-cols-2'>
-              <div>
-                <dt className='text-muted-foreground text-xs font-semibold'>
-                  Workflow status
-                </dt>
-                <dd className='text-foreground mt-0.5 text-[13px] font-semibold'>
-                  {STATUS_LABEL[data.status]}
-                </dd>
+            <div className='space-y-3'>
+              <div className='grid gap-1.5 md:grid-cols-3'>
+                <EnrollmentOverviewMetricTile
+                  label='Request reference'
+                  value={data.code?.trim() ? data.code.trim() : `#${data.id}`}
+                />
+                <EnrollmentOverviewMetricTile
+                  label='Workflow status'
+                  value={STATUS_LABEL[data.status]}
+                  tabularNums={false}
+                />
+                <EnrollmentOverviewMetricTile
+                  label='Request submitted'
+                  value={
+                    formatDateCell(data.timestamps?.created_at) ??
+                    OVERVIEW_EMPTY_DASH
+                  }
+                />
+                <EnrollmentOverviewMetricTile
+                  label='First contacted'
+                  value={contactedAt ?? OVERVIEW_EMPTY_DASH}
+                />
+                <EnrollmentOverviewMetricTile
+                  label='Completed at'
+                  value={requestCompletedAt ?? OVERVIEW_EMPTY_DASH}
+                />
+                <EnrollmentOverviewMetricTile
+                  label='Phone on request'
+                  value={
+                    data.phone?.trim() ? data.phone.trim() : OVERVIEW_EMPTY_DASH
+                  }
+                />
               </div>
-              <div>
-                <dt className='text-muted-foreground text-xs font-semibold'>
-                  First contacted
-                </dt>
-                <dd className='text-foreground mt-0.5 text-[13px] font-medium tabular-nums'>
-                  {contactedAt ?? <TableCellEmpty label='Not yet' />}
-                </dd>
-              </div>
-              <div>
-                <dt className='text-muted-foreground text-xs font-semibold'>
-                  Completed at
-                </dt>
-                <dd className='text-foreground mt-0.5 text-[13px] font-medium tabular-nums'>
-                  {requestCompletedAt ?? <TableCellEmpty label='—' />}
-                </dd>
-              </div>
-              <div>
-                <dt className='text-muted-foreground text-xs font-semibold'>
-                  Cancelled at
-                </dt>
-                <dd className='text-foreground mt-0.5 text-[13px] font-medium tabular-nums'>
-                  {requestCancelledAt ?? <TableCellEmpty label='—' />}
-                </dd>
-              </div>
-            </dl>
+              {data.status === 'cancelled' || data.cancelled_at?.trim() ? (
+                <PipelineStateNote
+                  title='Request cancellation'
+                  metaValue={formatDateCell(data.cancelled_at) ?? '—'}
+                  tone='danger'
+                >
+                  <p className='whitespace-pre-wrap'>
+                    {data.cancellation_note?.trim() ||
+                      'No cancellation note was recorded for this request.'}
+                  </p>
+                </PipelineStateNote>
+              ) : null}
+              {canStartIntake ? (
+                <div className='border-border flex justify-end border-t pt-4'>
+                  <Button
+                    className={ADMIN_PRIMARY_BUTTON_CLASS}
+                    onClick={() => setShowStartIntakeConfirmation(true)}
+                  >
+                    <ClipboardListIcon className='size-3.5' />
+                    Start Intake Interview
+                  </Button>
+                </div>
+              ) : null}
+            </div>
           </PipelineStepShell>
 
           <PipelineStepShell
             index={2}
-            title='Onboarding intake'
+            title='Intake Assessment'
+            contentClassName={
+              data.onboarding_intake ? undefined : 'border-dashed bg-muted/10'
+            }
             subtitle={
               data.onboarding_intake
-                ? `${data.onboarding_intake.code?.trim() || `#${data.onboarding_intake.id}`}`
-                : 'Not started for this applicant'
+                ? 'Traceable intake checkpoints for readiness and workflow progression'
+                : 'No intake assessment has started for this applicant yet'
             }
           >
             {data.onboarding_intake?.id != null ? (
               <div className='space-y-3'>
-                <div className='flex flex-wrap items-center gap-2'>
-                  <span className='text-foreground inline-flex rounded-md border border-neutral-300 bg-neutral-50 px-2 py-0.5 text-xs font-semibold dark:border-neutral-700 dark:bg-neutral-900'>
-                    {formatPipelineLabel(data.onboarding_intake.status)}
-                  </span>
+                <div className='grid gap-1.5 md:grid-cols-3'>
+                  <EnrollmentOverviewMetricTile
+                    label='Intake reference'
+                    value={
+                      data.onboarding_intake.code?.trim()
+                        ? data.onboarding_intake.code.trim()
+                        : `#${data.onboarding_intake.id}`
+                    }
+                  />
+                  <EnrollmentOverviewMetricTile
+                    label='Intake status'
+                    value={formatPipelineLabel(data.onboarding_intake.status)}
+                    tabularNums={false}
+                  />
+                  <EnrollmentOverviewMetricTile
+                    label='Intake completed'
+                    value={
+                      formatDateCell(data.onboarding_intake.completed_at) ??
+                      OVERVIEW_EMPTY_DASH
+                    }
+                  />
                 </div>
-                <dl className='grid gap-3 sm:grid-cols-2'>
-                  <div>
-                    <dt className='text-muted-foreground text-xs font-semibold'>
-                      Intake completed
-                    </dt>
-                    <dd className='text-foreground mt-0.5 text-[13px] font-medium'>
-                      {formatDateCell(data.onboarding_intake.completed_at) ?? (
-                        <TableCellEmpty label='—' />
-                      )}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className='text-muted-foreground text-xs font-semibold'>
-                      Intake cancelled
-                    </dt>
-                    <dd className='text-foreground mt-0.5 text-[13px] font-medium'>
-                      {formatDateCell(data.onboarding_intake.cancelled_at) ?? (
-                        <TableCellEmpty label='—' />
-                      )}
-                    </dd>
-                  </div>
-                </dl>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  className='h-9 gap-1.5'
-                  asChild
-                >
-                  <Link
-                    href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(
-                      String(data.onboarding_intake.id),
-                    )}
+                {data.onboarding_intake.status === 'cancelled' ||
+                data.onboarding_intake.cancelled_at?.trim() ? (
+                  <PipelineStateNote
+                    title='Intake cancellation'
+                    metaValue={
+                      formatDateCell(data.onboarding_intake.cancelled_at) ?? '—'
+                    }
+                    tone='danger'
                   >
-                    <FileTextIcon className='size-3.5' />
-                    Open intake assessment
-                    <ChevronRightIcon className='size-3.5 opacity-70' />
-                  </Link>
-                </Button>
+                    <p>
+                      No cancellation note was provided on this intake record.
+                    </p>
+                  </PipelineStateNote>
+                ) : null}
+                <div className='border-border flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-end'>
+                  {data.onboarding_intake.status === 'draft' ||
+                  data.onboarding_intake.status === 'in_progress' ? (
+                    <Button className={ADMIN_PRIMARY_BUTTON_CLASS} asChild>
+                      <Link
+                        href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.INTERVIEW(
+                          String(data.onboarding_intake.id),
+                        )}
+                      >
+                        <PenSquareIcon className='size-3.5' />
+                        Continue Interview
+                        <ChevronRightIcon className='size-3.5 opacity-70' />
+                      </Link>
+                    </Button>
+                  ) : null}
+                  <Button
+                    variant='outline'
+                    className={ADMIN_OUTLINE_BUTTON_CLASS}
+                    asChild
+                  >
+                    <Link
+                      href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(
+                        String(data.onboarding_intake.id),
+                      )}
+                    >
+                      <FileTextIcon className='size-3.5' />
+                      Open Intake
+                      <ChevronRightIcon className='size-3.5 opacity-70' />
+                    </Link>
+                  </Button>
+                </div>
               </div>
             ) : (
-              <p className='text-muted-foreground text-[13px] font-medium'>
-                No onboarding intake linked yet. When eligible, staff can begin
-                intake from the enrollment requests list.
-              </p>
+              <PipelineEmptyState
+                description='Start or assign an intake from Enrollment Requests when this applicant becomes eligible.'
+              />
             )}
           </PipelineStepShell>
 
           <PipelineStepShell
             index={3}
-            title='Enrollment contract'
+            title='Contract & E-signature'
+            contentClassName={data.contract ? undefined : 'border-dashed bg-muted/10'}
             subtitle={
               data.contract
-                ? data.contract.code
-                : 'No contract on file for this pipeline'
+                ? 'Traceable contract and e-signature checkpoints for approval and legal audit'
+                : 'No contract has been created for this pipeline yet'
             }
           >
             {data.contract?.id != null ? (
               <div className='space-y-3'>
-                <dl className='grid gap-3 sm:grid-cols-2'>
-                  <div>
-                    <dt className='text-muted-foreground text-xs font-semibold'>
-                      Contract status
-                    </dt>
-                    <dd className='text-foreground mt-0.5 text-[13px] font-semibold'>
-                      {formatPipelineLabel(data.contract.status)}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className='text-muted-foreground text-xs font-semibold'>
-                      Sent / signed
-                    </dt>
-                    <dd className='text-muted-foreground text-[13px] font-medium'>
-                      <span className='text-foreground'>
-                        {formatDateCell(data.contract.sent_at) ?? '—'}{' '}
-                      </span>
-                      <span className='opacity-70'>/</span>{' '}
-                      <span className='text-foreground'>
-                        {formatDateCell(data.contract.signed_at) ?? '—'}
-                      </span>
-                    </dd>
-                  </div>
-                </dl>
+                <div className='grid gap-1.5 md:grid-cols-2'>
+                  <EnrollmentOverviewMetricTile
+                    label='Contract reference'
+                    value={
+                      data.contract.code?.trim()
+                        ? data.contract.code.trim()
+                        : `#${data.contract.id}`
+                    }
+                  />
+                  <EnrollmentOverviewMetricTile
+                    label='Contract status'
+                    value={formatPipelineLabel(data.contract.status)}
+                    tabularNums={false}
+                  />
+                  <EnrollmentOverviewMetricTile
+                    label='Sent at'
+                    value={
+                      formatDateCell(data.contract.sent_at) ??
+                      OVERVIEW_EMPTY_DASH
+                    }
+                  />
+                  <EnrollmentOverviewMetricTile
+                    label='Signed at'
+                    value={
+                      formatDateCell(data.contract.signed_at) ??
+                      OVERVIEW_EMPTY_DASH
+                    }
+                  />
+                </div>
                 {data.contract.voided_at?.trim() ||
                 data.contract.void_reason?.trim() ? (
-                  <div
-                    role='status'
-                    className='border-amber-200 bg-amber-50 text-amber-950 rounded-md border px-4 py-3 text-[13px] font-medium dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-100'
+                  <PipelineStateNote
+                    title='Contract voided'
+                    metaValue={formatDateCell(data.contract.voided_at) ?? '—'}
                   >
-                    <span className='block text-xs font-bold tracking-wide uppercase'>
-                      Voided contract
-                    </span>
-                    {data.contract.voided_at?.trim() ? (
-                      <p className='mt-1 tabular-nums'>
-                        Voided{' '}
-                        {formatDateCell(data.contract.voided_at) ?? '—'}
-                      </p>
-                    ) : null}
                     {data.contract.void_reason?.trim() ? (
-                      <p className='mt-1 whitespace-pre-wrap'>
+                      <p className='whitespace-pre-wrap'>
                         {data.contract.void_reason.trim()}
                       </p>
-                    ) : null}
-                  </div>
-                ) : null}
-                <Button
-                  variant='outline'
-                  size='sm'
-                  className='h-9 gap-1.5'
-                  asChild
-                >
-                  <Link
-                    href={ROUTES.ADMIN.MODULES.ENROLLMENT_CONTRACTS.DETAIL(
-                      String(data.contract.id),
+                    ) : (
+                      <p>No void reason was provided on this contract.</p>
                     )}
+                  </PipelineStateNote>
+                ) : null}
+                <div className='border-border flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-end'>
+                  <Button
+                    variant='outline'
+                    className={ADMIN_OUTLINE_BUTTON_CLASS}
+                    asChild
                   >
-                    <ClipboardSignatureIcon className='size-3.5' />
-                    Open contract record
-                    <ChevronRightIcon className='size-3.5 opacity-70' />
-                  </Link>
-                </Button>
+                    <Link
+                      href={ROUTES.ADMIN.MODULES.ENROLLMENT_CONTRACTS.DETAIL(
+                        String(data.contract.id),
+                      )}
+                    >
+                      <FileTextIcon className='size-3.5' />
+                      Open Contract
+                      <ChevronRightIcon className='size-3.5 opacity-70' />
+                    </Link>
+                  </Button>
+                </div>
               </div>
             ) : (
-              <p className='text-muted-foreground text-[13px] font-medium'>
-                There is no contract linked from this enrollment request yet.
-              </p>
+              <PipelineEmptyState
+                description='Generate and send the contract after intake is ready to move this applicant forward.'
+              />
             )}
           </PipelineStepShell>
 
           <PipelineStepShell
             index={4}
-            title='Enrollment'
+            title='Enrollment Record'
+            contentClassName={primaryEnrollment ? undefined : 'border-dashed bg-muted/10'}
             subtitle={
               enrollmentsList.length > 0
-                ? `${enrollmentsList.length} enrollment${enrollmentsList.length === 1 ? '' : 's'} — primary row follows business rules`
-                : 'No enrollment created from this pathway yet'
+                ? 'Traceable enrollment checkpoints for activation, schedule, and completion monitoring'
+                : 'No enrollment record has been created from this pathway yet'
             }
             isLast
           >
             {primaryEnrollment ? (
               <div className='space-y-4'>
-                <div className='border-border bg-muted/30 rounded-md border p-4'>
-                  <div className='flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between'>
-                    <div>
-                      <p className='text-muted-foreground text-xs font-semibold'>
-                        Focus enrollment
-                      </p>
-                      <p className='text-foreground text-[13px] font-bold'>
+                <div className='grid gap-1.5 md:grid-cols-2'>
+                  <EnrollmentOverviewMetricTile
+                    label='Enrollment reference'
+                    value={
+                      <span className='tabular-nums'>
                         {primaryEnrollment.code}
-                      </p>
-                      <p className='text-muted-foreground mt-1 text-xs font-medium'>
-                        Status:{' '}
-                        <span className='text-foreground font-semibold'>
-                          {formatPipelineLabel(primaryEnrollment.status)}
-                        </span>
-                      </p>
-                    </div>
-                    <Button
-                      variant='default'
-                      size='sm'
-                      className='h-9 shrink-0 gap-1.5 text-[13px]! font-semibold'
-                      asChild
-                    >
-                      <Link
-                        href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(
-                          String(primaryEnrollment.id),
-                        )}
-                      >
-                        Open enrollment
-                        <ChevronRightIcon className='size-3.5' />
-                      </Link>
-                    </Button>
-                  </div>
-                  <dl className='border-border mt-4 grid gap-3 border-t pt-4 sm:grid-cols-2'>
-                    <div>
-                      <dt className='text-muted-foreground text-xs font-semibold'>
-                        Plan dates
-                      </dt>
-                      <dd className='text-foreground mt-0.5 text-[13px] font-medium tabular-nums'>
+                      </span>
+                    }
+                  />
+                  <EnrollmentOverviewMetricTile
+                    label='Enrollment status'
+                    value={formatPipelineLabel(primaryEnrollment.status)}
+                    tabularNums={false}
+                  />
+                  <EnrollmentOverviewMetricTile
+                    label='Plan window'
+                    value={
+                      <span className='tabular-nums'>
                         {formatDateOnly(primaryEnrollment.starts_at) ?? '—'}{' '}
-                        <span className='text-muted-foreground'>→</span>{' '}
+                        <span className='text-muted-foreground font-medium'>
+                          →
+                        </span>{' '}
                         {formatDateOnly(primaryEnrollment.ends_at) ?? '—'}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className='text-muted-foreground text-xs font-semibold'>
-                        Completed / cancelled
-                      </dt>
-                      <dd className='text-muted-foreground text-[13px] font-medium'>
-                        <span className='text-foreground'>
-                          {formatDateCell(primaryEnrollment.completed_at) ?? '—'}
-                        </span>
-                        {' / '}
-                        <span className='text-foreground'>
-                          {formatDateCell(primaryEnrollment.cancelled_at) ?? '—'}
-                        </span>
-                      </dd>
-                    </div>
-                  </dl>
+                      </span>
+                    }
+                    tabularNums={false}
+                  />
+                  <EnrollmentOverviewMetricTile
+                    label='Completed at'
+                    value={
+                      formatDateCell(primaryEnrollment.completed_at) ??
+                      OVERVIEW_EMPTY_DASH
+                    }
+                  />
+                </div>
+                {primaryEnrollment.cancelled_at?.trim() ? (
+                  <PipelineStateNote
+                    title='Enrollment cancellation'
+                    metaValue={
+                      formatDateCell(primaryEnrollment.cancelled_at) ?? '—'
+                    }
+                    tone='danger'
+                  >
+                    <p>
+                      No cancellation note is available on enrollment summary
+                      rows.
+                    </p>
+                  </PipelineStateNote>
+                ) : null}
+                <div className='border-border flex justify-end border-t pt-4'>
+                  <Button className={ADMIN_PRIMARY_BUTTON_CLASS} asChild>
+                    <Link
+                      href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(
+                        String(primaryEnrollment.id),
+                      )}
+                    >
+                      <FileTextIcon className='size-3.5' />
+                      Open Enrollment
+                      <ChevronRightIcon className='size-3.5' />
+                    </Link>
+                  </Button>
                 </div>
                 {secondaryEnrollments.length > 0 ? (
-                  <div>
-                    <p className='text-muted-foreground text-xs font-semibold'>
-                      Additional enrollments
-                    </p>
-                    <ul className='border-border divide-border mt-2 divide-y overflow-hidden rounded-md border'>
+                  <div className='space-y-2'>
+                    <p className={DETAIL_LABEL}>Additional enrollments</p>
+                    <ul className='border-border divide-border divide-y overflow-hidden rounded-md border'>
                       {secondaryEnrollments.map(
                         (row: EnrollmentRequestEnrollmentSummary) => (
                           <li
@@ -814,17 +727,16 @@ export default function EnrollmentRequestDetailView({
                             className='hover:bg-muted/40 flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between'
                           >
                             <div>
-                              <p className='text-foreground text-[13px] font-semibold'>
+                              <p className='text-foreground/90 text-[13px] font-semibold'>
                                 {row.code}
                               </p>
-                              <p className='text-muted-foreground text-xs font-medium'>
+                              <p className='text-muted-foreground text-xs leading-snug font-medium'>
                                 {formatPipelineLabel(row.status)}
                               </p>
                             </div>
                             <Button
                               variant='outline'
-                              size='sm'
-                              className='h-8 shrink-0'
+                              className={`${ADMIN_OUTLINE_BUTTON_CLASS} w-full sm:w-auto`}
                               asChild
                             >
                               <Link
@@ -843,99 +755,99 @@ export default function EnrollmentRequestDetailView({
                 ) : null}
               </div>
             ) : (
-              <p className='text-muted-foreground text-[13px] font-medium'>
-                {data.onboarding_intake
-                  ? 'Intake exists, but no enrollment rows are available yet.'
-                  : 'Enrollment rows appear after onboarding intake progresses in this pipeline.'}
-              </p>
+              <PipelineEmptyState
+                description={
+                  data.onboarding_intake
+                    ? 'Intake exists, but no enrollment row has been created yet. Create enrollment when onboarding is approved.'
+                    : 'Enrollment appears after intake and contract milestones are completed.'
+                }
+              />
             )}
           </PipelineStepShell>
         </div>
       </section>
 
-      <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
-        <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-6'>
-          <h2 className='text-foreground text-sm font-semibold'>Assignment</h2>
-          <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
-            Last staff handler on this enrollment request record.
-          </p>
-          {data.handler ? (
-            <div className='mt-5 flex items-start gap-4'>
-              <Avatar size='default' className='mt-0.5 shrink-0'>
-                {handlerPic ? <AvatarImage src={handlerPic} alt='' /> : null}
-                <AvatarFallback className='text-xs'>
-                  {getInitials(data.handler.name ?? '', 2) || '?'}
-                </AvatarFallback>
-              </Avatar>
-              <div className='min-w-0 flex-1 space-y-1'>
-                <p className='text-foreground text-[13px] font-semibold'>
-                  {data.handler.name}
-                </p>
-                <p className='text-muted-foreground text-xs font-medium wrap-break-word'>
-                  {data.handler.email}
-                </p>
-                {data.handler.role?.trim() ? (
-                  <p className='text-muted-foreground text-xs font-medium'>
-                    {formatRoleLabel(data.handler.role)}
+      <div className='flex min-h-0 min-w-0 flex-col gap-3 lg:gap-4'>
+        <section className={`${CARD_SURFACE} flex min-h-0 flex-col`}>
+          <header className='border-border shrink-0 border-b pb-4'>
+            <h3 className='text-foreground text-sm font-semibold'>
+              Applicant Account
+            </h3>
+            <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
+              Person linked to this enrollment request. Confirm identity here
+              before reviewing pipeline progress.
+            </p>
+          </header>
+          {data.client ? (
+            <div className='flex min-h-0 flex-1 flex-col gap-4 pt-5'>
+              <div className='flex min-w-0 items-start gap-3'>
+                <Avatar size='lg' className='mt-0.5 shrink-0'>
+                  {clientPic ? <AvatarImage src={clientPic} alt='' /> : null}
+                  <AvatarFallback className='text-xs'>
+                    {getInitials(data.client.name ?? '', 2) || '?'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className='min-w-0 flex-1 space-y-1'>
+                  <p className='text-foreground/90 text-[13px] font-semibold'>
+                    {data.client.name?.trim() || (
+                      <TableCellEmpty label='No name on file' />
+                    )}
                   </p>
-                ) : null}
+                  <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
+                    {data.client.email?.trim() || 'No email on file'}
+                  </p>
+                </div>
               </div>
             </div>
           ) : (
-            <p className='text-muted-foreground mt-4 text-sm'>
-              No handler assigned yet.
+            <p className='text-muted-foreground pt-5 text-sm'>
+              No applicant account linked to this request.
             </p>
           )}
         </section>
 
-        <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-6'>
-          <h2 className='text-foreground text-sm font-semibold'>Audit cues</h2>
-          <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
-            Compact ISO-derived milestones for audits (full detail stays on each
-            module screen).
-          </p>
-          <ul className='text-muted-foreground mt-4 space-y-2 text-[12.5px] font-medium'>
-            <li>
-              Request updated:&nbsp;
-              <span className='text-foreground'>
-                {formatDateCell(data.timestamps.updated_at) ?? '—'}
-              </span>
-            </li>
-            <li>
-              Intake milestones:&nbsp;
-              <span className='text-foreground'>
-                {data.onboarding_intake
-                  ? [
-                      formatDateCell(data.onboarding_intake.completed_at),
-                      formatDateCell(data.onboarding_intake.cancelled_at),
-                    ]
-                      .filter(Boolean)
-                      .join(' · ') || '—'
-                  : '—'}
-              </span>
-            </li>
-            <li>
-              Contract signed:&nbsp;
-              <span className='text-foreground'>
-                {formatDateCell(data.contract?.signed_at) ?? '—'}
-              </span>
-            </li>
-            <li>
-              Primary enrollment:&nbsp;
-              <span className='text-foreground'>
-                {primaryEnrollment
-                  ? [
-                      formatDateCell(primaryEnrollment.completed_at),
-                      formatDateCell(primaryEnrollment.cancelled_at),
-                    ]
-                      .filter(Boolean)
-                      .join(' · ') || primaryEnrollment.code
-                  : '—'}
-              </span>
-            </li>
-          </ul>
+        <section className={`${CARD_SURFACE} flex min-h-0 flex-col`}>
+          <header className='border-border shrink-0 border-b pb-4'>
+            <h3 className='text-foreground text-sm font-semibold'>
+              Requested Program
+            </h3>
+            <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
+              Program selected at the time of application. Use this as the
+              reference for intake, contract, and enrollment.
+            </p>
+          </header>
+          {data.program ? (
+            <div className='flex min-h-0 flex-1 flex-col gap-4 pt-5'>
+              <div className='flex items-start gap-3'>
+                <ProgramThumbnail thumbnailUrl={data.program.thumbnail_url} />
+                <div className='min-w-0 flex-1 space-y-1'>
+                  <p className='text-foreground/90 text-[13px] font-semibold'>
+                    {programLabel !== '—' ? (
+                      programLabel
+                    ) : (
+                      <TableCellEmpty label='No title' />
+                    )}
+                  </p>
+                  <p className='text-muted-foreground text-xs leading-snug font-medium'>
+                    {programCode !== '—' ? programCode : 'No program code'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className='text-muted-foreground pt-5 text-sm'>
+              No program linked to this request.
+            </p>
+          )}
         </section>
       </div>
+      <EnrollmentIntakeConfirmation
+        open={showStartIntakeConfirmation}
+        isSubmitting={isStartingIntake}
+        requestReference={data.code?.trim() || `#${data.id}`}
+        onOpenChange={setShowStartIntakeConfirmation}
+        onConfirm={() => startIntake()}
+      />
     </div>
   );
 }

@@ -44,8 +44,9 @@ export type EnrollmentRequestResource = {
     name?: string | null;
     email?: string | null;
     picture_url?: string | null;
-    /** Profile contact phone — may differ from `phone` on the request */
+    /** From client profile — may differ from top-level enrollment request fields */
     contact_phone?: string | null;
+    contact_email?: string | null;
   };
   program?: {
     id: number;
