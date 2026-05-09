@@ -2,10 +2,11 @@
 
 import {
   ClipboardCopyIcon,
-  EyeIcon,
+  ClipboardListIcon,
   FileSignatureIcon,
+  FileTextIcon,
+  Link2Icon,
   MoreHorizontalIcon,
-  UserRoundIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -31,7 +32,7 @@ function getContractReference(contract: EnrollmentContract): string {
   return `#${contract.id}`;
 }
 
-const viewDetailButtonClass =
+const viewOverviewButtonClass =
   'normal-case bg-background hover:bg-muted text-foreground h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold';
 
 const mainActionButtonClass =
@@ -45,16 +46,19 @@ export type EnrollmentContractRowActionsProps = {
   onOpenCreateEnrollment: (contractId: number) => void;
 };
 
-type PrimaryAction = 'createEnrollment' | 'viewDetail';
+type PrimaryAction = 'createEnrollment' | 'openOverview';
 
 function getPrimaryAction(contract: EnrollmentContract): PrimaryAction {
   const isSigned = contract.status === 'signed';
   const hasEnrollment = contractHasLinkedEnrollment(contract);
   if (isSigned && !hasEnrollment) return 'createEnrollment';
-  return 'viewDetail';
+  return 'openOverview';
 }
 
-/** Surfaces the strongest next step when signed; otherwise “View detail” + ⋯. */
+/**
+ * Primary: Create enrollment when signed without a record; otherwise outline Open overview.
+ * Menu groups match intake / enrollment request: copy reference, quick links (intake, request, enrollment), then Create enrollment when duplicated.
+ */
 export default function EnrollmentContractRowActions({
   contract,
   onOpenCreateEnrollment,
@@ -63,9 +67,26 @@ export default function EnrollmentContractRowActions({
   const primary = getPrimaryAction(contract);
   const isSigned = contract.status === 'signed';
   const hasEnrollment = contractHasLinkedEnrollment(contract);
-  const showViewEnrollment = isSigned && hasEnrollment;
-  const enrollmentRecordId = contract.enrollment?.id;
   const showCreateEnrollment = isSigned && !hasEnrollment;
+
+  const intakeId = contract.onboarding_intake?.id ?? null;
+  const enrollmentRequestId =
+    contract.onboarding_intake?.enrollment_request?.id ?? null;
+  const enrollmentRecordId = contract.enrollment?.id ?? null;
+
+  const showOpenOverviewInMenu = primary === 'createEnrollment';
+  const showOpenIntake = intakeId != null;
+  const showOpenEnrollmentRequest = enrollmentRequestId != null;
+  const showOpenEnrollmentRecord = enrollmentRecordId != null;
+
+  const showCreateEnrollmentInMenu =
+    primary !== 'createEnrollment' && showCreateEnrollment;
+
+  const hasQuickLinks =
+    showOpenOverviewInMenu ||
+    showOpenIntake ||
+    showOpenEnrollmentRequest ||
+    showOpenEnrollmentRecord;
 
   const handleCopyReference = () => {
     void (async () => {
@@ -78,21 +99,13 @@ export default function EnrollmentContractRowActions({
     })();
   };
 
-  const showDetailInMenu = primary !== 'viewDetail';
-  const showCreateInMenu =
-    primary !== 'createEnrollment' && showCreateEnrollment;
-  /** Enrollment record stays under ⋯; primary is always contract “View detail” once not “Create enrollment”. */
-  const showEnrollmentInMenu = showViewEnrollment;
-  const hasMenuAfterCopy =
-    showDetailInMenu || showCreateInMenu || showEnrollmentInMenu;
-
   return (
     <div className='flex items-center justify-end gap-1.5'>
-      {primary === 'viewDetail' ? (
+      {primary === 'openOverview' ? (
         <Button
           variant='outline'
           size='sm'
-          className={viewDetailButtonClass}
+          className={viewOverviewButtonClass}
           asChild
         >
           <Link
@@ -101,8 +114,8 @@ export default function EnrollmentContractRowActions({
             )}
             className='inline-flex items-center gap-1.5'
           >
-            <EyeIcon className='size-3.5 shrink-0' />
-            View Detail
+            <FileTextIcon className='size-3.5 shrink-0' />
+            Open Overview
           </Link>
         </Button>
       ) : null}
@@ -131,9 +144,9 @@ export default function EnrollmentContractRowActions({
             <MoreHorizontalIcon className='size-4' />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align='end' className='min-w-52'>
+        <DropdownMenuContent align='end' className='min-w-56'>
           <DropdownMenuLabel className='text-foreground/70 space-y-1 px-2 py-1.5 text-[11px]! font-bold tracking-wide uppercase'>
-            More Options
+            Actions
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -143,10 +156,14 @@ export default function EnrollmentContractRowActions({
             <ClipboardCopyIcon className='size-3.5 shrink-0' />
             Copy reference
           </DropdownMenuItem>
-          {hasMenuAfterCopy ? (
+
+          {(hasQuickLinks || showCreateEnrollmentInMenu) && (
+            <DropdownMenuSeparator />
+          )}
+
+          {hasQuickLinks ? (
             <>
-              <DropdownMenuSeparator />
-              {showDetailInMenu ? (
+              {showOpenOverviewInMenu ? (
                 <DropdownMenuItem asChild className='cursor-pointer'>
                   <Link
                     className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
@@ -154,12 +171,38 @@ export default function EnrollmentContractRowActions({
                       String(contract.id),
                     )}
                   >
-                    <EyeIcon className='size-3.5 shrink-0' />
-                    View Detail
+                    <FileTextIcon className='size-3.5 shrink-0' />
+                    Open Overview
                   </Link>
                 </DropdownMenuItem>
               ) : null}
-              {showEnrollmentInMenu && enrollmentRecordId != null ? (
+              {showOpenIntake ? (
+                <DropdownMenuItem asChild className='cursor-pointer'>
+                  <Link
+                    className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                    href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(
+                      String(intakeId),
+                    )}
+                  >
+                    <ClipboardListIcon className='size-3.5 shrink-0' />
+                    Open Intake Assessment
+                  </Link>
+                </DropdownMenuItem>
+              ) : null}
+              {showOpenEnrollmentRequest ? (
+                <DropdownMenuItem asChild className='cursor-pointer'>
+                  <Link
+                    className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                    href={ROUTES.ADMIN.MODULES.ENROLLMENT_REQUESTS.DETAIL(
+                      String(enrollmentRequestId),
+                    )}
+                  >
+                    <Link2Icon className='size-3.5 shrink-0' />
+                    Open Enrollment Request
+                  </Link>
+                </DropdownMenuItem>
+              ) : null}
+              {showOpenEnrollmentRecord ? (
                 <DropdownMenuItem asChild className='cursor-pointer'>
                   <Link
                     className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
@@ -167,21 +210,26 @@ export default function EnrollmentContractRowActions({
                       String(enrollmentRecordId),
                     )}
                   >
-                    <UserRoundIcon className='size-3.5 shrink-0' />
-                    View enrollment
+                    <FileTextIcon className='size-3.5 shrink-0' />
+                    Open Enrollment Record
                   </Link>
                 </DropdownMenuItem>
               ) : null}
-              {showCreateInMenu ? (
-                <DropdownMenuItem
-                  className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-                  onClick={() => onOpenCreateEnrollment(contract.id)}
-                >
-                  <FileSignatureIcon className='size-3.5 shrink-0' />
-                  Create Enrollment
-                </DropdownMenuItem>
-              ) : null}
             </>
+          ) : null}
+
+          {showCreateEnrollmentInMenu && hasQuickLinks ? (
+            <DropdownMenuSeparator />
+          ) : null}
+
+          {showCreateEnrollmentInMenu ? (
+            <DropdownMenuItem
+              className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+              onClick={() => onOpenCreateEnrollment(contract.id)}
+            >
+              <FileSignatureIcon className='size-3.5 shrink-0' />
+              Create Enrollment
+            </DropdownMenuItem>
           ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
