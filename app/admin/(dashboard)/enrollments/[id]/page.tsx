@@ -43,7 +43,7 @@ export default async function EnrollmentRecordPage({
               aria-label='Back to enrollment records list'
             >
               <ArrowLeftIcon className='size-3.5' />
-              Back to enrollment records
+              Back to Enrollments
             </Link>
           </Button>
         }

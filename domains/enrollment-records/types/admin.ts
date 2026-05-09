@@ -54,6 +54,8 @@ export interface AdminEnrollment {
     slug?: string;
   };
   onboarding_intake?: { id: number; code: string } | null;
+  /** From linked intake (`onboarding_intake`); omitted when intake/request not eager-loaded or missing. */
+  enrollment_request?: { id: number; code: string } | null;
   enrollment_contract?: {
     id: number;
     code: string;
