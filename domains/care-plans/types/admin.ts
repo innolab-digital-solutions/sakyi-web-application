@@ -96,8 +96,17 @@ export interface AdminCarePlanBuilder {
   cycle_number: number | null;
   starts_on: string | null;
   ends_on: string | null;
+  cancelled_at?: string | null;
   scheduled_at?: string | null;
   activated_at?: string | null;
+  cancellation_note?: string | null;
+  timestamps?: {
+    created_at: string | null;
+    updated_at: string | null;
+    scheduled_at?: string | null;
+    activated_at?: string | null;
+    completed_at?: string | null;
+  };
   client?: CarePlanBuilderClient | null;
   program?: CarePlanBuilderProgram | null;
   enrollment?: CarePlanBuilderEnrollmentRef | null;

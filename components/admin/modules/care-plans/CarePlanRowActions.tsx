@@ -4,8 +4,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   CheckCircle2Icon,
   ClipboardCopyIcon,
-  EyeIcon,
   FilePenLineIcon,
+  FileTextIcon,
   GitBranchPlusIcon,
   MoreHorizontalIcon,
   NotebookPenIcon,
@@ -50,7 +50,8 @@ const LIST_QUERY_KEY = [
   ENDPOINTS.ADMIN.MODULES.CARE_PLANS.LIST,
 ] as const;
 
-const viewDetailButtonClass =
+/** Matches enrollment request / contract outline overview action. */
+const viewOverviewButtonClass =
   'normal-case bg-background hover:bg-muted text-foreground h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold';
 
 const moreTriggerClass =
@@ -143,6 +144,10 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
     canCreateRevision ||
     canCancel ||
     canOpenOperationalLogs;
+
+  const hasNonCancelMenuItems =
+    canOpenOperationalLogs || canEdit || canActivate || canCreateRevision;
+  const showSepBeforeCancel = canCancel && hasNonCancelMenuItems;
 
   const { mutate: activatePlan, isPending: activatePending } = useMutation({
     mutationFn: async () => {
@@ -297,15 +302,15 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
         <Button
           variant='outline'
           size='sm'
-          className={viewDetailButtonClass}
+          className={viewOverviewButtonClass}
           asChild
         >
           <Link
             href={ROUTES.ADMIN.MODULES.CARE_PLANS.DETAIL(String(row.id))}
             className='inline-flex items-center gap-1.5'
           >
-            <EyeIcon className='size-3.5 shrink-0' />
-            View Detail
+            <FileTextIcon className='size-3.5 shrink-0' />
+            Open Overview
           </Link>
         </Button>
 
@@ -321,9 +326,9 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
               <MoreHorizontalIcon className='size-4' />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align='end' className='min-w-52'>
+          <DropdownMenuContent align='end' className='min-w-56'>
             <DropdownMenuLabel className='text-foreground/70 space-y-1 px-2 py-1.5 text-[11px]! font-bold tracking-wide uppercase'>
-              More Options
+              Actions
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -348,9 +353,9 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
                   </DropdownMenuItem>
                 ) : null}
                 {canEdit ? (
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem asChild className='cursor-pointer'>
                     <Link
-                      className='flex items-center gap-2 text-[13px]! font-medium'
+                      className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
                       href={ROUTES.ADMIN.MODULES.CARE_PLANS.WORKSPACE(
                         String(row.id),
                       )}
@@ -389,6 +394,7 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
                     {revisionPending ? 'Creating revision…' : 'Create revision'}
                   </DropdownMenuItem>
                 ) : null}
+                {showSepBeforeCancel ? <DropdownMenuSeparator /> : null}
                 {canCancel ? (
                   <DropdownMenuItem
                     className='text-destructive focus:text-destructive flex cursor-pointer items-center gap-2 text-[13px]! font-medium'

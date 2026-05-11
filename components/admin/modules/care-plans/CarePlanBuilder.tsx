@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { addDays, format, parse, startOfDay } from 'date-fns';
+import { addDays, format, parse, parseISO, startOfDay } from 'date-fns';
 import {
   AlertTriangleIcon,
   ArrowLeftIcon,
@@ -125,6 +125,25 @@ function formatTargetDateLabel(ymd: string | null | undefined): string {
   const parsed = parse(ymd.trim(), 'yyyy-MM-dd', new Date());
   if (Number.isNaN(parsed.getTime())) return ymd.trim();
   return format(parsed, 'EEE, dd-MMM-yyyy');
+}
+
+function formatCarePlanStatusLabel(raw: string | null | undefined): string {
+  const normalized = (raw ?? '').trim().toLowerCase();
+  if (normalized === 'draft') return 'Draft';
+  if (normalized === 'scheduled') return 'Scheduled';
+  if (normalized === 'active') return 'Active';
+  if (normalized === 'completed') return 'Completed';
+  if (normalized === 'cancelled') return 'Cancelled';
+  return raw?.trim() || 'Not set';
+}
+
+function formatDateCell(iso: string | null | undefined): string | null {
+  if (!iso?.trim()) return null;
+  try {
+    return format(parseISO(iso.trim()), 'dd-MMMM-yyyy');
+  } catch {
+    return iso.trim();
+  }
 }
 
 function getNameInitials(value: string | null | undefined): string {
@@ -1766,6 +1785,12 @@ export default function CarePlanBuilder({
   if (!builder) return null;
 
   const clientAvatarSrc = resolveClientPictureUrl(builder.client?.picture_url);
+  const showReadOnlyDayNotes = !editable || isDetailMode;
+  const cancelledAt = builder.cancelled_at ?? null;
+  const showCancellationOverview =
+    normalizedStatus === 'cancelled' ||
+    Boolean(builder.cancellation_note?.trim()) ||
+    Boolean(cancelledAt?.trim());
 
   return (
     <div className='space-y-6'>
@@ -1795,13 +1820,25 @@ export default function CarePlanBuilder({
                   )}
                   {generateDayButtonLabel}
                 </Button>
+              ) : !isDetailMode ? (
+                <Button
+                  type='button'
+                  variant='outline'
+                  className='h-10 shrink-0 rounded-md px-3 text-[13px]! font-semibold'
+                  disabled={revisionMutation.isPending}
+                  onClick={() => revisionMutation.mutate()}
+                >
+                  {revisionMutation.isPending
+                    ? 'Creating revision…'
+                    : 'Create revision'}
+                </Button>
               ) : null}
             </div>
           </div>
 
           <div className='border-border/70 border-t' />
 
-          <div className='grid gap-2 sm:grid-cols-2 lg:grid-cols-4'>
+          <div className='grid gap-2 sm:grid-cols-2 lg:grid-cols-3'>
             <div className='bg-muted/50 border-border flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2'>
               <p className='text-muted-foreground mb-1.5 text-[10px] font-semibold tracking-wide uppercase'>
                 Client
@@ -1867,47 +1904,63 @@ export default function CarePlanBuilder({
 
             <div className='bg-muted/50 border-border/60 flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2'>
               <p className='text-muted-foreground mb-1.5 text-[10px] font-semibold tracking-wide uppercase'>
-                Plan Timeline
+                Start on
+              </p>
+              <p className='text-foreground text-[12.5px] font-semibold tabular-nums'>
+                {builder.starts_on?.trim()
+                  ? formatTargetDateLabel(builder.starts_on)
+                  : '-'}
+              </p>
+            </div>
+
+            <div className='bg-muted/50 border-border/60 flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2'>
+              <p className='text-muted-foreground mb-1.5 text-[10px] font-semibold tracking-wide uppercase'>
+                End on
+              </p>
+              <p className='text-foreground text-[12.5px] font-semibold tabular-nums'>
+                {builder.ends_on?.trim()
+                  ? formatTargetDateLabel(builder.ends_on)
+                  : '-'}
+              </p>
+            </div>
+
+            <div className='bg-muted/50 border-border flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2'>
+              <p className='text-muted-foreground mb-1.5 text-[10px] font-semibold tracking-wide uppercase'>
+                Plan status
               </p>
               <p className='text-foreground text-[12.5px] font-semibold'>
-                Care Window
-              </p>
-              <p className='text-muted-foreground mt-0.5 truncate text-[11px] font-semibold'>
-                {builder.starts_on
-                  ? formatTargetDateLabel(builder.starts_on)
-                  : 'Start date not set'}
-                {'  '}→{'  '}
-                {builder.ends_on
-                  ? formatTargetDateLabel(builder.ends_on)
-                  : 'End date not set'}
+                {formatCarePlanStatusLabel(builder.status)}
               </p>
             </div>
           </div>
-        </div>
 
-        {!editable ? (
-          <div className='flex items-start gap-2.5 rounded-md border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs text-amber-900'>
-            <AlertTriangleIcon className='mt-0.5 size-3.5 shrink-0' />
-            <div className='space-y-1'>
-              <p className='font-semibold'>
-                This care plan is read-only because its current status is{' '}
-                {builder.status}.
+          {showCancellationOverview ? (
+            <div
+              role='status'
+              className='bg-muted/50 border-border flex min-h-0 flex-col justify-start space-y-2 rounded-md border px-2.5 py-3 text-[13px]'
+            >
+              <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+                Care plan cancellation
               </p>
-              {!isDetailMode ? (
-                <Button
-                  size='sm'
-                  className='h-8 px-3 text-xs font-semibold'
-                  disabled={revisionMutation.isPending}
-                  onClick={() => revisionMutation.mutate()}
-                >
-                  {revisionMutation.isPending
-                    ? 'Creating revision…'
-                    : 'Create revision'}
-                </Button>
-              ) : null}
+              <div className='text-foreground/90 text-[12.5px] leading-snug font-semibold tabular-nums'>
+                {formatDateCell(cancelledAt) ?? '—'}
+              </div>
+              <div className='text-muted-foreground border-border/60 space-y-1 border-t pt-2 text-[12.5px] leading-relaxed font-medium'>
+                {builder.cancellation_note?.trim() ? (
+                  <p className='text-foreground/90 whitespace-pre-wrap'>
+                    {builder.cancellation_note.trim()}
+                  </p>
+                ) : (
+                  <p className='text-muted-foreground text-[12.5px] leading-relaxed'>
+                    {normalizedStatus === 'cancelled'
+                      ? 'No cancellation note was recorded.'
+                      : '—'}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
 
         {!hasGeneratedDays ? (
           <div className='from-primary/5 to-background border-border relative overflow-hidden rounded-md border border-dashed bg-linear-to-br p-8'>
@@ -1951,10 +2004,6 @@ export default function CarePlanBuilder({
                   <span className='text-foreground/90 text-[13px] font-semibold'>
                     Day schedule
                   </span>
-                  <p className='text-muted-foreground mt-0.5 text-[11px] leading-snug font-medium'>
-                    Choose a day to edit nutrition, movement, activity, and
-                    recovery.
-                  </p>
                 </div>
                 <div className='min-h-0 flex-1 overflow-y-auto bg-white p-1.5'>
                   {builder.days.length === 0 ? (
@@ -1975,34 +2024,35 @@ export default function CarePlanBuilder({
                             Boolean(dayValidationMessage) && !hasAnyTaskInDay;
                           return (
                             <li key={day.id} className='relative'>
-                              <button
-                                type='button'
-                                className={cn(
-                                  'w-full min-w-0 rounded-md border px-3 py-2.5 pr-20 text-left transition-all',
-                                  isSelected
-                                    ? 'bg-primary/8 border-primary/40 text-foreground shadow-xs'
-                                    : 'text-foreground/90 hover:border-border/70 hover:bg-background/80 border-transparent',
-                                )}
-                                onClick={() => {
-                                  setSelectedDayId(day.id);
-                                  setActiveSection('nutrition');
-                                }}
-                              >
-                                <span className='text-[12.5px] font-semibold tracking-tight'>
-                                  Day {day.day_number}
-                                </span>
-                                <span
+                              <div className='relative w-full min-w-0'>
+                                <button
+                                  type='button'
                                   className={cn(
-                                    'mt-0.5 block text-[11px] font-medium',
+                                    'w-full min-w-0 rounded-md border px-3 py-2.5 pr-20 text-left transition-all',
                                     isSelected
-                                      ? 'text-muted-foreground'
-                                      : 'text-muted-foreground/90',
+                                      ? 'bg-primary/8 border-primary/40 text-foreground shadow-xs'
+                                      : 'text-foreground/90 hover:border-border/70 hover:bg-background/80 border-transparent',
                                   )}
+                                  onClick={() => {
+                                    setSelectedDayId(day.id);
+                                    setActiveSection('nutrition');
+                                  }}
                                 >
-                                  {formatTargetDateLabel(day.target_date)}
-                                </span>
-                              </button>
-                              <div className='absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1'>
+                                  <span className='text-[12.5px] font-semibold tracking-tight'>
+                                    Day {day.day_number}
+                                  </span>
+                                  <span
+                                    className={cn(
+                                      'mt-0.5 block text-[11px] font-medium',
+                                      isSelected
+                                        ? 'text-muted-foreground'
+                                        : 'text-muted-foreground/90',
+                                    )}
+                                  >
+                                    {formatTargetDateLabel(day.target_date)}
+                                  </span>
+                                </button>
+                                <div className='absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1'>
                                 {hasDayValidationIssue ? (
                                   <Tooltip>
                                     <TooltipTrigger asChild>
@@ -2064,6 +2114,7 @@ export default function CarePlanBuilder({
                                     <NoteIcon className='size-3.5' />
                                   </span>
                                 ) : null}
+                                </div>
                               </div>
                             </li>
                           );
@@ -2103,9 +2154,32 @@ export default function CarePlanBuilder({
                         ))}
                       </TabsList>
 
-                      <p className='text-muted-foreground my-1.5 text-[13px] font-medium'>
-                        {SECTION_GUIDANCE[activeSection]}
-                      </p>
+                      {showReadOnlyDayNotes ? (
+                        <div
+                          role='region'
+                          aria-label={`Day notes for day ${selectedDay.day_number}`}
+                          className='border-border bg-muted/20 mt-3 rounded-md border p-4 md:p-5'
+                        >
+                          <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+                            Day notes
+                          </p>
+                          {selectedDay.general_notes?.trim() ? (
+                            <p className='text-foreground/90 mt-1.5 text-[13px] leading-relaxed font-medium whitespace-pre-wrap'>
+                              {selectedDay.general_notes.trim()}
+                            </p>
+                          ) : (
+                            <p className='text-foreground/90 mt-1.5 text-[13px] font-medium'>
+                              -
+                            </p>
+                          )}
+                        </div>
+                      ) : null}
+
+                      {!isDetailMode ? (
+                        <p className='text-muted-foreground my-1.5 text-[13px] font-medium'>
+                          {SECTION_GUIDANCE[activeSection]}
+                        </p>
+                      ) : null}
 
                       {SECTIONS.map((section) => (
                         <TabsContent

@@ -10,9 +10,9 @@ import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/config/routes';
 
 export const metadata: Metadata = {
-  title: 'Period Report | SaKyi Admin',
+  title: 'Period report workspace | SaKyi Admin',
   description:
-    'Author period reports from client care-plan logs: review evidence, edit suggested metrics, add narrative, and publish for the client app.',
+    'Turn daily care-plan logs into a period report: reconcile metrics, add narrative, and publish when the care team is ready for the client-facing view.',
 };
 
 type CarePlanReportPageProps = {
@@ -29,7 +29,7 @@ export default async function CarePlanReportPage({
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Period report workspace'
-        description='Build a report from the client’s daily logs: compare targets to actuals, adjust rolled-up metrics, add care-team narrative, then publish. Drafts are saved until you publish.'
+        description='Summarize the reporting period from logged activity—compare targets to actuals, refine rolled-up metrics, record care-team commentary, then publish when accurate. Drafts remain until you publish.'
         actions={
           <div className='flex flex-wrap items-center gap-2'>
             <Button
