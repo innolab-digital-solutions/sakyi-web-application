@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { type ReactNode, useState } from 'react';
 
+import { ClientProfileMediaTableSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -148,8 +149,8 @@ function ClientProfileDetailSkeleton() {
     <div className='grid gap-3 lg:grid-cols-3 lg:gap-4'>
       <section className={`${CARD_SURFACE} space-y-5 lg:col-span-2`}>
         <header className='border-border shrink-0 border-b pb-5'>
-          <Skeleton className='h-5 w-32 rounded-sm' />
-          <Skeleton className='mt-2 h-3 max-w-3xl rounded-sm' />
+          <Skeleton className='h-5 w-44 rounded-sm' />
+          <Skeleton className='mt-1 h-[13px] w-full max-w-3xl rounded-sm' />
         </header>
         <div className='grid gap-1.5 md:grid-cols-3'>
           {Array.from({ length: 7 }).map((_, idx) => (
@@ -165,11 +166,7 @@ function ClientProfileDetailSkeleton() {
             </div>
           ))}
         </div>
-        <div className='border-border space-y-3 border-t pt-5'>
-          <Skeleton className='h-5 w-40 rounded-sm' />
-          <Skeleton className='h-3 max-w-md rounded-sm' />
-          <Skeleton className='h-32 w-full rounded-md' />
-        </div>
+        <ClientProfileMediaTableSkeleton />
       </section>
       <div className='flex min-h-0 min-w-0 flex-col gap-3 lg:gap-4'>
         <section className={`${CARD_SURFACE} flex min-h-0 flex-col`}>

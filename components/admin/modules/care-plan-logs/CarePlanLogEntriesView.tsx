@@ -6,11 +6,11 @@ import { ExternalLinkIcon, Loader2Icon, RotateCwIcon } from 'lucide-react';
 import * as React from 'react';
 import { toast } from 'sonner';
 
+import { CarePlanLogSummarySkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -22,7 +22,6 @@ import {
 import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { base } from '@/config/api/base';
 import {
-  type CarePlanLogEntry,
   getCarePlanLogSummary,
   listCarePlanLogEntries,
 } from '@/domains/care-plans/services';
@@ -164,10 +163,7 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
   const logProgressRaw =
     summary?.completion_signal?.logging_progress_percentage ?? 0;
   /** Same 0–100 clamp as daily task logs list circular “Log progress”. */
-  const logProgressNormalized = Math.min(
-    Math.max(logProgressRaw, 0),
-    100,
-  );
+  const logProgressNormalized = Math.min(Math.max(logProgressRaw, 0), 100);
   const client = summary?.enrollment?.client ?? null;
   const program = summary?.enrollment?.program ?? null;
   const enrollmentCode =
@@ -197,14 +193,7 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
         </header>
 
         {summaryQuery.isPending ? (
-          <div className='space-y-3'>
-            <div className='grid gap-2 sm:grid-cols-2 lg:grid-cols-3'>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className='h-18 rounded-md' />
-              ))}
-            </div>
-            <Skeleton className='h-2.5 w-full rounded-full' />
-          </div>
+          <CarePlanLogSummarySkeleton />
         ) : summaryQuery.isError ? (
           <p className='text-destructive text-sm'>
             {summaryQuery.error instanceof Error
@@ -278,7 +267,7 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
                 <p className={METRIC_TILE_LABEL_CLASS}>Start on</p>
                 <p className='text-foreground text-[12.5px] font-semibold tabular-nums'>
                   {summary?.starts_on?.trim()
-                    ? formatDate(summary.starts_on) ?? summary.starts_on
+                    ? (formatDate(summary.starts_on) ?? summary.starts_on)
                     : '—'}
                 </p>
               </div>
@@ -287,7 +276,7 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
                 <p className={METRIC_TILE_LABEL_CLASS}>End on</p>
                 <p className='text-foreground text-[12.5px] font-semibold tabular-nums'>
                   {summary?.ends_on?.trim()
-                    ? formatDate(summary.ends_on) ?? summary.ends_on
+                    ? (formatDate(summary.ends_on) ?? summary.ends_on)
                     : '—'}
                 </p>
               </div>
@@ -324,7 +313,7 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
       </section>
 
       <section className={`${CARD_SURFACE} space-y-5`}>
-        <div className='flex flex-col gap-3 border-border border-b pb-5 sm:flex-row sm:items-start sm:justify-between'>
+        <div className='border-border flex flex-col gap-3 border-b pb-5 sm:flex-row sm:items-start sm:justify-between'>
           <div className='min-w-0 space-y-1'>
             <h3 className='text-foreground text-sm font-semibold'>
               Task log entries

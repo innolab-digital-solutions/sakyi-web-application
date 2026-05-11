@@ -19,7 +19,7 @@ import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
 
-import { AdminWorkspaceSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
+import { CarePlanBuilderSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import CarePlanDayNoteModal from '@/components/admin/modules/care-plans/CarePlanDayNoteModal';
 import CarePlanFinalizeConfirmation from '@/components/admin/modules/care-plans/CarePlanFinalizeConfirmation';
 import CarePlanGenerateDaysModal from '@/components/admin/modules/care-plans/CarePlanGenerateDaysModal';
@@ -1769,7 +1769,7 @@ export default function CarePlanBuilder({
   };
 
   if (builderQuery.isPending) {
-    return <AdminWorkspaceSkeleton />;
+    return <CarePlanBuilderSkeleton />;
   }
 
   if (builderQuery.isError) {

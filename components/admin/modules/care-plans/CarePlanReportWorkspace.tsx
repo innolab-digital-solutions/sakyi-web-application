@@ -5,8 +5,8 @@ import { format, parse } from 'date-fns';
 import {
   CheckCircle2Icon,
   ChevronDownIcon,
-  ClipboardListIcon,
   CircleAlert,
+  ClipboardListIcon,
   FileChartColumn,
   FileSymlink,
   ListChecks,
@@ -19,7 +19,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
 
-import { AdminWorkspaceSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
+import { OperationalLogWorksheetSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import OperationalLogMediaPreviewModal from '@/components/admin/modules/care-plans/OperationalLogMediaPreviewModal';
 import ReviewOperationalLogMetricsDialog from '@/components/admin/modules/care-plans/ReviewOperationalLogMetricsDialog';
 import SaveCarePlanDataConfirmation from '@/components/admin/modules/care-plans/SaveCarePlanDataConfirmation';
@@ -392,8 +392,7 @@ export default function CarePlanReportWorkspace({
       carePlanId,
       effectiveWorkspaceParams,
     ] as const,
-    enabled:
-      Boolean(effectiveWorkspaceParams) && allowReportWorkspaceFetch,
+    enabled: Boolean(effectiveWorkspaceParams) && allowReportWorkspaceFetch,
     queryFn: async () => {
       if (!effectiveWorkspaceParams) {
         throw new Error('No workspace parameters');
@@ -1355,12 +1354,12 @@ export default function CarePlanReportWorkspace({
             <>
               <div className='border-border/70 border-t' />
               <div
-                className='border-border rounded-lg border bg-card p-4 shadow-xs sm:p-5'
+                className='border-border bg-card rounded-lg border p-4 shadow-xs sm:p-5'
                 role='alert'
               >
                 <div className='flex gap-3 sm:gap-4'>
                   <CircleAlert
-                    className='text-amber-600 dark:text-amber-500 mt-0.5 size-5 shrink-0'
+                    className='mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-500'
                     aria-hidden
                   />
                   <div className='min-w-0 flex-1 space-y-3'>
@@ -1395,7 +1394,7 @@ export default function CarePlanReportWorkspace({
           ) : !workspace && workspaceFetching ? (
             <>
               <div className='border-border/70 border-t' />
-              <AdminWorkspaceSkeleton />
+              <OperationalLogWorksheetSkeleton />
             </>
           ) : workspace ? (
             <>
@@ -1483,9 +1482,7 @@ export default function CarePlanReportWorkspace({
                       type='button'
                       className='h-10 gap-1.5 text-[13px]! font-semibold'
                       onClick={() => setSaveCarePlanConfirmOpen(true)}
-                      disabled={
-                        saveMetricsMutation.isPending || !workspace
-                      }
+                      disabled={saveMetricsMutation.isPending || !workspace}
                       title={!workspace ? 'Workspace not loaded' : undefined}
                     >
                       {saveMetricsMutation.isPending ? (
@@ -1773,9 +1770,7 @@ export default function CarePlanReportWorkspace({
                     <Button
                       type='button'
                       onClick={() => setSaveCarePlanConfirmOpen(true)}
-                      disabled={
-                        saveMetricsMutation.isPending || !workspace
-                      }
+                      disabled={saveMetricsMutation.isPending || !workspace}
                       className='gap-1.5'
                     >
                       {saveMetricsMutation.isPending ? (
