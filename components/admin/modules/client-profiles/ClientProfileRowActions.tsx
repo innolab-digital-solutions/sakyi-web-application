@@ -2,7 +2,7 @@
 
 import {
   ClipboardCopyIcon,
-  EyeIcon,
+  FileTextIcon,
   MoreHorizontalIcon,
   PaperclipIcon,
 } from 'lucide-react';
@@ -21,7 +21,8 @@ import {
 import { ROUTES } from '@/config/routes';
 import type { ClientProfile } from '@/domains/client-profiles/types/admin';
 
-const viewDetailButtonClass =
+/** Matches enrollment request / contract outline overview action. */
+const viewOverviewButtonClass =
   'normal-case bg-background hover:bg-muted text-foreground h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold';
 
 const moreTriggerClass =
@@ -60,15 +61,15 @@ export default function ClientProfileRowActions({
       <Button
         variant='outline'
         size='sm'
-        className={viewDetailButtonClass}
+        className={viewOverviewButtonClass}
         asChild
       >
         <Link
           href={ROUTES.ADMIN.MODULES.CLIENT_PROFILES.DETAIL(String(row.id))}
           className='inline-flex items-center gap-1.5'
         >
-          <EyeIcon className='size-3.5 shrink-0' />
-          View Detail
+          <FileTextIcon className='size-3.5 shrink-0' />
+          Open Overview
         </Link>
       </Button>
 
@@ -84,9 +85,9 @@ export default function ClientProfileRowActions({
             <MoreHorizontalIcon className='size-4' />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align='end' className='min-w-52'>
+        <DropdownMenuContent align='end' className='min-w-56'>
           <DropdownMenuLabel className='text-foreground/70 space-y-1 px-2 py-1.5 text-[11px]! font-bold tracking-wide uppercase'>
-            More Options
+            Actions
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -96,6 +97,7 @@ export default function ClientProfileRowActions({
             <ClipboardCopyIcon className='size-3.5 shrink-0' />
             Copy reference
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem
             className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
             onClick={onUploadMedia}
