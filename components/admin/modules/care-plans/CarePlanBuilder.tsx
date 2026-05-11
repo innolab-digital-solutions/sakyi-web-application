@@ -2053,67 +2053,68 @@ export default function CarePlanBuilder({
                                   </span>
                                 </button>
                                 <div className='absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1'>
-                                {hasDayValidationIssue ? (
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <span
-                                        role='img'
-                                        aria-label={`Validation issue on day ${day.day_number}`}
-                                        className={cn(
-                                          'inline-flex size-7 items-center justify-center rounded-md border transition-colors',
-                                          isSelected
-                                            ? 'border-amber-300/70 bg-amber-100 text-amber-700'
-                                            : 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100',
-                                        )}
+                                  {hasDayValidationIssue ? (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span
+                                          role='img'
+                                          aria-label={`Validation issue on day ${day.day_number}`}
+                                          className={cn(
+                                            'inline-flex size-7 items-center justify-center rounded-md border transition-colors',
+                                            isSelected
+                                              ? 'border-amber-300/70 bg-amber-100 text-amber-700'
+                                              : 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100',
+                                          )}
+                                        >
+                                          <AlertTriangleIcon className='size-3.5' />
+                                        </span>
+                                      </TooltipTrigger>
+                                      <TooltipContent
+                                        surface
+                                        side='top'
+                                        sideOffset={8}
+                                        className='max-w-64 text-[11.5px] font-medium'
                                       >
-                                        <AlertTriangleIcon className='size-3.5' />
-                                      </span>
-                                    </TooltipTrigger>
-                                    <TooltipContent
-                                      surface
-                                      side='top'
-                                      sideOffset={8}
-                                      className='max-w-64 text-[11.5px] font-medium'
-                                    >
-                                      {dayValidationMessage}
-                                    </TooltipContent>
-                                  </Tooltip>
-                                ) : null}
+                                        {dayValidationMessage}
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  ) : null}
 
-                                {editable ? (
-                                  <span
-                                    role='button'
-                                    tabIndex={0}
-                                    aria-label={`${noteVisual.label} for day ${day.day_number}`}
-                                    className={cn(
-                                      'inline-flex size-7 items-center justify-center rounded-md border transition-colors focus-visible:ring-2 focus-visible:outline-hidden',
-                                      isSelected
-                                        ? 'border-primary/30 bg-primary/10 text-primary hover:bg-primary/15'
-                                        : noteVisual.toneClass,
-                                      dayNotesMutation.isPending
-                                        ? 'pointer-events-none opacity-60'
-                                        : '',
-                                    )}
-                                    onClick={(event) => {
-                                      event.stopPropagation();
-                                      if (dayNotesMutation.isPending) return;
-                                      openDayNotesModal(day.id);
-                                    }}
-                                    onKeyDown={(event) => {
-                                      if (
-                                        event.key === 'Enter' ||
-                                        event.key === ' '
-                                      ) {
-                                        event.preventDefault();
+                                  {editable ? (
+                                    <span
+                                      role='button'
+                                      tabIndex={0}
+                                      aria-label={`${noteVisual.label} for day ${day.day_number}`}
+                                      className={cn(
+                                        'inline-flex size-7 items-center justify-center rounded-md border transition-colors focus-visible:ring-2 focus-visible:outline-hidden',
+                                        isSelected
+                                          ? 'border-primary/30 bg-primary/10 text-primary hover:bg-primary/15'
+                                          : noteVisual.toneClass,
+                                        dayNotesMutation.isPending
+                                          ? 'pointer-events-none opacity-60'
+                                          : '',
+                                      )}
+                                      onClick={(event) => {
                                         event.stopPropagation();
                                         if (dayNotesMutation.isPending) return;
                                         openDayNotesModal(day.id);
-                                      }
-                                    }}
-                                  >
-                                    <NoteIcon className='size-3.5' />
-                                  </span>
-                                ) : null}
+                                      }}
+                                      onKeyDown={(event) => {
+                                        if (
+                                          event.key === 'Enter' ||
+                                          event.key === ' '
+                                        ) {
+                                          event.preventDefault();
+                                          event.stopPropagation();
+                                          if (dayNotesMutation.isPending)
+                                            return;
+                                          openDayNotesModal(day.id);
+                                        }
+                                      }}
+                                    >
+                                      <NoteIcon className='size-3.5' />
+                                    </span>
+                                  ) : null}
                                 </div>
                               </div>
                             </li>

@@ -228,14 +228,14 @@ function TeamMemberRow({ member }: { member: EnrollmentTeamMemberPayload }) {
       </Avatar>
       <div className='min-w-0 flex-1 space-y-0.5'>
         <p className='text-foreground/90 text-[13px] font-semibold'>
-          {user?.name?.trim() || (
-            <TableCellEmpty label='No name on file' />
-          )}
+          {user?.name?.trim() || <TableCellEmpty label='No name on file' />}
         </p>
         <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
           {user?.email?.trim() || 'No email on file'}
         </p>
-        <p className='text-muted-foreground text-xs font-medium'>{positionLabel}</p>
+        <p className='text-muted-foreground text-xs font-medium'>
+          {positionLabel}
+        </p>
       </div>
     </li>
   );
@@ -318,8 +318,8 @@ export default function EnrollmentRecordDetailView({
           <h3 className='text-foreground text-sm font-semibold'>Overview</h3>
           <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
             Reference, lifecycle status, program window, cancellation context
-            when applicable, assigned care team, completion, and last update
-            for this enrollment record.
+            when applicable, assigned care team, completion, and last update for
+            this enrollment record.
           </p>
         </header>
 

@@ -272,9 +272,7 @@ export default function EnrollmentRecordRowActions({
   const showOpenEnrollmentRequest = enrollmentRequestId != null;
   const showOpenContract = contractId != null;
   const hasRecordQuickLinks =
-    showOpenIntake ||
-    showOpenEnrollmentRequest ||
-    showOpenContract;
+    showOpenIntake || showOpenEnrollmentRequest || showOpenContract;
   /** After copy / before quick links or ops (mirrors enrollment request / contract menus). */
   const showSepAfterCopy = hasRecordQuickLinks || mutable;
   /** Between intake/contract links and schedule/notes/etc. when both exist. */
@@ -675,9 +673,7 @@ export default function EnrollmentRecordRowActions({
               </>
             ) : null}
 
-            {showSepBetweenQuickLinksAndOps ? (
-              <DropdownMenuSeparator />
-            ) : null}
+            {showSepBetweenQuickLinksAndOps ? <DropdownMenuSeparator /> : null}
 
             {mutable ? (
               <>

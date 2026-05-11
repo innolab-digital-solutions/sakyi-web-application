@@ -233,7 +233,10 @@ function ProfileMediaTableRow({ item }: { item: ClientProfileMedia }) {
               />
             ) : (
               <div className='flex size-full items-center justify-center'>
-                <FileIcon className='text-muted-foreground size-5' aria-hidden />
+                <FileIcon
+                  className='text-muted-foreground size-5'
+                  aria-hidden
+                />
               </div>
             )}
           </div>
@@ -247,7 +250,12 @@ function ProfileMediaTableRow({ item }: { item: ClientProfileMedia }) {
       </TableCell>
       <TableCell className='align-center text-end whitespace-nowrap'>
         {href ? (
-          <Button variant='outline' size='sm' className={OPEN_FILE_BUTTON_CLASS} asChild>
+          <Button
+            variant='outline'
+            size='sm'
+            className={OPEN_FILE_BUTTON_CLASS}
+            asChild
+          >
             <a
               href={href}
               target='_blank'
