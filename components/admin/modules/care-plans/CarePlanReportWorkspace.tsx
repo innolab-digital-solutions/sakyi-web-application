@@ -6,6 +6,7 @@ import {
   CheckCircle2Icon,
   ChevronDownIcon,
   ClipboardListIcon,
+  CircleAlert,
   FileChartColumn,
   FileSymlink,
   ListChecks,
@@ -14,7 +15,6 @@ import {
   Save,
 } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
@@ -263,7 +263,7 @@ export default function CarePlanReportWorkspace({
     ReportRunMetric[] | null
   >(null);
 
-  const { data: carePlanResult } = useQuery({
+  const { data: carePlanResult, isSuccess: carePlanQuerySuccess } = useQuery({
     queryKey: ['admin-care-plan-brief', carePlanId] as const,
     queryFn: async () => {
       const res = await getCarePlanById(carePlanId);
@@ -328,12 +328,14 @@ export default function CarePlanReportWorkspace({
   ]);
 
   const carePlan = carePlanResult;
-  const status = (carePlan?.status ?? '').trim().toLowerCase();
-  const canUseReports = status === 'active' || status === 'completed';
+
+  /** Period-report workspace waits for care plan so URL defaulting and runs list can use it; operational logs load immediately. */
+  const allowReportWorkspaceFetch =
+    isOperationalLogsWorkspace || carePlanQuerySuccess;
 
   React.useEffect(() => {
     if (isOperationalLogsWorkspace) return;
-    if (!carePlan || !canUseReports) return;
+    if (!carePlan) return;
     if (
       runIdFromUrl ||
       operationalLogIdFromUrl ||
@@ -363,7 +365,6 @@ export default function CarePlanReportWorkspace({
   }, [
     isOperationalLogsWorkspace,
     carePlan,
-    canUseReports,
     runIdFromUrl,
     operationalLogIdFromUrl,
     periodStartFromUrl,
@@ -391,7 +392,8 @@ export default function CarePlanReportWorkspace({
       carePlanId,
       effectiveWorkspaceParams,
     ] as const,
-    enabled: Boolean(effectiveWorkspaceParams) && canUseReports,
+    enabled:
+      Boolean(effectiveWorkspaceParams) && allowReportWorkspaceFetch,
     queryFn: async () => {
       if (!effectiveWorkspaceParams) {
         throw new Error('No workspace parameters');
@@ -430,7 +432,7 @@ export default function CarePlanReportWorkspace({
 
   const { data: runsResult, refetch: refetchRuns } = useQuery({
     queryKey: [RUNS_QUERY_KEY, carePlanId] as const,
-    enabled: canUseReports && workspaceLocation !== 'operational-logs',
+    enabled: carePlanQuerySuccess && workspaceLocation !== 'operational-logs',
     queryFn: async () => {
       const res = await listCarePlanReportRuns(carePlanId);
       if (res.status === 'error') {
@@ -1290,27 +1292,6 @@ export default function CarePlanReportWorkspace({
     );
   };
 
-  if (carePlan && !canUseReports) {
-    return (
-      <div className='rounded-md border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-100'>
-        Period reports are available when the care plan is{' '}
-        <strong>active</strong> or <strong>completed</strong>. This plan is{' '}
-        <span className='font-semibold'>{status || 'not set'}</span>.
-        <div className='mt-2'>
-          <Button variant='outline' size='sm' asChild>
-            <Link
-              href={ROUTES.ADMIN.MODULES.CARE_PLANS.WORKSPACE(
-                String(carePlanId),
-              )}
-            >
-              Open care plan workspace
-            </Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className='space-y-6'>
       {isOperationalLogsWorkspace ? (
@@ -1373,29 +1354,42 @@ export default function CarePlanReportWorkspace({
           {workspaceIsError ? (
             <>
               <div className='border-border/70 border-t' />
-              <div className='space-y-3 rounded-md border border-amber-200/80 bg-amber-50/80 p-4 sm:p-5 dark:border-amber-900/40 dark:bg-amber-950/25'>
-                <p className='text-foreground text-sm font-semibold'>
-                  Workspace could not be loaded
-                </p>
-                <p className='text-destructive text-sm'>
-                  {(workspaceError as Error)?.message ?? 'Unknown error.'}
-                </p>
-                <p className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
-                  Create an operational log draft for this care plan, then
-                  return to this workspace. The report period is set by the API
-                  from that log.
-                </p>
-                <Button
-                  type='button'
-                  className='h-10 text-[13px]! font-semibold'
-                  onClick={() => createOperationalLogDraftMutation.mutate()}
-                  disabled={createOperationalLogDraftMutation.isPending}
-                >
-                  {createOperationalLogDraftMutation.isPending ? (
-                    <Loader2Icon className='size-4 animate-spin' />
-                  ) : null}
-                  Create operational log draft
-                </Button>
+              <div
+                className='border-border rounded-lg border bg-card p-4 shadow-xs sm:p-5'
+                role='alert'
+              >
+                <div className='flex gap-3 sm:gap-4'>
+                  <CircleAlert
+                    className='text-amber-600 dark:text-amber-500 mt-0.5 size-5 shrink-0'
+                    aria-hidden
+                  />
+                  <div className='min-w-0 flex-1 space-y-3'>
+                    <div className='space-y-1'>
+                      <p className='text-foreground text-sm font-semibold tracking-tight'>
+                        Workspace could not be loaded
+                      </p>
+                      <p className='text-muted-foreground text-sm leading-relaxed'>
+                        {(workspaceError as Error)?.message ?? 'Unknown error.'}
+                      </p>
+                    </div>
+                    <p className='text-muted-foreground text-[13px] leading-relaxed'>
+                      Create an operational log draft for this care plan, then
+                      return to this workspace. The report period is set by the
+                      API from that log.
+                    </p>
+                    <Button
+                      type='button'
+                      className='h-10 text-[13px]! font-semibold'
+                      onClick={() => createOperationalLogDraftMutation.mutate()}
+                      disabled={createOperationalLogDraftMutation.isPending}
+                    >
+                      {createOperationalLogDraftMutation.isPending ? (
+                        <Loader2Icon className='size-4 animate-spin' />
+                      ) : null}
+                      Create operational log draft
+                    </Button>
+                  </div>
+                </div>
               </div>
             </>
           ) : !workspace && workspaceFetching ? (
@@ -1454,63 +1448,56 @@ export default function CarePlanReportWorkspace({
                   ) : null}
                 </div>
               </div>
-              <div className='border-border/70 flex w-full max-w-full flex-wrap items-center justify-between gap-2 border-t pt-5'>
-                <div className='flex flex-wrap items-center gap-2'>
-                  <Button
-                    type='button'
-                    className='bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
-                    variant='outline'
-                    onClick={() => setOperationalLogMetricsReviewOpen(true)}
-                    disabled={
-                      !canEditMetrics ||
-                      !formMetrics.length ||
-                      saveMetricsMutation.isPending ||
-                      !workspace
-                    }
-                    title='See what changed in the metrics worksheet (vs. last open or last save) before you save'
-                  >
-                    <ListChecks className='size-4' aria-hidden />
-                    Review changes
-                  </Button>
+              {canEditMetrics ? (
+                <div className='border-border/70 flex w-full max-w-full flex-wrap items-center justify-between gap-2 border-t pt-5'>
+                  <div className='flex flex-wrap items-center gap-2'>
+                    <Button
+                      type='button'
+                      className='bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+                      variant='outline'
+                      onClick={() => setOperationalLogMetricsReviewOpen(true)}
+                      disabled={
+                        !formMetrics.length ||
+                        saveMetricsMutation.isPending ||
+                        !workspace
+                      }
+                      title='See what changed in the metrics worksheet (vs. last open or last save) before you save'
+                    >
+                      <ListChecks className='size-4' aria-hidden />
+                      Review changes
+                    </Button>
+                  </div>
+                  <div className='flex flex-wrap items-center justify-end gap-2'>
+                    <Button
+                      type='button'
+                      className='bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+                      variant='outline'
+                      onClick={() =>
+                        router.push(ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.LIST)
+                      }
+                      disabled={saveMetricsMutation.isPending}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type='button'
+                      className='h-10 gap-1.5 text-[13px]! font-semibold'
+                      onClick={() => setSaveCarePlanConfirmOpen(true)}
+                      disabled={
+                        saveMetricsMutation.isPending || !workspace
+                      }
+                      title={!workspace ? 'Workspace not loaded' : undefined}
+                    >
+                      {saveMetricsMutation.isPending ? (
+                        <Loader2Icon className='size-4 animate-spin' />
+                      ) : (
+                        <Save className='size-4' aria-hidden />
+                      )}
+                      Save operational log
+                    </Button>
+                  </div>
                 </div>
-                <div className='flex flex-wrap items-center justify-end gap-2'>
-                  <Button
-                    type='button'
-                    className='bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
-                    variant='outline'
-                    onClick={() =>
-                      router.push(ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.LIST)
-                    }
-                    disabled={saveMetricsMutation.isPending}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type='button'
-                    className='h-10 gap-1.5 text-[13px]! font-semibold'
-                    onClick={() => setSaveCarePlanConfirmOpen(true)}
-                    disabled={
-                      !canEditMetrics ||
-                      saveMetricsMutation.isPending ||
-                      !workspace
-                    }
-                    title={
-                      !canEditMetrics && operationalLog
-                        ? 'Only draft or in-progress editable logs can change operational log data'
-                        : !workspace
-                          ? 'Workspace not loaded'
-                          : undefined
-                    }
-                  >
-                    {saveMetricsMutation.isPending ? (
-                      <Loader2Icon className='size-4 animate-spin' />
-                    ) : (
-                      <Save className='size-4' aria-hidden />
-                    )}
-                    Save operational log
-                  </Button>
-                </div>
-              </div>
+              ) : null}
             </>
           ) : null}
         </section>
@@ -1722,73 +1709,85 @@ export default function CarePlanReportWorkspace({
               />
             </div>
 
-            <div className='flex w-full flex-wrap items-center justify-between gap-2'>
-              <div className='flex flex-wrap items-center gap-2'>
-                <Button
-                  type='button'
-                  className='gap-1.5'
-                  variant='outline'
-                  onClick={() => setOperationalLogMetricsReviewOpen(true)}
-                  disabled={
-                    !canEditMetrics ||
-                    !formMetrics.length ||
-                    saveMetricsMutation.isPending ||
-                    !workspace
-                  }
-                  title='See what changed in the metrics worksheet (vs. last open or last save) before you save'
-                >
-                  <ListChecks className='size-4' aria-hidden />
-                  Review changes
-                </Button>
-              </div>
-              <Button
-                type='button'
-                variant='outline'
-                onClick={() => saveFeedbackMutation.mutate()}
-                disabled={
-                  !canEditFeedback ||
-                  saveFeedbackMutation.isPending ||
-                  activeRunId == null
-                }
+            <div className='flex w-full flex-col gap-2'>
+              <div
+                className={cn(
+                  'flex w-full flex-wrap items-center gap-2',
+                  canEditMetrics ? 'justify-between' : 'justify-end',
+                )}
               >
-                {saveFeedbackMutation.isPending ? (
-                  <Loader2Icon className='size-4 animate-spin' />
+                {canEditMetrics ? (
+                  <div className='flex flex-wrap items-center gap-2'>
+                    <Button
+                      type='button'
+                      className='gap-1.5'
+                      variant='outline'
+                      onClick={() => setOperationalLogMetricsReviewOpen(true)}
+                      disabled={
+                        !formMetrics.length ||
+                        saveMetricsMutation.isPending ||
+                        !workspace
+                      }
+                      title='See what changed in the metrics worksheet (vs. last open or last save) before you save'
+                    >
+                      <ListChecks className='size-4' aria-hidden />
+                      Review changes
+                    </Button>
+                  </div>
                 ) : null}
-                Save narrative
-              </Button>
-              <Button
-                type='button'
-                variant='default'
-                className='gap-1.5 bg-emerald-600 text-white hover:bg-emerald-700'
-                onClick={() => publishMutation.mutate()}
-                disabled={
-                  clientReport?.status !== 'in_review' ||
-                  publishMutation.isPending ||
-                  activeRunId == null
-                }
-              >
-                {publishMutation.isPending ? (
-                  <Loader2Icon className='size-4 animate-spin' />
-                ) : (
-                  <CheckCircle2Icon className='size-4' />
-                )}
-                Publish
-              </Button>
-              <Button
-                type='button'
-                onClick={() => setSaveCarePlanConfirmOpen(true)}
-                disabled={
-                  !canEditMetrics || saveMetricsMutation.isPending || !workspace
-                }
-                className='gap-1.5'
-              >
-                {saveMetricsMutation.isPending ? (
-                  <Loader2Icon className='size-4 animate-spin' />
-                ) : (
-                  <Save className='size-4' aria-hidden />
-                )}
-                Save operational log
-              </Button>
+                <div className='flex flex-wrap items-center gap-2'>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => saveFeedbackMutation.mutate()}
+                    disabled={
+                      !canEditFeedback ||
+                      saveFeedbackMutation.isPending ||
+                      activeRunId == null
+                    }
+                  >
+                    {saveFeedbackMutation.isPending ? (
+                      <Loader2Icon className='size-4 animate-spin' />
+                    ) : null}
+                    Save narrative
+                  </Button>
+                  <Button
+                    type='button'
+                    variant='default'
+                    className='gap-1.5 bg-emerald-600 text-white hover:bg-emerald-700'
+                    onClick={() => publishMutation.mutate()}
+                    disabled={
+                      clientReport?.status !== 'in_review' ||
+                      publishMutation.isPending ||
+                      activeRunId == null
+                    }
+                  >
+                    {publishMutation.isPending ? (
+                      <Loader2Icon className='size-4 animate-spin' />
+                    ) : (
+                      <CheckCircle2Icon className='size-4' />
+                    )}
+                    Publish
+                  </Button>
+                  {canEditMetrics ? (
+                    <Button
+                      type='button'
+                      onClick={() => setSaveCarePlanConfirmOpen(true)}
+                      disabled={
+                        saveMetricsMutation.isPending || !workspace
+                      }
+                      className='gap-1.5'
+                    >
+                      {saveMetricsMutation.isPending ? (
+                        <Loader2Icon className='size-4 animate-spin' />
+                      ) : (
+                        <Save className='size-4' aria-hidden />
+                      )}
+                      Save operational log
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
               {isPublished ? (
                 <p className='text-muted-foreground text-sm'>
                   This report is published; the operational log is locked and
