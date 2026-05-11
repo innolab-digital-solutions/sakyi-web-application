@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ClipboardCopyIcon,
-  EyeIcon,
+  FileTextIcon,
   MoreHorizontalIcon,
   NotebookPenIcon,
 } from 'lucide-react';
@@ -110,6 +110,7 @@ export default function CarePlanLogRowActions({
       }
     })();
   };
+  const hasMenuAfterCopy = canUseOperationalLogs;
 
   return (
     <>
@@ -124,8 +125,8 @@ export default function CarePlanLogRowActions({
             href={ROUTES.ADMIN.MODULES.CARE_PLAN_LOGS.DETAIL(String(row.id))}
             className='inline-flex items-center gap-1.5'
           >
-            <EyeIcon className='size-3.5 shrink-0' />
-            View details
+            <FileTextIcon className='size-3.5 shrink-0' />
+            Open Overview
           </Link>
         </Button>
 
@@ -143,7 +144,7 @@ export default function CarePlanLogRowActions({
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end' className='min-w-52'>
             <DropdownMenuLabel className='text-foreground/70 space-y-1 px-2 py-1.5 text-[11px]! font-bold tracking-wide uppercase'>
-              More Options
+              Actions
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -153,7 +154,7 @@ export default function CarePlanLogRowActions({
               <ClipboardCopyIcon className='size-3.5 shrink-0' />
               Copy reference
             </DropdownMenuItem>
-            {canUseOperationalLogs ? (
+            {hasMenuAfterCopy ? (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -162,8 +163,8 @@ export default function CarePlanLogRowActions({
                 >
                   <NotebookPenIcon className='size-3.5 shrink-0' />
                   {hasExistingOperationalLog
-                    ? 'Open operational log'
-                    : 'Create operational log'}
+                    ? 'Open Operational Log'
+                    : 'Create Operational Log'}
                 </DropdownMenuItem>
               </>
             ) : null}
