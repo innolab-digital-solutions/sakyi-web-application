@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
-import { ExternalLinkIcon, FileIcon } from 'lucide-react';
+import { ChevronRightIcon, ExternalLinkIcon, FileIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { type ReactNode, useState } from 'react';
@@ -32,6 +32,14 @@ import { cn } from '@/lib/utils/styles';
 /** Primary white card shell — matches enrollment record overview cards. */
 const CARD_SURFACE =
   'border-border max-w-full min-w-0 rounded-md border bg-white p-6 shadow-xs';
+
+/** Matches admin outline workflow links (enrollment contract detail). */
+const ADMIN_OUTLINE_WORKFLOW_LINK_CLASS =
+  'inline-flex normal-case bg-background hover:bg-muted h-10 w-full shrink-0 items-center justify-between gap-2 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold';
+
+/** Matches list row outline actions (client profile “View detail” pattern). */
+const OPEN_FILE_BUTTON_CLASS =
+  'normal-case bg-background hover:bg-muted text-foreground h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold';
 
 const METRIC_TILE_CLASS =
   'bg-muted/50 border-border flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2';
@@ -95,12 +103,10 @@ function getClientProfileReference(data: {
   return `#${data.id}`;
 }
 
-function enrollmentProgramLabel(e: AdminEnrollment): string {
-  const t = e.program?.title?.trim();
-  if (t) return t;
-  const c = e.program?.code?.trim();
+function getEnrollmentCode(e: AdminEnrollment): string {
+  const c = e.code?.trim();
   if (c) return c;
-  return '—';
+  return `#${e.id}`;
 }
 
 function isImageMime(mime: string): boolean {
@@ -159,9 +165,10 @@ function ClientProfileDetailSkeleton() {
             </div>
           ))}
         </div>
-        <div className='border-border space-y-2 border-t pt-5'>
-          <Skeleton className='h-3 w-36 rounded-sm' />
-          <Skeleton className='h-20 w-full rounded-sm' />
+        <div className='border-border space-y-3 border-t pt-5'>
+          <Skeleton className='h-5 w-40 rounded-sm' />
+          <Skeleton className='h-3 max-w-md rounded-sm' />
+          <Skeleton className='h-32 w-full rounded-md' />
         </div>
       </section>
       <div className='flex min-h-0 min-w-0 flex-col gap-3 lg:gap-4'>
@@ -180,15 +187,12 @@ function ClientProfileDetailSkeleton() {
         </section>
         <section className={`${CARD_SURFACE} flex min-h-0 flex-col`}>
           <header className='border-border border-b pb-4'>
-            <Skeleton className='h-5 w-32 rounded-sm' />
+            <Skeleton className='h-5 w-40 rounded-sm' />
             <Skeleton className='mt-2 h-3 max-w-sm rounded-sm' />
           </header>
-          <div className='flex gap-3 pt-5'>
-            <Skeleton className='size-12 shrink-0 rounded-md' />
-            <div className='min-w-0 flex-1 space-y-2'>
-              <Skeleton className='h-3 w-full rounded-sm' />
-              <Skeleton className='h-3 w-2/3 rounded-sm' />
-            </div>
+          <div className='flex flex-col gap-2 pt-5'>
+            <Skeleton className='h-10 w-full rounded-md' />
+            <Skeleton className='h-10 w-full rounded-md' />
           </div>
         </section>
       </div>
@@ -196,7 +200,7 @@ function ClientProfileDetailSkeleton() {
   );
 }
 
-function MediaAttachmentRow({ item }: { item: ClientProfileMedia }) {
+function ProfileMediaTableRow({ item }: { item: ClientProfileMedia }) {
   const href = resolveMediaPublicUrl(item.url);
   const isImage = isImageMime(item.mime_type);
   const [imgFailed, setImgFailed] = useState(() => !href);
@@ -205,60 +209,60 @@ function MediaAttachmentRow({ item }: { item: ClientProfileMedia }) {
     (href.startsWith('http://') ||
       href.startsWith('https://') ||
       href.includes('localhost'));
+  const fileName =
+    item.original_name?.trim() || item.label?.trim() || 'Untitled file';
+  const typeAndSize =
+    [item.mime_type, formatFileSize(item.size_bytes)]
+      .filter(Boolean)
+      .join(' · ') || '—';
 
   return (
-    <li className='border-border flex min-w-0 gap-3 border-b py-4 last:border-b-0'>
-      <div className='bg-muted border-border relative size-14 shrink-0 overflow-hidden rounded-md border'>
-        {isImage && href && !imgFailed ? (
-          <Image
-            src={href}
-            alt={item.label?.trim() || item.original_name || 'Attachment'}
-            width={56}
-            height={56}
-            className='size-full object-cover'
-            unoptimized={unoptimized}
-            onError={() => setImgFailed(true)}
-          />
-        ) : (
-          <div className='flex size-full items-center justify-center'>
-            <FileIcon className='text-muted-foreground size-6' aria-hidden />
+    <TableRow>
+      <TableCell className='min-w-52'>
+        <div className='flex min-w-0 items-center gap-3'>
+          <div className='bg-muted border-border relative size-11 shrink-0 overflow-hidden rounded-md border'>
+            {isImage && href && !imgFailed ? (
+              <Image
+                src={href}
+                alt=''
+                width={44}
+                height={44}
+                className='size-full object-cover'
+                unoptimized={unoptimized}
+                onError={() => setImgFailed(true)}
+              />
+            ) : (
+              <div className='flex size-full items-center justify-center'>
+                <FileIcon className='text-muted-foreground size-5' aria-hidden />
+              </div>
+            )}
           </div>
-        )}
-      </div>
-      <div className='min-w-0 flex-1'>
-        <p className='text-foreground text-[13px] font-semibold'>
-          {item.label?.trim() || item.original_name?.trim() || 'Attachment'}
-        </p>
-        {item.original_name?.trim() &&
-        item.original_name.trim() !== item.label?.trim() ? (
-          <p className='text-muted-foreground truncate text-[12px] font-medium'>
-            {item.original_name.trim()}
+          <p className='text-foreground min-w-0 flex-1 text-[13px] leading-snug font-semibold wrap-break-word'>
+            {fileName}
           </p>
-        ) : null}
-        <p className='text-muted-foreground mt-0.5 text-[11px] font-medium'>
-          {[item.mime_type, formatFileSize(item.size_bytes)]
-            .filter(Boolean)
-            .join(' · ') || '—'}
-        </p>
+        </div>
+      </TableCell>
+      <TableCell>
+        <span className='text-[13px] font-medium'>{typeAndSize}</span>
+      </TableCell>
+      <TableCell className='align-center text-end whitespace-nowrap'>
         {href ? (
-          <Button
-            variant='ghost'
-            size='sm'
-            className='text-foreground h-8 gap-1 px-0 text-[12px] font-semibold'
-            asChild
-          >
-            <a href={href} target='_blank' rel='noopener noreferrer'>
-              Open file
-              <ExternalLinkIcon className='size-3.5' aria-hidden />
+          <Button variant='outline' size='sm' className={OPEN_FILE_BUTTON_CLASS} asChild>
+            <a
+              href={href}
+              target='_blank'
+              rel='noopener noreferrer'
+              className='inline-flex items-center gap-1.5'
+            >
+              Open
+              <ExternalLinkIcon className='size-3.5 shrink-0' aria-hidden />
             </a>
           </Button>
         ) : (
-          <p className='text-muted-foreground mt-1 text-xs'>
-            Missing file URL.
-          </p>
+          <TableCellEmpty label='No link' />
         )}
-      </div>
-    </li>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -308,8 +312,13 @@ export default function ClientProfileDetailView({
     <div className='grid gap-3 lg:grid-cols-3 lg:gap-4'>
       <section className={`${CARD_SURFACE} space-y-5 lg:col-span-2`}>
         <header className='border-border shrink-0 border-b pb-5'>
-          <h3 className='text-foreground text-sm font-semibold'></h3>
-          <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'></p>
+          <h3 className='text-foreground text-sm font-semibold'>
+            Client Profile
+          </h3>
+          <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
+            Identity and intake fields below; uploaded files in the media table.
+            Enrollment codes are listed beside the account card.
+          </p>
         </header>
 
         <div className='space-y-3'>
@@ -367,64 +376,38 @@ export default function ClientProfileDetailView({
             </div>
           ) : null}
 
-          <div className='border-border border-t pt-5'>
+          <div className='border-border space-y-5 border-t pt-5'>
+            <header className='border-border shrink-0 border-b pb-4'>
+              <h3 className='text-foreground text-sm font-semibold'>
+                Profile media
+              </h3>
+              <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
+                Files attached to this client profile. Open a row to view the
+                original in a new tab.
+              </p>
+            </header>
             <div className='border-border overflow-hidden rounded-md border'>
               <Table>
                 <TableHeader className='bg-muted/50 [&_tr]:border-border'>
                   <TableRow className='border-border hover:bg-transparent'>
-                    <TableHead>Reference</TableHead>
-                    <TableHead>Program</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className='tabular-nums'>Starts</TableHead>
-                    <TableHead className='tabular-nums'>Ends</TableHead>
+                    <TableHead>File</TableHead>
+                    <TableHead>Type · size</TableHead>
+                    <TableHead className='text-right'>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {enrollments.length === 0 ? (
+                  {mediaItems.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={5}
-                        className='text-muted-foreground py-8 text-center text-sm'
+                        colSpan={3}
+                        className='text-muted-foreground py-10 text-center text-sm'
                       >
-                        No enrollments linked to this profile yet.
+                        No media files are attached to this profile yet.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    enrollments.map((e) => (
-                      <TableRow key={e.id}>
-                        <TableCell className='text-[13px] font-semibold'>
-                          <Link
-                            className='text-foreground hover:text-primary inline-flex wrap-break-word underline-offset-4 hover:underline'
-                            href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(
-                              String(e.id),
-                            )}
-                          >
-                            {e.code?.trim() || `#${e.id}`}
-                          </Link>
-                        </TableCell>
-                        <TableCell className='text-[13px] font-medium'>
-                          {enrollmentProgramLabel(e) !== '—' ? (
-                            enrollmentProgramLabel(e)
-                          ) : (
-                            <TableCellEmpty label='No program' />
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <span className='border-border bg-muted/60 text-foreground inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold'>
-                            {formatStatusLabel(e.status || 'unknown')}
-                          </span>
-                        </TableCell>
-                        <TableCell className='text-foreground/80 text-[13px] tabular-nums'>
-                          {formatDateCell(e.starts_at) ?? (
-                            <TableCellEmpty label='—' />
-                          )}
-                        </TableCell>
-                        <TableCell className='text-foreground/80 text-[13px] tabular-nums'>
-                          {formatDateCell(e.ends_at) ?? (
-                            <TableCellEmpty label='—' />
-                          )}
-                        </TableCell>
-                      </TableRow>
+                    mediaItems.map((m) => (
+                      <ProfileMediaTableRow key={m.id} item={m} />
                     ))
                   )}
                 </TableBody>
@@ -470,24 +453,40 @@ export default function ClientProfileDetailView({
         <section className={`${CARD_SURFACE} flex min-h-0 flex-col`}>
           <header className='border-border shrink-0 border-b pb-4'>
             <h3 className='text-foreground text-sm font-semibold'>
-              Profile Media
+              Program Enrollments
             </h3>
             <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
-              Documents and uploads associated with this client profile. Open
-              files in a new tab to review originals.
+              Each code opens the enrollment record overview for that program.
             </p>
           </header>
-          <div className='min-h-0 flex-1 pt-5'>
-            {mediaItems.length === 0 ? (
+          <div className='flex min-h-0 flex-1 flex-col gap-2 pt-5'>
+            {enrollments.length === 0 ? (
               <p className='text-muted-foreground text-sm'>
-                No media files are attached to this profile yet.
+                No enrollments linked to this profile yet.
               </p>
             ) : (
-              <ul className='m-0 list-none p-0'>
-                {mediaItems.map((m) => (
-                  <MediaAttachmentRow key={m.id} item={m} />
-                ))}
-              </ul>
+              enrollments.map((e) => (
+                <Button
+                  key={e.id}
+                  variant='outline'
+                  className={ADMIN_OUTLINE_WORKFLOW_LINK_CLASS}
+                  asChild
+                >
+                  <Link
+                    href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(
+                      String(e.id),
+                    )}
+                  >
+                    <span className='text-foreground min-w-0 truncate font-semibold tabular-nums'>
+                      {getEnrollmentCode(e)}
+                    </span>
+                    <ChevronRightIcon
+                      className='text-foreground/70 size-3.5 shrink-0'
+                      aria-hidden
+                    />
+                  </Link>
+                </Button>
+              ))
             )}
           </div>
         </section>
