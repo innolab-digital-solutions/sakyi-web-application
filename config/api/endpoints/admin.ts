@@ -161,6 +161,8 @@ export const ADMIN_ENDPOINTS = {
     /** Client-facing period report runs (`care_plan_report_runs`). */
     PERIOD_REPORTS: {
       LIST: `${BASE}/period-reports`,
+      /** Same `{id}` as list row `data[].id` (@see period-report-overview.md §2). */
+      DETAIL: (id: string) => `${BASE}/period-reports/${id}`,
     },
     USERS: {
       LIST: `${BASE}/users`,

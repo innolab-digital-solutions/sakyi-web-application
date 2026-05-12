@@ -137,15 +137,11 @@ export function normalizeClientReportStatus(
   return null;
 }
 
-/** Read-only period report overview (summary + narrative preview). */
+/** Period report overview URL; `periodReportListId` is row `id` from the period reports table. */
 export function buildPeriodReportOverviewHref(
-  carePlanId: number,
-  reportRunId: number,
+  periodReportListId: number,
 ): string {
-  return ROUTES.ADMIN.MODULES.PERIOD_REPORTS.DETAIL(
-    String(carePlanId),
-    String(reportRunId),
-  );
+  return ROUTES.ADMIN.MODULES.PERIOD_REPORTS.DETAIL(String(periodReportListId));
 }
 
 /**

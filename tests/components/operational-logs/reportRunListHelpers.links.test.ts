@@ -7,9 +7,9 @@ import {
 import { ROUTES } from '@/config/routes';
 
 describe('report/link href builders', () => {
-  it('routes period report overview under /period-reports/:carePlanId/:reportRunId', () => {
-    expect(buildPeriodReportOverviewHref(7, 3)).toBe(
-      ROUTES.ADMIN.MODULES.PERIOD_REPORTS.DETAIL('7', '3'),
+  it('routes period report detail under /period-reports/:id (list row id)', () => {
+    expect(buildPeriodReportOverviewHref(3)).toBe(
+      ROUTES.ADMIN.MODULES.PERIOD_REPORTS.DETAIL('3'),
     );
   });
 

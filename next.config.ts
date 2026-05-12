@@ -2,6 +2,15 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   cacheComponents: false,
+  async redirects() {
+    return [
+      {
+        source: '/admin/period-reports/:carePlanId/:periodReportId',
+        destination: '/admin/period-reports/:periodReportId',
+        permanent: false,
+      },
+    ];
+  },
   async headers() {
     return [
       {

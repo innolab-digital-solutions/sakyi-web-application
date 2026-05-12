@@ -47,8 +47,7 @@ export default function PeriodReportRowActions({ row }: Props) {
   const reportCode = row.code?.trim() || `#${row.id}`;
   const carePlanEndsOn = row.care_plan?.ends_on?.trim() ?? '';
 
-  const overviewHref =
-    carePlanId != null ? buildPeriodReportOverviewHref(carePlanId, row.id) : null;
+  const overviewHref = buildPeriodReportOverviewHref(row.id);
 
   const canShowPublishAction = row.status === 'in_review';
 
@@ -105,14 +104,6 @@ export default function PeriodReportRowActions({ row }: Props) {
       }
     })();
   };
-
-  if (overviewHref == null) {
-    return (
-      <div className='flex justify-end'>
-        <span className='text-muted-foreground text-sm'>—</span>
-      </div>
-    );
-  }
 
   return (
     <div className='flex items-center justify-end gap-1.5'>

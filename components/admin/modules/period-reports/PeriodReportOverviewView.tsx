@@ -23,7 +23,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/config/routes';
-import { getCarePlanReportWorkspace } from '@/domains/care-plans/services';
+import { getPeriodReportById } from '@/domains/care-plans/services';
 import { getInitials } from '@/lib/utils/string';
 import { cn } from '@/lib/utils/styles';
 
@@ -75,29 +75,22 @@ function formatCareWindow(
 }
 
 export type PeriodReportOverviewViewProps = {
-  carePlanId: number;
-  reportRunId: number;
+  /** Same `id` as the period reports list row and URL `/admin/period-reports/[id]`. */
+  periodReportId: number;
 };
 
 export default function PeriodReportOverviewView({
-  carePlanId,
-  reportRunId,
+  periodReportId,
 }: PeriodReportOverviewViewProps) {
   const {
-    data: workspaceResult,
+    data: detail,
     isPending,
     isError,
     error,
   } = useQuery({
-    queryKey: [
-      'period-report-overview',
-      carePlanId,
-      reportRunId,
-    ] as const,
+    queryKey: ['admin-period-report-detail', periodReportId] as const,
     queryFn: async () => {
-      const res = await getCarePlanReportWorkspace(carePlanId, {
-        reportRunId,
-      });
+      const res = await getPeriodReportById(periodReportId);
       if (res.status === 'error') {
         throw new Error(res.message ?? 'Could not load period report.');
       }
@@ -106,35 +99,39 @@ export default function PeriodReportOverviewView({
     },
   });
 
-  const workspace = workspaceResult;
-  const clientReport = workspace?.client_report ?? workspace?.report_run ?? null;
-  const opLog = workspace?.operational_log ?? null;
+  const carePlanIdForLinks = detail?.care_plan?.id ?? null;
+  const operationalLogWorkspaceHref =
+    carePlanIdForLinks != null
+      ? buildOperationalLogWorkspaceHref(carePlanIdForLinks)
+      : null;
+  const carePlanDetailHref =
+    carePlanIdForLinks != null
+      ? ROUTES.ADMIN.MODULES.CARE_PLANS.DETAIL(String(carePlanIdForLinks))
+      : null;
 
-  const reportCode =
-    clientReport?.code?.trim() || `#${reportRunId}`;
+  const opLog = detail?.operational_log ?? null;
 
-  const reportStatusNorm = normalizeClientReportStatus(clientReport?.status);
+  const reportCode = detail?.code?.trim() || `#${periodReportId}`;
+
+  const reportStatusNorm = normalizeClientReportStatus(detail?.status);
   const statusStyle = reportStatusNorm
     ? CLIENT_REPORT_STATUS_STYLES[reportStatusNorm]
     : null;
 
   const clientName =
-    workspace?.client?.name?.trim() ||
-    workspace?.client?.email?.trim() ||
+    detail?.client?.name?.trim() ||
+    detail?.client?.email?.trim() ||
     '—';
-  const clientCode = workspace?.client?.client_code?.trim();
+  const clientCode = detail?.client?.client_code?.trim();
   const clientAvatarSrc = resolveClientPictureUrl(
-    workspace?.client?.picture_url,
+    detail?.client?.picture_url,
   );
 
-  const carePlanCode = workspace?.care_plan?.code?.trim();
+  const carePlanCode = detail?.care_plan?.code?.trim();
   const carePlanLabel =
-    carePlanCode || (workspace?.care_plan?.id != null
-      ? `Care Plan #${workspace.care_plan.id}`
+    carePlanCode || (detail?.care_plan?.id != null
+      ? `Care Plan #${detail.care_plan.id}`
       : '—');
-
-  const operationalLogWorkspaceHref =
-    buildOperationalLogWorkspaceHref(carePlanId);
 
   if (isPending) {
     return (
@@ -147,7 +144,7 @@ export default function PeriodReportOverviewView({
               className={cn(METRIC_TILE_CLASS, 'animate-pulse space-y-2')}
             >
               <div className='bg-muted/80 h-3 w-20 rounded-sm' />
-              <div className='bg-muted/80 h-4 w-full max-w-[10rem] rounded-sm' />
+              <div className='bg-muted/80 h-4 w-full max-w-40 rounded-sm' />
             </div>
           ))}
         </div>
@@ -167,7 +164,7 @@ export default function PeriodReportOverviewView({
     );
   }
 
-  if (!workspace) {
+  if (!detail) {
     return (
       <section className={`${CARD_SURFACE}`}>
         <p className='text-muted-foreground text-sm'>
@@ -178,8 +175,8 @@ export default function PeriodReportOverviewView({
   }
 
   const periodLabel = formatCareWindow(
-    workspace.period.starts_on,
-    workspace.period.ends_on,
+    detail.period.starts_on,
+    detail.period.ends_on,
   );
 
   return (
@@ -210,38 +207,39 @@ export default function PeriodReportOverviewView({
                   variant='outline'
                   className={`text-[10px] uppercase ${UNKNOWN_STATUS_BADGE_CLASS}`}
                 >
-                  {(clientReport?.status ?? '').replace(/_/g, ' ') || '—'}
+                  {(detail.status ?? '').replace(/_/g, ' ') || '—'}
                 </Badge>
               )}
             </div>
             <p className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
-              Summary of this client-facing period report before you open the
-              full workspace for metrics and narrative edits.
+              Read-only summary for this period report. Edit metrics and submit
+              for review from the operational logs workspace when the log is
+              editable.
             </p>
           </div>
           <div className='flex shrink-0 flex-wrap gap-2'>
-            <Button
-              type='button'
-              className='h-10 gap-1.5 text-[13px]! font-semibold'
-              asChild
-            >
-              <Link href={operationalLogWorkspaceHref}>
-                <FileChartColumn className='size-3.5 shrink-0' aria-hidden />
-                Operational log workspace
-              </Link>
-            </Button>
-            <Button
-              type='button'
-              variant='outline'
-              className='bg-background hover:bg-muted h-10 shrink-0 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
-              asChild
-            >
-              <Link
-                href={ROUTES.ADMIN.MODULES.CARE_PLANS.DETAIL(String(carePlanId))}
+            {operationalLogWorkspaceHref ? (
+              <Button
+                type='button'
+                className='h-10 gap-1.5 text-[13px]! font-semibold'
+                asChild
               >
-                Care plan overview
-              </Link>
-            </Button>
+                <Link href={operationalLogWorkspaceHref}>
+                  <FileChartColumn className='size-3.5 shrink-0' aria-hidden />
+                  Operational log workspace
+                </Link>
+              </Button>
+            ) : null}
+            {carePlanDetailHref ? (
+              <Button
+                type='button'
+                variant='outline'
+                className='bg-background hover:bg-muted h-10 shrink-0 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+                asChild
+              >
+                <Link href={carePlanDetailHref}>Care plan overview</Link>
+              </Button>
+            ) : null}
           </div>
         </header>
 
@@ -272,9 +270,9 @@ export default function PeriodReportOverviewView({
 
           <MetricTile label='Care plan'>
             <p className='line-clamp-2 tabular-nums'>{carePlanLabel}</p>
-            {workspace.care_plan?.status ? (
+            {detail.care_plan?.status ? (
               <p className='text-muted-foreground mt-0.5 text-[11px] font-semibold capitalize'>
-                {workspace.care_plan.status.replace(/_/g, ' ')}
+                {detail.care_plan.status.replace(/_/g, ' ')}
               </p>
             ) : null}
           </MetricTile>
@@ -292,8 +290,8 @@ export default function PeriodReportOverviewView({
           <MetricTile label='Plan window'>
             <span className='tabular-nums'>
               {formatCareWindow(
-                workspace.care_plan.starts_on,
-                workspace.care_plan.ends_on,
+                detail.care_plan?.starts_on,
+                detail.care_plan?.ends_on,
               )}
             </span>
           </MetricTile>
@@ -305,8 +303,8 @@ export default function PeriodReportOverviewView({
                 aria-hidden
               />
               <span className='tabular-nums'>
-                {clientReport?.adherence_percentage != null
-                  ? `${Math.round(clientReport.adherence_percentage)}%`
+                {detail.adherence_percentage != null
+                  ? `${Math.round(detail.adherence_percentage)}%`
                   : '—'}
               </span>
             </div>
@@ -325,13 +323,13 @@ export default function PeriodReportOverviewView({
           <MetricTile label='Generated by'>
             <div className='flex flex-wrap items-center gap-2'>
               <UserIcon className='text-muted-foreground size-3.5 shrink-0' />
-              <span>{clientReport?.generated_by?.name?.trim() || '—'}</span>
+              <span>{detail.generated_by?.name?.trim() || '—'}</span>
             </div>
             <div className='text-muted-foreground mt-1 space-y-0.5 text-[11px] font-medium'>
               {(() => {
                 const submitted =
-                  clientReport?.timestamps?.submitted_for_review_at;
-                const published = clientReport?.timestamps?.published_at;
+                  detail.timestamps?.submitted_for_review_at;
+                const published = detail.timestamps?.published_at;
                 return (
                   <>
                     {submitted ? (
@@ -357,14 +355,14 @@ export default function PeriodReportOverviewView({
           <h3 className='text-foreground text-sm font-semibold'>
             Care team narrative
           </h3>
-          {clientReport?.feedback ? (
+          {detail.feedback ? (
             <div className='text-muted-foreground space-y-3 text-[13px] leading-relaxed font-medium'>
               <div className='space-y-1'>
                 <p className='text-foreground text-[11px] font-bold tracking-wide uppercase'>
                   Summary
                 </p>
-                <p className='text-foreground/90 min-h-[1.25rem] font-medium whitespace-pre-wrap'>
-                  {(clientReport.feedback.summary ?? '').trim() ||
+                <p className='text-foreground/90 min-h-5 font-medium whitespace-pre-wrap'>
+                  {(detail.feedback.summary ?? '').trim() ||
                     '—'}
                 </p>
               </div>
@@ -372,8 +370,8 @@ export default function PeriodReportOverviewView({
                 <p className='text-foreground text-[11px] font-bold tracking-wide uppercase'>
                   Focus for next period
                 </p>
-                <p className='text-foreground/90 min-h-[1.25rem] whitespace-pre-wrap'>
-                  {(clientReport.feedback.focus_next_period ?? '').trim() ||
+                <p className='text-foreground/90 min-h-5 whitespace-pre-wrap'>
+                  {(detail.feedback.focus_next_period ?? '').trim() ||
                     '—'}
                 </p>
               </div>
@@ -381,8 +379,8 @@ export default function PeriodReportOverviewView({
                 <p className='text-foreground text-[11px] font-bold tracking-wide uppercase'>
                   Internal notes
                 </p>
-                <p className='text-foreground/90 min-h-[1.25rem] whitespace-pre-wrap'>
-                  {(clientReport.feedback.notes ?? '').trim() || '—'}
+                <p className='text-foreground/90 min-h-5 whitespace-pre-wrap'>
+                  {(detail.feedback.notes ?? '').trim() || '—'}
                 </p>
               </div>
             </div>

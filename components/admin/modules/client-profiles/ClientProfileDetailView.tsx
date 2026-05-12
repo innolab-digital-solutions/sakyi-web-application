@@ -150,7 +150,7 @@ function ClientProfileDetailSkeleton() {
       <section className={`${CARD_SURFACE} space-y-5 lg:col-span-2`}>
         <header className='border-border shrink-0 border-b pb-5'>
           <Skeleton className='h-5 w-44 rounded-sm' />
-          <Skeleton className='mt-1 h-[13px] w-full max-w-3xl rounded-sm' />
+          <Skeleton className='mt-1 h-3.25 w-full max-w-3xl rounded-sm' />
         </header>
         <div className='grid gap-1.5 md:grid-cols-3'>
           {Array.from({ length: 7 }).map((_, idx) => (

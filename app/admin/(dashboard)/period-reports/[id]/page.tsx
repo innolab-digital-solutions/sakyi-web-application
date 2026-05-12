@@ -16,18 +16,13 @@ export const metadata: Metadata = {
 };
 
 type Props = {
-  params: Promise<{ carePlanId: string; reportRunId: string }>;
+  params: Promise<{ id: string }>;
 };
 
 export default async function PeriodReportOverviewPage({ params }: Props) {
-  const { carePlanId: carePlanParam, reportRunId: reportParam } = await params;
-  const carePlanId = Number.parseInt(carePlanParam, 10);
-  const reportRunId = Number.parseInt(reportParam, 10);
-  const valid =
-    Number.isFinite(carePlanId) &&
-    Number.isFinite(reportRunId) &&
-    carePlanId > 0 &&
-    reportRunId > 0;
+  const { id: idParam } = await params;
+  const periodReportId = Number.parseInt(idParam, 10);
+  const valid = Number.isFinite(periodReportId) && periodReportId > 0;
 
   return (
     <div className='min-w-0 space-y-8'>
@@ -53,11 +48,11 @@ export default async function PeriodReportOverviewPage({ params }: Props) {
 
       {!valid ? (
         <div className='border-destructive/30 bg-destructive/5 text-destructive rounded-md border p-4 text-sm'>
-          Invalid care plan or period report identifier.
+          Invalid period report identifier.
         </div>
       ) : (
         <Suspense fallback={<AdminDetailCardSkeleton />}>
-          <PeriodReportOverviewView carePlanId={carePlanId} reportRunId={reportRunId} />
+          <PeriodReportOverviewView periodReportId={periodReportId} />
         </Suspense>
       )}
     </div>

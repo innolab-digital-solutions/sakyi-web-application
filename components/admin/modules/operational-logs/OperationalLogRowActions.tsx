@@ -43,8 +43,8 @@ export default function OperationalLogRowActions({ row }: Props) {
 
   const clientReport = row.client_report;
   const periodReportOverviewHref =
-    carePlanId != null && clientReport != null
-      ? buildPeriodReportOverviewHref(carePlanId, clientReport.id)
+    clientReport != null
+      ? buildPeriodReportOverviewHref(clientReport.id)
       : null;
 
   const copyReference = () => {

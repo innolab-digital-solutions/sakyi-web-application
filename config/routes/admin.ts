@@ -116,9 +116,9 @@ export const ADMIN_ROUTES = {
     },
     PERIOD_REPORTS: {
       LIST: `${BASE}/period-reports`,
-      /** Read-only period report summary (metrics + narrative preview). */
-      DETAIL: (carePlanId: string, reportRunId: string) =>
-        `${BASE}/period-reports/${carePlanId}/${reportRunId}`,
+      /** Detail by period report id (same value as row `id` on the period reports table). */
+      DETAIL: (periodReportId: string) =>
+        `${BASE}/period-reports/${periodReportId}`,
     },
     USERS: {
       LIST: `${BASE}/users`,
