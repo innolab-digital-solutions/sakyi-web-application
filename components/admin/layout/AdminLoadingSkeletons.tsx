@@ -125,20 +125,20 @@ function CarePlanSixContextTilesSkeleton() {
   return (
     <div className='grid gap-2 sm:grid-cols-2 lg:grid-cols-3'>
       <div className={METRIC_SURFACE}>
-        <Skeleton className='mb-1.5 h-3 max-w-[5.5rem] rounded-sm' />
+        <Skeleton className='mb-1.5 h-3 max-w-22 rounded-sm' />
         <div className='mt-1 flex min-w-0 items-center gap-2.5'>
           <Skeleton className='border-border size-9 shrink-0 rounded-full border' />
           <div className='min-w-0 flex-1 space-y-1.5'>
-            <Skeleton className='h-4 max-w-[12rem]' />
-            <Skeleton className='h-3 max-w-[6rem]' />
+            <Skeleton className='h-4 max-w-48' />
+            <Skeleton className='h-3 max-w-24' />
           </div>
         </div>
       </div>
       {Array.from({ length: 5 }).map((_, idx) => (
         <div key={`ctx-tile-${idx}`} className={METRIC_SURFACE}>
-          <Skeleton className='mb-1.5 h-3 max-w-[6rem] rounded-sm' />
-          <Skeleton className='h-4 max-w-[11rem]' />
-          <Skeleton className='mt-1 h-3 max-w-[5rem]' />
+          <Skeleton className='mb-1.5 h-3 max-w-24 rounded-sm' />
+          <Skeleton className='h-4 max-w-44' />
+          <Skeleton className='mt-1 h-3 max-w-20' />
         </div>
       ))}
     </div>
@@ -149,20 +149,20 @@ function OperationalLogFourContextTilesSkeleton() {
   return (
     <div className='grid gap-2 sm:grid-cols-2 lg:grid-cols-4'>
       <div className={METRIC_SURFACE}>
-        <Skeleton className='mb-1.5 h-3 max-w-[4rem] rounded-sm' />
+        <Skeleton className='mb-1.5 h-3 max-w-16 rounded-sm' />
         <div className='mt-1 flex min-w-0 items-center gap-2.5'>
           <Skeleton className='border-border size-9 shrink-0 rounded-full border' />
           <div className='min-w-0 flex-1 space-y-1.5'>
-            <Skeleton className='h-4 max-w-[10rem]' />
-            <Skeleton className='h-3 max-w-[5.5rem]' />
+            <Skeleton className='h-4 max-w-40' />
+            <Skeleton className='h-3 max-w-22' />
           </div>
         </div>
       </div>
       {Array.from({ length: 3 }).map((_, idx) => (
         <div key={`op-ctx-${idx}`} className={METRIC_SURFACE}>
-          <Skeleton className='mb-1.5 h-3 max-w-[7rem] rounded-sm' />
-          <Skeleton className='h-4 max-w-[10rem]' />
-          <Skeleton className='mt-1 h-3 max-w-[6rem]' />
+          <Skeleton className='mb-1.5 h-3 max-w-28 rounded-sm' />
+          <Skeleton className='h-4 max-w-40' />
+          <Skeleton className='mt-1 h-3 max-w-24' />
         </div>
       ))}
     </div>
@@ -195,8 +195,8 @@ export function OperationalLogWorksheetSkeleton() {
     <div className='space-y-5'>
       <div className='space-y-1'>
         <Skeleton className='h-4 w-64 max-w-[min(24rem,90vw)] rounded-sm' />
-        <Skeleton className='h-[13px] w-full max-w-2xl rounded-sm' />
-        <Skeleton className='h-[13px] w-full max-w-xl rounded-sm' />
+        <Skeleton className='h-3.25 w-full max-w-2xl rounded-sm' />
+        <Skeleton className='h-3.25 w-full max-w-xl rounded-sm' />
       </div>
       <div className='grid min-h-0 grid-cols-1 items-start gap-5 lg:grid-cols-3 lg:gap-6'>
         <div className='min-h-0 min-w-0 space-y-2 lg:col-span-1'>
@@ -241,7 +241,7 @@ export function OperationalLogsWorkspaceFullSkeleton() {
           <div className='flex flex-wrap items-start justify-between gap-3'>
             <div className='min-w-0 space-y-1.5'>
               <Skeleton className='h-3 w-44 rounded-sm' />
-              <Skeleton className='h-[13px] w-48 max-w-full rounded-sm' />
+              <Skeleton className='h-3.25 w-48 max-w-full rounded-sm' />
               <Skeleton className='h-3 w-56 max-w-full rounded-sm' />
             </div>
             <Skeleton className='h-10 w-44 rounded-md' />
@@ -267,9 +267,9 @@ export function CarePlanBuilderSkeleton() {
           <div className='flex flex-wrap items-start justify-between gap-4'>
             <div className='space-y-1.5'>
               <Skeleton className='h-3 w-40 rounded-sm' />
-              <Skeleton className='h-[13px] w-52 max-w-full rounded-sm' />
+              <Skeleton className='h-3.25 w-52 max-w-full rounded-sm' />
             </div>
-            <Skeleton className='h-10 min-w-[8rem] rounded-md' />
+            <Skeleton className='h-10 min-w-32 rounded-md' />
           </div>
           <div className='border-border/70 border-t' />
           <CarePlanSixContextTilesSkeleton />
@@ -284,7 +284,7 @@ export function CarePlanBuilderSkeleton() {
               {Array.from({ length: 8 }).map((_, idx) => (
                 <Skeleton
                   key={`day-sk-${idx}`}
-                  className='h-[3.25rem] w-full rounded-md'
+                  className='h-13 w-full rounded-md'
                 />
               ))}
             </div>
@@ -309,7 +309,7 @@ export function ClientProfileMediaTableSkeleton() {
     <div className='border-border space-y-5 border-t pt-5'>
       <header className='border-border shrink-0 border-b pb-4'>
         <Skeleton className='h-5 w-40 rounded-sm' />
-        <Skeleton className='mt-1 h-[13px] w-full max-w-3xl rounded-sm' />
+        <Skeleton className='mt-1 h-3.25 w-full max-w-3xl rounded-sm' />
       </header>
       <div className='border-border overflow-hidden rounded-md border'>
         <Table>
