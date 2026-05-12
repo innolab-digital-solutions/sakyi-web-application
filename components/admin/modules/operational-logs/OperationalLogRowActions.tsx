@@ -2,13 +2,17 @@
 
 import {
   ClipboardCopyIcon,
+  FileChartColumn,
   MoreHorizontalIcon,
   NotebookPenIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
-import { buildOperationalLogWorkspaceHref } from '@/components/admin/modules/operational-logs/reportRunListHelpers';
+import {
+  buildOperationalLogWorkspaceHref,
+  buildPeriodReportOverviewHref,
+} from '@/components/admin/modules/operational-logs/reportRunListHelpers';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -37,6 +41,12 @@ export default function OperationalLogRowActions({ row }: Props) {
       ? buildOperationalLogWorkspaceHref(carePlanId, row.id)
       : null;
 
+  const clientReport = row.client_report;
+  const periodReportOverviewHref =
+    clientReport != null
+      ? buildPeriodReportOverviewHref(clientReport.id)
+      : null;
+
   const copyReference = () => {
     void (async () => {
       try {
@@ -61,7 +71,7 @@ export default function OperationalLogRowActions({ row }: Props) {
       <Button variant='outline' size='sm' className={viewPrimaryClass} asChild>
         <Link href={href} className='inline-flex items-center gap-1.5'>
           <NotebookPenIcon className='size-3.5 shrink-0' />
-          Open workspace
+          Open Workspace
         </Link>
       </Button>
 
@@ -82,6 +92,17 @@ export default function OperationalLogRowActions({ row }: Props) {
             More Options
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          {periodReportOverviewHref ? (
+            <DropdownMenuItem asChild className='cursor-pointer'>
+              <Link
+                href={periodReportOverviewHref}
+                className='flex items-center gap-2 text-[13px]! font-medium'
+              >
+                <FileChartColumn className='size-3.5 shrink-0' aria-hidden />
+                Open period report overview
+              </Link>
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuItem
             className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
             onClick={copyReference}

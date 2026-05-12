@@ -3,16 +3,16 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
-import { AdminWorkspaceSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
+import { CarePlanBuilderSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import PageHeader from '@/components/admin/layout/PageHeader';
 import CarePlanBuilder from '@/components/admin/modules/care-plans/CarePlanBuilder';
 import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/config/routes';
 
 export const metadata: Metadata = {
-  title: 'Care Plan Workspace | SaKyi Admin',
+  title: 'Care plan workspace | SaKyi Admin',
   description:
-    'Configure and manage a care plan in one guided workspace, from day generation to section planning, validation checks, and activation readiness.',
+    'Edit day structure, sections, and validation for a single care plan, keep enrollment context in view, and move the plan toward activation and operational reporting.',
 };
 
 type CarePlanBuilderPageProps = {
@@ -28,8 +28,8 @@ export default async function CarePlanBuilderPage({
   return (
     <div className='min-w-0 space-y-8'>
       <PageHeader
-        title='Care Plan Workspace'
-        description='Manage and customize every aspect of a care plan, including day generation, section tasks, scheduling, and validation before activation.'
+        title='Care plan workspace'
+        description='Author and adjust this plan end to end—generate days, fill sections, resolve validation, and confirm activation readiness while the linked enrollment and program stay visible for context.'
         actions={
           <Button
             variant='outline'
@@ -38,12 +38,12 @@ export default async function CarePlanBuilderPage({
           >
             <Link href={ROUTES.ADMIN.MODULES.CARE_PLANS.LIST}>
               <ArrowLeftIcon className='size-3.5' />
-              Back to care plans
+              Back to Care Plans
             </Link>
           </Button>
         }
       />
-      <Suspense fallback={<AdminWorkspaceSkeleton />}>
+      <Suspense fallback={<CarePlanBuilderSkeleton />}>
         {Number.isFinite(numericId) ? (
           <CarePlanBuilder carePlanId={numericId} mode='edit' />
         ) : (

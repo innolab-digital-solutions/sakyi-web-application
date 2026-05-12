@@ -22,10 +22,16 @@ export type CustomInputProps = Omit<
    * `tableDense`: short flat inputs for data tables (smaller than summary row fields).
    */
   variant?: TextFieldVariant;
+  /**
+   * When `false`, password inputs render without the show/hide visibility control.
+   * Defaults to `true` for backwards compatibility.
+   */
+  passwordVisibilityToggle?: boolean;
 };
 
 /**
- * Accessible form text input with optional label, error message, and password visibility toggle.
+ * Accessible form text input with optional label, error message, and optional password
+ * visibility toggle (`passwordVisibilityToggle`, default true).
  *
  * Use for email, password, and single-line text fields in forms. Supports ref forwarding
  * and integrates with shared form state (e.g. useForm) via value, onChange, error, disabled.
@@ -43,6 +49,7 @@ const TextField = React.forwardRef<HTMLInputElement, CustomInputProps>(
       className,
       placeholder,
       variant = 'default',
+      passwordVisibilityToggle = true,
       ...rest
     },
     ref,
@@ -61,7 +68,7 @@ const TextField = React.forwardRef<HTMLInputElement, CustomInputProps>(
           'h-[2.1875rem]! min-h-[2.1875rem]! w-full min-w-0 rounded-sm border! border-neutral-200! bg-background! px-2! py-0! text-xs! font-medium! leading-tight! tabular-nums! text-foreground! shadow-none! transition-[color,box-shadow] outline-none! focus-visible:border-ring! focus-visible:ring-[3px]! focus-visible:ring-ring/50! md:h-[2.1875rem]! md:min-h-[2.1875rem]! md:px-2! md:py-0! md:text-xs!'
         : 'text-xs h-10 px-3 font-medium border-neutral-200',
       !isTableDense && 'md:text-sm md:h-12 md:px-4',
-      isPassword && 'pr-10',
+      isPassword && passwordVisibilityToggle && 'pr-10',
       error &&
         'border-destructive bg-destructive/4 focus-visible:ring-destructive/20',
       className,
@@ -102,7 +109,7 @@ const TextField = React.forwardRef<HTMLInputElement, CustomInputProps>(
             {label}
           </ShadCNLabel>
         )}
-        {isPassword ? (
+        {isPassword && passwordVisibilityToggle ? (
           <div className='relative'>
             {inputElement}
             <button

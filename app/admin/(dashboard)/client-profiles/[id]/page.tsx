@@ -8,9 +8,9 @@ import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/config/routes';
 
 export const metadata: Metadata = {
-  title: 'Client profile | SaKyi Admin',
+  title: 'Client Profile Overview',
   description:
-    'Review one client profile with account details, onboarding information, and linked enrollments so you can understand current context before taking action.',
+    'Confirm reference and account identity, review wellness profile fields and uploaded media, and scan linked enrollment records before updates or outbound communication.',
 };
 
 type ClientProfilePageProps = {
@@ -30,8 +30,8 @@ export default async function ClientProfilePage({
   return (
     <div className='min-w-0 space-y-8'>
       <PageHeader
-        title='Client profile'
-        description='View this client’s account summary, intake profile details, and enrollment history to support informed next steps and consistent case handling.'
+        title='Client profile overview'
+        description='Confirm reference and account identity, review wellness profile fields and uploaded media, and scan linked enrollment records before updates or outbound communication.'
         actions={
           <Button
             asChild
@@ -40,7 +40,7 @@ export default async function ClientProfilePage({
           >
             <Link href={ROUTES.ADMIN.MODULES.CLIENT_PROFILES.LIST}>
               <ArrowLeftIcon className='size-3.5' />
-              Back to client profiles
+              Back to Client Profiles
             </Link>
           </Button>
         }

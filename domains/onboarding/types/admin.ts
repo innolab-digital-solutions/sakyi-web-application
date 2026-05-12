@@ -113,6 +113,11 @@ export type OnboardingIntake = {
     sent_at: string | null;
     signed_at: string | null;
   } | null;
+  /** Present when enrollment relation is loaded (list/detail resource). */
+  enrollment?: {
+    id: number;
+    code: string;
+  } | null;
   handler?: {
     id: number;
     name: string;
@@ -131,6 +136,10 @@ export type OnboardingIntake = {
   timestamps: {
     created_at: string | null; // ISO string
     updated_at: string | null; // ISO string
+    /** Present in detail resource when intake is completed. */
+    completed_at?: string | null;
+    /** Present in detail resource when intake is cancelled. */
+    cancelled_at?: string | null;
   };
 };
 

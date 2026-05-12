@@ -2,9 +2,15 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
+import { ChevronRightIcon, ExternalLinkIcon, FileIcon } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { type ReactNode, useState } from 'react';
 
-import { AdminDetailCardSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
+import { ClientProfileMediaTableSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -15,9 +21,36 @@ import {
 } from '@/components/ui/table';
 import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { base } from '@/config/api/base';
+import { ROUTES } from '@/config/routes';
 import { getClientProfileById } from '@/domains/client-profiles/services';
-import type { AdminEnrollment } from '@/domains/client-profiles/types/admin';
+import type {
+  AdminEnrollment,
+  ClientProfileMedia,
+} from '@/domains/client-profiles/types/admin';
 import { getInitials } from '@/lib/utils/string';
+import { cn } from '@/lib/utils/styles';
+
+/** Primary white card shell — matches enrollment record overview cards. */
+const CARD_SURFACE =
+  'border-border max-w-full min-w-0 rounded-md border bg-white p-6 shadow-xs';
+
+/** Matches admin outline workflow links (enrollment contract detail). */
+const ADMIN_OUTLINE_WORKFLOW_LINK_CLASS =
+  'inline-flex normal-case bg-background hover:bg-muted h-10 w-full shrink-0 items-center justify-between gap-2 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold';
+
+/** Matches list row outline actions (client profile “View detail” pattern). */
+const OPEN_FILE_BUTTON_CLASS =
+  'normal-case bg-background hover:bg-muted text-foreground h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold';
+
+const METRIC_TILE_CLASS =
+  'bg-muted/50 border-border flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2';
+
+const METRIC_TILE_LABEL_CLASS =
+  'text-muted-foreground mb-1.5 text-[10px] font-semibold tracking-wide uppercase';
+
+const OVERVIEW_EMPTY_DASH = (
+  <span className='text-muted-foreground font-semibold'>-</span>
+);
 
 function resolveProfilePictureUrl(
   raw: string | null | undefined,
@@ -28,10 +61,18 @@ function resolveProfilePictureUrl(
   return `${base.domainEndpoint}${t}`;
 }
 
+/** Media `url` from API may be absolute or storage-relative. */
+function resolveMediaPublicUrl(raw: string | null | undefined): string {
+  if (!raw?.trim()) return '';
+  const t = raw.trim();
+  if (t.startsWith('http')) return t;
+  return `${base.domainEndpoint}${t}`;
+}
+
 function formatDateCell(iso: string | null | undefined): string | null {
   if (!iso?.trim()) return null;
   try {
-    return format(parseISO(iso), 'dd-MMMM-yyyy');
+    return format(parseISO(iso.trim()), 'dd-MMMM-yyyy');
   } catch {
     return iso.trim();
   }
@@ -47,12 +88,187 @@ function formatStatusLabel(raw: string): string {
     .join(' ');
 }
 
-function enrollmentProgramLabel(e: AdminEnrollment): string {
-  const t = e.program?.title?.trim();
-  if (t) return t;
-  const c = e.program?.code?.trim();
+function formatFileSize(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes < 0) return '—';
+  if (bytes < 1024) return `${Math.round(bytes)} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function getClientProfileReference(data: {
+  client_code?: string | null;
+  id: number;
+}): string {
+  const code = data.client_code?.trim();
+  if (code) return code;
+  return `#${data.id}`;
+}
+
+function getEnrollmentCode(e: AdminEnrollment): string {
+  const c = e.code?.trim();
   if (c) return c;
-  return '—';
+  return `#${e.id}`;
+}
+
+function isImageMime(mime: string): boolean {
+  return mime.trim().toLowerCase().startsWith('image/');
+}
+
+function ClientProfileMetricTile({
+  label,
+  value,
+  tabularNums = true,
+  valueClassName,
+  className,
+}: {
+  label: string;
+  value: ReactNode;
+  tabularNums?: boolean;
+  valueClassName?: string;
+  /** e.g. `md:col-span-3` for full-width tiles. */
+  className?: string;
+}) {
+  return (
+    <div className={cn(METRIC_TILE_CLASS, className)}>
+      <p className={METRIC_TILE_LABEL_CLASS}>{label}</p>
+      <div
+        className={cn(
+          'text-foreground/90 text-[12.5px] leading-snug font-semibold wrap-break-word',
+          tabularNums && 'tabular-nums',
+          valueClassName,
+        )}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function ClientProfileDetailSkeleton() {
+  return (
+    <div className='grid gap-3 lg:grid-cols-3 lg:gap-4'>
+      <section className={`${CARD_SURFACE} space-y-5 lg:col-span-2`}>
+        <header className='border-border shrink-0 border-b pb-5'>
+          <Skeleton className='h-5 w-44 rounded-sm' />
+          <Skeleton className='mt-1 h-3.25 w-full max-w-3xl rounded-sm' />
+        </header>
+        <div className='grid gap-1.5 md:grid-cols-3'>
+          {Array.from({ length: 7 }).map((_, idx) => (
+            <div
+              key={`cp-metric-sk-${idx}`}
+              className={cn(
+                'bg-muted/50 border-border min-h-18 space-y-2 rounded-md border px-2.5 py-2',
+                idx === 6 ? 'md:col-span-3' : undefined,
+              )}
+            >
+              <Skeleton className='h-3 w-24 rounded-sm' />
+              <Skeleton className='h-4 w-28 rounded-sm' />
+            </div>
+          ))}
+        </div>
+        <ClientProfileMediaTableSkeleton />
+      </section>
+      <div className='flex min-h-0 min-w-0 flex-col gap-3 lg:gap-4'>
+        <section className={`${CARD_SURFACE} flex min-h-0 flex-col`}>
+          <header className='border-border border-b pb-4'>
+            <Skeleton className='h-5 w-36 rounded-sm' />
+            <Skeleton className='mt-2 h-3 max-w-md rounded-sm' />
+          </header>
+          <div className='flex gap-3 pt-5'>
+            <Skeleton className='size-12 shrink-0 rounded-full' />
+            <div className='min-w-0 flex-1 space-y-2'>
+              <Skeleton className='h-4 w-40 rounded-sm' />
+              <Skeleton className='h-3 w-52 rounded-sm' />
+            </div>
+          </div>
+        </section>
+        <section className={`${CARD_SURFACE} flex min-h-0 flex-col`}>
+          <header className='border-border border-b pb-4'>
+            <Skeleton className='h-5 w-40 rounded-sm' />
+            <Skeleton className='mt-2 h-3 max-w-sm rounded-sm' />
+          </header>
+          <div className='flex flex-col gap-2 pt-5'>
+            <Skeleton className='h-10 w-full rounded-md' />
+            <Skeleton className='h-10 w-full rounded-md' />
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function ProfileMediaTableRow({ item }: { item: ClientProfileMedia }) {
+  const href = resolveMediaPublicUrl(item.url);
+  const isImage = isImageMime(item.mime_type);
+  const [imgFailed, setImgFailed] = useState(() => !href);
+  const unoptimized =
+    !!href &&
+    (href.startsWith('http://') ||
+      href.startsWith('https://') ||
+      href.includes('localhost'));
+  const fileName =
+    item.original_name?.trim() || item.label?.trim() || 'Untitled file';
+  const typeAndSize =
+    [item.mime_type, formatFileSize(item.size_bytes)]
+      .filter(Boolean)
+      .join(' · ') || '—';
+
+  return (
+    <TableRow>
+      <TableCell className='min-w-52'>
+        <div className='flex min-w-0 items-center gap-3'>
+          <div className='bg-muted border-border relative size-11 shrink-0 overflow-hidden rounded-md border'>
+            {isImage && href && !imgFailed ? (
+              <Image
+                src={href}
+                alt=''
+                width={44}
+                height={44}
+                className='size-full object-cover'
+                unoptimized={unoptimized}
+                onError={() => setImgFailed(true)}
+              />
+            ) : (
+              <div className='flex size-full items-center justify-center'>
+                <FileIcon
+                  className='text-muted-foreground size-5'
+                  aria-hidden
+                />
+              </div>
+            )}
+          </div>
+          <p className='text-foreground min-w-0 flex-1 text-[13px] leading-snug font-semibold wrap-break-word'>
+            {fileName}
+          </p>
+        </div>
+      </TableCell>
+      <TableCell>
+        <span className='text-[13px] font-medium'>{typeAndSize}</span>
+      </TableCell>
+      <TableCell className='align-center text-end whitespace-nowrap'>
+        {href ? (
+          <Button
+            variant='outline'
+            size='sm'
+            className={OPEN_FILE_BUTTON_CLASS}
+            asChild
+          >
+            <a
+              href={href}
+              target='_blank'
+              rel='noopener noreferrer'
+              className='inline-flex items-center gap-1.5'
+            >
+              Open
+              <ExternalLinkIcon className='size-3.5 shrink-0' aria-hidden />
+            </a>
+          </Button>
+        ) : (
+          <TableCellEmpty label='No link' />
+        )}
+      </TableCell>
+    </TableRow>
+  );
 }
 
 export type ClientProfileDetailViewProps = {
@@ -74,7 +290,7 @@ export default function ClientProfileDetailView({
   });
 
   if (isPending) {
-    return <AdminDetailCardSkeleton />;
+    return <ClientProfileDetailSkeleton />;
   }
 
   if (isError || !data) {
@@ -87,197 +303,199 @@ export default function ClientProfileDetailView({
 
   const pictureSrc = resolveProfilePictureUrl(data.profile?.picture_url);
   const enrollments = data.enrollments ?? [];
+  const mediaItems = Array.isArray(data.media) ? data.media : [];
+  const profilePhone = data.profile?.contact_phone?.trim();
+  const focusName = data.profile?.focus?.name?.trim();
+  const contactEmail = data.profile?.contact_email?.trim();
+  const gender = data.profile?.gender?.trim();
+  const dobFormatted = data.profile?.dob?.trim()
+    ? (formatDateCell(data.profile.dob) ?? data.profile.dob.trim())
+    : null;
+  const address = data.profile?.address?.trim();
 
   return (
-    <div className='space-y-6'>
-      <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5'>
-        <h2 className='text-foreground text-sm font-semibold'>Account</h2>
-        <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
-          Primary identity and sign-in email for this client.
-        </p>
-        <div className='mt-5 flex flex-col gap-4 sm:flex-row sm:items-start'>
-          <Avatar size='lg' className='size-16 shrink-0' aria-hidden>
-            {pictureSrc ? <AvatarImage src={pictureSrc} alt='' /> : null}
-            <AvatarFallback className='text-sm'>
-              {getInitials(data.name ?? '', 2) || '?'}
-            </AvatarFallback>
-          </Avatar>
-          <dl className='grid min-w-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2'>
-            <div>
-              <dt className='text-muted-foreground text-xs font-semibold'>
-                Name
-              </dt>
-              <dd className='text-foreground mt-0.5 text-[13px] font-semibold'>
-                {data.name?.trim() || '—'}
-              </dd>
-            </div>
-            <div>
-              <dt className='text-muted-foreground text-xs font-semibold'>
-                Email
-              </dt>
-              <dd className='text-foreground mt-0.5 text-[13px] font-medium wrap-break-word'>
-                {data.email?.trim() || '—'}
-              </dd>
-            </div>
-            <div>
-              <dt className='text-muted-foreground text-xs font-semibold'>
-                Client code
-              </dt>
-              <dd className='text-foreground mt-0.5 text-[13px] font-medium'>
-                {data.client_code?.trim() || '—'}
-              </dd>
-            </div>
-            <div>
-              <dt className='text-muted-foreground text-xs font-semibold'>
-                Enrollments
-              </dt>
-              <dd className='text-foreground mt-0.5 text-[13px] font-medium tabular-nums'>
-                {data.enrollments_count ?? enrollments.length}
-              </dd>
-            </div>
-          </dl>
-        </div>
-      </section>
-
-      {data.profile &&
-      (data.profile.contact_phone ||
-        data.profile.contact_email ||
-        data.profile.dob ||
-        data.profile.gender ||
-        data.profile.address ||
-        data.profile.focus) ? (
-        <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5'>
-          <h2 className='text-foreground text-sm font-semibold'>Profile</h2>
-          <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
-            Extended contact and wellness focus from onboarding.
+    <div className='grid gap-3 lg:grid-cols-3 lg:gap-4'>
+      <section className={`${CARD_SURFACE} space-y-5 lg:col-span-2`}>
+        <header className='border-border shrink-0 border-b pb-5'>
+          <h3 className='text-foreground text-sm font-semibold'>
+            Client Profile
+          </h3>
+          <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
+            Identity and intake fields below; uploaded files in the media table.
+            Enrollment codes are listed beside the account card.
           </p>
-          <dl className='mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2'>
-            {data.profile.contact_phone?.trim() ? (
-              <div>
-                <dt className='text-muted-foreground text-xs font-semibold'>
-                  Phone
-                </dt>
-                <dd className='text-foreground mt-0.5 text-[13px] font-medium'>
-                  {data.profile.contact_phone.trim()}
-                </dd>
-              </div>
-            ) : null}
-            {data.profile.contact_email?.trim() ? (
-              <div>
-                <dt className='text-muted-foreground text-xs font-semibold'>
-                  Contact email
-                </dt>
-                <dd className='text-foreground mt-0.5 text-[13px] font-medium wrap-break-word'>
-                  {data.profile.contact_email.trim()}
-                </dd>
-              </div>
-            ) : null}
-            {data.profile.dob?.trim() ? (
-              <div>
-                <dt className='text-muted-foreground text-xs font-semibold'>
-                  Date of birth
-                </dt>
-                <dd className='text-foreground mt-0.5 text-[13px] font-medium'>
-                  {formatDateCell(data.profile.dob) ?? data.profile.dob.trim()}
-                </dd>
-              </div>
-            ) : null}
-            {data.profile.gender?.trim() ? (
-              <div>
-                <dt className='text-muted-foreground text-xs font-semibold'>
-                  Gender
-                </dt>
-                <dd className='text-foreground mt-0.5 text-[13px] font-medium'>
-                  {data.profile.gender.trim()}
-                </dd>
-              </div>
-            ) : null}
-            {data.profile.address?.trim() ? (
-              <div className='sm:col-span-2'>
-                <dt className='text-muted-foreground text-xs font-semibold'>
-                  Address
-                </dt>
-                <dd className='text-foreground mt-0.5 text-[13px] font-medium whitespace-pre-wrap'>
-                  {data.profile.address.trim()}
-                </dd>
-              </div>
-            ) : null}
-            {data.profile.focus ? (
-              <div>
-                <dt className='text-muted-foreground text-xs font-semibold'>
-                  Focus
-                </dt>
-                <dd className='text-foreground mt-0.5 text-[13px] font-medium'>
-                  {data.profile.focus.name?.trim() ||
-                    `ID ${data.profile.focus.id}`}
-                </dd>
-              </div>
-            ) : null}
-          </dl>
-        </section>
-      ) : null}
+        </header>
 
-      <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5'>
-        <h2 className='text-foreground text-sm font-semibold'>Enrollments</h2>
-        <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
-          Programs this client is or was enrolled in.
-        </p>
-        <div className='mt-5 overflow-x-auto'>
-          <Table>
-            <TableHeader className='bg-muted/50 [&_tr]:border-border'>
-              <TableRow className='border-border hover:bg-transparent'>
-                <TableHead>Reference</TableHead>
-                <TableHead>Program</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className='tabular-nums'>Starts</TableHead>
-                <TableHead className='tabular-nums'>Ends</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {enrollments.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className='text-muted-foreground py-8 text-center text-sm'
-                  >
-                    No enrollments linked to this profile yet.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                enrollments.map((e) => (
-                  <TableRow key={e.id}>
-                    <TableCell className='text-[13px] font-semibold'>
-                      {e.code?.trim() || `#${e.id}`}
-                    </TableCell>
-                    <TableCell className='text-[13px] font-medium'>
-                      {enrollmentProgramLabel(e) !== '—' ? (
-                        enrollmentProgramLabel(e)
-                      ) : (
-                        <TableCellEmpty label='No program' />
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <span className='border-border bg-muted/60 text-foreground inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold'>
-                        {formatStatusLabel(e.status || 'unknown')}
-                      </span>
-                    </TableCell>
-                    <TableCell className='text-foreground/80 text-[13px] tabular-nums'>
-                      {formatDateCell(e.starts_at) ?? (
-                        <TableCellEmpty label='—' />
-                      )}
-                    </TableCell>
-                    <TableCell className='text-foreground/80 text-[13px] tabular-nums'>
-                      {formatDateCell(e.ends_at) ?? (
-                        <TableCellEmpty label='—' />
-                      )}
-                    </TableCell>
+        <div className='space-y-3'>
+          <div className='grid gap-1.5 md:grid-cols-3'>
+            <ClientProfileMetricTile
+              label='Client reference'
+              value={getClientProfileReference(data)}
+              tabularNums={false}
+            />
+            <ClientProfileMetricTile
+              label='Account email'
+              value={
+                data.email?.trim() ? data.email.trim() : OVERVIEW_EMPTY_DASH
+              }
+              tabularNums={false}
+            />
+            <ClientProfileMetricTile
+              label='Contact phone'
+              value={profilePhone ? profilePhone : OVERVIEW_EMPTY_DASH}
+              tabularNums={false}
+            />
+            <ClientProfileMetricTile
+              label='Contact email'
+              value={contactEmail ? contactEmail : OVERVIEW_EMPTY_DASH}
+              tabularNums={false}
+            />
+            <ClientProfileMetricTile
+              label='Gender'
+              value={gender ? formatStatusLabel(gender) : OVERVIEW_EMPTY_DASH}
+              tabularNums={false}
+            />
+            <ClientProfileMetricTile
+              label='Date of birth'
+              value={dobFormatted ?? OVERVIEW_EMPTY_DASH}
+              tabularNums={false}
+            />
+            <ClientProfileMetricTile
+              label='Address'
+              value={address ? address : OVERVIEW_EMPTY_DASH}
+              tabularNums={false}
+              valueClassName='whitespace-pre-wrap'
+              className='min-h-18 justify-start md:col-span-3'
+            />
+          </div>
+
+          {focusName || data.profile?.focus ? (
+            <div className='border-border space-y-2 border-t pt-5'>
+              <p className={METRIC_TILE_LABEL_CLASS}>Wellness focus</p>
+              <p className='text-foreground/90 text-[12.5px] font-semibold'>
+                {focusName ||
+                  (data.profile?.focus?.id != null
+                    ? `Focus ID ${data.profile.focus.id}`
+                    : '—')}
+              </p>
+            </div>
+          ) : null}
+
+          <div className='border-border space-y-5 border-t pt-5'>
+            <header className='border-border shrink-0 border-b pb-4'>
+              <h3 className='text-foreground text-sm font-semibold'>
+                Profile media
+              </h3>
+              <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
+                Files attached to this client profile. Open a row to view the
+                original in a new tab.
+              </p>
+            </header>
+            <div className='border-border overflow-hidden rounded-md border'>
+              <Table>
+                <TableHeader className='bg-muted/50 [&_tr]:border-border'>
+                  <TableRow className='border-border hover:bg-transparent'>
+                    <TableHead>File</TableHead>
+                    <TableHead>Type · size</TableHead>
+                    <TableHead className='text-right'>Actions</TableHead>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                  {mediaItems.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={3}
+                        className='text-muted-foreground py-10 text-center text-sm'
+                      >
+                        No media files are attached to this profile yet.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    mediaItems.map((m) => (
+                      <ProfileMediaTableRow key={m.id} item={m} />
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
         </div>
       </section>
+
+      <div className='flex min-h-0 min-w-0 flex-col gap-3 lg:gap-4'>
+        <section className={`${CARD_SURFACE} flex min-h-0 flex-col`}>
+          <header className='border-border shrink-0 border-b pb-4'>
+            <h3 className='text-foreground text-sm font-semibold'>
+              Client Account
+            </h3>
+            <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
+              Primary identity and sign-in channel. Match this avatar and email
+              before acting on downstream enrollments or care plans.
+            </p>
+          </header>
+          <div className='flex min-h-0 flex-1 flex-col pt-5'>
+            <div className='flex min-w-0 items-start gap-3'>
+              <Avatar size='lg' className='mt-0.5 shrink-0'>
+                {pictureSrc ? <AvatarImage src={pictureSrc} alt='' /> : null}
+                <AvatarFallback className='text-xs'>
+                  {getInitials(data.name ?? '', 2) || '?'}
+                </AvatarFallback>
+              </Avatar>
+              <div className='min-w-0 flex-1 space-y-1'>
+                <p className='text-foreground/90 text-[13px] font-semibold'>
+                  {data.name?.trim() || (
+                    <TableCellEmpty label='No name on file' />
+                  )}
+                </p>
+                <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
+                  {data.email?.trim() || 'No email on file'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className={`${CARD_SURFACE} flex min-h-0 flex-col`}>
+          <header className='border-border shrink-0 border-b pb-4'>
+            <h3 className='text-foreground text-sm font-semibold'>
+              Program Enrollments
+            </h3>
+            <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
+              Each code opens the enrollment record overview for that program.
+            </p>
+          </header>
+          <div className='flex min-h-0 flex-1 flex-col gap-2 pt-5'>
+            {enrollments.length === 0 ? (
+              <p className='text-muted-foreground text-sm'>
+                No enrollments linked to this profile yet.
+              </p>
+            ) : (
+              enrollments.map((e) => (
+                <Button
+                  key={e.id}
+                  variant='outline'
+                  className={ADMIN_OUTLINE_WORKFLOW_LINK_CLASS}
+                  asChild
+                >
+                  <Link
+                    href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(
+                      String(e.id),
+                    )}
+                  >
+                    <span className='text-foreground min-w-0 truncate font-semibold tabular-nums'>
+                      {getEnrollmentCode(e)}
+                    </span>
+                    <ChevronRightIcon
+                      className='text-foreground/70 size-3.5 shrink-0'
+                      aria-hidden
+                    />
+                  </Link>
+                </Button>
+              ))
+            )}
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

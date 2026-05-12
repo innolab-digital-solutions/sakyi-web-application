@@ -20,8 +20,8 @@ import {
 } from 'react';
 import { toast } from 'sonner';
 
-import { AdminWorkspaceSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
@@ -57,6 +57,72 @@ import OnboardingQuestionField from './OnboardingQuestionField';
 /** Bump `v1` if guidance copy changes enough to warrant showing the banner again. */
 const ONBOARDING_INTAKE_GUIDANCE_DISMISSED_STORAGE_KEY =
   'sakyi:admin:onboarding-intake:guidance-dismissed:v1';
+
+/** Matches the interview wizard root {@link section} shell while data loads. */
+const WIZARD_SECTION_CLASS =
+  'border-border max-w-full min-w-0 space-y-5 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:p-6';
+
+function IntakeInterviewWizardSkeleton() {
+  return (
+    <section className={WIZARD_SECTION_CLASS}>
+      <div className='border-border space-y-4 border-b pb-5'>
+        <div className='flex flex-wrap items-center justify-between gap-3'>
+          <div className='min-w-0 space-y-2'>
+            <Skeleton className='h-3 w-52 max-w-full rounded-sm' />
+            <Skeleton className='h-5 w-64 max-w-full rounded-sm' />
+          </div>
+          <div className='min-w-0 space-y-2 md:ms-auto md:text-right'>
+            <Skeleton className='h-3 w-48 max-w-full rounded-sm md:ms-auto' />
+            <Skeleton className='h-4 w-36 max-w-full rounded-sm md:ms-auto' />
+          </div>
+        </div>
+        <div className='grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto] md:items-center'>
+          <div className='space-y-2'>
+            <div className='bg-muted h-2 overflow-hidden rounded-full'>
+              <div className='bg-foreground/15 dark:bg-foreground/20 h-full w-[32%] rounded-full' />
+            </div>
+            <div className='flex items-center justify-between'>
+              <Skeleton className='h-3 w-48 rounded-sm' />
+              <Skeleton className='h-3 w-7 rounded-sm' />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className='space-y-5'>
+        <div className='space-y-4'>
+          <div className='bg-muted! border-border mb-4 flex w-full min-w-0 flex-nowrap gap-2 overflow-x-auto rounded-md border px-1 py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton
+                key={`interview-tab-sk-${i}`}
+                className='h-9 min-w-44 shrink-0 rounded-md'
+              />
+            ))}
+          </div>
+          <Skeleton className='h-3 w-80 max-w-full rounded-sm' />
+
+          <div className='border-border space-y-6 rounded-md border bg-white p-4 md:p-5'>
+            <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+              {Array.from({ length: 14 }).map((_, i) => (
+                <div key={`interview-field-sk-${i}`} className='space-y-2'>
+                  <Skeleton className='h-3 w-40 rounded-sm' />
+                  <Skeleton className='h-10 w-full rounded-md' />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className='border-border/60 mt-8 flex flex-wrap items-center justify-end gap-3 border-t pt-6'>
+          <Skeleton className='h-10 w-32 rounded-md' />
+          <Skeleton className='h-10 w-44 rounded-md' />
+          <Skeleton className='h-10 w-24 rounded-md' />
+          <Skeleton className='h-10 w-28 rounded-md' />
+        </div>
+      </div>
+    </section>
+  );
+}
 
 type OnboardingWizardProps = {
   intakeId: number;
@@ -413,7 +479,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
   });
 
   if (intakeQuery.isPending) {
-    return <AdminWorkspaceSkeleton />;
+    return <IntakeInterviewWizardSkeleton />;
   }
 
   if (intakeQuery.data?.status === 'error') {
@@ -540,10 +606,7 @@ export default function OnboardingWizard({ intakeId }: OnboardingWizardProps) {
   };
 
   return (
-    <section
-      ref={wizardSectionRef}
-      className='border-border max-w-full min-w-0 space-y-5 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:p-6'
-    >
+    <section ref={wizardSectionRef} className={WIZARD_SECTION_CLASS}>
       <div className='border-border space-y-4 border-b pb-5'>
         {intakeRecord && (
           <div className='space-y-4'>

@@ -16,6 +16,8 @@ export const ADMIN_ENDPOINTS = {
     ME: `${BASE}/auth/me`,
     LOGIN: `${BASE}/auth/login`,
     LOGOUT: `${BASE}/auth/logout`,
+    /** Uses mobile auth namespace on API (`/v1/mobile/auth/reset-password`). */
+    RESET_PASSWORD: '/mobile/auth/reset-password',
   },
   MODULES: {
     PROGRAMS: {
@@ -159,6 +161,8 @@ export const ADMIN_ENDPOINTS = {
     /** Client-facing period report runs (`care_plan_report_runs`). */
     PERIOD_REPORTS: {
       LIST: `${BASE}/period-reports`,
+      /** Same `{id}` as list row `data[].id` (@see period-report-overview.md §2). */
+      DETAIL: (id: string) => `${BASE}/period-reports/${id}`,
     },
     USERS: {
       LIST: `${BASE}/users`,
@@ -181,6 +185,7 @@ export const ADMIN_ENDPOINTS = {
       LIST: `${BASE}/notifications`,
       MARK_AS_READ: (id: string) => `${BASE}/notifications/${id}/read`,
       MARK_ALL_AS_READ: `${BASE}/notifications/read-all`,
+      DELETE_SELECTED: `${BASE}/notifications`,
     },
     DASHBOARD: {
       OVERVIEW: `${BASE}/dashboard/overview`,

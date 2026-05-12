@@ -8,7 +8,7 @@ export default function AdminLoginPage() {
       {/* Centered container for the login card */}
       <div className='relative z-10 mx-auto w-full max-w-6xl'>
         {/* Card with border, rounded corners, shadow, and glass effect */}
-        <div className='bg-background border-border overflow-hidden rounded-lg border p-0 shadow-lg backdrop-blur-xl'>
+        <div className='bg-background border-border overflow-hidden rounded-lg border p-0 shadow-xs backdrop-blur-xl'>
           {/* Grid layout: BrandingPanel (left), LoginPanel (right) on large screens */}
           <div className='grid min-h-120 grid-cols-1 md:min-h-150 lg:grid-cols-2'>
             <BrandingPanel />

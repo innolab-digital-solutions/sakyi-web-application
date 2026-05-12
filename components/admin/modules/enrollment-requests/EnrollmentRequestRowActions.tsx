@@ -4,7 +4,8 @@ import {
   BanIcon,
   ClipboardCopyIcon,
   ClipboardListIcon,
-  EyeIcon,
+  ClipboardSignatureIcon,
+  FileTextIcon,
   MoreHorizontalIcon,
   PhoneCallIcon,
 } from 'lucide-react';
@@ -21,7 +22,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ROUTES } from '@/config/routes';
-import type { EnrollmentRequestResource } from '@/domains/enrollment-requests/types';
+import type {
+  EnrollmentRequestEnrollmentSummary,
+  EnrollmentRequestResource,
+} from '@/domains/enrollment-requests/types';
 
 /**
  * Intake should only start while the request is still actively being worked.
@@ -50,6 +54,24 @@ function getRequestReference(request: EnrollmentRequestResource): string {
   const code = request.code?.trim();
   if (code) return code;
   return `#${request.id}`;
+}
+
+/**
+ * Mirrors detail-page primary enrollment selection:
+ * active -> scheduled -> newest fallback.
+ */
+function pickPrimaryEnrollmentId(
+  request: EnrollmentRequestResource,
+): number | null {
+  const rows = Array.isArray(request.enrollments) ? request.enrollments : [];
+  if (rows.length === 0) return null;
+
+  const byStatus = (status: string) =>
+    rows.find((r: EnrollmentRequestEnrollmentSummary) => r.status === status);
+
+  return (
+    byStatus('active')?.id ?? byStatus('scheduled')?.id ?? rows[0]?.id ?? null
+  );
 }
 
 const viewDetailButtonClass =
@@ -86,10 +108,21 @@ export default function EnrollmentRequestRowActions({
   const showCancelRequest = canCancelRequest(request);
   const primary: PrimaryAction = showStartIntake ? 'startIntake' : 'viewDetail';
   const referenceText = getRequestReference(request);
+  const intakeId = request.onboarding_intake?.id ?? null;
+  const contractId = request.contract?.id ?? null;
+  const enrollmentId = pickPrimaryEnrollmentId(request);
 
   const showViewDetailInMenu = primary === 'startIntake';
+  const showOpenIntake = intakeId != null;
+  const showOpenContract = contractId != null;
+  const showOpenEnrollment = enrollmentId != null;
   const hasMenuAfterCopy =
-    showViewDetailInMenu || showMarkContacted || showCancelRequest;
+    showViewDetailInMenu ||
+    showOpenIntake ||
+    showOpenContract ||
+    showOpenEnrollment ||
+    showMarkContacted ||
+    showCancelRequest;
 
   const handleCopyReference = () => {
     void (async () => {
@@ -114,7 +147,7 @@ export default function EnrollmentRequestRowActions({
           onClick={() => onStartIntake()}
         >
           <ClipboardListIcon className='size-3.5 shrink-0' />
-          Start Intake
+          Start Interview
         </Button>
       ) : (
         <Button
@@ -129,8 +162,8 @@ export default function EnrollmentRequestRowActions({
             )}
             className='inline-flex items-center gap-1.5'
           >
-            <EyeIcon className='size-3.5 shrink-0' />
-            View Detail
+            <FileTextIcon className='size-3.5 shrink-0' />
+            Open Overview
           </Link>
         </Button>
       )}
@@ -149,7 +182,7 @@ export default function EnrollmentRequestRowActions({
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end' className='min-w-52'>
           <DropdownMenuLabel className='text-foreground/70 space-y-1 px-2 py-1.5 text-[11px]! font-bold tracking-wide uppercase'>
-            More Options
+            Actions
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -170,10 +203,56 @@ export default function EnrollmentRequestRowActions({
                       String(request.id),
                     )}
                   >
-                    <EyeIcon className='size-3.5 shrink-0' />
-                    View Detail
+                    <FileTextIcon className='size-3.5 shrink-0' />
+                    Open Overview
                   </Link>
                 </DropdownMenuItem>
+              ) : null}
+              {showOpenIntake ? (
+                <DropdownMenuItem asChild className='cursor-pointer'>
+                  <Link
+                    className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                    href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(
+                      String(intakeId),
+                    )}
+                  >
+                    <ClipboardListIcon className='size-3.5 shrink-0' />
+                    Open Intake Assessment
+                  </Link>
+                </DropdownMenuItem>
+              ) : null}
+              {showOpenContract ? (
+                <DropdownMenuItem asChild className='cursor-pointer'>
+                  <Link
+                    className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                    href={ROUTES.ADMIN.MODULES.ENROLLMENT_CONTRACTS.DETAIL(
+                      String(contractId),
+                    )}
+                  >
+                    <ClipboardSignatureIcon className='size-3.5 shrink-0' />
+                    Open Contract Record
+                  </Link>
+                </DropdownMenuItem>
+              ) : null}
+              {showOpenEnrollment ? (
+                <DropdownMenuItem asChild className='cursor-pointer'>
+                  <Link
+                    className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                    href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(
+                      String(enrollmentId),
+                    )}
+                  >
+                    <FileTextIcon className='size-3.5 shrink-0' />
+                    Open Enrollment Record
+                  </Link>
+                </DropdownMenuItem>
+              ) : null}
+              {(showViewDetailInMenu ||
+                showOpenIntake ||
+                showOpenContract ||
+                showOpenEnrollment) &&
+              (showMarkContacted || showCancelRequest) ? (
+                <DropdownMenuSeparator />
               ) : null}
               {showMarkContacted ? (
                 <DropdownMenuItem
@@ -192,7 +271,7 @@ export default function EnrollmentRequestRowActions({
                   onClick={() => onCancelRequest()}
                 >
                   <BanIcon className='text-destructive size-3.5 shrink-0' />
-                  Cancel request
+                  Cancel Request
                 </DropdownMenuItem>
               ) : null}
             </>

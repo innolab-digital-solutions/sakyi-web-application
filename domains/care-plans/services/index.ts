@@ -27,6 +27,10 @@ export type {
 export type { ClientReportListRow } from '../types/client-report-list';
 export type { CarePlanEmbeddedOperationalLog } from '../types/operational-log-embed';
 export type { OperationalLogListRow } from '../types/operational-log-list';
+export type {
+  PeriodReportDetail,
+  PeriodReportHighlight,
+} from '../types/period-report-detail';
 export type { GetReportWorkspaceParams } from './admin.service';
 export {
   getCarePlanBuilderById,
@@ -35,6 +39,7 @@ export {
   getCarePlanReportRun,
   getCarePlanReportWorkspace,
   getClientReportsFromListPayload,
+  getPeriodReportById,
   listCarePlanLogEntries,
   listCarePlanLogs,
   listCarePlanReportRuns,

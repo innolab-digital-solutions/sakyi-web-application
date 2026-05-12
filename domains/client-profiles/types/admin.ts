@@ -40,5 +40,6 @@ export interface ClientProfile {
   };
   /** Present on show (`GET .../client-profiles/:id`), omitted on index. */
   enrollments?: AdminEnrollment[];
-  media: ClientProfileMedia[];
+  /** Present on show; omit or empty on index. */
+  media?: ClientProfileMedia[];
 }

@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
-import { AdminWorkspaceSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
+import { OperationalLogsWorkspaceFullSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import PageHeader from '@/components/admin/layout/PageHeader';
 import CarePlanReportWorkspace from '@/components/admin/modules/care-plans/CarePlanReportWorkspace';
 import { Button } from '@/components/ui/button';
@@ -46,12 +46,9 @@ export default async function OperationalLogsWorkspacePage({
           </Button>
         }
       />
-      <Suspense fallback={<AdminWorkspaceSkeleton />}>
+      <Suspense fallback={<OperationalLogsWorkspaceFullSkeleton />}>
         {Number.isFinite(numericId) ? (
-          <CarePlanReportWorkspace
-            carePlanId={numericId}
-            workspaceLocation='operational-logs'
-          />
+          <CarePlanReportWorkspace carePlanId={numericId} />
         ) : (
           <div className='text-destructive rounded-md border p-4 text-sm'>
             Invalid care plan id.

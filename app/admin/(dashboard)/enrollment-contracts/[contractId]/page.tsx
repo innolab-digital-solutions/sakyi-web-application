@@ -8,9 +8,9 @@ import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/config/routes';
 
 export const metadata: Metadata = {
-  title: 'Enrollment contract | SaKyi Admin',
+  title: 'Contract & E-Signature Overview | SaKyi Admin',
   description:
-    'Review one enrollment contract with applicant details, e-signature progress, related intake and request records, and clear options for enrollment follow-up.',
+    'Review e-signature status and timestamps, confirm the applicant tied to this contract, jump to intake and enrollment request records, and create or open the program enrollment when eligible.',
 };
 
 type EnrollmentContractDetailPageProps = {
@@ -30,15 +30,18 @@ export default async function EnrollmentContractDetailPage({
   return (
     <div className='min-w-0 space-y-8'>
       <PageHeader
-        title='Enrollment contract'
-        description='Get complete context for this e-signature case, including ownership, signature timeline, linked intake and request records, and enrollment actions.'
+        title='Contract & E-Signature Overview'
+        description='See signers, review timeline events, confirm applicant, access intake and request records, and manage program enrollment after signing.'
         actions={
           <Button
             asChild
             variant='outline'
             className='bg-background hover:bg-muted h-10 shrink-0 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
           >
-            <Link href={ROUTES.ADMIN.MODULES.ENROLLMENT_CONTRACTS.LIST}>
+            <Link
+              href={ROUTES.ADMIN.MODULES.ENROLLMENT_CONTRACTS.LIST}
+              aria-label='Back to enrollment contracts list'
+            >
               <ArrowLeftIcon className='size-3.5' />
               Back to contracts
             </Link>

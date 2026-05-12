@@ -8,9 +8,9 @@ import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/config/routes';
 
 export const metadata: Metadata = {
-  title: 'Enrollment record | SaKyi Admin',
+  title: 'Enrollment record overview | SaKyi Admin',
   description:
-    'Review one enrollment record with status, timeline, notes, and direct links to the client profile, intake assessment, and contract.',
+    'Review enrollment status, program window, care plan context, staff notes, assigned care team members, and applicant and program details.',
 };
 
 type EnrollmentRecordPageProps = {
@@ -30,17 +30,20 @@ export default async function EnrollmentRecordPage({
   return (
     <div className='min-w-0 space-y-8'>
       <PageHeader
-        title='Enrollment record'
-        description='View lifecycle details for this enrollment with quick navigation to the related client profile, intake assessment, and contract.'
+        title='Enrollment record overview'
+        description='Review lifecycle status, dates, active care plan, and staff notes, confirm the applicant and program, and see who is assigned to the care team for this enrollment.'
         actions={
           <Button
             asChild
             variant='outline'
             className='bg-background hover:bg-muted h-10 shrink-0 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
           >
-            <Link href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.LIST}>
+            <Link
+              href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.LIST}
+              aria-label='Back to enrollment records list'
+            >
               <ArrowLeftIcon className='size-3.5' />
-              Back to enrollment records
+              Back to Enrollments
             </Link>
           </Button>
         }

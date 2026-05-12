@@ -8,9 +8,9 @@ import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/config/routes';
 
 export const metadata: Metadata = {
-  title: 'Daily Task Log Detail | SaKyi Admin',
+  title: 'Daily task log overview | SaKyi Admin',
   description:
-    'Review one care plan log stream with detailed task entries, section filters, completion state, date range, notes, and media context.',
+    'Confirm care plan reference, enrollment and program context, care window, and log progress; review every logged task with targets, actuals, notes, and media for operational follow-up.',
 };
 
 type Props = {
@@ -27,17 +27,20 @@ export default async function CarePlanLogDetailPage({ params }: Props) {
   return (
     <div className='min-w-0 space-y-8'>
       <PageHeader
-        title='Daily Task Log Detail'
-        description='Review raw daily task entries for this care plan, including target vs actual values, completion state, and media evidence.'
+        title='Daily task log overview'
+        description='Confirm reference, enrollment and program fit, the care window, and log progress at a glance; then review every recorded task with targets, actuals, notes, and supporting files linked to this care plan.'
         actions={
           <Button
             asChild
             variant='outline'
             className='bg-background hover:bg-muted h-10 shrink-0 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
           >
-            <Link href={ROUTES.ADMIN.MODULES.CARE_PLAN_LOGS.LIST}>
+            <Link
+              href={ROUTES.ADMIN.MODULES.CARE_PLAN_LOGS.LIST}
+              aria-label='Back to daily task logs list'
+            >
               <ArrowLeftIcon className='size-3.5' />
-              Back to daily task logs
+              Back to Daily Task Logs
             </Link>
           </Button>
         }

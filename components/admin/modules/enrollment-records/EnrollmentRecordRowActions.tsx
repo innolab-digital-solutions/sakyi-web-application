@@ -6,8 +6,11 @@ import {
   CalendarIcon,
   CircleCheckIcon,
   ClipboardCopyIcon,
-  EyeIcon,
+  ClipboardListIcon,
+  ClipboardSignatureIcon,
   FilePlus2Icon,
+  FileTextIcon,
+  Link2Icon,
   MoreHorizontalIcon,
   StickyNoteIcon,
   UserCogIcon,
@@ -64,7 +67,8 @@ const LIST_QUERY_KEY = [
   ENDPOINTS.ADMIN.MODULES.ENROLLMENT_RECORDS.LIST,
 ] as const;
 
-const viewDetailButtonClass =
+/** Matches enrollment request / contract outline overview action. */
+const viewOverviewButtonClass =
   'normal-case bg-background hover:bg-muted text-foreground h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold';
 
 const moreTriggerClass =
@@ -261,6 +265,18 @@ export default function EnrollmentRecordRowActions({
     });
   }, [careTeamOpen, detailEnrollment]);
 
+  const intakeId = row.onboarding_intake?.id ?? null;
+  const enrollmentRequestId = row.enrollment_request?.id ?? null;
+  const contractId = row.enrollment_contract?.id ?? null;
+  const showOpenIntake = intakeId != null;
+  const showOpenEnrollmentRequest = enrollmentRequestId != null;
+  const showOpenContract = contractId != null;
+  const hasRecordQuickLinks =
+    showOpenIntake || showOpenEnrollmentRequest || showOpenContract;
+  /** After copy / before quick links or ops (mirrors enrollment request / contract menus). */
+  const showSepAfterCopy = hasRecordQuickLinks || mutable;
+  /** Between intake/contract links and schedule/notes/etc. when both exist. */
+  const showSepBetweenQuickLinksAndOps = hasRecordQuickLinks && mutable;
   const clientId = row.client?.id;
 
   const optionsForTeamRow = React.useCallback(
@@ -572,7 +588,7 @@ export default function EnrollmentRecordRowActions({
         <Button
           variant='outline'
           size='sm'
-          className={viewDetailButtonClass}
+          className={viewOverviewButtonClass}
           asChild
         >
           <Link
@@ -581,8 +597,8 @@ export default function EnrollmentRecordRowActions({
             )}
             className='inline-flex items-center gap-1.5'
           >
-            <EyeIcon className='size-3.5 shrink-0' />
-            View Detail
+            <FileTextIcon className='size-3.5 shrink-0' />
+            Open Overview
           </Link>
         </Button>
 
@@ -598,9 +614,9 @@ export default function EnrollmentRecordRowActions({
               <MoreHorizontalIcon className='size-4' />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align='end' className='min-w-52'>
+          <DropdownMenuContent align='end' className='min-w-56'>
             <DropdownMenuLabel className='text-foreground/70 space-y-1 px-2 py-1.5 text-[11px]! font-bold tracking-wide uppercase'>
-              More Options
+              Actions
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -610,9 +626,57 @@ export default function EnrollmentRecordRowActions({
               <ClipboardCopyIcon className='size-3.5 shrink-0' />
               Copy reference
             </DropdownMenuItem>
+
+            {showSepAfterCopy ? <DropdownMenuSeparator /> : null}
+
+            {hasRecordQuickLinks ? (
+              <>
+                {showOpenIntake ? (
+                  <DropdownMenuItem asChild className='cursor-pointer'>
+                    <Link
+                      className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                      href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.DETAIL(
+                        String(intakeId),
+                      )}
+                    >
+                      <ClipboardListIcon className='size-3.5 shrink-0' />
+                      Open Intake Assessment
+                    </Link>
+                  </DropdownMenuItem>
+                ) : null}
+                {showOpenEnrollmentRequest ? (
+                  <DropdownMenuItem asChild className='cursor-pointer'>
+                    <Link
+                      className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                      href={ROUTES.ADMIN.MODULES.ENROLLMENT_REQUESTS.DETAIL(
+                        String(enrollmentRequestId),
+                      )}
+                    >
+                      <Link2Icon className='size-3.5 shrink-0' />
+                      Open Enrollment Request
+                    </Link>
+                  </DropdownMenuItem>
+                ) : null}
+                {showOpenContract ? (
+                  <DropdownMenuItem asChild className='cursor-pointer'>
+                    <Link
+                      className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                      href={ROUTES.ADMIN.MODULES.ENROLLMENT_CONTRACTS.DETAIL(
+                        String(contractId),
+                      )}
+                    >
+                      <ClipboardSignatureIcon className='size-3.5 shrink-0' />
+                      Open Contract Record
+                    </Link>
+                  </DropdownMenuItem>
+                ) : null}
+              </>
+            ) : null}
+
+            {showSepBetweenQuickLinksAndOps ? <DropdownMenuSeparator /> : null}
+
             {mutable ? (
               <>
-                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
                   onClick={() => setScheduleOpen(true)}
@@ -641,7 +705,13 @@ export default function EnrollmentRecordRowActions({
                   <FilePlus2Icon className='size-3.5 shrink-0' />
                   Create care plan
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
+              </>
+            ) : null}
+
+            {mutable ? <DropdownMenuSeparator /> : null}
+
+            {mutable ? (
+              <>
                 {isActive ? (
                   <DropdownMenuItem
                     className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
@@ -656,7 +726,7 @@ export default function EnrollmentRecordRowActions({
                   onClick={() => setCancelEnrollmentOpen(true)}
                 >
                   <XCircleIcon className='text-destructive size-3.5 shrink-0' />
-                  Cancel enrollment
+                  Cancel Enrollment
                 </DropdownMenuItem>
               </>
             ) : null}

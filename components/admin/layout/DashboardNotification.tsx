@@ -2,6 +2,7 @@
 
 import { Bell } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 import { NotificationsDrawer } from '@/components/admin/layout/notifications/NotificationsDrawer';
 import type {
@@ -21,25 +22,104 @@ const NOTIFICATION_CATEGORY_MAP: Record<string, NotificationCategory> = {
   'program.updated': 'program',
   'doctor.instruction.created': 'doctor-instruction',
   'onboarding.intake.submitted': 'intake',
+  'admin.care_plan.operational_log.missing': 'system',
+  'admin.care_plan.report.publish_overdue': 'system',
+  'admin.care_plan.report.in_review_stale': 'system',
+  'admin.care_plan.client_logging_streak': 'system',
   system: 'system',
   reminder: 'reminder',
+};
+
+const SYSTEM_NOTIFICATION_IMAGE = '/images/logo-3d.png';
+const SYSTEM_NOTIFICATION_TYPES = new Set<string>([
+  'admin.care_plan.operational_log.missing',
+  'admin.care_plan.report.publish_overdue',
+  'admin.care_plan.report.in_review_stale',
+  'admin.care_plan.client_logging_streak',
+]);
+
+/**
+ * Safely resolves sender picture URL from notification meta payload.
+ */
+const extractNotificationPictureUrl = (
+  meta: Record<string, unknown> | undefined,
+): string | null => {
+  if (!meta) return null;
+
+  const direct = meta.picture_url;
+  if (typeof direct === 'string' && direct.trim()) return direct.trim();
+
+  const client = meta.client;
+  if (
+    client &&
+    typeof client === 'object' &&
+    'picture_url' in client &&
+    typeof client.picture_url === 'string' &&
+    client.picture_url.trim()
+  ) {
+    return client.picture_url.trim();
+  }
+
+  const user = meta.user;
+  if (
+    user &&
+    typeof user === 'object' &&
+    'picture_url' in user &&
+    typeof user.picture_url === 'string' &&
+    user.picture_url.trim()
+  ) {
+    return user.picture_url.trim();
+  }
+
+  return null;
+};
+
+/**
+ * Safely resolves client name from notification meta payload.
+ */
+const extractNotificationClientName = (
+  meta: Record<string, unknown> | undefined,
+): string | null => {
+  if (!meta) return null;
+
+  const direct = meta.client_name;
+  if (typeof direct === 'string' && direct.trim()) return direct.trim();
+
+  const client = meta.client;
+  if (
+    client &&
+    typeof client === 'object' &&
+    'name' in client &&
+    typeof client.name === 'string' &&
+    client.name.trim()
+  ) {
+    return client.name.trim();
+  }
+
+  return null;
 };
 
 const normalizeNotification = (
   notification: BackendNotification,
 ): Notification => {
-  const category =
-    NOTIFICATION_CATEGORY_MAP[notification.data?.type ?? ''] ?? 'default';
+  const normalizedType = notification.data?.type ?? 'default';
+  const category = NOTIFICATION_CATEGORY_MAP[normalizedType] ?? 'default';
+  const clientName = extractNotificationClientName(notification.data?.meta);
+  const pictureUrl = SYSTEM_NOTIFICATION_TYPES.has(normalizedType)
+    ? SYSTEM_NOTIFICATION_IMAGE
+    : extractNotificationPictureUrl(notification.data?.meta);
 
   return {
     id: notification.id,
     category,
-    type: notification.data?.type ?? 'default',
+    type: normalizedType,
     title: notification.data?.title ?? 'Notification',
     message: notification.data?.message ?? 'You have a new update.',
     createdAt: new Date(notification.created_at),
     read: notification.read_at !== null,
     href: notification.data?.action_url,
+    pictureUrl,
+    clientName,
   };
 };
 
@@ -53,6 +133,11 @@ const extractNotifications = (
 const DashboardNotification = () => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notificationSelectMode, setNotificationSelectMode] = useState(false);
+  const [selectedNotificationIds, setSelectedNotificationIds] = useState<
+    string[]
+  >([]);
+  const [isDeletingSelected, setIsDeletingSelected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { user, hasInitialized } = useAuth();
 
@@ -70,6 +155,9 @@ const DashboardNotification = () => {
 
     const list = extractNotifications(response.data).map(normalizeNotification);
     setNotifications(list);
+    setSelectedNotificationIds((current) =>
+      current.filter((id) => list.some((n) => n.id === id)),
+    );
     setIsLoading(false);
   }, []);
 
@@ -87,6 +175,49 @@ const DashboardNotification = () => {
       current.map((notification) => ({ ...notification, read: true })),
     );
     await adminNotificationService.markAllAsRead();
+  }, []);
+
+  const updateSelected = useCallback((id: string, selected: boolean) => {
+    setSelectedNotificationIds((current) => {
+      if (selected) {
+        if (current.includes(id)) return current;
+        return [...current, id];
+      }
+      return current.filter((value) => value !== id);
+    });
+  }, []);
+
+  const deleteSelected = useCallback(async () => {
+    if (selectedNotificationIds.length === 0) return;
+
+    setIsDeletingSelected(true);
+    const idsToDelete = [...selectedNotificationIds];
+    const previous = notifications;
+
+    setNotifications((current) =>
+      current.filter((notification) => !idsToDelete.includes(notification.id)),
+    );
+    setSelectedNotificationIds([]);
+
+    const response = await adminNotificationService.deleteSelected(idsToDelete);
+    if (response.status === 'error') {
+      setNotifications(previous);
+      setSelectedNotificationIds(idsToDelete);
+      toast.error(
+        response.message || 'Failed to delete selected notifications.',
+      );
+    } else {
+      setNotificationSelectMode(false);
+      toast.success('Selected notifications have been deleted.');
+    }
+    setIsDeletingSelected(false);
+  }, [notifications, selectedNotificationIds]);
+
+  const handleSelectModeChange = useCallback((enabled: boolean) => {
+    setNotificationSelectMode(enabled);
+    if (!enabled) {
+      setSelectedNotificationIds([]);
+    }
   }, []);
 
   useEffect(() => {
@@ -238,6 +369,12 @@ const DashboardNotification = () => {
         isLoading={isLoading}
         onMarkAsRead={markAsRead}
         onMarkAllAsRead={markAllAsRead}
+        selectMode={notificationSelectMode}
+        onSelectModeChange={handleSelectModeChange}
+        selectedIds={selectedNotificationIds}
+        onSelectChange={updateSelected}
+        onDeleteSelected={deleteSelected}
+        isDeletingSelected={isDeletingSelected}
       />
     </div>
   );

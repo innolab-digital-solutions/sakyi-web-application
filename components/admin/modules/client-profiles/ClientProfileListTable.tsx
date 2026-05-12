@@ -395,7 +395,7 @@ export default function ClientProfileListTable() {
               return (
                 <TableRow key={row.id}>
                   {showColumn('reference') ? (
-                    <TableCell>
+                    <TableCell className='min-w-42'>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {getClientProfileReference(row)}
                       </p>
@@ -452,7 +452,7 @@ export default function ClientProfileListTable() {
                     </TableCell>
                   ) : null}
                   {showColumn('dob') ? (
-                    <TableCell className='tabular-nums'>
+                    <TableCell className='min-w-42'>
                       {dobDisplay ?? <TableCellEmpty label='Not provided' />}
                     </TableCell>
                   ) : null}

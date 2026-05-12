@@ -2,7 +2,9 @@
 
 import {
   ClipboardCopyIcon,
-  EyeIcon,
+  ClipboardSignatureIcon,
+  FileTextIcon,
+  Link2Icon,
   MoreHorizontalIcon,
   SendHorizontal,
   SquarePenIcon,
@@ -72,6 +74,8 @@ export default function IntakeRowActions({
   const showContinue = canContinueInterview(intake);
   const showSend = canSendContract(intake);
   const enrollmentRequestId = intake.enrollment_request?.id ?? null;
+  const contractId = intake.enrollment_contract?.id ?? null;
+  const enrollmentRecordId = intake.enrollment?.id ?? null;
   const sendDisabled = enrollmentRequestId == null || isSendingContract;
 
   const handleCopyReference = () => {
@@ -88,8 +92,16 @@ export default function IntakeRowActions({
   const showViewInMenu = primary !== 'view';
   const showContinueInMenu = primary !== 'continue' && showContinue;
   const showSendInMenu = primary !== 'send' && showSend;
-  const hasMenuAfterCopy =
-    showViewInMenu || showContinueInMenu || showSendInMenu;
+  const showOpenEnrollmentRequest = enrollmentRequestId != null;
+  const showOpenContract = contractId != null;
+  const showOpenEnrollmentRecord = enrollmentRecordId != null;
+
+  const hasQuickLinks =
+    showViewInMenu ||
+    showContinueInMenu ||
+    showOpenEnrollmentRequest ||
+    showOpenContract ||
+    showOpenEnrollmentRecord;
 
   return (
     <div className='flex items-center justify-end gap-1.5'>
@@ -107,7 +119,7 @@ export default function IntakeRowActions({
             className='inline-flex items-center gap-1.5'
           >
             <SquarePenIcon className='size-3.5 shrink-0' />
-            Continue interview
+            Continue Interview
           </Link>
         </Button>
       ) : null}
@@ -139,8 +151,8 @@ export default function IntakeRowActions({
             )}
             className='inline-flex items-center gap-1.5'
           >
-            <EyeIcon className='size-3.5 shrink-0' />
-            View Detail
+            <FileTextIcon className='size-3.5 shrink-0' />
+            Open Overview
           </Link>
         </Button>
       ) : null}
@@ -157,9 +169,9 @@ export default function IntakeRowActions({
             <MoreHorizontalIcon className='size-4' />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align='end' className='min-w-52'>
+        <DropdownMenuContent align='end' className='min-w-56'>
           <DropdownMenuLabel className='text-foreground/70 space-y-1 px-2 py-1.5 text-[11px]! font-bold tracking-wide uppercase'>
-            More Options
+            Actions
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -169,9 +181,11 @@ export default function IntakeRowActions({
             <ClipboardCopyIcon className='size-3.5 shrink-0' />
             Copy reference
           </DropdownMenuItem>
-          {hasMenuAfterCopy ? (
+
+          {(hasQuickLinks || showSendInMenu) && <DropdownMenuSeparator />}
+
+          {hasQuickLinks ? (
             <>
-              <DropdownMenuSeparator />
               {showViewInMenu ? (
                 <DropdownMenuItem asChild className='cursor-pointer'>
                   <Link
@@ -180,8 +194,8 @@ export default function IntakeRowActions({
                       String(intake.id),
                     )}
                   >
-                    <EyeIcon className='size-3.5 shrink-0' />
-                    View Detail
+                    <FileTextIcon className='size-3.5 shrink-0' />
+                    Open Overview
                   </Link>
                 </DropdownMenuItem>
               ) : null}
@@ -194,23 +208,65 @@ export default function IntakeRowActions({
                     )}
                   >
                     <SquarePenIcon className='size-3.5 shrink-0' />
-                    Continue interview
+                    Open Interview Session
                   </Link>
                 </DropdownMenuItem>
               ) : null}
-              {showSendInMenu ? (
-                <DropdownMenuItem
-                  className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-                  disabled={sendDisabled}
-                  onClick={() => {
-                    if (!sendDisabled) onSendContract();
-                  }}
-                >
-                  <SendHorizontal className='size-3.5 shrink-0' />
-                  Send Contract
+              {showOpenEnrollmentRequest ? (
+                <DropdownMenuItem asChild className='cursor-pointer'>
+                  <Link
+                    className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                    href={ROUTES.ADMIN.MODULES.ENROLLMENT_REQUESTS.DETAIL(
+                      String(enrollmentRequestId),
+                    )}
+                  >
+                    <Link2Icon className='size-3.5 shrink-0' />
+                    Open Enrollment Request
+                  </Link>
+                </DropdownMenuItem>
+              ) : null}
+              {showOpenContract ? (
+                <DropdownMenuItem asChild className='cursor-pointer'>
+                  <Link
+                    className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                    href={ROUTES.ADMIN.MODULES.ENROLLMENT_CONTRACTS.DETAIL(
+                      String(contractId),
+                    )}
+                  >
+                    <ClipboardSignatureIcon className='size-3.5 shrink-0' />
+                    Open Contract Record
+                  </Link>
+                </DropdownMenuItem>
+              ) : null}
+              {showOpenEnrollmentRecord ? (
+                <DropdownMenuItem asChild className='cursor-pointer'>
+                  <Link
+                    className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                    href={ROUTES.ADMIN.MODULES.ENROLLMENT_RECORDS.DETAIL(
+                      String(enrollmentRecordId),
+                    )}
+                  >
+                    <FileTextIcon className='size-3.5 shrink-0' />
+                    Open Enrollment Record
+                  </Link>
                 </DropdownMenuItem>
               ) : null}
             </>
+          ) : null}
+
+          {showSendInMenu && hasQuickLinks ? <DropdownMenuSeparator /> : null}
+
+          {showSendInMenu ? (
+            <DropdownMenuItem
+              className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+              disabled={sendDisabled}
+              onClick={() => {
+                if (!sendDisabled) onSendContract();
+              }}
+            >
+              <SendHorizontal className='size-3.5 shrink-0' />
+              Send Contract
+            </DropdownMenuItem>
           ) : null}
         </DropdownMenuContent>
       </DropdownMenu>

@@ -2,20 +2,15 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
-import {
-  CheckCircle2Icon,
-  FileTextIcon,
-  PencilIcon,
-  TimerResetIcon,
-  XCircleIcon,
-} from 'lucide-react';
+import { PenSquareIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 
-import { AdminWorkspaceSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ROUTES } from '@/config/routes';
 import { getOnboardingIntakeById } from '@/domains/intake-assessments/services';
@@ -24,28 +19,126 @@ import type {
   OnboardingIntakeSection,
 } from '@/domains/intake-assessments/types';
 import { getInitials } from '@/lib/utils/string';
+import { cn } from '@/lib/utils/styles';
 
 type IntakeDetailPanelProps = {
   intakeId: number;
 };
 
-function formatDate(iso: string | null): string {
-  if (!iso) return 'Not set';
-  try {
-    return format(parseISO(iso), 'dd-MMMM-yyyy hh:mm a');
-  } catch {
-    return iso;
-  }
+/** Primary white card shell — matches {@link EnrollmentRequestDetailView}. */
+const CARD_SURFACE =
+  'border-border max-w-full min-w-0 rounded-md border bg-white p-6 shadow-xs';
+
+/** Loading UI aligned with the overview + sidebar + questionnaire layout of this panel. */
+function IntakeAssessmentDetailSkeleton() {
+  return (
+    <div className='space-y-3 lg:space-y-4'>
+      <div className='grid gap-3 lg:grid-cols-3 lg:gap-4'>
+        <section className={`${CARD_SURFACE} space-y-5 lg:col-span-2`}>
+          <header className='border-border shrink-0 border-b pb-5'>
+            <Skeleton className='h-5 w-36 rounded-sm' />
+            <Skeleton className='mt-2 h-3 max-w-3xl rounded-sm' />
+            <Skeleton className='mt-2 h-3 max-w-2xl rounded-sm' />
+          </header>
+          <div className='space-y-3'>
+            <div className='grid gap-1.5 md:grid-cols-3'>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={`intake-overview-metric-${i}`}
+                  className='bg-muted/50 border-border flex min-h-18 min-w-0 flex-col justify-center space-y-2 rounded-md border px-2.5 py-2'
+                >
+                  <Skeleton className='h-3 w-24 rounded-sm' />
+                  <Skeleton className='h-4 w-32 rounded-sm' />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <div className='flex min-h-0 min-w-0 flex-col gap-3 lg:gap-4'>
+          <section className={`${CARD_SURFACE} flex min-h-0 flex-col`}>
+            <header className='border-border shrink-0 border-b pb-4'>
+              <Skeleton className='h-5 w-44 rounded-sm' />
+              <Skeleton className='mt-2 h-3 max-w-md rounded-sm' />
+            </header>
+            <div className='flex items-start gap-3 pt-5'>
+              <Skeleton className='size-12 shrink-0 rounded-full' />
+              <div className='min-w-0 flex-1 space-y-2'>
+                <Skeleton className='h-4 w-40 rounded-sm' />
+                <Skeleton className='h-3 w-56 rounded-sm' />
+              </div>
+            </div>
+          </section>
+          <section className={`${CARD_SURFACE} flex min-h-0 flex-col`}>
+            <header className='border-border shrink-0 border-b pb-4'>
+              <Skeleton className='h-5 w-48 rounded-sm' />
+              <Skeleton className='mt-2 h-3 max-w-md rounded-sm' />
+            </header>
+            <div className='flex items-start gap-3 pt-5'>
+              <Skeleton className='size-12 shrink-0 rounded-md' />
+              <div className='min-w-0 flex-1 space-y-2'>
+                <Skeleton className='h-4 w-48 rounded-sm' />
+                <Skeleton className='h-3 w-28 rounded-sm' />
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <section className={`${CARD_SURFACE} flex min-h-0 flex-col`}>
+        <header className='border-border flex flex-wrap items-start justify-between gap-4 border-b pb-4'>
+          <div className='min-w-0 flex-1 space-y-2'>
+            <Skeleton className='h-5 w-56 rounded-sm' />
+            <Skeleton className='h-3 max-w-3xl rounded-sm' />
+            <Skeleton className='h-3 max-w-2xl rounded-sm' />
+          </div>
+          <Skeleton className='h-10 w-44 shrink-0 rounded-md' />
+        </header>
+        <div className='flex min-h-0 flex-1 flex-col space-y-4 pt-5'>
+          <Skeleton className='h-10 w-full max-w-2xl rounded-md' />
+          <div className='border-border bg-muted/20 rounded-md border p-3.5 sm:p-4'>
+            <Skeleton className='mb-3 h-3 w-72 rounded-sm' />
+            <div className='grid gap-3 md:grid-cols-2'>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={`intake-qa-${i}`}
+                  className='border-border bg-muted/10 space-y-2 rounded-md border p-3'
+                >
+                  <Skeleton className='h-4 w-full max-w-sm rounded-sm' />
+                  <Skeleton className='ml-6 h-3 w-full rounded-sm' />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }
 
-function formatRoleLabel(role: string): string {
-  return role
-    .trim()
-    .replace(/[_-]+/g, ' ')
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join(' ');
+/** Matches enrollment detail primary actions. */
+const ADMIN_PRIMARY_BUTTON_CLASS =
+  'normal-case h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold';
+
+/** Shared muted tile shell — matches {@link EnrollmentRequestDetailView} overview KPIs. */
+const METRIC_TILE_CLASS =
+  'bg-muted/50 border-border flex min-h-18 flex-col justify-center rounded-md border px-2.5 py-2';
+
+const METRIC_TILE_LABEL_CLASS =
+  'text-muted-foreground mb-1.5 text-[10px] font-semibold tracking-wide uppercase';
+
+const OVERVIEW_EMPTY_DASH = (
+  <span className='text-muted-foreground font-semibold'>-</span>
+);
+
+/** Date-only display for overview tiles (matches enrollment request detail). */
+function formatDateOnly(iso: string | null | undefined): string {
+  if (!iso?.trim()) return 'Not set';
+  try {
+    return format(parseISO(iso.trim()), 'dd-MMMM-yyyy');
+  } catch {
+    return iso.trim();
+  }
 }
 
 const PROGRAM_THUMBNAIL_FALLBACK = '/images/logo-gray.png';
@@ -58,36 +151,6 @@ const INTAKE_STATUS_LABEL: Record<IntakeStatus, string> = {
   in_progress: 'In Progress',
   completed: 'Completed',
   cancelled: 'Cancelled',
-};
-
-/** Matches {@link IntakeListTable} status column badges. */
-const INTAKE_STATUS_STYLES: Record<
-  IntakeStatus,
-  {
-    icon: React.ComponentType<{ className?: string }>;
-    className: string;
-  }
-> = {
-  draft: {
-    icon: FileTextIcon,
-    className:
-      'border-amber-300/80 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200',
-  },
-  in_progress: {
-    icon: TimerResetIcon,
-    className:
-      'border-indigo-300/80 bg-indigo-50 text-indigo-800 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200',
-  },
-  completed: {
-    icon: CheckCircle2Icon,
-    className:
-      'border-emerald-300/80 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200',
-  },
-  cancelled: {
-    icon: XCircleIcon,
-    className:
-      'border-rose-300/80 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200',
-  },
 };
 
 function asIntakeStatus(value: string | undefined): IntakeStatus | null {
@@ -189,7 +252,7 @@ function FileAnswerPreview({
   const imageSrc = !useFallback && url ? url : FILE_PREVIEW_FALLBACK;
 
   return (
-    <div className='border-border/70 bg-muted/10 space-y-3 rounded-md border p-3'>
+    <div className='border-border bg-muted/20 w-full min-w-0 space-y-3 rounded-md border p-3'>
       <p className='text-foreground/90 text-[13px] font-semibold'>
         {question.question}
       </p>
@@ -254,7 +317,7 @@ function PersonAvatar({
 }) {
   const [useFallback, setUseFallback] = useState(() => !pictureUrl?.trim());
   return (
-    <Avatar size='default' className='mt-0.5 shrink-0' aria-hidden>
+    <Avatar size='lg' className='mt-0.5 shrink-0' aria-hidden>
       {!useFallback && pictureUrl?.trim() ? (
         <AvatarImage
           src={pictureUrl.trim()}
@@ -269,20 +332,58 @@ function PersonAvatar({
   );
 }
 
-function DetailItem({
+/** Single metric cell — matches {@link EnrollmentRequestDetailView} `EnrollmentOverviewMetricTile`. */
+function IntakeOverviewMetricTile({
   label,
   value,
+  tabularNums = true,
+  valueClassName,
 }: {
   label: string;
-  value: React.ReactNode;
+  value: ReactNode;
+  tabularNums?: boolean;
+  valueClassName?: string;
 }) {
   return (
-    <div className='space-y-1.5'>
-      <p className='text-muted-foreground text-[10px]! font-semibold tracking-wide uppercase'>
-        {label}
-      </p>
-      <div className='text-foreground/90 text-[13px] leading-relaxed font-semibold'>
+    <div className={METRIC_TILE_CLASS}>
+      <p className={METRIC_TILE_LABEL_CLASS}>{label}</p>
+      <div
+        className={cn(
+          'text-foreground/90 text-[12.5px] leading-snug font-semibold',
+          tabularNums && 'tabular-nums',
+          valueClassName,
+        )}
+      >
         {value}
+      </div>
+    </div>
+  );
+}
+
+/** Cancellation block — same surface as overview metric tiles (`METRIC_TILE_CLASS`). */
+function IntakeStateNote({
+  title,
+  metaValue,
+  children,
+}: {
+  title: string;
+  metaValue: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      role='status'
+      className={cn(
+        METRIC_TILE_CLASS,
+        'min-h-0 justify-start space-y-2 py-3 text-[13px]',
+      )}
+    >
+      <p className={METRIC_TILE_LABEL_CLASS}>{title}</p>
+      <div className='text-foreground/90 text-[12.5px] leading-snug font-semibold tabular-nums'>
+        {metaValue}
+      </div>
+      <div className='text-muted-foreground border-border space-y-1 border-t pt-2 text-[12.5px] leading-relaxed font-medium'>
+        {children}
       </div>
     </div>
   );
@@ -297,7 +398,7 @@ export default function IntakeDetailPanel({
   });
 
   if (intakeQuery.isPending) {
-    return <AdminWorkspaceSkeleton />;
+    return <IntakeAssessmentDetailSkeleton />;
   }
 
   if (intakeQuery.data?.status === 'error') {
@@ -312,11 +413,11 @@ export default function IntakeDetailPanel({
   const isEditable =
     intake.status === 'draft' || intake.status === 'in_progress';
   const intakeLabel = intake.code?.trim() || `Intake #${intake.id}`;
-  const programTitle =
-    intake.program?.title?.trim() || intake.program?.slug?.trim() || 'Program';
-  const handlerRole = intake.handler?.role?.trim()
-    ? formatRoleLabel(intake.handler.role)
-    : 'No role assigned';
+  const programLabel =
+    intake.program?.title?.trim() || intake.program?.slug?.trim() || '—';
+  const programCode = intake.program?.code?.trim()
+    ? intake.program.code.trim()
+    : '—';
   const templateLabel = `${intake.template?.title || 'Unknown template'} (v${
     intake.template?.version ?? '—'
   })`;
@@ -326,252 +427,269 @@ export default function IntakeDetailPanel({
   );
 
   const intakeStatus = asIntakeStatus(intake.status);
-  const statusStyle = intakeStatus
-    ? INTAKE_STATUS_STYLES[intakeStatus]
-    : INTAKE_STATUS_STYLES.draft;
-  const StatusIcon = statusStyle.icon;
+  const statusDisplay = intakeStatus
+    ? INTAKE_STATUS_LABEL[intakeStatus]
+    : intake.status;
 
   return (
-    <div className='grid gap-4 lg:grid-cols-3'>
-      <section className='border-border max-w-full min-w-0 space-y-5 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:col-span-2 lg:p-6'>
-        <div className='flex flex-wrap items-start justify-between gap-4'>
-          <div className='space-y-1.5'>
-            <p className='text-muted-foreground text-[10px]! font-semibold tracking-wide uppercase'>
-              Intake Template
+    <div className='space-y-3 lg:space-y-4'>
+      <div className='grid gap-3 lg:grid-cols-3 lg:gap-4'>
+        <section className={`${CARD_SURFACE} space-y-5 lg:col-span-2`}>
+          <header className='border-border shrink-0 border-b pb-5'>
+            <h3 className='text-foreground text-sm font-semibold'>Overview</h3>
+            <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
+              Reference, template, workflow status, and important dates for this
+              onboarding record. Use it to orient quickly; full answers are in
+              the questionnaire section below.
             </p>
-            <h3 className='text-sm font-semibold tracking-normal'>
-              {templateLabel}
-            </h3>
-          </div>
+          </header>
 
-          <div className='flex w-full flex-wrap items-center justify-start gap-2 sm:w-auto sm:justify-end'>
-            {isEditable ? (
-              <Button
-                className='h-10 w-full gap-1.5 rounded-md px-3 text-[13px]! font-semibold sm:w-auto'
-                asChild
+          <div className='space-y-3'>
+            <div className='grid gap-1.5 md:grid-cols-3'>
+              <IntakeOverviewMetricTile
+                label='Assessment reference'
+                value={intakeLabel}
+                tabularNums={false}
+              />
+              <IntakeOverviewMetricTile
+                label='Template'
+                value={templateLabel}
+                tabularNums={false}
+              />
+              <IntakeOverviewMetricTile
+                label='Assessment status'
+                value={statusDisplay}
+                tabularNums={false}
+              />
+              <IntakeOverviewMetricTile
+                label='Created at'
+                value={formatDateOnly(intake.timestamps.created_at)}
+              />
+              <IntakeOverviewMetricTile
+                label='Last updated at'
+                value={formatDateOnly(intake.timestamps.updated_at)}
+              />
+              <IntakeOverviewMetricTile
+                label='Completed at'
+                value={
+                  intake.timestamps.completed_at?.trim()
+                    ? formatDateOnly(intake.timestamps.completed_at)
+                    : OVERVIEW_EMPTY_DASH
+                }
+              />
+            </div>
+
+            {intake.cancellation_note?.trim() ||
+            intake.timestamps.cancelled_at?.trim() ? (
+              <IntakeStateNote
+                title='Cancellation'
+                metaValue={
+                  intake.timestamps.cancelled_at?.trim()
+                    ? formatDateOnly(intake.timestamps.cancelled_at)
+                    : '—'
+                }
               >
-                <Link
-                  href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.INTERVIEW(
-                    String(intake.id),
-                  )}
-                >
-                  <PencilIcon className='size-3.5' />
-                  Continue Interview
-                </Link>
-              </Button>
+                {intake.cancellation_note?.trim() ? (
+                  <p className='whitespace-pre-wrap'>
+                    {intake.cancellation_note.trim()}
+                  </p>
+                ) : (
+                  <p className='text-muted-foreground text-[12.5px] leading-relaxed'>
+                    No cancellation note was recorded.
+                  </p>
+                )}
+              </IntakeStateNote>
             ) : null}
           </div>
-        </div>
+        </section>
 
-        <div className='border-border border-t pt-5'>
-          <div className='grid gap-4 md:grid-cols-2'>
-            <div className='space-y-4'>
-              <DetailItem label='Assessment Reference' value={intakeLabel} />
-              <DetailItem
-                label='Linked Request Reference'
-                value={intake.enrollment_request?.code?.trim() || 'Not linked'}
-              />
-              <DetailItem
-                label='Requested Program Reference'
-                value={intake.program?.code?.trim() || '-'}
-              />
-              <DetailItem
-                label='Applicant (Client Code)'
-                value={intake.client?.client_code?.trim() || '-'}
-              />
-            </div>
-            <div className='space-y-4 text-left md:justify-self-end md:text-right'>
-              <div className='space-y-1.5'>
-                <p className='text-muted-foreground text-[10px]! font-semibold tracking-wide uppercase'>
-                  Assessment Status
-                </p>
-                <div className='md:flex md:justify-end'>
-                  <span
-                    className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
-                  >
-                    <StatusIcon className='size-3.5 shrink-0' aria-hidden />
-                    {intakeStatus
-                      ? INTAKE_STATUS_LABEL[intakeStatus]
-                      : intake.status}
-                  </span>
-                </div>
-              </div>
-              <DetailItem
-                label='Created At'
-                value={formatDate(intake.timestamps.created_at)}
-              />
-              <DetailItem
-                label='Last Updated At'
-                value={formatDate(intake.timestamps.updated_at)}
-              />
-              <DetailItem
-                label='Cancellation Notes'
-                value={intake.cancellation_note?.trim() || '-'}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:p-6'>
-        <div className='divide-border grid gap-5 divide-y'>
-          <div className='space-y-2.5 pb-5'>
-            <h3 className='text-muted-foreground text-[10px]! font-semibold tracking-wide uppercase'>
-              Applicant
-            </h3>
-            <div className='flex items-start gap-3'>
-              <PersonAvatar
-                name={intake.client?.name}
-                pictureUrl={intake.client?.picture_url}
-              />
-              <div className='min-w-0 flex-1 space-y-1'>
-                <p className='text-foreground/90 text-[13px] font-semibold'>
-                  {intake.client?.name?.trim() || 'No applicant name'}
-                </p>
-                <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
-                  {intake.client?.email?.trim() || 'No email on file'}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className='space-y-2.5 pb-5'>
-            <h3 className='text-muted-foreground text-[10px]! font-semibold tracking-wide uppercase'>
-              Handled By
-            </h3>
-            {intake.handler ? (
-              <div className='flex items-start gap-3'>
-                <PersonAvatar
-                  name={intake.handler.name}
-                  pictureUrl={intake.handler.picture_url}
-                />
-                <div className='min-w-0 flex-1 space-y-1'>
-                  <p className='text-foreground/90 text-[13px] font-semibold'>
-                    {intake.handler.name}
-                  </p>
-                  <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
-                    {handlerRole}
-                  </p>
+        <div className='flex min-h-0 min-w-0 flex-col gap-3 lg:gap-4'>
+          <section className={`${CARD_SURFACE} flex min-h-0 flex-col`}>
+            <header className='border-border shrink-0 border-b pb-4'>
+              <h3 className='text-foreground text-sm font-semibold'>
+                Applicant Account
+              </h3>
+              <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
+                Person linked to this intake. Confirm identity here before
+                reviewing questionnaire answers.
+              </p>
+            </header>
+            {intake.client ? (
+              <div className='flex min-h-0 flex-1 flex-col gap-4 pt-5'>
+                <div className='flex min-w-0 items-start gap-3'>
+                  <PersonAvatar
+                    name={intake.client.name}
+                    pictureUrl={intake.client.picture_url}
+                  />
+                  <div className='min-w-0 flex-1 space-y-1'>
+                    <p className='text-foreground/90 text-[13px] font-semibold'>
+                      {intake.client.name?.trim() || (
+                        <TableCellEmpty label='No name on file' />
+                      )}
+                    </p>
+                    <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
+                      {intake.client.email?.trim() || 'No email on file'}
+                    </p>
+                  </div>
                 </div>
               </div>
             ) : (
-              <p className='text-muted-foreground text-sm'>
-                No handler has been assigned yet.
+              <p className='text-muted-foreground pt-5 text-sm'>
+                No applicant account linked to this intake.
               </p>
             )}
-          </div>
+          </section>
 
-          <div className='space-y-2.5'>
-            <h3 className='text-muted-foreground text-[10px]! font-semibold tracking-wide uppercase'>
-              Requested Program
-            </h3>
-            <div className='flex items-start gap-3'>
-              <ProgramThumbnail
-                thumbnailUrl={intake.program?.thumbnail_url}
-                title={programTitle}
-              />
-              <div className='min-w-0 flex-1 space-y-1'>
-                <p className='text-foreground/90 text-[13px] font-semibold'>
-                  {programTitle}
-                </p>
-                <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
-                  {intake.program?.code?.trim() || 'No program code'}
-                </p>
+          <section className={`${CARD_SURFACE} flex min-h-0 flex-col`}>
+            <header className='border-border shrink-0 border-b pb-4'>
+              <h3 className='text-foreground text-sm font-semibold'>
+                Requested Program
+              </h3>
+              <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
+                Program selected at the time of application. Use this as the
+                reference for intake, contract, and enrollment.
+              </p>
+            </header>
+            {intake.program ? (
+              <div className='flex min-h-0 flex-1 flex-col gap-4 pt-5'>
+                <div className='flex items-start gap-3'>
+                  <ProgramThumbnail
+                    thumbnailUrl={intake.program.thumbnail_url}
+                    title={programLabel !== '—' ? programLabel : 'Program'}
+                  />
+                  <div className='min-w-0 flex-1 space-y-1'>
+                    <p className='text-foreground/90 text-[13px] font-semibold'>
+                      {programLabel !== '—' ? (
+                        programLabel
+                      ) : (
+                        <TableCellEmpty label='No title' />
+                      )}
+                    </p>
+                    <p className='text-muted-foreground text-xs leading-snug font-medium'>
+                      {programCode !== '—' ? programCode : 'No program code'}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            ) : (
+              <p className='text-muted-foreground pt-5 text-sm'>
+                No program linked to this request.
+              </p>
+            )}
+          </section>
         </div>
-      </section>
+      </div>
 
-      <section className='border-border max-w-full min-w-0 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:col-span-3 lg:p-6'>
-        <h3 className='text-foreground text-sm font-semibold'>
-          Assessment Questionnaire Responses
-        </h3>
-        <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
-          Review submitted answers by section to quickly verify client-provided
-          details before making follow-up decisions.
-        </p>
-        {intakeSections.length ? (
-          <Tabs
-            defaultValue={String(intakeSections[0]?.id)}
-            className='mt-4 space-y-4'
-          >
-            <TabsList
-              variant='line'
-              className='bg-muted! border-border mb-4 w-full min-w-0 flex-nowrap justify-start overflow-x-auto border [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+      <section className={`${CARD_SURFACE} flex min-h-0 flex-col`}>
+        <header className='border-border flex flex-wrap items-start justify-between gap-4 border-b pb-4'>
+          <div className='min-w-0 flex-1 space-y-1'>
+            <h3 className='text-foreground text-sm font-semibold'>
+              Questionnaire Responses
+            </h3>
+            <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
+              Answers captured for this intake, grouped by template section. Use
+              the tabs to review each part in a compact grid.
+            </p>
+          </div>
+          {isEditable ? (
+            <Button
+              className={`${ADMIN_PRIMARY_BUTTON_CLASS} w-full sm:w-auto`}
+              asChild
             >
-              {intakeSections.map((section, index) => (
-                <TabsTrigger
+              <Link
+                href={ROUTES.ADMIN.MODULES.INTAKE_ASSESSMENTS.INTERVIEW(
+                  String(intake.id),
+                )}
+              >
+                <PenSquareIcon className='size-3.5' />
+                Continue Interview
+              </Link>
+            </Button>
+          ) : null}
+        </header>
+        <div className='flex min-h-0 flex-1 flex-col pt-5'>
+          {intakeSections.length ? (
+            <Tabs
+              defaultValue={String(intakeSections[0]?.id)}
+              className='space-y-4'
+            >
+              <TabsList
+                variant='line'
+                className='bg-muted! border-border w-full min-w-0 flex-nowrap justify-start overflow-x-auto border [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+              >
+                {intakeSections.map((section, index) => (
+                  <TabsTrigger
+                    key={section.id}
+                    value={String(section.id)}
+                    className='shrink-0 gap-2 text-[13px] font-semibold'
+                  >
+                    <span className='shrink-0 text-inherit tabular-nums'>
+                      {index + 1}.
+                    </span>
+                    <span className='min-w-0 wrap-break-word text-inherit'>
+                      {section.title}
+                    </span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              {intakeSections.map((section) => (
+                <TabsContent
                   key={section.id}
                   value={String(section.id)}
-                  className='shrink-0 gap-2 text-[13px] font-semibold'
+                  className='mt-0 space-y-3'
                 >
-                  <span className='shrink-0 text-inherit tabular-nums'>
-                    {index + 1}.
-                  </span>
-                  <span className='min-w-0 wrap-break-word text-inherit'>
-                    {section.title}
-                  </span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            {intakeSections.map((section) => (
-              <TabsContent
-                key={section.id}
-                value={String(section.id)}
-                className='mt-0 space-y-3'
-              >
-                {section.description?.trim() ? (
-                  <p className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
-                    {section.description.trim()}
-                  </p>
-                ) : null}
-                <div>
-                  {section.questions.length ? (
-                    section.questions.every(
-                      (question) => question.type === 'file',
-                    ) ? (
-                      <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-3'>
-                        {section.questions.map((question) => (
-                          <FileAnswerPreview
-                            key={question.id}
-                            question={question}
-                          />
-                        ))}
-                      </div>
+                  {section.description?.trim() ? (
+                    <p className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
+                      {section.description.trim()}
+                    </p>
+                  ) : null}
+                  <div className='border-border bg-muted/20 rounded-md border p-3.5 sm:p-4'>
+                    {section.questions.length ? (
+                      section.questions.every(
+                        (question) => question.type === 'file',
+                      ) ? (
+                        <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-3'>
+                          {section.questions.map((question) => (
+                            <FileAnswerPreview
+                              key={question.id}
+                              question={question}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className='grid gap-3 md:grid-cols-2'>
+                          {section.questions.map((question, index) => (
+                            <div
+                              key={question.id}
+                              className='border-border bg-muted/10 min-w-0 space-y-1.5 rounded-md border p-3'
+                            >
+                              <p className='text-foreground/90 text-[13px] font-semibold'>
+                                <span className='mr-1 font-semibold'>
+                                  Q{index + 1}.
+                                </span>
+                                {question.question}
+                              </p>
+                              <p className='text-muted-foreground ml-6 text-[13px] leading-relaxed font-medium wrap-break-word capitalize'>
+                                {getReadableAnswer(question)}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )
                     ) : (
-                      <div className='grid gap-3 md:grid-cols-2'>
-                        {section.questions.map((question, index) => (
-                          <div
-                            key={question.id}
-                            className='border-border/70 bg-muted/10 space-y-1.5 rounded-md border p-3'
-                          >
-                            <p className='text-foreground/90 text-[13px] font-semibold'>
-                              <span className='mr-1 font-semibold'>
-                                Q{index + 1}.
-                              </span>
-                              {question.question}
-                            </p>
-                            <p className='text-muted-foreground ml-6 text-[13px] leading-relaxed font-medium wrap-break-word capitalize'>
-                              {getReadableAnswer(question)}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    )
-                  ) : (
-                    <p className='text-muted-foreground p-4 text-sm'>-</p>
-                  )}
-                </div>
-              </TabsContent>
-            ))}
-          </Tabs>
-        ) : (
-          <p className='text-muted-foreground mt-3 text-sm'>
-            No intake responses available.
-          </p>
-        )}
+                      <p className='text-muted-foreground text-sm'>-</p>
+                    )}
+                  </div>
+                </TabsContent>
+              ))}
+            </Tabs>
+          ) : (
+            <p className='text-muted-foreground text-sm'>
+              No intake responses available.
+            </p>
+          )}
+        </div>
       </section>
     </div>
   );

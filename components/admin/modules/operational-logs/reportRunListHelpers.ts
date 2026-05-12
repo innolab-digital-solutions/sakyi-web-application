@@ -25,7 +25,7 @@ export const OPERATIONAL_LOG_STATUS_STYLES: Record<
 > = {
   /**
    * Tokens match care plan + enrollment list badges: `border-{hue}-300/80 bg-{hue}-50 text-{hue}-800` (+ dark pair).
-   * Draft = amber + file; in progress = cyan + activity (same as “active”); locked = violet + lock (read-only / sealed).
+   * Draft = amber + file; in progress = cyan + activity (same as “active”); locked = zinc + lock (same tone as daily task log “Closed”).
    */
   draft: {
     icon: FileTextIcon,
@@ -42,7 +42,7 @@ export const OPERATIONAL_LOG_STATUS_STYLES: Record<
   locked: {
     icon: LockIcon,
     className:
-      'border-violet-300/80 bg-violet-50 text-violet-800 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-200',
+      'border-zinc-300/90 bg-zinc-100 text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900/45 dark:text-zinc-200',
     label: 'Locked',
   },
 };
@@ -137,22 +137,20 @@ export function normalizeClientReportStatus(
   return null;
 }
 
-/**
- * Operational logs workspace: `GET` report-workspace with no query (care
- * plan’s single operational log / period on the server). Ids are kept for
- * call-site context only.
- */
-export function buildReportWorkspaceHref(
-  carePlanId: number,
-  _reportRunId: number,
+/** Period report overview URL; `periodReportListId` is row `id` from the period reports table. */
+export function buildPeriodReportOverviewHref(
+  periodReportListId: number,
 ): string {
-  return ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.WORKSPACE(String(carePlanId));
+  return ROUTES.ADMIN.MODULES.PERIOD_REPORTS.DETAIL(String(periodReportListId));
 }
 
-/** Same as {@link buildReportWorkspaceHref} — list rows link to a clean path. */
+/**
+ * Operational logs workspace. The workspace route normalizes URL without deep
+ * `operational_log_id`; the second argument is kept for call-site symmetry.
+ */
 export function buildOperationalLogWorkspaceHref(
   carePlanId: number,
-  _operationalLogId: number,
+  _operationalLogId?: number | null,
 ): string {
   return ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.WORKSPACE(String(carePlanId));
 }

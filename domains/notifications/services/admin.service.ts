@@ -1,6 +1,6 @@
 import { ENDPOINTS } from '@/config/api/endpoints';
 import type { BackendNotification } from '@/domains/notifications/types';
-import { http } from '@/lib/api/client';
+import { client, http } from '@/lib/api/client';
 import type { ApiResponse } from '@/types/api';
 
 type NotificationListEnvelope = {
@@ -36,6 +36,21 @@ export const adminNotificationService = {
       ENDPOINTS.ADMIN.MODULES.NOTIFICATIONS.MARK_ALL_AS_READ,
       undefined,
       { throwOnError: false },
+    );
+  },
+
+  deleteSelected: async (
+    notificationIds: string[],
+  ): Promise<ApiResponse<unknown>> => {
+    return client<unknown>(
+      ENDPOINTS.ADMIN.MODULES.NOTIFICATIONS.DELETE_SELECTED,
+      {
+        method: 'DELETE',
+        body: {
+          notification_ids: notificationIds,
+        },
+        throwOnError: false,
+      },
     );
   },
 };
