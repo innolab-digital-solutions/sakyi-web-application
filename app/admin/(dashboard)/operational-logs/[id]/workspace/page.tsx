@@ -48,10 +48,7 @@ export default async function OperationalLogsWorkspacePage({
       />
       <Suspense fallback={<OperationalLogsWorkspaceFullSkeleton />}>
         {Number.isFinite(numericId) ? (
-          <CarePlanReportWorkspace
-            carePlanId={numericId}
-            workspaceLocation='operational-logs'
-          />
+          <CarePlanReportWorkspace carePlanId={numericId} />
         ) : (
           <div className='text-destructive rounded-md border p-4 text-sm'>
             Invalid care plan id.

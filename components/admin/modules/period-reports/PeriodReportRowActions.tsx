@@ -6,14 +6,14 @@ import {
   CheckCircle2Icon,
   ClipboardCopyIcon,
   EyeIcon,
-  FilePenLineIcon,
+  FileTextIcon,
   MoreHorizontalIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import * as React from 'react';
 import { toast } from 'sonner';
 
-import { buildReportWorkspaceHref } from '@/components/admin/modules/operational-logs/reportRunListHelpers';
+import { buildPeriodReportOverviewHref } from '@/components/admin/modules/operational-logs/reportRunListHelpers';
 import PeriodReportPublishBlockedAlert from '@/components/admin/modules/period-reports/PeriodReportPublishBlockedAlert';
 import PeriodReportPublishConfirmation from '@/components/admin/modules/period-reports/PeriodReportPublishConfirmation';
 import { Button } from '@/components/ui/button';
@@ -39,28 +39,17 @@ type Props = {
   row: ClientReportListRow;
 };
 
-function primaryLabelAndIcon(row: ClientReportListRow): {
-  label: string;
-  Icon: typeof EyeIcon;
-} {
-  if (row.status === 'in_review' && row.is_editable) {
-    return { label: 'Review', Icon: FilePenLineIcon };
-  }
-  return { label: 'View details', Icon: EyeIcon };
-}
-
 export default function PeriodReportRowActions({ row }: Props) {
   const queryClient = useQueryClient();
   const [publishBlockedOpen, setPublishBlockedOpen] = React.useState(false);
   const [publishConfirmOpen, setPublishConfirmOpen] = React.useState(false);
   const carePlanId = row.care_plan?.id;
   const reportCode = row.code?.trim() || `#${row.id}`;
-  const carePlanCode = row.care_plan?.code?.trim() ?? '';
   const carePlanEndsOn = row.care_plan?.ends_on?.trim() ?? '';
-  const href =
-    carePlanId != null ? buildReportWorkspaceHref(carePlanId, row.id) : null;
 
-  const { label, Icon } = primaryLabelAndIcon(row);
+  const overviewHref =
+    carePlanId != null ? buildPeriodReportOverviewHref(carePlanId, row.id) : null;
+
   const canShowPublishAction = row.status === 'in_review';
 
   const hasReachedCarePlanEndDate = () => {
@@ -106,33 +95,18 @@ export default function PeriodReportRowActions({ row }: Props) {
     },
   });
 
-  const copyReport = () => {
+  const copyReference = () => {
     void (async () => {
       try {
         await navigator.clipboard.writeText(reportCode);
-        toast.success('Report code copied to clipboard.');
+        toast.success('Reference copied to clipboard.');
       } catch {
-        toast.error('Could not copy report code.');
+        toast.error('Could not copy reference.');
       }
     })();
   };
 
-  const copyCarePlan = () => {
-    void (async () => {
-      if (!carePlanCode) {
-        toast.error('No care plan code to copy.');
-        return;
-      }
-      try {
-        await navigator.clipboard.writeText(carePlanCode);
-        toast.success('Care plan code copied to clipboard.');
-      } catch {
-        toast.error('Could not copy care plan code.');
-      }
-    })();
-  };
-
-  if (href == null) {
+  if (overviewHref == null) {
     return (
       <div className='flex justify-end'>
         <span className='text-muted-foreground text-sm'>—</span>
@@ -148,9 +122,9 @@ export default function PeriodReportRowActions({ row }: Props) {
         className={primaryButtonClass}
         asChild
       >
-        <Link href={href} className='inline-flex items-center gap-1.5'>
-          <Icon className='size-3.5 shrink-0' />
-          {label}
+        <Link href={overviewHref} className='inline-flex items-center gap-1.5'>
+          <FileTextIcon className='size-3.5 shrink-0' aria-hidden />
+          Open overview
         </Link>
       </Button>
 
@@ -166,56 +140,49 @@ export default function PeriodReportRowActions({ row }: Props) {
             <MoreHorizontalIcon className='size-4' />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align='end' className='min-w-52'>
+        <DropdownMenuContent align='end' className='min-w-56'>
           <DropdownMenuLabel className='text-foreground/70 space-y-1 px-2 py-1.5 text-[11px]! font-bold tracking-wide uppercase'>
-            More Options
+            Actions
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+
           <DropdownMenuItem
             className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-            onClick={copyReport}
+            onClick={copyReference}
           >
-            <ClipboardCopyIcon className='size-3.5 shrink-0' />
-            Copy report code
+            <ClipboardCopyIcon className='size-3.5 shrink-0' aria-hidden />
+            Copy reference
           </DropdownMenuItem>
-          <DropdownMenuItem
-            className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-            onClick={copyCarePlan}
-            disabled={!carePlanCode}
-          >
-            <ClipboardCopyIcon className='size-3.5 shrink-0' />
-            Copy care plan code
-          </DropdownMenuItem>
+
+          {carePlanId != null && canShowPublishAction ? (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                disabled={publishPending}
+                onClick={() => {
+                  if (!hasReachedCarePlanEndDate()) {
+                    setPublishBlockedOpen(true);
+                    return;
+                  }
+                  setPublishConfirmOpen(true);
+                }}
+              >
+                <CheckCircle2Icon className='size-3.5 shrink-0' aria-hidden />
+                {publishPending ? 'Publishing…' : 'Publish report'}
+              </DropdownMenuItem>
+            </>
+          ) : null}
+
           {carePlanId != null ? (
             <>
-              {canShowPublishAction ? (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-                    disabled={publishPending}
-                    onClick={() => {
-                      if (!hasReachedCarePlanEndDate()) {
-                        setPublishBlockedOpen(true);
-                        return;
-                      }
-                      setPublishConfirmOpen(true);
-                    }}
-                  >
-                    <CheckCircle2Icon className='size-3.5 shrink-0' />
-                    {publishPending ? 'Publishing...' : 'Publish report'}
-                  </DropdownMenuItem>
-                </>
-              ) : null}
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild className='cursor-pointer'>
                 <Link
-                  className='flex items-center gap-2 text-[13px]! font-medium'
-                  href={ROUTES.ADMIN.MODULES.CARE_PLANS.DETAIL(
-                    String(carePlanId),
-                  )}
+                  className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                  href={ROUTES.ADMIN.MODULES.CARE_PLANS.DETAIL(String(carePlanId))}
                 >
-                  <EyeIcon className='size-3.5 shrink-0' />
+                  <EyeIcon className='size-3.5 shrink-0' aria-hidden />
                   View care plan
                 </Link>
               </DropdownMenuItem>

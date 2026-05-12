@@ -303,65 +303,6 @@ export function CarePlanBuilderSkeleton() {
   );
 }
 
-/** Period {@link CarePlanReportWorkspace} (non–operational-logs) sticky header + two-column grid. */
-export function PeriodReportWorkspaceSkeleton() {
-  return (
-    <div className='space-y-6'>
-      <div className='bg-card sticky top-0 z-10 flex flex-col gap-3 rounded-md border p-4 shadow-sm'>
-        <div className='flex w-full flex-col gap-3 md:flex-row md:items-end md:justify-between'>
-          <div className='min-w-0 flex-1 space-y-2'>
-            <Skeleton className='h-6 w-full max-w-md rounded-sm' />
-            <Skeleton className='h-4 w-full max-w-xs rounded-sm' />
-          </div>
-          <Skeleton className='h-10 w-full max-w-[16rem] rounded-md md:w-56 md:max-w-none' />
-        </div>
-      </div>
-
-      <div className='grid grid-cols-1 gap-6 lg:grid-cols-12'>
-        <section className='border-border lg:col-span-5'>
-          <div className='space-y-3 rounded-md border p-3'>
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={`period-ev-${i}`} className='space-y-2'>
-                <Skeleton className='h-4 w-40 rounded-sm' />
-                <Skeleton className='h-24 w-full rounded-md' />
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className='space-y-6 lg:col-span-7'>
-          <div className='space-y-3 rounded-md border p-4'>
-            <Skeleton className='h-4 w-32 rounded-sm' />
-            <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-              <Skeleton className='h-10 w-full rounded-md' />
-              <Skeleton className='h-10 w-full rounded-md' />
-            </div>
-            <Skeleton className='h-9 w-40 rounded-md' />
-          </div>
-          <div className='space-y-3 rounded-md border p-4'>
-            {Array.from({ length: 2 }).map((_, i) => (
-              <div key={`period-metric-${i}`} className='space-y-2'>
-                <Skeleton className='h-4 w-36 rounded-sm' />
-                <Skeleton className='h-24 w-full rounded-md' />
-              </div>
-            ))}
-          </div>
-          <div className='space-y-3 rounded-md border p-4'>
-            <Skeleton className='h-4 w-40 rounded-sm' />
-            <Skeleton className='h-20 w-full rounded-md' />
-            <Skeleton className='h-20 w-full rounded-md' />
-          </div>
-          <div className='flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end'>
-            <Skeleton className='h-10 w-36 rounded-md' />
-            <Skeleton className='h-10 w-32 rounded-md' />
-            <Skeleton className='h-10 w-44 rounded-md' />
-          </div>
-        </section>
-      </div>
-    </div>
-  );
-}
-
 /** Client profile “Profile media” table while the detail query resolves. */
 export function ClientProfileMediaTableSkeleton() {
   return (

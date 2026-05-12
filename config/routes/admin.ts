@@ -103,7 +103,6 @@ export const ADMIN_ROUTES = {
       LIST: `${BASE}/care-plans`,
       CREATE: `${BASE}/care-plans/create`,
       WORKSPACE: (id: string) => `${BASE}/care-plans/${id}/workspace`,
-      REPORT: (id: string) => `${BASE}/care-plans/${id}/report`,
       DETAIL: (id: string) => `${BASE}/care-plans/${id}`,
     },
     CARE_PLAN_LOGS: {
@@ -112,11 +111,14 @@ export const ADMIN_ROUTES = {
     },
     OPERATIONAL_LOGS: {
       LIST: `${BASE}/operational-logs`,
-      /** Care-plan report workspace (query: `operational_log_id`, `report_run_id`, or period). */
+      /** Operational log worksheet for the care plan (metrics + submit for review). */
       WORKSPACE: (id: string) => `${BASE}/operational-logs/${id}/workspace`,
     },
     PERIOD_REPORTS: {
       LIST: `${BASE}/period-reports`,
+      /** Read-only period report summary (metrics + narrative preview). */
+      DETAIL: (carePlanId: string, reportRunId: string) =>
+        `${BASE}/period-reports/${carePlanId}/${reportRunId}`,
     },
     USERS: {
       LIST: `${BASE}/users`,

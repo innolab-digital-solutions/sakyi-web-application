@@ -2,13 +2,17 @@
 
 import {
   ClipboardCopyIcon,
+  FileChartColumn,
   MoreHorizontalIcon,
   NotebookPenIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
-import { buildOperationalLogWorkspaceHref } from '@/components/admin/modules/operational-logs/reportRunListHelpers';
+import {
+  buildOperationalLogWorkspaceHref,
+  buildPeriodReportOverviewHref,
+} from '@/components/admin/modules/operational-logs/reportRunListHelpers';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -35,6 +39,12 @@ export default function OperationalLogRowActions({ row }: Props) {
   const href =
     carePlanId != null
       ? buildOperationalLogWorkspaceHref(carePlanId, row.id)
+      : null;
+
+  const clientReport = row.client_report;
+  const periodReportOverviewHref =
+    carePlanId != null && clientReport != null
+      ? buildPeriodReportOverviewHref(carePlanId, clientReport.id)
       : null;
 
   const copyReference = () => {
@@ -82,6 +92,17 @@ export default function OperationalLogRowActions({ row }: Props) {
             More Options
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          {periodReportOverviewHref ? (
+            <DropdownMenuItem asChild className='cursor-pointer'>
+              <Link
+                href={periodReportOverviewHref}
+                className='flex items-center gap-2 text-[13px]! font-medium'
+              >
+                <FileChartColumn className='size-3.5 shrink-0' aria-hidden />
+                Open period report overview
+              </Link>
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuItem
             className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
             onClick={copyReference}

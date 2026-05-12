@@ -137,22 +137,24 @@ export function normalizeClientReportStatus(
   return null;
 }
 
-/**
- * Operational logs workspace: `GET` report-workspace with no query (care
- * plan’s single operational log / period on the server). Ids are kept for
- * call-site context only.
- */
-export function buildReportWorkspaceHref(
+/** Read-only period report overview (summary + narrative preview). */
+export function buildPeriodReportOverviewHref(
   carePlanId: number,
-  _reportRunId: number,
+  reportRunId: number,
 ): string {
-  return ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.WORKSPACE(String(carePlanId));
+  return ROUTES.ADMIN.MODULES.PERIOD_REPORTS.DETAIL(
+    String(carePlanId),
+    String(reportRunId),
+  );
 }
 
-/** Same as {@link buildReportWorkspaceHref} — list rows link to a clean path. */
+/**
+ * Operational logs workspace. The workspace route normalizes URL without deep
+ * `operational_log_id`; the second argument is kept for call-site symmetry.
+ */
 export function buildOperationalLogWorkspaceHref(
   carePlanId: number,
-  _operationalLogId: number,
+  _operationalLogId?: number | null,
 ): string {
   return ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.WORKSPACE(String(carePlanId));
 }
