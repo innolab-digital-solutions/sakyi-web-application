@@ -772,7 +772,7 @@ export default function CarePlanReportWorkspace({
     const SectionIcon = sectionTab?.icon;
 
     return (
-      <div className='border-border bg-white min-w-0 space-y-3 rounded-md border p-3 sm:p-4'>
+      <div className='border-border min-w-0 space-y-3 rounded-md border bg-white p-3 sm:p-4'>
         <div className='flex items-start justify-between gap-2'>
           <p className='text-foreground/90 min-w-0 text-[12.5px] font-semibold'>
             {metric.label}
@@ -984,209 +984,209 @@ export default function CarePlanReportWorkspace({
   return (
     <div className='space-y-6'>
       <section className='border-border max-w-full min-w-0 space-y-5 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:p-6'>
-          <div className='space-y-4'>
-            <div className='flex flex-wrap items-start justify-between gap-3'>
-              <div className='min-w-0 space-y-1.5'>
-                <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
-                  Operational Log Reference
+        <div className='space-y-4'>
+          <div className='flex flex-wrap items-start justify-between gap-3'>
+            <div className='min-w-0 space-y-1.5'>
+              <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+                Operational Log Reference
+              </p>
+              <p className='text-foreground/90 text-[13px] leading-relaxed font-semibold'>
+                {opLogReferenceText || '—'}
+              </p>
+              {!opLogReferenceText ? (
+                <p className='text-muted-foreground text-[11px] font-medium'>
+                  Save the operational log to create a reference
                 </p>
-                <p className='text-foreground/90 text-[13px] leading-relaxed font-semibold'>
-                  {opLogReferenceText || '—'}
-                </p>
-                {!opLogReferenceText ? (
-                  <p className='text-muted-foreground text-[11px] font-medium'>
-                    Save the operational log to create a reference
+              ) : null}
+            </div>
+            {canShowSubmitForReview ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className='inline-flex'>
+                      <Button
+                        type='button'
+                        className='h-10 gap-1.5 text-[13px]! font-semibold'
+                        onClick={openSubmitForReviewDialog}
+                        disabled={
+                          !canSubmitForReview ||
+                          submitForReviewMutation.isPending
+                        }
+                      >
+                        {submitForReviewMutation.isPending ? (
+                          <Loader2Icon className='size-4 animate-spin' />
+                        ) : hasExistingReport ? (
+                          <FileSymlink className='size-4' aria-hidden />
+                        ) : (
+                          <FileChartColumn className='size-4' aria-hidden />
+                        )}
+                        {submitForReviewLabel}
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  {submitForReviewDisabledReason ? (
+                    <TooltipContent side='bottom' sideOffset={8} surface>
+                      {submitForReviewDisabledReason}
+                    </TooltipContent>
+                  ) : null}
+                </Tooltip>
+              </TooltipProvider>
+            ) : null}
+          </div>
+          <div className='border-border/70 border-t' />
+          <OperationalLogWorkspaceContextBar
+            {...operationalLogsSummaryCardsProps}
+          />
+        </div>
+
+        {workspaceIsError ? (
+          <>
+            <div className='border-border/70 border-t' />
+            <div
+              className='border-border bg-card rounded-lg border p-4 shadow-xs sm:p-5'
+              role='alert'
+            >
+              <div className='flex gap-3 sm:gap-4'>
+                <CircleAlert
+                  className='mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-500'
+                  aria-hidden
+                />
+                <div className='min-w-0 flex-1 space-y-3'>
+                  <div className='space-y-1'>
+                    <p className='text-foreground text-sm font-semibold tracking-tight'>
+                      Workspace could not be loaded
+                    </p>
+                    <p className='text-muted-foreground text-sm leading-relaxed'>
+                      {(workspaceError as Error)?.message ?? 'Unknown error.'}
+                    </p>
+                  </div>
+                  <p className='text-muted-foreground text-[13px] leading-relaxed'>
+                    Create an operational log draft for this care plan, then
+                    return to this workspace. The report period is set by the
+                    API from that log.
+                  </p>
+                  <Button
+                    type='button'
+                    className='h-10 text-[13px]! font-semibold'
+                    onClick={() => createOperationalLogDraftMutation.mutate()}
+                    disabled={createOperationalLogDraftMutation.isPending}
+                  >
+                    {createOperationalLogDraftMutation.isPending ? (
+                      <Loader2Icon className='size-4 animate-spin' />
+                    ) : null}
+                    Create operational log draft
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : !workspace && workspaceFetching ? (
+          <>
+            <div className='border-border/70 border-t' />
+            <OperationalLogWorksheetSkeleton />
+          </>
+        ) : workspace ? (
+          <>
+            <div className='border-border/70 border-t' />
+            <div className='space-y-1'>
+              <p className='text-foreground text-sm font-semibold'>
+                Evidence & Log Metrics Worksheet
+              </p>
+              <p className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
+                Review evidence against planned targets on the left, then record
+                operational log metrics on the right. The reporting period is
+                managed server-side by the operational log.
+              </p>
+            </div>
+            <div className='grid min-h-0 grid-cols-1 items-start gap-5 lg:grid-cols-3 lg:gap-6'>
+              <div className='min-h-0 min-w-0 space-y-3 lg:col-span-1'>
+                <EvidenceList
+                  days={workspace.evidence}
+                  onOpenImage={setLightboxUrl}
+                />
+              </div>
+
+              <div className='min-w-0 space-y-4 lg:col-span-2'>
+                {!formMetrics.length && !workspaceFetching ? (
+                  <p className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
+                    No suggested metrics for this range. You can still create an
+                    operational log when targets exist in range, or adjust the
+                    plan to include nutrition, activity, or recovery items in
+                    this period.
+                  </p>
+                ) : null}
+                <div className='space-y-6'>
+                  {formMetrics.map((metric, mi) => (
+                    <React.Fragment key={`${metric.metric_key}-${mi}`}>
+                      {renderMetricEditorCard(metric, mi)}
+                    </React.Fragment>
+                  ))}
+                </div>
+                {operationalLog && !canEditMetrics ? (
+                  <p className='text-muted-foreground text-xs leading-relaxed'>
+                    Metrics are read-only when this operational log is not in{' '}
+                    <span className='text-foreground font-medium'>draft</span>{' '}
+                    or{' '}
+                    <span className='text-foreground font-medium'>
+                      in progress
+                    </span>
+                    , or when the log is marked as not editable on the server
+                    (for example after submit or publish).
                   </p>
                 ) : null}
               </div>
-              {canShowSubmitForReview ? (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className='inline-flex'>
-                        <Button
-                          type='button'
-                          className='h-10 gap-1.5 text-[13px]! font-semibold'
-                          onClick={openSubmitForReviewDialog}
-                          disabled={
-                            !canSubmitForReview ||
-                            submitForReviewMutation.isPending
-                          }
-                        >
-                          {submitForReviewMutation.isPending ? (
-                            <Loader2Icon className='size-4 animate-spin' />
-                          ) : hasExistingReport ? (
-                            <FileSymlink className='size-4' aria-hidden />
-                          ) : (
-                            <FileChartColumn className='size-4' aria-hidden />
-                          )}
-                          {submitForReviewLabel}
-                        </Button>
-                      </span>
-                    </TooltipTrigger>
-                    {submitForReviewDisabledReason ? (
-                      <TooltipContent side='bottom' sideOffset={8} surface>
-                        {submitForReviewDisabledReason}
-                      </TooltipContent>
-                    ) : null}
-                  </Tooltip>
-                </TooltipProvider>
-              ) : null}
             </div>
-            <div className='border-border/70 border-t' />
-            <OperationalLogWorkspaceContextBar
-              {...operationalLogsSummaryCardsProps}
-            />
-          </div>
-
-          {workspaceIsError ? (
-            <>
-              <div className='border-border/70 border-t' />
-              <div
-                className='border-border bg-card rounded-lg border p-4 shadow-xs sm:p-5'
-                role='alert'
-              >
-                <div className='flex gap-3 sm:gap-4'>
-                  <CircleAlert
-                    className='mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-500'
-                    aria-hidden
-                  />
-                  <div className='min-w-0 flex-1 space-y-3'>
-                    <div className='space-y-1'>
-                      <p className='text-foreground text-sm font-semibold tracking-tight'>
-                        Workspace could not be loaded
-                      </p>
-                      <p className='text-muted-foreground text-sm leading-relaxed'>
-                        {(workspaceError as Error)?.message ?? 'Unknown error.'}
-                      </p>
-                    </div>
-                    <p className='text-muted-foreground text-[13px] leading-relaxed'>
-                      Create an operational log draft for this care plan, then
-                      return to this workspace. The report period is set by the
-                      API from that log.
-                    </p>
-                    <Button
-                      type='button'
-                      className='h-10 text-[13px]! font-semibold'
-                      onClick={() => createOperationalLogDraftMutation.mutate()}
-                      disabled={createOperationalLogDraftMutation.isPending}
-                    >
-                      {createOperationalLogDraftMutation.isPending ? (
-                        <Loader2Icon className='size-4 animate-spin' />
-                      ) : null}
-                      Create operational log draft
-                    </Button>
-                  </div>
+            {canEditMetrics ? (
+              <div className='border-border/70 flex w-full max-w-full flex-wrap items-center justify-between gap-2 border-t pt-5'>
+                <div className='flex flex-wrap items-center gap-2'>
+                  <Button
+                    type='button'
+                    className='bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+                    variant='outline'
+                    onClick={() => setOperationalLogMetricsReviewOpen(true)}
+                    disabled={
+                      !formMetrics.length ||
+                      saveMetricsMutation.isPending ||
+                      !workspace
+                    }
+                    title='See what changed in the metrics worksheet (vs. last open or last save) before you save'
+                  >
+                    <ListChecks className='size-4' aria-hidden />
+                    Review changes
+                  </Button>
+                </div>
+                <div className='flex flex-wrap items-center justify-end gap-2'>
+                  <Button
+                    type='button'
+                    className='bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+                    variant='outline'
+                    onClick={() =>
+                      router.push(ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.LIST)
+                    }
+                    disabled={saveMetricsMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type='button'
+                    className='h-10 gap-1.5 text-[13px]! font-semibold'
+                    onClick={() => setSaveCarePlanConfirmOpen(true)}
+                    disabled={saveMetricsMutation.isPending || !workspace}
+                    title={!workspace ? 'Workspace not loaded' : undefined}
+                  >
+                    {saveMetricsMutation.isPending ? (
+                      <Loader2Icon className='size-4 animate-spin' />
+                    ) : (
+                      <Save className='size-4' aria-hidden />
+                    )}
+                    Save operational log
+                  </Button>
                 </div>
               </div>
-            </>
-          ) : !workspace && workspaceFetching ? (
-            <>
-              <div className='border-border/70 border-t' />
-              <OperationalLogWorksheetSkeleton />
-            </>
-          ) : workspace ? (
-            <>
-              <div className='border-border/70 border-t' />
-              <div className='space-y-1'>
-                <p className='text-foreground text-sm font-semibold'>
-                  Evidence & Log Metrics Worksheet
-                </p>
-                <p className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
-                  Review evidence against planned targets on the left, then
-                  record operational log metrics on the right. The reporting
-                  period is managed server-side by the operational log.
-                </p>
-              </div>
-              <div className='grid min-h-0 grid-cols-1 items-start gap-5 lg:grid-cols-3 lg:gap-6'>
-                <div className='min-h-0 min-w-0 space-y-3 lg:col-span-1'>
-                  <EvidenceList
-                    days={workspace.evidence}
-                    onOpenImage={setLightboxUrl}
-                  />
-                </div>
-
-                <div className='min-w-0 space-y-4 lg:col-span-2'>
-                  {!formMetrics.length && !workspaceFetching ? (
-                    <p className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
-                      No suggested metrics for this range. You can still create
-                      an operational log when targets exist in range, or adjust
-                      the plan to include nutrition, activity, or recovery items
-                      in this period.
-                    </p>
-                  ) : null}
-                  <div className='space-y-6'>
-                    {formMetrics.map((metric, mi) => (
-                      <React.Fragment key={`${metric.metric_key}-${mi}`}>
-                        {renderMetricEditorCard(metric, mi)}
-                      </React.Fragment>
-                    ))}
-                  </div>
-                  {operationalLog && !canEditMetrics ? (
-                    <p className='text-muted-foreground text-xs leading-relaxed'>
-                      Metrics are read-only when this operational log is not in{' '}
-                      <span className='text-foreground font-medium'>draft</span>{' '}
-                      or{' '}
-                      <span className='text-foreground font-medium'>
-                        in progress
-                      </span>
-                      , or when the log is marked as not editable on the server
-                      (for example after submit or publish).
-                    </p>
-                  ) : null}
-                </div>
-              </div>
-              {canEditMetrics ? (
-                <div className='border-border/70 flex w-full max-w-full flex-wrap items-center justify-between gap-2 border-t pt-5'>
-                  <div className='flex flex-wrap items-center gap-2'>
-                    <Button
-                      type='button'
-                      className='bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
-                      variant='outline'
-                      onClick={() => setOperationalLogMetricsReviewOpen(true)}
-                      disabled={
-                        !formMetrics.length ||
-                        saveMetricsMutation.isPending ||
-                        !workspace
-                      }
-                      title='See what changed in the metrics worksheet (vs. last open or last save) before you save'
-                    >
-                      <ListChecks className='size-4' aria-hidden />
-                      Review changes
-                    </Button>
-                  </div>
-                  <div className='flex flex-wrap items-center justify-end gap-2'>
-                    <Button
-                      type='button'
-                      className='bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
-                      variant='outline'
-                      onClick={() =>
-                        router.push(ROUTES.ADMIN.MODULES.OPERATIONAL_LOGS.LIST)
-                      }
-                      disabled={saveMetricsMutation.isPending}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type='button'
-                      className='h-10 gap-1.5 text-[13px]! font-semibold'
-                      onClick={() => setSaveCarePlanConfirmOpen(true)}
-                      disabled={saveMetricsMutation.isPending || !workspace}
-                      title={!workspace ? 'Workspace not loaded' : undefined}
-                    >
-                      {saveMetricsMutation.isPending ? (
-                        <Loader2Icon className='size-4 animate-spin' />
-                      ) : (
-                        <Save className='size-4' aria-hidden />
-                      )}
-                      Save operational log
-                    </Button>
-                  </div>
-                </div>
-              ) : null}
-            </>
-          ) : null}
-        </section>
+            ) : null}
+          </>
+        ) : null}
+      </section>
 
       <ReviewOperationalLogMetricsDialog
         open={operationalLogMetricsReviewOpen}

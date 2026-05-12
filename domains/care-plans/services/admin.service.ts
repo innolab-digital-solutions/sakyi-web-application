@@ -14,7 +14,6 @@ import type {
   CarePlanLogSummary,
   ListCarePlanLogEntriesParams,
 } from '../types/care-plan-log';
-import type { PeriodReportDetail } from '../types/period-report-detail';
 import type {
   CarePlanReportRun,
   CarePlanReportRunSummary,
@@ -29,6 +28,7 @@ import type {
   UpdateCarePlanReportRunPayload,
   UpdateOperationalLogPayload,
 } from '../types/care-plan-report';
+import type { PeriodReportDetail } from '../types/period-report-detail';
 
 export type PatchCarePlanBasicsPayload = {
   starts_on: string;
@@ -168,9 +168,7 @@ export async function getPeriodReportById(
   periodReportListId: number,
 ): Promise<ApiResponse<PeriodReportDetail>> {
   return http.get<PeriodReportDetail>(
-    ENDPOINTS.ADMIN.MODULES.PERIOD_REPORTS.DETAIL(
-      String(periodReportListId),
-    ),
+    ENDPOINTS.ADMIN.MODULES.PERIOD_REPORTS.DETAIL(String(periodReportListId)),
     { throwOnError: false },
   );
 }

@@ -44,7 +44,8 @@ const OVERVIEW_EMPTY_DASH = (
 );
 
 function formatMetricDisplayValue(value: number | null | undefined): string {
-  if (value == null || !Number.isFinite(Number(value))) return METRIC_VALUE_NOT_SET;
+  if (value == null || !Number.isFinite(Number(value)))
+    return METRIC_VALUE_NOT_SET;
   const n = Number(value);
   if (Number.isInteger(n)) return String(Math.trunc(n));
   return String(n);
@@ -82,7 +83,10 @@ function formatDateCell(iso: string | null | undefined): string | null {
   }
 }
 
-function formatDateOnlyYmd(startsOn: string | null | undefined, endsOn: string | null | undefined): string {
+function formatDateOnlyYmd(
+  startsOn: string | null | undefined,
+  endsOn: string | null | undefined,
+): string {
   const a = formatDateCell(startsOn ?? null);
   const b = formatDateCell(endsOn ?? null);
   if (a && b) return `${a} → ${b}`;
@@ -91,15 +95,24 @@ function formatDateOnlyYmd(startsOn: string | null | undefined, endsOn: string |
   return '—';
 }
 
-function normalizeHighlights(raw: PeriodReportDetail['highlights']): PeriodReportHighlight[] {
+function normalizeHighlights(
+  raw: PeriodReportDetail['highlights'],
+): PeriodReportHighlight[] {
   if (!Array.isArray(raw)) return [];
   const out: PeriodReportHighlight[] = [];
   for (const item of raw) {
-    if (item != null && typeof item === 'object' && 'id' in item && 'label' in item) {
+    if (
+      item != null &&
+      typeof item === 'object' &&
+      'id' in item &&
+      'label' in item
+    ) {
       out.push(item as PeriodReportHighlight);
     }
   }
-  return [...out].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+  return [...out].sort(
+    (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0),
+  );
 }
 
 function formatHighlightSource(source: string | null | undefined): string {
@@ -114,7 +127,9 @@ function readableDailyMetaReason(reason: unknown): string | null {
   return formatStatusLabel(reason.replace(/_/g, ' '));
 }
 
-function getSynthesisText(meta: Record<string, unknown> | null | undefined): string | null {
+function getSynthesisText(
+  meta: Record<string, unknown> | null | undefined,
+): string | null {
   if (!meta || typeof meta !== 'object') return null;
   const r = meta.synthesis;
   return typeof r === 'string' && r.trim() ? r.trim() : null;
@@ -151,7 +166,13 @@ function OverviewMetricTile({
 }
 
 /** Same stat chips as {@link CarePlanReportWorkspace} `MetricSummaryStatCard`. */
-function MetricSummaryStatCard({ label, value }: { label: string; value: string }) {
+function MetricSummaryStatCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
   return (
     <div
       className={cn(
@@ -169,7 +190,11 @@ function MetricSummaryStatCard({ label, value }: { label: string; value: string 
   );
 }
 
-function ReadOnlyDailyPointsTable({ dailyPoints }: { dailyPoints: ReportMetricDailyPoint[] }) {
+function ReadOnlyDailyPointsTable({
+  dailyPoints,
+}: {
+  dailyPoints: ReportMetricDailyPoint[];
+}) {
   return (
     <div
       className={cn(
@@ -197,13 +222,13 @@ function ReadOnlyDailyPointsTable({ dailyPoints }: { dailyPoints: ReportMetricDa
                   'align-middle',
                   'text-[10px] font-semibold tracking-wide uppercase',
                   'whitespace-nowrap',
-                  col.key === 'day' && 'w-10 min-w-10 px-1.5 text-center sm:px-2',
+                  col.key === 'day' &&
+                    'w-10 min-w-10 px-1.5 text-center sm:px-2',
                   col.key === 'target' && 'px-2 text-left sm:px-2.5',
                   col.key === 'actual' && 'px-2 text-left sm:px-2.5',
-                  col.key === 'on' &&
-                    'min-w-26 px-2.5 text-left sm:min-w-24',
+                  col.key === 'on' && 'min-w-26 px-2.5 text-left sm:min-w-24',
                   col.key === 'notes' &&
-                    'min-w-32 max-w-48 px-2.5 text-left last:pr-3',
+                    'max-w-48 min-w-32 px-2.5 text-left last:pr-3',
                 )}
               >
                 {col.text}
@@ -217,7 +242,9 @@ function ReadOnlyDailyPointsTable({ dailyPoints }: { dailyPoints: ReportMetricDa
             .map((dp, di) => {
               const note =
                 readableDailyMetaReason(
-                  dp.meta && typeof dp.meta === 'object' ? dp.meta.reason : null,
+                  dp.meta && typeof dp.meta === 'object'
+                    ? dp.meta.reason
+                    : null,
                 ) ?? '—';
               return (
                 <tr
@@ -309,7 +336,12 @@ export type PeriodReportOverviewViewProps = {
 export default function PeriodReportOverviewView({
   periodReportId,
 }: PeriodReportOverviewViewProps) {
-  const { data: detail, isPending, isError, error } = useQuery({
+  const {
+    data: detail,
+    isPending,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ['admin-period-report-detail', periodReportId] as const,
     queryFn: async () => {
       const res = await getPeriodReportById(periodReportId);
@@ -326,7 +358,9 @@ export default function PeriodReportOverviewView({
 
   const highlightsSorted = detail ? normalizeHighlights(detail.highlights) : [];
   const metricsSorted = detail
-    ? [...detail.metrics].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+    ? [...detail.metrics].sort(
+        (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0),
+      )
     : [];
 
   if (isPending) {
@@ -360,10 +394,13 @@ export default function PeriodReportOverviewView({
     <div className='grid gap-3 lg:grid-cols-3 lg:gap-4'>
       <section className={`${CARD_SURFACE} space-y-5 lg:col-span-2`}>
         <header className='border-border shrink-0 border-b pb-5'>
-          <h3 className='text-foreground text-sm font-semibold'>Period report</h3>
+          <h3 className='text-foreground text-sm font-semibold'>
+            Period report
+          </h3>
           <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
-            Report reference, status, and period context; care plan details are on the right. Use
-            highlights and metrics below to decide publish or follow-up from the period reports list.
+            Report reference, status, and period context; care plan details are
+            on the right. Use highlights and metrics below to decide publish or
+            follow-up from the period reports list.
           </p>
           {detail.status === 'in_review' ? (
             <div
@@ -375,8 +412,9 @@ export default function PeriodReportOverviewView({
             >
               <p className={METRIC_TILE_LABEL_CLASS}>Review before publish</p>
               <p className='text-foreground/90 text-[13px] leading-relaxed'>
-                Confirm metrics, highlights, and narrative are accurate while this report remains in
-                review. Use actions on the period reports list (for example Publish) once you are satisfied.
+                Confirm metrics, highlights, and narrative are accurate while
+                this report remains in review. Use actions on the period reports
+                list (for example Publish) once you are satisfied.
               </p>
             </div>
           ) : null}
@@ -396,7 +434,10 @@ export default function PeriodReportOverviewView({
             />
             <OverviewMetricTile
               label='Reporting period'
-              value={formatDateOnlyYmd(detail.period.starts_on, detail.period.ends_on)}
+              value={formatDateOnlyYmd(
+                detail.period.starts_on,
+                detail.period.ends_on,
+              )}
             />
             <OverviewMetricTile
               label='Adherence'
@@ -426,8 +467,9 @@ export default function PeriodReportOverviewView({
             <OverviewMetricTile
               label='Submitted for review'
               value={
-                formatDateTimeCell(detail.timestamps?.submitted_for_review_at ?? null) ??
-                OVERVIEW_EMPTY_DASH
+                formatDateTimeCell(
+                  detail.timestamps?.submitted_for_review_at ?? null,
+                ) ?? OVERVIEW_EMPTY_DASH
               }
             />
             <OverviewMetricTile
@@ -449,17 +491,24 @@ export default function PeriodReportOverviewView({
 
         <div className='border-border space-y-4 border-t pt-5'>
           <div>
-            <h3 className='text-foreground text-sm font-semibold'>Report highlights</h3>
+            <h3 className='text-foreground text-sm font-semibold'>
+              Report highlights
+            </h3>
             <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
-              Values intended for client visibility and publish checks. Sorted by display order from the API.
+              Values intended for client visibility and publish checks. Sorted
+              by display order from the API.
             </p>
           </div>
           {highlightsSorted.length === 0 ? (
-            <p className='text-muted-foreground text-sm'>No highlights were returned for this report.</p>
+            <p className='text-muted-foreground text-sm'>
+              No highlights were returned for this report.
+            </p>
           ) : (
             <div className='grid gap-1.5 sm:grid-cols-2'>
               {highlightsSorted.map((h) => {
-                const visibility = h.is_visible_to_client ? 'Visible to client' : 'Internal';
+                const visibility = h.is_visible_to_client
+                  ? 'Visible to client'
+                  : 'Internal';
                 return (
                   <div key={h.id} className={METRIC_TILE_CLASS}>
                     <p className={METRIC_TILE_LABEL_CLASS}>{h.label.trim()}</p>
@@ -487,11 +536,14 @@ export default function PeriodReportOverviewView({
           <div>
             <h3 className='text-foreground text-sm font-semibold'>Metrics</h3>
             <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
-              Rolled‑up totals and daily breakdowns as stored on this report (read-only).
+              Rolled‑up totals and daily breakdowns as stored on this report
+              (read-only).
             </p>
           </div>
           {metricsSorted.length === 0 ? (
-            <p className='text-muted-foreground text-sm'>No metrics on this period report.</p>
+            <p className='text-muted-foreground text-sm'>
+              No metrics on this period report.
+            </p>
           ) : (
             <div className='space-y-6'>
               {metricsSorted.map((metric, mi) => {
@@ -503,7 +555,7 @@ export default function PeriodReportOverviewView({
                 return (
                   <div
                     key={`${metric.metric_key}-${mi}`}
-                    className='border-border bg-white min-w-0 space-y-3 rounded-md border p-3 sm:p-4'
+                    className='border-border min-w-0 space-y-3 rounded-md border bg-white p-3 sm:p-4'
                   >
                     <div className='flex items-start justify-between gap-2'>
                       <div className='min-w-0 space-y-1'>
@@ -518,7 +570,10 @@ export default function PeriodReportOverviewView({
                       </div>
                       <span className='border-border bg-background text-foreground inline-flex w-fit max-w-full shrink-0 items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold'>
                         {SectionIcon ? (
-                          <SectionIcon aria-hidden className='size-3.5 shrink-0' />
+                          <SectionIcon
+                            aria-hidden
+                            className='size-3.5 shrink-0'
+                          />
                         ) : null}
                         {sectionTab?.label ?? metric.section.replace(/_/g, ' ')}
                       </span>
@@ -535,7 +590,10 @@ export default function PeriodReportOverviewView({
                       <MetricSummaryStatCard label='Unit' value={unitShown} />
                       <MetricSummaryStatCard
                         label='On target days'
-                        value={formatOnTargetDaysRatio(metric.days_on_target, metric.days_total)}
+                        value={formatOnTargetDaysRatio(
+                          metric.days_on_target,
+                          metric.days_total,
+                        )}
                       />
                     </div>
                     {metric.daily_points?.length ? (
@@ -583,7 +641,9 @@ export default function PeriodReportOverviewView({
                           </button>
                         </CollapsibleTrigger>
                         <CollapsibleContent>
-                          <ReadOnlyDailyPointsTable dailyPoints={metric.daily_points} />
+                          <ReadOnlyDailyPointsTable
+                            dailyPoints={metric.daily_points}
+                          />
                         </CollapsibleContent>
                       </Collapsible>
                     ) : null}
@@ -595,12 +655,18 @@ export default function PeriodReportOverviewView({
         </div>
 
         <div className='border-border space-y-4 border-t pt-5'>
-          <h3 className='text-foreground text-sm font-semibold'>Care team narrative</h3>
+          <h3 className='text-foreground text-sm font-semibold'>
+            Care team narrative
+          </h3>
           {detail.feedback ? (
             <div className='space-y-4'>
               {(
                 [
-                  { key: 'summary', heading: 'Summary', value: detail.feedback.summary ?? '' },
+                  {
+                    key: 'summary',
+                    heading: 'Summary',
+                    value: detail.feedback.summary ?? '',
+                  },
                   {
                     key: 'focus_next_period',
                     heading: 'Focus for next period',
@@ -634,14 +700,21 @@ export default function PeriodReportOverviewView({
           <header className='border-border shrink-0 border-b pb-4'>
             <h3 className='text-foreground text-sm font-semibold'>Client</h3>
             <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
-              Person attached to this report. Align with enrollment records before publishing.
+              Person attached to this report. Align with enrollment records
+              before publishing.
             </p>
           </header>
           {client ? (
             <div className='flex min-h-0 flex-1 flex-col pt-5'>
               <div className='flex min-w-0 items-start gap-3'>
                 <Avatar size='lg' className='mt-0.5 shrink-0'>
-                  {clientPic ? <AvatarImage src={clientPic} alt='' className='object-cover' /> : null}
+                  {clientPic ? (
+                    <AvatarImage
+                      src={clientPic}
+                      alt=''
+                      className='object-cover'
+                    />
+                  ) : null}
                   <AvatarFallback className='text-xs'>
                     {getInitials(client.name ?? '', 2) || '?'}
                   </AvatarFallback>
@@ -653,16 +726,20 @@ export default function PeriodReportOverviewView({
                     )}
                   </p>
                   <p className='text-muted-foreground text-xs leading-snug font-medium wrap-break-word'>
-                    {client.client_code?.trim() || client.email?.trim() || 'No client code'}
+                    {client.client_code?.trim() ||
+                      client.email?.trim() ||
+                      'No client code'}
                   </p>
                   <p className='text-muted-foreground text-[11px] font-medium'>
-                    {(client.email?.trim()) ?? '—'}
+                    {client.email?.trim() ?? '—'}
                   </p>
                 </div>
               </div>
             </div>
           ) : (
-            <p className='text-muted-foreground pt-5 text-sm'>No client attached to this report.</p>
+            <p className='text-muted-foreground pt-5 text-sm'>
+              No client attached to this report.
+            </p>
           )}
         </section>
 
@@ -670,8 +747,8 @@ export default function PeriodReportOverviewView({
           <header className='border-border shrink-0 border-b pb-4'>
             <h3 className='text-foreground text-sm font-semibold'>Care plan</h3>
             <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
-              Care plan window for this report. Cross-check with the reporting period in the main
-              column.
+              Care plan window for this report. Cross-check with the reporting
+              period in the main column.
             </p>
           </header>
           <div className='grid gap-1.5 pt-5'>
@@ -688,18 +765,25 @@ export default function PeriodReportOverviewView({
                 />
                 <OverviewMetricTile
                   label='Care plan status'
-                  value={detail.care_plan.status?.trim()
-                    ? formatStatusLabel(detail.care_plan.status)
-                    : '—'}
+                  value={
+                    detail.care_plan.status?.trim()
+                      ? formatStatusLabel(detail.care_plan.status)
+                      : '—'
+                  }
                   tabularNums={false}
                 />
                 <OverviewMetricTile
                   label='Care plan window'
-                  value={formatDateOnlyYmd(detail.care_plan.starts_on, detail.care_plan.ends_on)}
+                  value={formatDateOnlyYmd(
+                    detail.care_plan.starts_on,
+                    detail.care_plan.ends_on,
+                  )}
                 />
               </>
             ) : (
-              <p className='text-muted-foreground text-sm'>No care plan context on file.</p>
+              <p className='text-muted-foreground text-sm'>
+                No care plan context on file.
+              </p>
             )}
           </div>
         </section>

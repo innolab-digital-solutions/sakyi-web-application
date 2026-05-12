@@ -171,7 +171,9 @@ export default function PeriodReportRowActions({ row }: Props) {
               <DropdownMenuItem asChild className='cursor-pointer'>
                 <Link
                   className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
-                  href={ROUTES.ADMIN.MODULES.CARE_PLANS.DETAIL(String(carePlanId))}
+                  href={ROUTES.ADMIN.MODULES.CARE_PLANS.DETAIL(
+                    String(carePlanId),
+                  )}
                 >
                   <EyeIcon className='size-3.5 shrink-0' aria-hidden />
                   View care plan

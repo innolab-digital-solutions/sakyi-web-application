@@ -12,20 +12,20 @@ Same as other admin routes: **Sanctum** Bearer token. Only users who may **`view
 
 ## 1. List — paginated overview
 
-| | |
-| --- | --- |
-| **Method** | `GET` |
-| **Path** | `/v1/web/admin/period-reports` |
+|                |                                     |
+| -------------- | ----------------------------------- |
+| **Method**     | `GET`                               |
+| **Path**       | `/v1/web/admin/period-reports`      |
 | **Route name** | `v1.web.admin.period-reports.index` |
 
 ### Query parameters (optional)
 
-| Parameter | Type | Notes |
-| --- | --- | --- |
-| `status` | string | One of: `in_review`, `published`, `archived`. If omitted, default list behavior on the model excludes **only** archived rows (see `CarePlanReportRun::applyFilters`). |
-| `search` | string | Max 100 chars; matches report code, care plan code, client name/email/client_code. |
-| `care_plan_id` | integer | Filter to reports for a single care plan (`exists:care_plans,id`). |
-| `per_page` | integer | 1–100, default **15**. |
+| Parameter      | Type    | Notes                                                                                                                                                                 |
+| -------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status`       | string  | One of: `in_review`, `published`, `archived`. If omitted, default list behavior on the model excludes **only** archived rows (see `CarePlanReportRun::applyFilters`). |
+| `search`       | string  | Max 100 chars; matches report code, care plan code, client name/email/client_code.                                                                                    |
+| `care_plan_id` | integer | Filter to reports for a single care plan (`exists:care_plans,id`).                                                                                                    |
+| `per_page`     | integer | 1–100, default **15**.                                                                                                                                                |
 
 ### Success response
 
@@ -47,11 +47,11 @@ Use the list row’s **`id`** as **`report_run`** for the show endpoint below.
 
 ## 2. Show — detail with metrics
 
-| | |
-| --- | --- |
-| **Method** | `GET` |
-| **Path** | `/v1/web/admin/period-reports/{report_run}` |
-| **Route name** | `v1.web.admin.period-reports.show` |
+|                    |                                                                                              |
+| ------------------ | -------------------------------------------------------------------------------------------- |
+| **Method**         | `GET`                                                                                        |
+| **Path**           | `/v1/web/admin/period-reports/{report_run}`                                                  |
+| **Route name**     | `v1.web.admin.period-reports.show`                                                           |
 | **Path parameter** | `{report_run}` — numeric **`care_plan_report_runs.id`** (same as `data[].id` from the list). |
 
 No query parameters.
@@ -71,31 +71,31 @@ The **`data`** object includes:
 
 Each metric is ordered by **`display_order`**. Fields:
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `id` | number | Metric row id |
-| `section` | string | e.g. `nutrition`, `movement`, `activity`, `recovery` |
-| `metric_key` | string | Stable key (e.g. `estimated_energy_burn`, `activity_walking`) |
-| `label` | string | Display label |
-| `target_value` | number \| null | Normalized (int when whole) |
-| `actual_value` | number \| null | Normalized |
-| `unit` | string \| null | Display unit name stored on the metric (e.g. `Kilocalorie`, `Steps`) |
-| `days_on_target` | number \| null | |
-| `days_total` | number \| null | |
-| `display_order` | number | |
-| `meta` | object \| null | e.g. `synthesis` notes from authoring |
-| `daily_points` | array | Sorted by **`day_number`** |
+| Field            | Type           | Notes                                                                |
+| ---------------- | -------------- | -------------------------------------------------------------------- |
+| `id`             | number         | Metric row id                                                        |
+| `section`        | string         | e.g. `nutrition`, `movement`, `activity`, `recovery`                 |
+| `metric_key`     | string         | Stable key (e.g. `estimated_energy_burn`, `activity_walking`)        |
+| `label`          | string         | Display label                                                        |
+| `target_value`   | number \| null | Normalized (int when whole)                                          |
+| `actual_value`   | number \| null | Normalized                                                           |
+| `unit`           | string \| null | Display unit name stored on the metric (e.g. `Kilocalorie`, `Steps`) |
+| `days_on_target` | number \| null |                                                                      |
+| `days_total`     | number \| null |                                                                      |
+| `display_order`  | number         |                                                                      |
+| `meta`           | object \| null | e.g. `synthesis` notes from authoring                                |
+| `daily_points`   | array          | Sorted by **`day_number`**                                           |
 
 ### `data.metrics[].daily_points[]`
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `id` | number | |
-| `day_number` | number | 1-based day index within the metric series |
-| `target_value` | number \| null | |
-| `actual_value` | number \| null | |
-| `on_target` | boolean | |
-| `meta` | object \| null | e.g. `reason` when not on target |
+| Field          | Type           | Notes                                      |
+| -------------- | -------------- | ------------------------------------------ |
+| `id`           | number         |                                            |
+| `day_number`   | number         | 1-based day index within the metric series |
+| `target_value` | number \| null |                                            |
+| `actual_value` | number \| null |                                            |
+| `on_target`    | boolean        |                                            |
+| `meta`         | object \| null | e.g. `reason` when not on target           |
 
 ### `data.highlights[]`
 
@@ -107,10 +107,10 @@ Object or `null`: `summary`, `focus_next_period`, `notes`.
 
 ### Errors
 
-| HTTP | When |
-| --- | --- |
+| HTTP    | When                              |
+| ------- | --------------------------------- |
 | **403** | User cannot `viewAny` care plans. |
-| **404** | No report row for the given id. |
+| **404** | No report row for the given id.   |
 
 ---
 
