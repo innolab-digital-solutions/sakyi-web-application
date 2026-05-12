@@ -25,7 +25,10 @@ export type {
   ReportRunMetric,
 } from '../types/care-plan-report';
 export type { ClientReportListRow } from '../types/client-report-list';
-export type { PeriodReportDetail } from '../types/period-report-detail';
+export type {
+  PeriodReportDetail,
+  PeriodReportHighlight,
+} from '../types/period-report-detail';
 export type { CarePlanEmbeddedOperationalLog } from '../types/operational-log-embed';
 export type { OperationalLogListRow } from '../types/operational-log-list';
 export type { GetReportWorkspaceParams } from './admin.service';

@@ -12,7 +12,7 @@ import { ROUTES } from '@/config/routes';
 export const metadata: Metadata = {
   title: 'Period report overview | SaKyi Admin',
   description:
-    'Review reference, lifecycle status, period window, adherence, narrative preview, and open the operational logs workspace when you need to edit metrics.',
+    'Review reference, status, metrics, highlights, adherence, narrative, and operational context to decide publishing and follow-up.',
 };
 
 type Props = {
@@ -28,7 +28,7 @@ export default async function PeriodReportOverviewPage({ params }: Props) {
     <div className='min-w-0 space-y-8'>
       <PageHeader
         title='Period report overview'
-        description='Confirm who this report is for, its care-plan context and reporting window, adherence snapshot, narrative preview, and operational-log linkage. Edit metrics and submit for review from the operational logs workspace when the log is editable.'
+        description='Review reference, lifecycle, reporting window, care plan linkage, adherence, highlights, metrics, and narrative—then publish or manage from the actions on the period reports list.'
         actions={
           <Button
             asChild

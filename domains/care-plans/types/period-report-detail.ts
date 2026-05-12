@@ -20,6 +20,19 @@ export type PeriodReportDetailTimestamps = {
   updated_at: string | null;
 };
 
+/** Curated visibility cards for the client-facing report (`GET …/period-reports/{id}`). */
+export type PeriodReportHighlight = {
+  id: number;
+  metric_key: string;
+  label: string;
+  value: number | null;
+  unit: string | null;
+  source: string | null;
+  is_visible_to_client: boolean;
+  display_order: number;
+  meta?: Record<string, unknown> | null;
+};
+
 export type PeriodReportDetail = {
   id: number;
   code: string | null;
@@ -28,7 +41,7 @@ export type PeriodReportDetail = {
   adherence_percentage: number | null;
   period: { starts_on: string; ends_on: string };
   metrics: ReportRunMetric[];
-  highlights?: unknown[] | null;
+  highlights?: PeriodReportHighlight[] | null;
   feedback: ReportRunFeedback | null;
   timestamps: PeriodReportDetailTimestamps | null;
   is_editable: boolean;
