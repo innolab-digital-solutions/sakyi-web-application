@@ -346,7 +346,7 @@ export default function UserListTable() {
                       </div>
                     </TableCell>
 
-                    <TableCell>
+                    <TableCell className='min-w-40'>
                       {(() => {
                         const badgeStyle = ROLE_BADGE_STYLES[user.role];
                         const RoleIcon = badgeStyle.icon;

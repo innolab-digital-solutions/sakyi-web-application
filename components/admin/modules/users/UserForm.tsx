@@ -2,7 +2,7 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { SaveIcon, UserPlus2Icon } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { AdminFormPageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
@@ -11,10 +11,14 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { ENDPOINTS } from '@/config/api/endpoints';
+import { isSuperAdminUser } from '@/domains/user/roles';
 import { UserCreateSchema, UserUpdateSchema } from '@/domains/user/schemas';
 import { getAdminUserById } from '@/domains/user/services';
 import type { User } from '@/domains/user/types';
+import { client } from '@/lib/api/client';
 import { useForm } from '@/lib/form';
+import type { ApiError, FormFields } from '@/lib/form/types';
+import { validateFormFields } from '@/lib/form/validator';
 
 type CreateProps = { mode: 'create'; onSuccess?: () => void };
 type EditProps = { mode: 'edit'; userId: number; onSuccess?: () => void };
@@ -27,7 +31,7 @@ function isAdminRole(user: User | undefined): boolean {
 function UserFormFields({
   mode,
   user,
-  onSuccess,
+  onSuccess: onComplete,
 }: {
   mode: 'create' | 'edit';
   user?: User;
@@ -35,6 +39,8 @@ function UserFormFields({
 }) {
   const queryClient = useQueryClient();
   const isEdit = mode === 'edit';
+  const hideAdminAccessToggle = Boolean(isEdit && user && isSuperAdminUser(user));
+  const [superAdminPatching, setSuperAdminPatching] = useState(false);
 
   const initialFields = useMemo(() => {
     if (isEdit && user) {
@@ -77,35 +83,73 @@ function UserFormFields({
         ? ENDPOINTS.ADMIN.MODULES.USERS.UPDATE(String(user.id))
         : ENDPOINTS.ADMIN.MODULES.USERS.CREATE;
 
+    const handleSuccess = () => {
+      queryClient.invalidateQueries({
+        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.USERS.LIST],
+      });
+      if (isEdit && user) {
+        queryClient.invalidateQueries({ queryKey: ['user', user.id] });
+      }
+      toast.success(
+        isEdit
+          ? 'The user account has been updated successfully.'
+          : 'The user account has been created successfully.',
+      );
+      onComplete?.();
+    };
+
+    const onFailure = (error: ApiError) => {
+      toast.error(
+        error.message ??
+          (isEdit ? 'Failed to update user.' : 'Failed to create user.'),
+      );
+    };
+
+    if (hideAdminAccessToggle && isEdit && user) {
+      form.clearErrors();
+      const { success, errors: clientValidationErrors } = validateFormFields(
+        UserUpdateSchema,
+        form.fields as FormFields,
+      );
+      if (!success) {
+        form.setError(clientValidationErrors);
+        return;
+      }
+      setSuperAdminPatching(true);
+      try {
+        const body = { ...form.fields } as Record<string, unknown>;
+        delete body.is_admin;
+        const response = await client<unknown>(endpoint, {
+          method: 'PATCH',
+          body,
+          throwOnError: false,
+        });
+        if (response.status === 'error') {
+          if (response.errors && Object.keys(response.errors).length > 0) {
+            form.setError(response.errors as FormFields);
+          } else {
+            onFailure(response as ApiError);
+          }
+        } else {
+          handleSuccess();
+        }
+      } finally {
+        setSuperAdminPatching(false);
+      }
+      return;
+    }
+
     const action = isEdit
       ? form.patch.bind(form, endpoint)
       : form.post.bind(form, endpoint);
 
     await action({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.USERS.LIST],
-        });
-        if (isEdit && user) {
-          queryClient.invalidateQueries({ queryKey: ['user', user.id] });
-        }
-        toast.success(
-          isEdit
-            ? 'The user account has been updated successfully.'
-            : 'The user account has been created successfully.',
-        );
-        onSuccess?.();
-      },
-      onFailure: (error) => {
-        toast.error(
-          error.message ??
-            (isEdit ? 'Failed to update user.' : 'Failed to create user.'),
-        );
-      },
+      onSuccess: handleSuccess,
+      onFailure,
     });
   };
 
-  const loading = form.isSubmitting;
+  const loading = form.isSubmitting || superAdminPatching;
   const fields = form.fields as Record<string, unknown>;
   const errors = form.errors as Record<string, string | undefined>;
 
@@ -165,21 +209,23 @@ function UserFormFields({
           error={errors.password_confirmation}
         />
 
-        <div className='border-input flex items-center justify-between rounded-md border px-4 py-3 shadow'>
-          <div className='space-y-0.5'>
-            <Label className='text-foreground text-[13px] font-semibold'>
-              Admin Access
-            </Label>
-            <p className='text-muted-foreground text-xs font-medium'>
-              Grant this user admin-level permissions.
-            </p>
+        {!hideAdminAccessToggle ? (
+          <div className='border-input flex items-center justify-between rounded-md border px-4 py-3 shadow'>
+            <div className='space-y-0.5'>
+              <Label className='text-foreground text-[13px] font-semibold'>
+                Admin Access
+              </Label>
+              <p className='text-muted-foreground text-xs font-medium'>
+                Grant this user admin-level permissions.
+              </p>
+            </div>
+            <Switch
+              checked={Boolean(form.fields.is_admin)}
+              onCheckedChange={(val) => form.setData('is_admin', val)}
+              className='cursor-pointer'
+            />
           </div>
-          <Switch
-            checked={Boolean(form.fields.is_admin)}
-            onCheckedChange={(val) => form.setData('is_admin', val)}
-            className='cursor-pointer'
-          />
-        </div>
+        ) : null}
 
         <div className='flex flex-nowrap items-center justify-end gap-2'>
           <Button
@@ -187,7 +233,7 @@ function UserFormFields({
             variant='outline'
             disabled={loading}
             className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
-            onClick={() => onSuccess?.()}
+            onClick={() => onComplete?.()}
           >
             Cancel
           </Button>
