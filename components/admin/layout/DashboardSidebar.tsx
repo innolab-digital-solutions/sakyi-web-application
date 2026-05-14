@@ -4,8 +4,15 @@ import { ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { ReactNode } from 'react';
-import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react';
+import {
+  forwardRef,
+  startTransition,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   Collapsible,
@@ -43,38 +50,45 @@ const normalizeNavPath = (value: string): string => {
   return value.endsWith('/') ? value.slice(0, -1) : value;
 };
 
-function AdminNavHref({
-  href,
-  external,
-  className,
-  children,
-}: {
+type AdminNavHrefProps = {
   href: string;
   external?: boolean;
-  className?: string;
   children: ReactNode;
-}) {
-  const isOutbound = external === true || EXTERNAL_HREF_RE.test(href);
+} & Omit<ComponentPropsWithoutRef<'a'>, 'href' | 'children'>;
 
-  if (isOutbound) {
+const AdminNavHref = forwardRef<HTMLAnchorElement, AdminNavHrefProps>(
+  ({ href, external, className, children, ...rest }, ref) => {
+    const isOutbound = external === true || EXTERNAL_HREF_RE.test(href);
+
+    if (isOutbound) {
+      return (
+        <a
+          ref={ref}
+          href={href}
+          target='_blank'
+          rel='noopener noreferrer'
+          className={className}
+          {...rest}
+        >
+          {children}
+        </a>
+      );
+    }
+
     return (
-      <a
+      <Link
+        ref={ref}
         href={href}
-        target='_blank'
-        rel='noopener noreferrer'
+        prefetch={false}
         className={className}
+        {...rest}
       >
         {children}
-      </a>
+      </Link>
     );
-  }
-
-  return (
-    <Link href={href} prefetch={false} className={className}>
-      {children}
-    </Link>
-  );
-}
+  },
+);
+AdminNavHref.displayName = 'AdminNavHref';
 
 const isNavPathActive = (pathname: string, navPath: string): boolean => {
   if (!navPath || navPath === '#' || EXTERNAL_HREF_RE.test(navPath)) {
