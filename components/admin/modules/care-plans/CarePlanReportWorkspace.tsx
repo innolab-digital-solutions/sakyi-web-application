@@ -67,6 +67,18 @@ import { resolveOperationalLogForReportWorkspace } from '@/lib/care-plans/resolv
 import { cn } from '@/lib/utils/styles';
 
 const WORKSPACE_QUERY_KEY = 'care-plan-report-workspace' as const;
+
+/** Stable reference for {@link useQuery} key hashing (must not be recreated each render). */
+const DEFAULT_REPORT_WORKSPACE_PARAMS = { carePlanDefault: true as const };
+
+function carePlanReportWorkspaceQueryKey(carePlanId: number) {
+  return [
+    WORKSPACE_QUERY_KEY,
+    carePlanId,
+    DEFAULT_REPORT_WORKSPACE_PARAMS,
+  ] as const;
+}
+
 const OPERATIONAL_LOG_LIST_QUERY_KEY = [
   'table',
   ENDPOINTS.ADMIN.MODULES.OPERATIONAL_LOGS.LIST,
@@ -227,8 +239,6 @@ export default function CarePlanReportWorkspace({
     },
   });
 
-  const effectiveWorkspaceParams = { carePlanDefault: true as const };
-
   const carePlan = carePlanResult;
 
   React.useEffect(() => {
@@ -242,11 +252,7 @@ export default function CarePlanReportWorkspace({
     isError: workspaceIsError,
     error: workspaceError,
   } = useQuery({
-    queryKey: [
-      WORKSPACE_QUERY_KEY,
-      carePlanId,
-      effectiveWorkspaceParams,
-    ] as const,
+    queryKey: carePlanReportWorkspaceQueryKey(carePlanId),
     queryFn: async () => {
       const res = await getCarePlanReportWorkspace(carePlanId, {
         carePlanDefault: true,
@@ -549,13 +555,19 @@ export default function CarePlanReportWorkspace({
       return { mode: 'create' as const, data: res.data };
     },
     onSuccess: async (result) => {
+      workspaceFormKeyRef.current = null;
       await queryClient.invalidateQueries({
         queryKey: [...OPERATIONAL_LOG_LIST_QUERY_KEY],
       });
-      void queryClient.invalidateQueries({
-        queryKey: [WORKSPACE_QUERY_KEY, carePlanId],
+      await queryClient.invalidateQueries({
+        queryKey: carePlanReportWorkspaceQueryKey(carePlanId),
+        refetchType: 'active',
       });
-      void queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
+        queryKey: ['care-plan-logs', carePlanId],
+        refetchType: 'active',
+      });
+      await queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.PERIOD_REPORTS.LIST],
       });
       toast.success(
@@ -666,8 +678,9 @@ export default function CarePlanReportWorkspace({
       }
       return res.data;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setSubmitForReviewDialogOpen(false);
+      workspaceFormKeyRef.current = null;
       setFormFeedback({
         summary: data?.feedback?.summary ?? submitReviewFeedback.summary ?? '',
         focus_next_period:
@@ -676,10 +689,15 @@ export default function CarePlanReportWorkspace({
           '',
         notes: data?.feedback?.notes ?? submitReviewFeedback.notes ?? '',
       });
-      void queryClient.invalidateQueries({
-        queryKey: [WORKSPACE_QUERY_KEY, carePlanId],
+      await queryClient.invalidateQueries({
+        queryKey: carePlanReportWorkspaceQueryKey(carePlanId),
+        refetchType: 'active',
       });
-      void queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
+        queryKey: ['care-plan-logs', carePlanId],
+        refetchType: 'active',
+      });
+      await queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.PERIOD_REPORTS.LIST],
       });
       router.replace(workspacePath, { scroll: false });
@@ -756,9 +774,15 @@ export default function CarePlanReportWorkspace({
         );
       }
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: [WORKSPACE_QUERY_KEY, carePlanId],
+    onSuccess: async () => {
+      workspaceFormKeyRef.current = null;
+      await queryClient.invalidateQueries({
+        queryKey: carePlanReportWorkspaceQueryKey(carePlanId),
+        refetchType: 'active',
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ['care-plan-logs', carePlanId],
+        refetchType: 'active',
       });
       toast.success('Operational log created. You can add metrics, then save.');
     },
