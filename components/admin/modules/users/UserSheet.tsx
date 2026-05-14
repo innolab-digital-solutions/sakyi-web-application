@@ -51,7 +51,7 @@ export default function UserSheet({ mode, user, open, onOpenChange }: Props) {
           </Button>
         </SheetTrigger>
       )}
-      <SheetContent className='overflow-y-auto px-6 sm:max-w-md [&>button]:cursor-pointer'>
+      <SheetContent className='w-full overflow-y-auto px-6 sm:max-w-2xl [&>button]:cursor-pointer'>
         <SheetHeader className='px-0'>
           <SheetTitle className='text-foreground text-[15.5px] font-bold capitalize'>
             {isEdit ? 'Edit User Account' : 'Create User Account'}

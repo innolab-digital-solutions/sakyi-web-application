@@ -6,10 +6,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { AdminFormPageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
+import FileUploadField, {
+  type FileUploadFieldRemoteFile,
+} from '@/components/shared/form/FileUploadField';
 import TextField from '@/components/shared/form/TextField';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { isSuperAdminUser } from '@/domains/user/roles';
 import { UserCreateSchema, UserUpdateSchema } from '@/domains/user/schemas';
@@ -17,7 +21,7 @@ import { getAdminUserById } from '@/domains/user/services';
 import type { User } from '@/domains/user/types';
 import { client } from '@/lib/api/client';
 import { useForm } from '@/lib/form';
-import type { ApiError, FormFields } from '@/lib/form/types';
+import type { ApiError, FormErrors, FormFields } from '@/lib/form/types';
 import { validateFormFields } from '@/lib/form/validator';
 
 type CreateProps = { mode: 'create'; onSuccess?: () => void };
@@ -26,6 +30,78 @@ type Props = CreateProps | EditProps;
 
 function isAdminRole(user: User | undefined): boolean {
   return user?.role === 'Admin';
+}
+
+function resolveUserPictureDisplayUrl(
+  raw: string | null | undefined,
+): string | null {
+  const t = raw?.trim();
+  if (!t) return null;
+  return t.startsWith('http') ? t : `${base.domainEndpoint}${t}`;
+}
+
+function mimeFromPictureFilename(fileName: string): string {
+  const ext = fileName.split('.').pop()?.toLowerCase() ?? '';
+  const map: Record<string, string> = {
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    webp: 'image/webp',
+    gif: 'image/gif',
+  };
+  return map[ext] ?? 'image/jpeg';
+}
+
+function remotePictureFilesFromUser(user?: User): FileUploadFieldRemoteFile[] {
+  if (!user?.picture_url?.trim()) return [];
+  const fullUrl = resolveUserPictureDisplayUrl(user.picture_url);
+  if (!fullUrl) return [];
+  const fileName =
+    user.picture_url.split('/').pop()?.split('?')[0] ?? 'picture';
+  return [
+    {
+      url: fullUrl,
+      name: fileName,
+      mimeType: mimeFromPictureFilename(fileName),
+    },
+  ];
+}
+
+function UserFormPictureField({
+  user,
+  loading,
+  pictureError,
+  onPictureChange,
+}: {
+  user?: User;
+  loading: boolean;
+  pictureError?: string;
+  onPictureChange: (file: File | undefined) => void;
+}) {
+  const [existingPicture, setExistingPicture] = useState<
+    FileUploadFieldRemoteFile[]
+  >(() => remotePictureFilesFromUser(user));
+
+  return (
+    <FileUploadField
+      label='Profile picture'
+      name='picture'
+      accept='.jpg,.jpeg,.png,.webp'
+      maxFileSize={5 * 1024 * 1024}
+      existingFiles={existingPicture}
+      onExistingFilesChange={(next) => {
+        setExistingPicture(next);
+        if (next.length === 0) onPictureChange(undefined);
+      }}
+      onFilesChange={(files) => {
+        const file = files[0];
+        onPictureChange(file);
+      }}
+      emptyHint='Browse'
+      disabled={loading}
+      error={pictureError}
+    />
+  );
 }
 
 function UserFormFields({
@@ -39,7 +115,9 @@ function UserFormFields({
 }) {
   const queryClient = useQueryClient();
   const isEdit = mode === 'edit';
-  const hideAdminAccessToggle = Boolean(isEdit && user && isSuperAdminUser(user));
+  const hideAdminAccessToggle = Boolean(
+    isEdit && user && isSuperAdminUser(user),
+  );
   const [superAdminPatching, setSuperAdminPatching] = useState(false);
 
   const initialFields = useMemo(() => {
@@ -50,6 +128,7 @@ function UserFormFields({
         is_admin: isAdminRole(user),
         password: '',
         password_confirmation: '',
+        picture: undefined,
       };
     }
     return {
@@ -58,6 +137,7 @@ function UserFormFields({
       password: '',
       password_confirmation: '',
       is_admin: false,
+      picture: undefined,
     };
   }, [isEdit, user]);
 
@@ -73,6 +153,7 @@ function UserFormFields({
       is_admin: isAdminRole(user),
       password: '',
       password_confirmation: '',
+      picture: undefined,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEdit, user]);
@@ -126,7 +207,7 @@ function UserFormFields({
         });
         if (response.status === 'error') {
           if (response.errors && Object.keys(response.errors).length > 0) {
-            form.setError(response.errors as FormFields);
+            form.setError(response.errors as FormErrors);
           } else {
             onFailure(response as ApiError);
           }
@@ -162,6 +243,21 @@ function UserFormFields({
       noValidate
     >
       <div className='space-y-6'>
+        <UserFormPictureField
+          key={`${user?.id ?? 'create'}|${user?.picture_url ?? ''}`}
+          user={user}
+          loading={loading}
+          pictureError={errors.picture}
+          onPictureChange={(file) => {
+            if (file) {
+              form.setData('picture' as never, file as never);
+              form.clearErrors('picture');
+            } else {
+              form.setData('picture' as never, undefined as never);
+              form.clearErrors('picture');
+            }
+          }}
+        />
         <TextField
           label='Full Name'
           required
@@ -179,38 +275,45 @@ function UserFormFields({
           onChange={(e) => form.setData('email', e.target.value)}
           error={form.errors.email}
         />
-        <TextField
-          label='Password'
-          required={!isEdit}
-          type='password'
-          placeholder={
-            isEdit
-              ? 'Leave blank to keep current password'
-              : 'Enter password (minimum 8 characters)'
-          }
-          value={String(fields.password ?? '')}
-          onChange={(e) =>
-            form.setData('password' as never, e.target.value as never)
-          }
-          error={errors.password}
-        />
-        <TextField
-          label='Confirm Password'
-          required={!isEdit}
-          type='password'
-          placeholder='Re-enter password'
-          value={String(fields.password_confirmation ?? '')}
-          onChange={(e) =>
-            form.setData(
-              'password_confirmation' as never,
-              e.target.value as never,
-            )
-          }
-          error={errors.password_confirmation}
-        />
+
+        <div className='grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4'>
+          <div className='min-w-0'>
+            <TextField
+              label='Password'
+              required={!isEdit}
+              type='password'
+              placeholder={
+                isEdit
+                  ? 'Leave blank to keep current password'
+                  : 'Enter password (minimum 8 characters)'
+              }
+              value={String(fields.password ?? '')}
+              onChange={(e) =>
+                form.setData('password' as never, e.target.value as never)
+              }
+              error={errors.password}
+            />
+          </div>
+          <div className='min-w-0'>
+            <TextField
+              label='Confirm Password'
+              required={!isEdit}
+              type='password'
+              placeholder='Re-enter password'
+              value={String(fields.password_confirmation ?? '')}
+              onChange={(e) =>
+                form.setData(
+                  'password_confirmation' as never,
+                  e.target.value as never,
+                )
+              }
+              error={errors.password_confirmation}
+            />
+          </div>
+        </div>
 
         {!hideAdminAccessToggle ? (
-          <div className='border-input flex items-center justify-between rounded-md border px-4 py-3 shadow'>
+          <div className='border-input flex items-center justify-between rounded-md border px-4 py-3 shadow-xs'>
             <div className='space-y-0.5'>
               <Label className='text-foreground text-[13px] font-semibold'>
                 Admin Access

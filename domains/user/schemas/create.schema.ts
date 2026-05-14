@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { UserBodySchema } from './base.schema';
+import { OptionalUserPictureSchema } from './picture.schema';
 
 export const UserCreateSchema = UserBodySchema.extend({
   password: z
@@ -10,6 +11,7 @@ export const UserCreateSchema = UserBodySchema.extend({
   password_confirmation: z
     .string()
     .min(1, { message: 'Please confirm your password.' }),
+  picture: OptionalUserPictureSchema,
 }).refine((data) => data.password === data.password_confirmation, {
   message: 'Passwords do not match.',
   path: ['password_confirmation'],
