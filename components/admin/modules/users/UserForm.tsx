@@ -15,6 +15,11 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
+import {
+  ADMIN_IMAGE_UPLOAD_ACCEPT,
+  ADMIN_IMAGE_UPLOAD_MAX_BYTES,
+  mimeTypeFromImageFilename,
+} from '@/config/uploads/admin-image-upload';
 import { isSuperAdminUser } from '@/domains/user/roles';
 import { UserCreateSchema, UserUpdateSchema } from '@/domains/user/schemas';
 import { getAdminUserById } from '@/domains/user/services';
@@ -40,18 +45,6 @@ function resolveUserPictureDisplayUrl(
   return t.startsWith('http') ? t : `${base.domainEndpoint}${t}`;
 }
 
-function mimeFromPictureFilename(fileName: string): string {
-  const ext = fileName.split('.').pop()?.toLowerCase() ?? '';
-  const map: Record<string, string> = {
-    png: 'image/png',
-    jpg: 'image/jpeg',
-    jpeg: 'image/jpeg',
-    webp: 'image/webp',
-    gif: 'image/gif',
-  };
-  return map[ext] ?? 'image/jpeg';
-}
-
 function remotePictureFilesFromUser(user?: User): FileUploadFieldRemoteFile[] {
   if (!user?.picture_url?.trim()) return [];
   const fullUrl = resolveUserPictureDisplayUrl(user.picture_url);
@@ -62,7 +55,7 @@ function remotePictureFilesFromUser(user?: User): FileUploadFieldRemoteFile[] {
     {
       url: fullUrl,
       name: fileName,
-      mimeType: mimeFromPictureFilename(fileName),
+      mimeType: mimeTypeFromImageFilename(fileName),
     },
   ];
 }
@@ -86,8 +79,8 @@ function UserFormPictureField({
     <FileUploadField
       label='Profile picture'
       name='picture'
-      accept='.jpg,.jpeg,.png,.webp'
-      maxFileSize={5 * 1024 * 1024}
+      accept={ADMIN_IMAGE_UPLOAD_ACCEPT}
+      maxFileSize={ADMIN_IMAGE_UPLOAD_MAX_BYTES}
       existingFiles={existingPicture}
       onExistingFilesChange={(next) => {
         setExistingPicture(next);

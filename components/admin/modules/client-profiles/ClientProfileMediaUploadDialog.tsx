@@ -21,7 +21,7 @@ import {
 import { cn } from '@/lib/utils/styles';
 
 const ACCEPT =
-  '.jpg,.jpeg,.png,.webp,.gif,.pdf,.csv,.txt,.doc,.docx,.xls,.xlsx';
+  '.jpg,.jpeg,.png,.webp,.gif,.bmp,.heic,.heif,.avif,.pdf,.csv,.txt,.doc,.docx,.xls,.xlsx';
 const MAX_FILES = 10;
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
 

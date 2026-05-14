@@ -284,8 +284,14 @@ export default function IntakeListTable() {
         toast.success(
           'The enrollment contract notification was sent to the applicant.',
         );
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: ['table', ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST],
+        });
+        void queryClient.invalidateQueries({
+          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.ENROLLMENT_CONTRACTS.LIST],
+        });
+        void queryClient.invalidateQueries({
+          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.ENROLLMENT_REQUESTS.LIST],
         });
       },
       onError: (error) => {

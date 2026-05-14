@@ -111,6 +111,10 @@ function guessMimeFromFilename(name: string): string {
     jpeg: 'image/jpeg',
     gif: 'image/gif',
     webp: 'image/webp',
+    bmp: 'image/bmp',
+    heic: 'image/heic',
+    heif: 'image/heif',
+    avif: 'image/avif',
     svg: 'image/svg+xml',
     mp4: 'video/mp4',
     webm: 'video/webm',
@@ -122,6 +126,8 @@ function guessMimeFromFilename(name: string): string {
     docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     xls: 'application/vnd.ms-excel',
     xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    csv: 'text/csv',
+    txt: 'text/plain',
   };
   return map[ext] ?? 'application/octet-stream';
 }
