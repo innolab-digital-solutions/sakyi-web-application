@@ -288,7 +288,10 @@ export default function IntakeListTable() {
           queryKey: ['table', ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.LIST],
         });
         void queryClient.invalidateQueries({
-          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.ENROLLMENT_CONTRACTS.LIST],
+          queryKey: [
+            'table',
+            ENDPOINTS.ADMIN.MODULES.ENROLLMENT_CONTRACTS.LIST,
+          ],
         });
         void queryClient.invalidateQueries({
           queryKey: ['table', ENDPOINTS.ADMIN.MODULES.ENROLLMENT_REQUESTS.LIST],

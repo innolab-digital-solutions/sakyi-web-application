@@ -72,11 +72,7 @@ export default function OperationalLogMediaPreviewModal({
                 className={outlineActionButtonClass}
                 asChild
               >
-                <a
-                  href={imageUrl}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                >
+                <a href={imageUrl} target='_blank' rel='noopener noreferrer'>
                   <ExternalLinkIcon className='size-3.5' aria-hidden />
                   Open in new tab
                 </a>
