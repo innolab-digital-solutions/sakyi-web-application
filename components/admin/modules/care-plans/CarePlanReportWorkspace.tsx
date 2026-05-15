@@ -6,6 +6,7 @@ import {
   ChevronDownIcon,
   CircleAlert,
   ClipboardListIcon,
+  ExpandIcon,
   FileChartColumn,
   FileSymlink,
   ListChecks,
@@ -201,7 +202,10 @@ export default function CarePlanReportWorkspace({
   const [formMetrics, setFormMetrics] = React.useState<ReportRunMetric[]>([]);
   const [formFeedback, setFormFeedback] =
     React.useState<ReportRunFeedback>(emptyFeedback);
-  const [lightboxUrl, setLightboxUrl] = React.useState<string | null>(null);
+  const [lightboxMedia, setLightboxMedia] = React.useState<{
+    url: string;
+    contextLabel: string;
+  } | null>(null);
   const [saveCarePlanConfirmOpen, setSaveCarePlanConfirmOpen] =
     React.useState(false);
   const [operationalLogMetricsReviewOpen, setOperationalLogMetricsReviewOpen] =
@@ -1126,7 +1130,9 @@ export default function CarePlanReportWorkspace({
               <div className='min-h-0 min-w-0 space-y-3 lg:col-span-1'>
                 <EvidenceList
                   days={workspace.evidence}
-                  onOpenImage={setLightboxUrl}
+                  onOpenImage={(url, contextLabel) =>
+                    setLightboxMedia({ url, contextLabel })
+                  }
                 />
               </div>
 
@@ -1253,9 +1259,10 @@ export default function CarePlanReportWorkspace({
       />
 
       <OperationalLogMediaPreviewModal
-        imageUrl={lightboxUrl}
+        imageUrl={lightboxMedia?.url ?? null}
+        contextLabel={lightboxMedia?.contextLabel ?? null}
         onOpenChange={(open) => {
-          if (!open) setLightboxUrl(null);
+          if (!open) setLightboxMedia(null);
         }}
       />
     </div>
@@ -1267,7 +1274,7 @@ function EvidenceLineItemCard({
   onOpenImage,
 }: {
   item: CarePlanReportEvidenceItem;
-  onOpenImage: (url: string) => void;
+  onOpenImage: (url: string, contextLabel: string) => void;
 }) {
   const targetDisplay = item.target
     ? `${item.target.value ?? '—'} ${item.target.unit ?? ''}`.trim()
@@ -1328,7 +1335,7 @@ function EvidenceLineItemCard({
           <p className='text-[10px] font-semibold tracking-wide text-amber-800 uppercase dark:text-amber-400'>
             Log media
           </p>
-          <div className='flex flex-wrap gap-2'>
+          <div className='flex flex-wrap gap-2.5'>
             {media.map((m, idx) => {
               const u = resolveMediaUrl(m.url);
               if (!u) return null;
@@ -1336,17 +1343,34 @@ function EvidenceLineItemCard({
                 <button
                   key={m.id ?? idx}
                   type='button'
-                  onClick={() => onOpenImage(u)}
-                  className='border-border dark:bg-background relative h-12 w-12 overflow-hidden rounded-md border bg-white'
+                  onClick={() => onOpenImage(u, item.title)}
+                  className={cn(
+                    'group border-border dark:bg-background relative overflow-hidden',
+                    'h-16 w-16 rounded-md border bg-white sm:h-18 sm:w-18',
+                    'ring-offset-background focus-visible:ring-ring',
+                    'hover:ring-primary/40 transition-shadow hover:shadow-md',
+                    'focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
+                  )}
                 >
                   <Image
                     src={u}
                     alt=''
                     fill
-                    className='object-cover'
+                    className='object-cover transition-transform duration-200 group-hover:scale-105'
                     unoptimized
                   />
-                  <span className='sr-only'>Open image</span>
+                  <span
+                    className={cn(
+                      'absolute inset-0 flex items-center justify-center',
+                      'bg-black/0 transition-colors group-hover:bg-black/35',
+                    )}
+                    aria-hidden
+                  >
+                    <ExpandIcon className='size-4 text-white opacity-0 drop-shadow-sm transition-opacity group-hover:opacity-100' />
+                  </span>
+                  <span className='sr-only'>
+                    View full-size evidence for {item.title}
+                  </span>
                 </button>
               );
             })}
@@ -1362,7 +1386,7 @@ function EvidenceList({
   onOpenImage,
 }: {
   days: CarePlanReportEvidenceDay[];
-  onOpenImage: (url: string) => void;
+  onOpenImage: (url: string, contextLabel: string) => void;
 }) {
   if (!days.length) {
     return (
