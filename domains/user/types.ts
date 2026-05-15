@@ -8,7 +8,7 @@ export type User = {
   name: string;
   email: string;
   status: Status;
-  picture_url: string;
+  picture_url: string | null;
   role: 'Admin' | 'Client' | 'Prospect' | 'super_admin' | 'Super Admin';
   sign_in_options: {
     email_password: 'set' | 'not_set';

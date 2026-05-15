@@ -46,11 +46,11 @@ function resolveUserPictureDisplayUrl(
 }
 
 function remotePictureFilesFromUser(user?: User): FileUploadFieldRemoteFile[] {
-  if (!user?.picture_url?.trim()) return [];
-  const fullUrl = resolveUserPictureDisplayUrl(user.picture_url);
+  if (!user?.picture?.trim()) return [];
+  const fullUrl = resolveUserPictureDisplayUrl(user.picture);
   if (!fullUrl) return [];
   const fileName =
-    user.picture_url.split('/').pop()?.split('?')[0] ?? 'picture';
+    user.picture.split('/').pop()?.split('?')[0] ?? 'picture';
   return [
     {
       url: fullUrl,
@@ -237,7 +237,7 @@ function UserFormFields({
     >
       <div className='space-y-6'>
         <UserFormPictureField
-          key={`${user?.id ?? 'create'}|${user?.picture_url ?? ''}`}
+          key={`${user?.id ?? 'create'}|${user?.picture ?? ''}`}
           user={user}
           loading={loading}
           pictureError={errors.picture}

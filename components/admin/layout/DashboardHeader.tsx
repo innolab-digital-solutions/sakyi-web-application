@@ -1,10 +1,11 @@
 'use client';
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useAuth } from '@/context/AuthContext';
 import { getInitials } from '@/lib/utils/string';
+import { resolveApiImageUrl } from '@/lib/utils/url';
 
 import DashboardNotification from './DashboardNotification';
 
@@ -12,6 +13,7 @@ const DashboardHeader = () => {
   const { user } = useAuth();
 
   const roleName = user?.role != null ? String(user.role) : '';
+  const pictureSrc = resolveApiImageUrl(user?.picture_url ?? null);
 
   return (
     <header className='border-border bg-background sticky top-0 z-10 w-full shrink-0 border-b px-2.5'>
@@ -41,6 +43,9 @@ const DashboardHeader = () => {
             </div>
 
             <Avatar className='size-9 rounded-lg'>
+              {pictureSrc ? (
+                <AvatarImage src={pictureSrc} alt='' className='object-cover' />
+              ) : null}
               <AvatarFallback>
                 {getInitials(user?.name ?? 'Anonymous', 2)}
               </AvatarFallback>
