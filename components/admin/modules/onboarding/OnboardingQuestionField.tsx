@@ -3,6 +3,10 @@
 import FileUploadField from '@/components/shared/form/FileUploadField';
 import SelectField from '@/components/shared/form/SelectField';
 import TextField from '@/components/shared/form/TextField';
+import {
+  ADMIN_IMAGE_UPLOAD_ACCEPT,
+  ADMIN_IMAGE_UPLOAD_MAX_BYTES,
+} from '@/config/uploads/admin-image-upload';
 import type {
   OnboardingIntakeQuestion,
   OnboardingQuestionOption,
@@ -194,7 +198,8 @@ export default function OnboardingQuestionField({
       disabled={disabled}
       error={error}
       multiple={false}
-      maxFileSize={10 * 1024 * 1024}
+      accept={ADMIN_IMAGE_UPLOAD_ACCEPT}
+      maxFileSize={ADMIN_IMAGE_UPLOAD_MAX_BYTES}
       onFilesChange={(files) => onChange(files[0] ?? null)}
     />
   );

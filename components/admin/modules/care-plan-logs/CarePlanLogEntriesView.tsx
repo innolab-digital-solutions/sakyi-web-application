@@ -2,7 +2,12 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
-import { ExternalLinkIcon, Loader2Icon, RotateCwIcon } from 'lucide-react';
+import {
+  ChevronDownIcon,
+  ExternalLinkIcon,
+  Loader2Icon,
+  RotateCwIcon,
+} from 'lucide-react';
 import * as React from 'react';
 import { toast } from 'sonner';
 
@@ -11,6 +16,12 @@ import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Table,
   TableBody,
@@ -42,6 +53,9 @@ const METRIC_TILE_LABEL_CLASS =
   'text-muted-foreground mb-1.5 text-[10px] font-semibold tracking-wide uppercase';
 
 const RELOAD_COOLDOWN_SECONDS = 10;
+
+const MEDIA_BUTTON_CLASS =
+  'bg-background hover:bg-muted h-8 rounded-md border-neutral-300 px-2 text-xs font-semibold';
 
 function formatDate(iso: string | null | undefined): string | null {
   if (!iso?.trim()) return null;
@@ -383,8 +397,9 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
                 {!entriesPending &&
                   !entriesQuery.isError &&
                   rows.map((entry) => {
-                    const media = Array.isArray(entry.media) ? entry.media : [];
-                    const firstMedia = media[0];
+                    const mediaRows = Array.isArray(entry.media)
+                      ? entry.media
+                      : [];
                     const targetLabel = toTargetActualLabel(
                       entry.target?.value,
                       entry.target?.unit,
@@ -460,25 +475,71 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
                           )}
                         </TableCell>
                         <TableCell>
-                          {entry.media_count &&
-                          entry.media_count > 0 &&
-                          firstMedia ? (
-                            <Button
-                              type='button'
-                              asChild
-                              variant='outline'
-                              className='bg-background hover:bg-muted h-8 rounded-md border-neutral-300 px-2 text-xs font-semibold'
-                            >
-                              <a
-                                href={firstMedia.url}
-                                target='_blank'
-                                rel='noreferrer'
+                          {mediaRows.length > 0 ? (
+                            mediaRows.length === 1 ? (
+                              <Button
+                                type='button'
+                                asChild
+                                variant='outline'
+                                className={MEDIA_BUTTON_CLASS}
                               >
-                                {entry.media_count} file
-                                {entry.media_count > 1 ? 's' : ''}
-                                <ExternalLinkIcon className='size-3.5' />
-                              </a>
-                            </Button>
+                                <a
+                                  href={mediaRows[0].url}
+                                  target='_blank'
+                                  rel='noreferrer'
+                                >
+                                  {mediaRows.length}{' '}
+                                  {mediaRows.length === 1 ? 'File' : 'Files'}
+                                  <ExternalLinkIcon className='size-3.5' />
+                                </a>
+                              </Button>
+                            ) : (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    type='button'
+                                    variant='outline'
+                                    className={`${MEDIA_BUTTON_CLASS} inline-flex items-center gap-1`}
+                                    aria-label={`Open menu: ${mediaRows.length} attached files`}
+                                  >
+                                    {mediaRows.length}{' '}
+                                    {mediaRows.length === 1 ? 'File' : 'Files'}
+                                    <ChevronDownIcon
+                                      className='size-3.5 shrink-0 opacity-70'
+                                      aria-hidden
+                                    />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                  align='end'
+                                  className='min-w-52'
+                                >
+                                  {mediaRows.map((item, index) => (
+                                    <DropdownMenuItem
+                                      key={item.id ?? `${entry.id}-${index}`}
+                                      asChild
+                                      className='cursor-pointer p-0'
+                                    >
+                                      <a
+                                        href={item.url}
+                                        target='_blank'
+                                        rel='noreferrer'
+                                        className='flex w-full items-center gap-2 px-2 py-2 text-xs font-medium'
+                                      >
+                                        <ExternalLinkIcon
+                                          className='size-3.5 shrink-0'
+                                          aria-hidden
+                                        />
+                                        <span className='min-w-0 flex-1 truncate'>
+                                          {item.original_name?.trim() ||
+                                            `File ${index + 1}`}
+                                        </span>
+                                      </a>
+                                    </DropdownMenuItem>
+                                  ))}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )
                           ) : (
                             <TableCellEmpty label='No files' />
                           )}

@@ -6,6 +6,7 @@ import {
   ChevronDownIcon,
   CircleAlert,
   ClipboardListIcon,
+  ExpandIcon,
   FileChartColumn,
   FileSymlink,
   ListChecks,
@@ -67,6 +68,18 @@ import { resolveOperationalLogForReportWorkspace } from '@/lib/care-plans/resolv
 import { cn } from '@/lib/utils/styles';
 
 const WORKSPACE_QUERY_KEY = 'care-plan-report-workspace' as const;
+
+/** Stable reference for {@link useQuery} key hashing (must not be recreated each render). */
+const DEFAULT_REPORT_WORKSPACE_PARAMS = { carePlanDefault: true as const };
+
+function carePlanReportWorkspaceQueryKey(carePlanId: number) {
+  return [
+    WORKSPACE_QUERY_KEY,
+    carePlanId,
+    DEFAULT_REPORT_WORKSPACE_PARAMS,
+  ] as const;
+}
+
 const OPERATIONAL_LOG_LIST_QUERY_KEY = [
   'table',
   ENDPOINTS.ADMIN.MODULES.OPERATIONAL_LOGS.LIST,
@@ -189,7 +202,10 @@ export default function CarePlanReportWorkspace({
   const [formMetrics, setFormMetrics] = React.useState<ReportRunMetric[]>([]);
   const [formFeedback, setFormFeedback] =
     React.useState<ReportRunFeedback>(emptyFeedback);
-  const [lightboxUrl, setLightboxUrl] = React.useState<string | null>(null);
+  const [lightboxMedia, setLightboxMedia] = React.useState<{
+    url: string;
+    contextLabel: string;
+  } | null>(null);
   const [saveCarePlanConfirmOpen, setSaveCarePlanConfirmOpen] =
     React.useState(false);
   const [operationalLogMetricsReviewOpen, setOperationalLogMetricsReviewOpen] =
@@ -227,8 +243,6 @@ export default function CarePlanReportWorkspace({
     },
   });
 
-  const effectiveWorkspaceParams = { carePlanDefault: true as const };
-
   const carePlan = carePlanResult;
 
   React.useEffect(() => {
@@ -242,11 +256,7 @@ export default function CarePlanReportWorkspace({
     isError: workspaceIsError,
     error: workspaceError,
   } = useQuery({
-    queryKey: [
-      WORKSPACE_QUERY_KEY,
-      carePlanId,
-      effectiveWorkspaceParams,
-    ] as const,
+    queryKey: carePlanReportWorkspaceQueryKey(carePlanId),
     queryFn: async () => {
       const res = await getCarePlanReportWorkspace(carePlanId, {
         carePlanDefault: true,
@@ -549,13 +559,19 @@ export default function CarePlanReportWorkspace({
       return { mode: 'create' as const, data: res.data };
     },
     onSuccess: async (result) => {
+      workspaceFormKeyRef.current = null;
       await queryClient.invalidateQueries({
         queryKey: [...OPERATIONAL_LOG_LIST_QUERY_KEY],
       });
-      void queryClient.invalidateQueries({
-        queryKey: [WORKSPACE_QUERY_KEY, carePlanId],
+      await queryClient.invalidateQueries({
+        queryKey: carePlanReportWorkspaceQueryKey(carePlanId),
+        refetchType: 'active',
       });
-      void queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
+        queryKey: ['care-plan-logs', carePlanId],
+        refetchType: 'active',
+      });
+      await queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.PERIOD_REPORTS.LIST],
       });
       toast.success(
@@ -666,8 +682,9 @@ export default function CarePlanReportWorkspace({
       }
       return res.data;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setSubmitForReviewDialogOpen(false);
+      workspaceFormKeyRef.current = null;
       setFormFeedback({
         summary: data?.feedback?.summary ?? submitReviewFeedback.summary ?? '',
         focus_next_period:
@@ -676,10 +693,15 @@ export default function CarePlanReportWorkspace({
           '',
         notes: data?.feedback?.notes ?? submitReviewFeedback.notes ?? '',
       });
-      void queryClient.invalidateQueries({
-        queryKey: [WORKSPACE_QUERY_KEY, carePlanId],
+      await queryClient.invalidateQueries({
+        queryKey: carePlanReportWorkspaceQueryKey(carePlanId),
+        refetchType: 'active',
       });
-      void queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
+        queryKey: ['care-plan-logs', carePlanId],
+        refetchType: 'active',
+      });
+      await queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.PERIOD_REPORTS.LIST],
       });
       router.replace(workspacePath, { scroll: false });
@@ -756,9 +778,15 @@ export default function CarePlanReportWorkspace({
         );
       }
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: [WORKSPACE_QUERY_KEY, carePlanId],
+    onSuccess: async () => {
+      workspaceFormKeyRef.current = null;
+      await queryClient.invalidateQueries({
+        queryKey: carePlanReportWorkspaceQueryKey(carePlanId),
+        refetchType: 'active',
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ['care-plan-logs', carePlanId],
+        refetchType: 'active',
       });
       toast.success('Operational log created. You can add metrics, then save.');
     },
@@ -1102,7 +1130,9 @@ export default function CarePlanReportWorkspace({
               <div className='min-h-0 min-w-0 space-y-3 lg:col-span-1'>
                 <EvidenceList
                   days={workspace.evidence}
-                  onOpenImage={setLightboxUrl}
+                  onOpenImage={(url, contextLabel) =>
+                    setLightboxMedia({ url, contextLabel })
+                  }
                 />
               </div>
 
@@ -1229,9 +1259,10 @@ export default function CarePlanReportWorkspace({
       />
 
       <OperationalLogMediaPreviewModal
-        imageUrl={lightboxUrl}
+        imageUrl={lightboxMedia?.url ?? null}
+        contextLabel={lightboxMedia?.contextLabel ?? null}
         onOpenChange={(open) => {
-          if (!open) setLightboxUrl(null);
+          if (!open) setLightboxMedia(null);
         }}
       />
     </div>
@@ -1243,7 +1274,7 @@ function EvidenceLineItemCard({
   onOpenImage,
 }: {
   item: CarePlanReportEvidenceItem;
-  onOpenImage: (url: string) => void;
+  onOpenImage: (url: string, contextLabel: string) => void;
 }) {
   const targetDisplay = item.target
     ? `${item.target.value ?? '—'} ${item.target.unit ?? ''}`.trim()
@@ -1304,7 +1335,7 @@ function EvidenceLineItemCard({
           <p className='text-[10px] font-semibold tracking-wide text-amber-800 uppercase dark:text-amber-400'>
             Log media
           </p>
-          <div className='flex flex-wrap gap-2'>
+          <div className='flex flex-wrap gap-2.5'>
             {media.map((m, idx) => {
               const u = resolveMediaUrl(m.url);
               if (!u) return null;
@@ -1312,17 +1343,34 @@ function EvidenceLineItemCard({
                 <button
                   key={m.id ?? idx}
                   type='button'
-                  onClick={() => onOpenImage(u)}
-                  className='border-border dark:bg-background relative h-12 w-12 overflow-hidden rounded-md border bg-white'
+                  onClick={() => onOpenImage(u, item.title)}
+                  className={cn(
+                    'group border-border dark:bg-background relative overflow-hidden',
+                    'h-16 w-16 rounded-md border bg-white sm:h-18 sm:w-18',
+                    'ring-offset-background focus-visible:ring-ring',
+                    'hover:ring-primary/40 transition-shadow hover:shadow-md',
+                    'focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
+                  )}
                 >
                   <Image
                     src={u}
                     alt=''
                     fill
-                    className='object-cover'
+                    className='object-cover transition-transform duration-200 group-hover:scale-105'
                     unoptimized
                   />
-                  <span className='sr-only'>Open image</span>
+                  <span
+                    className={cn(
+                      'absolute inset-0 flex items-center justify-center',
+                      'bg-black/0 transition-colors group-hover:bg-black/35',
+                    )}
+                    aria-hidden
+                  >
+                    <ExpandIcon className='size-4 text-white opacity-0 drop-shadow-sm transition-opacity group-hover:opacity-100' />
+                  </span>
+                  <span className='sr-only'>
+                    View full-size evidence for {item.title}
+                  </span>
                 </button>
               );
             })}
@@ -1338,7 +1386,7 @@ function EvidenceList({
   onOpenImage,
 }: {
   days: CarePlanReportEvidenceDay[];
-  onOpenImage: (url: string) => void;
+  onOpenImage: (url: string, contextLabel: string) => void;
 }) {
   if (!days.length) {
     return (

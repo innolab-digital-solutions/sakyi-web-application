@@ -2,19 +2,32 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { SaveIcon, UserPlus2Icon } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { AdminFormPageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
+import FileUploadField, {
+  type FileUploadFieldRemoteFile,
+} from '@/components/shared/form/FileUploadField';
 import TextField from '@/components/shared/form/TextField';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
+import {
+  ADMIN_IMAGE_UPLOAD_ACCEPT,
+  ADMIN_IMAGE_UPLOAD_MAX_BYTES,
+  mimeTypeFromImageFilename,
+} from '@/config/uploads/admin-image-upload';
+import { isSuperAdminUser } from '@/domains/user/roles';
 import { UserCreateSchema, UserUpdateSchema } from '@/domains/user/schemas';
 import { getAdminUserById } from '@/domains/user/services';
 import type { User } from '@/domains/user/types';
+import { client } from '@/lib/api/client';
 import { useForm } from '@/lib/form';
+import type { ApiError, FormErrors, FormFields } from '@/lib/form/types';
+import { validateFormFields } from '@/lib/form/validator';
 
 type CreateProps = { mode: 'create'; onSuccess?: () => void };
 type EditProps = { mode: 'edit'; userId: number; onSuccess?: () => void };
@@ -24,10 +37,70 @@ function isAdminRole(user: User | undefined): boolean {
   return user?.role === 'Admin';
 }
 
+function resolveUserPictureDisplayUrl(
+  raw: string | null | undefined,
+): string | null {
+  const t = raw?.trim();
+  if (!t) return null;
+  return t.startsWith('http') ? t : `${base.domainEndpoint}${t}`;
+}
+
+function remotePictureFilesFromUser(user?: User): FileUploadFieldRemoteFile[] {
+  if (!user?.picture_url?.trim()) return [];
+  const fullUrl = resolveUserPictureDisplayUrl(user.picture_url);
+  if (!fullUrl) return [];
+  const fileName =
+    user.picture_url.split('/').pop()?.split('?')[0] ?? 'picture';
+  return [
+    {
+      url: fullUrl,
+      name: fileName,
+      mimeType: mimeTypeFromImageFilename(fileName),
+    },
+  ];
+}
+
+function UserFormPictureField({
+  user,
+  loading,
+  pictureError,
+  onPictureChange,
+}: {
+  user?: User;
+  loading: boolean;
+  pictureError?: string;
+  onPictureChange: (file: File | undefined) => void;
+}) {
+  const [existingPicture, setExistingPicture] = useState<
+    FileUploadFieldRemoteFile[]
+  >(() => remotePictureFilesFromUser(user));
+
+  return (
+    <FileUploadField
+      label='Profile picture'
+      name='picture'
+      accept={ADMIN_IMAGE_UPLOAD_ACCEPT}
+      maxFileSize={ADMIN_IMAGE_UPLOAD_MAX_BYTES}
+      existingFiles={existingPicture}
+      onExistingFilesChange={(next) => {
+        setExistingPicture(next);
+        if (next.length === 0) onPictureChange(undefined);
+      }}
+      onFilesChange={(files) => {
+        const file = files[0];
+        onPictureChange(file);
+      }}
+      emptyHint='Browse'
+      disabled={loading}
+      error={pictureError}
+    />
+  );
+}
+
 function UserFormFields({
   mode,
   user,
-  onSuccess,
+  onSuccess: onComplete,
 }: {
   mode: 'create' | 'edit';
   user?: User;
@@ -35,6 +108,10 @@ function UserFormFields({
 }) {
   const queryClient = useQueryClient();
   const isEdit = mode === 'edit';
+  const hideAdminAccessToggle = Boolean(
+    isEdit && user && isSuperAdminUser(user),
+  );
+  const [superAdminPatching, setSuperAdminPatching] = useState(false);
 
   const initialFields = useMemo(() => {
     if (isEdit && user) {
@@ -44,6 +121,7 @@ function UserFormFields({
         is_admin: isAdminRole(user),
         password: '',
         password_confirmation: '',
+        picture: undefined,
       };
     }
     return {
@@ -52,6 +130,7 @@ function UserFormFields({
       password: '',
       password_confirmation: '',
       is_admin: false,
+      picture: undefined,
     };
   }, [isEdit, user]);
 
@@ -67,6 +146,7 @@ function UserFormFields({
       is_admin: isAdminRole(user),
       password: '',
       password_confirmation: '',
+      picture: undefined,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEdit, user]);
@@ -77,35 +157,73 @@ function UserFormFields({
         ? ENDPOINTS.ADMIN.MODULES.USERS.UPDATE(String(user.id))
         : ENDPOINTS.ADMIN.MODULES.USERS.CREATE;
 
+    const handleSuccess = () => {
+      queryClient.invalidateQueries({
+        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.USERS.LIST],
+      });
+      if (isEdit && user) {
+        queryClient.invalidateQueries({ queryKey: ['user', user.id] });
+      }
+      toast.success(
+        isEdit
+          ? 'The user account has been updated successfully.'
+          : 'The user account has been created successfully.',
+      );
+      onComplete?.();
+    };
+
+    const onFailure = (error: ApiError) => {
+      toast.error(
+        error.message ??
+          (isEdit ? 'Failed to update user.' : 'Failed to create user.'),
+      );
+    };
+
+    if (hideAdminAccessToggle && isEdit && user) {
+      form.clearErrors();
+      const { success, errors: clientValidationErrors } = validateFormFields(
+        UserUpdateSchema,
+        form.fields as FormFields,
+      );
+      if (!success) {
+        form.setError(clientValidationErrors);
+        return;
+      }
+      setSuperAdminPatching(true);
+      try {
+        const body = { ...form.fields } as Record<string, unknown>;
+        delete body.is_admin;
+        const response = await client<unknown>(endpoint, {
+          method: 'PATCH',
+          body,
+          throwOnError: false,
+        });
+        if (response.status === 'error') {
+          if (response.errors && Object.keys(response.errors).length > 0) {
+            form.setError(response.errors as FormErrors);
+          } else {
+            onFailure(response as ApiError);
+          }
+        } else {
+          handleSuccess();
+        }
+      } finally {
+        setSuperAdminPatching(false);
+      }
+      return;
+    }
+
     const action = isEdit
       ? form.patch.bind(form, endpoint)
       : form.post.bind(form, endpoint);
 
     await action({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: ['table', ENDPOINTS.ADMIN.MODULES.USERS.LIST],
-        });
-        if (isEdit && user) {
-          queryClient.invalidateQueries({ queryKey: ['user', user.id] });
-        }
-        toast.success(
-          isEdit
-            ? 'The user account has been updated successfully.'
-            : 'The user account has been created successfully.',
-        );
-        onSuccess?.();
-      },
-      onFailure: (error) => {
-        toast.error(
-          error.message ??
-            (isEdit ? 'Failed to update user.' : 'Failed to create user.'),
-        );
-      },
+      onSuccess: handleSuccess,
+      onFailure,
     });
   };
 
-  const loading = form.isSubmitting;
+  const loading = form.isSubmitting || superAdminPatching;
   const fields = form.fields as Record<string, unknown>;
   const errors = form.errors as Record<string, string | undefined>;
 
@@ -118,6 +236,21 @@ function UserFormFields({
       noValidate
     >
       <div className='space-y-6'>
+        <UserFormPictureField
+          key={`${user?.id ?? 'create'}|${user?.picture_url ?? ''}`}
+          user={user}
+          loading={loading}
+          pictureError={errors.picture}
+          onPictureChange={(file) => {
+            if (file) {
+              form.setData('picture' as never, file as never);
+              form.clearErrors('picture');
+            } else {
+              form.setData('picture' as never, undefined as never);
+              form.clearErrors('picture');
+            }
+          }}
+        />
         <TextField
           label='Full Name'
           required
@@ -135,51 +268,60 @@ function UserFormFields({
           onChange={(e) => form.setData('email', e.target.value)}
           error={form.errors.email}
         />
-        <TextField
-          label='Password'
-          required={!isEdit}
-          type='password'
-          placeholder={
-            isEdit
-              ? 'Leave blank to keep current password'
-              : 'Enter password (minimum 8 characters)'
-          }
-          value={String(fields.password ?? '')}
-          onChange={(e) =>
-            form.setData('password' as never, e.target.value as never)
-          }
-          error={errors.password}
-        />
-        <TextField
-          label='Confirm Password'
-          required={!isEdit}
-          type='password'
-          placeholder='Re-enter password'
-          value={String(fields.password_confirmation ?? '')}
-          onChange={(e) =>
-            form.setData(
-              'password_confirmation' as never,
-              e.target.value as never,
-            )
-          }
-          error={errors.password_confirmation}
-        />
 
-        <div className='border-input flex items-center justify-between rounded-md border px-4 py-3 shadow'>
-          <div className='space-y-0.5'>
-            <Label className='text-foreground text-[13px] font-semibold'>
-              Admin Access
-            </Label>
-            <p className='text-muted-foreground text-xs font-medium'>
-              Grant this user admin-level permissions.
-            </p>
+        <div className='grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4'>
+          <div className='min-w-0'>
+            <TextField
+              label='Password'
+              required={!isEdit}
+              type='password'
+              placeholder={
+                isEdit
+                  ? 'Leave blank to keep current password'
+                  : 'Enter password (minimum 8 characters)'
+              }
+              value={String(fields.password ?? '')}
+              onChange={(e) =>
+                form.setData('password' as never, e.target.value as never)
+              }
+              error={errors.password}
+            />
           </div>
-          <Switch
-            checked={Boolean(form.fields.is_admin)}
-            onCheckedChange={(val) => form.setData('is_admin', val)}
-            className='cursor-pointer'
-          />
+          <div className='min-w-0'>
+            <TextField
+              label='Confirm Password'
+              required={!isEdit}
+              type='password'
+              placeholder='Re-enter password'
+              value={String(fields.password_confirmation ?? '')}
+              onChange={(e) =>
+                form.setData(
+                  'password_confirmation' as never,
+                  e.target.value as never,
+                )
+              }
+              error={errors.password_confirmation}
+            />
+          </div>
         </div>
+
+        {!hideAdminAccessToggle ? (
+          <div className='border-input flex items-center justify-between rounded-md border px-4 py-3 shadow-xs'>
+            <div className='space-y-0.5'>
+              <Label className='text-foreground text-[13px] font-semibold'>
+                Admin Access
+              </Label>
+              <p className='text-muted-foreground text-xs font-medium'>
+                Grant this user admin-level permissions.
+              </p>
+            </div>
+            <Switch
+              checked={Boolean(form.fields.is_admin)}
+              onCheckedChange={(val) => form.setData('is_admin', val)}
+              className='cursor-pointer'
+            />
+          </div>
+        ) : null}
 
         <div className='flex flex-nowrap items-center justify-end gap-2'>
           <Button
@@ -187,7 +329,7 @@ function UserFormFields({
             variant='outline'
             disabled={loading}
             className='text-foreground bg-background hover:bg-muted h-10 shrink-0 cursor-pointer gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
-            onClick={() => onSuccess?.()}
+            onClick={() => onComplete?.()}
           >
             Cancel
           </Button>

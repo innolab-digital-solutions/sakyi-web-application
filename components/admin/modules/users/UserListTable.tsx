@@ -24,7 +24,7 @@ import UserRemovalBlockedAlert from '@/components/admin/modules/users/UserRemova
 import UserSheet from '@/components/admin/modules/users/UserSheet';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -35,11 +35,20 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import TableCellEmpty from '@/components/ui/table-cell-empty';
+import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { deleteUser } from '@/domains/user/services';
 import type { Status, User } from '@/domains/user/types';
 import { useTable } from '@/lib/table';
 import { getInitials } from '@/lib/utils/string';
+
+function resolveUserPictureSrc(
+  raw: string | null | undefined,
+): string | undefined {
+  const t = raw?.trim();
+  if (!t) return undefined;
+  return t.startsWith('http') ? t : `${base.domainEndpoint}${t}`;
+}
 
 const SUPER_ADMIN_BADGE: {
   icon: ComponentType<{ className?: string }>;
@@ -318,6 +327,8 @@ export default function UserListTable() {
                 const statusStyle = STATUS_STYLES[user.status];
                 const StatusIcon = statusStyle.icon;
 
+                const pictureSrc = resolveUserPictureSrc(user.picture_url);
+
                 return (
                   <TableRow key={user.id}>
                     <TableCell>
@@ -327,6 +338,9 @@ export default function UserListTable() {
                           className='mt-0.5 shrink-0'
                           aria-hidden
                         >
+                          {pictureSrc ? (
+                            <AvatarImage src={pictureSrc} alt='' />
+                          ) : null}
                           <AvatarFallback className='text-xs'>
                             {getInitials(user.name ?? '', 2) || '?'}
                           </AvatarFallback>
@@ -346,7 +360,7 @@ export default function UserListTable() {
                       </div>
                     </TableCell>
 
-                    <TableCell>
+                    <TableCell className='min-w-40'>
                       {(() => {
                         const badgeStyle = ROLE_BADGE_STYLES[user.role];
                         const RoleIcon = badgeStyle.icon;

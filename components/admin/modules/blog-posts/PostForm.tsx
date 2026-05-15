@@ -26,6 +26,11 @@ import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
 import { LANGUAGES } from '@/config/languages';
 import { ROUTES } from '@/config/routes';
 import {
+  ADMIN_IMAGE_UPLOAD_ACCEPT,
+  ADMIN_IMAGE_UPLOAD_MAX_BYTES,
+  mimeTypeFromImageFilename,
+} from '@/config/uploads/admin-image-upload';
+import {
   BlogPostCreateSchema,
   type BlogPostTranslationInput,
   BlogPostUpdateSchema,
@@ -245,7 +250,13 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
       ? enPost.thumbnail
       : `${base.domainEndpoint}${enPost.thumbnail}`;
     const fileName = enPost.thumbnail.split('/').pop() ?? 'thumbnail';
-    return [{ url: fullUrl, name: fileName }];
+    return [
+      {
+        url: fullUrl,
+        name: fileName,
+        mimeType: mimeTypeFromImageFilename(fileName),
+      },
+    ];
   });
 
   const [activeLocale, setActiveLocale] = useState<'en' | 'my'>('en');
@@ -554,10 +565,10 @@ function BlogPostFormFields(props: BlogPostFormFieldsProps) {
             <div className='border-border space-y-2 border-t pt-4'>
               <FileUploadField
                 label='Thumbnail'
-                accept='.jpg,.jpeg,.png'
+                accept={ADMIN_IMAGE_UPLOAD_ACCEPT}
                 required
                 maxFiles={1}
-                maxFileSize={5 * 1024 * 1024}
+                maxFileSize={ADMIN_IMAGE_UPLOAD_MAX_BYTES}
                 existingFiles={existingThumbnail}
                 onExistingFilesChange={(files) => {
                   setExistingThumbnail(files);

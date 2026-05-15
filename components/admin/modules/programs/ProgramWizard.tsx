@@ -24,6 +24,11 @@ import { ENDPOINTS } from '@/config/api/endpoints';
 import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
 import { LANGUAGES } from '@/config/languages';
 import { ROUTES } from '@/config/routes';
+import {
+  ADMIN_IMAGE_UPLOAD_ACCEPT,
+  ADMIN_IMAGE_UPLOAD_MAX_BYTES,
+  mimeTypeFromImageFilename,
+} from '@/config/uploads/admin-image-upload';
 import { STATUS } from '@/domains/programs/constants';
 import { saveProgram } from '@/domains/programs/services';
 import type {
@@ -255,19 +260,6 @@ function normalizeRichTextValue(value: string): string {
   return plainText.length === 0 ? '' : value;
 }
 
-function mimeFromThumbnailFilename(fileName: string): string {
-  const ext = fileName.split('.').pop()?.toLowerCase() ?? '';
-  const map: Record<string, string> = {
-    png: 'image/png',
-    jpg: 'image/jpeg',
-    jpeg: 'image/jpeg',
-    webp: 'image/webp',
-    gif: 'image/gif',
-    svg: 'image/svg+xml',
-  };
-  return map[ext] ?? 'image/jpeg';
-}
-
 /**
  * Same URL rules as blog posts / program list: relative paths join `base.domainEndpoint`.
  * Sets `mimeType` so `FileUploadField` image previews work (not generic file icons).
@@ -284,7 +276,7 @@ function programThumbnailToRemoteFiles(
     {
       url: fullUrl,
       name: fileName,
-      mimeType: mimeFromThumbnailFilename(fileName),
+      mimeType: mimeTypeFromImageFilename(fileName),
     },
   ];
 }
@@ -917,8 +909,8 @@ export default function ProgramWizard({
               <FileUploadField
                 label='Thumbnail'
                 required
-                accept='.jpg,.jpeg,.png'
-                maxFileSize={5 * 1024 * 1024}
+                accept={ADMIN_IMAGE_UPLOAD_ACCEPT}
+                maxFileSize={ADMIN_IMAGE_UPLOAD_MAX_BYTES}
                 existingFiles={existingThumbnail}
                 onExistingFilesChange={(files) => {
                   setExistingThumbnail(files);

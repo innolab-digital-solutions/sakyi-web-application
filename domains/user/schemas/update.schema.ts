@@ -1,9 +1,11 @@
 import { z } from 'zod';
 
 import { UserBodySchema } from './base.schema';
+import { OptionalUserPictureSchema } from './picture.schema';
 
 export const UserUpdateSchema = UserBodySchema.partial()
   .extend({
+    picture: OptionalUserPictureSchema,
     password: z.preprocess(
       (val) => (val === '' ? undefined : val),
       z
