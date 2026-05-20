@@ -15,12 +15,12 @@ import { type ComponentType, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
-import PublishedMarketingTitleLink from '@/components/admin/shared/PublishedMarketingTitleLink';
 import BlogPostRemovalBlockedAlert from '@/components/admin/modules/blog-posts/BlogPostRemovalBlockedAlert';
 import BlogPostFilters, {
   type BlogPostListLocale,
 } from '@/components/admin/modules/blog-posts/PostFilters';
 import RemoveBlogPostConfirmation from '@/components/admin/modules/blog-posts/RemoveBlogPostConfirmation';
+import PublishedMarketingTitleLink from '@/components/admin/shared/PublishedMarketingTitleLink';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Button } from '@/components/ui/button';

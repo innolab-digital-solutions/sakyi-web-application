@@ -16,13 +16,13 @@ import { type ComponentType, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
-import PublishedMarketingTitleLink from '@/components/admin/shared/PublishedMarketingTitleLink';
 import ProgramFilters, {
   type ProgramListLocale,
   type ProgramTableStatusFilter,
 } from '@/components/admin/modules/programs/ProgramFilters';
 import ProgramRemovalBlockedAlert from '@/components/admin/modules/programs/ProgramRemovalBlockedAlert';
 import RemoveProgramConfirmation from '@/components/admin/modules/programs/RemoveProgramConfirmation';
+import PublishedMarketingTitleLink from '@/components/admin/shared/PublishedMarketingTitleLink';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Button } from '@/components/ui/button';
@@ -355,7 +355,8 @@ export default function ProgramListTable() {
                 const StatusIcon = statusStyle.icon;
                 const priceLabel = formatProgramPrice(program);
                 const programTitle = getProgramTitle(program);
-                const marketingUrl = resolvePublishedProgramMarketingUrl(program);
+                const marketingUrl =
+                  resolvePublishedProgramMarketingUrl(program);
                 return (
                   <TableRow key={program.id}>
                     <TableCell className='min-w-42'>
