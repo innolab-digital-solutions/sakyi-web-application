@@ -22,6 +22,7 @@ import ProgramFilters, {
 } from '@/components/admin/modules/programs/ProgramFilters';
 import ProgramRemovalBlockedAlert from '@/components/admin/modules/programs/ProgramRemovalBlockedAlert';
 import RemoveProgramConfirmation from '@/components/admin/modules/programs/RemoveProgramConfirmation';
+import PublishedMarketingTitleLink from '@/components/admin/shared/PublishedMarketingTitleLink';
 import TableEmptyStateRow from '@/components/shared/table/TableEmptyStateRow';
 import TableSkeletonRows from '@/components/shared/table/TableSkeletonRows';
 import { Button } from '@/components/ui/button';
@@ -36,11 +37,12 @@ import {
 import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
-import { ROUTES } from '@/config/routes';
+import { MARKETING_ROUTES, ROUTES } from '@/config/routes';
 import { STATUS } from '@/domains/programs/constants';
 import { deleteProgram } from '@/domains/programs/services';
 import type { Program } from '@/domains/programs/types/admin';
 import { useTable } from '@/lib/table';
+import { resolveMarketingSiteUrl } from '@/lib/utils/url';
 
 const FALLBACK_THUMBNAIL = '/images/logo-gray.png';
 
@@ -128,6 +130,13 @@ const PROGRAM_STATUS_STYLES: Record<
 };
 
 /** Same date pattern as enrollment and blog post lists (`dd-MMMM-yyyy`). */
+function resolvePublishedProgramMarketingUrl(program: Program): string | null {
+  if (program.status !== STATUS.PUBLISHED) return null;
+  const slug = program.slug?.trim();
+  if (!slug) return null;
+  return resolveMarketingSiteUrl(MARKETING_ROUTES.PROGRAM(slug));
+}
+
 function formatDateCell(iso: string | null | undefined): string | null {
   if (!iso?.trim()) return null;
   try {
@@ -345,6 +354,9 @@ export default function ProgramListTable() {
                 const statusStyle = PROGRAM_STATUS_STYLES[program.status];
                 const StatusIcon = statusStyle.icon;
                 const priceLabel = formatProgramPrice(program);
+                const programTitle = getProgramTitle(program);
+                const marketingUrl =
+                  resolvePublishedProgramMarketingUrl(program);
                 return (
                   <TableRow key={program.id}>
                     <TableCell className='min-w-42'>
@@ -359,9 +371,16 @@ export default function ProgramListTable() {
                           thumbnailUrl={program.thumbnail_url}
                         />
                         <div className='min-w-0 flex-1 space-y-1'>
-                          <p className='text-foreground line-clamp-1 text-[13px] font-semibold wrap-break-word'>
-                            {getProgramTitle(program)}
-                          </p>
+                          {marketingUrl ? (
+                            <PublishedMarketingTitleLink
+                              title={programTitle}
+                              href={marketingUrl}
+                            />
+                          ) : (
+                            <p className='text-foreground line-clamp-1 text-[13px] font-semibold wrap-break-word'>
+                              {programTitle}
+                            </p>
+                          )}
                           <p className='text-muted-foreground line-clamp-1 text-xs leading-snug font-medium wrap-break-word'>
                             {getProgramSubtitle(program)}
                           </p>

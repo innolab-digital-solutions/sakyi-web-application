@@ -1,6 +1,11 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  type QueryClient,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { format, parse } from 'date-fns';
 import {
   ChevronDownIcon,
@@ -50,9 +55,12 @@ import {
   postOperationalLogSubmitForReview,
   putCarePlanOperationalLog,
 } from '@/domains/care-plans/services';
+import type { AdminCarePlan } from '@/domains/care-plans/types/admin';
 import type {
   CarePlanReportEvidenceDay,
   CarePlanReportEvidenceItem,
+  CarePlanReportWorkspace,
+  OperationalLogSnapshot,
   ReportMetricDailyPoint,
   ReportRunFeedback,
   ReportRunMetric,
@@ -78,6 +86,81 @@ function carePlanReportWorkspaceQueryKey(carePlanId: number) {
     carePlanId,
     DEFAULT_REPORT_WORKSPACE_PARAMS,
   ] as const;
+}
+
+function adminCarePlanBriefQueryKey(carePlanId: number) {
+  return ['admin-care-plan-brief', carePlanId] as const;
+}
+
+/**
+ * Keeps generate-report gating in sync after save: {@link resolveOperationalLogForReportWorkspace}
+ * overlays status from the care-plan brief, which otherwise stays stale until a full reload.
+ */
+function syncOperationalLogSnapshotInReportCaches(
+  queryClient: QueryClient,
+  carePlanId: number,
+  snapshot: OperationalLogSnapshot,
+) {
+  queryClient.setQueryData<AdminCarePlan | undefined>(
+    adminCarePlanBriefQueryKey(carePlanId),
+    (old) => {
+      if (!old) return old;
+      const embed = old.operational_log;
+      if (embed != null && embed.id !== snapshot.id) return old;
+      return {
+        ...old,
+        operational_log: {
+          id: snapshot.id,
+          code: snapshot.code ?? embed?.code ?? null,
+          status: snapshot.status,
+          is_editable: snapshot.is_editable,
+          period: embed?.period,
+        },
+      };
+    },
+  );
+
+  queryClient.setQueryData<CarePlanReportWorkspace | undefined>(
+    carePlanReportWorkspaceQueryKey(carePlanId),
+    (old) => {
+      if (!old) return old;
+      const op = old.operational_log;
+      if (op != null && op.id !== snapshot.id) return old;
+      return {
+        ...old,
+        operational_log: {
+          ...(op ?? {
+            id: snapshot.id,
+            code: snapshot.code,
+            adherence_percentage: snapshot.adherence_percentage,
+            client_report_id: snapshot.client_report_id,
+            metrics: snapshot.metrics,
+          }),
+          id: snapshot.id,
+          code: snapshot.code ?? op?.code ?? null,
+          status: snapshot.status,
+          is_editable: snapshot.is_editable,
+          metrics: op?.metrics?.length ? op.metrics : snapshot.metrics,
+        },
+      };
+    },
+  );
+}
+
+async function invalidateReportWorkspaceCaches(
+  queryClient: QueryClient,
+  carePlanId: number,
+) {
+  await Promise.all([
+    queryClient.invalidateQueries({
+      queryKey: carePlanReportWorkspaceQueryKey(carePlanId),
+      refetchType: 'active',
+    }),
+    queryClient.invalidateQueries({
+      queryKey: adminCarePlanBriefQueryKey(carePlanId),
+      refetchType: 'active',
+    }),
+  ]);
 }
 
 const OPERATIONAL_LOG_LIST_QUERY_KEY = [
@@ -233,7 +316,7 @@ export default function CarePlanReportWorkspace({
   >(null);
 
   const { data: carePlanResult } = useQuery({
-    queryKey: ['admin-care-plan-brief', carePlanId] as const,
+    queryKey: adminCarePlanBriefQueryKey(carePlanId),
     queryFn: async () => {
       const res = await getCarePlanById(carePlanId);
       if (res.status === 'error') {
@@ -560,13 +643,17 @@ export default function CarePlanReportWorkspace({
     },
     onSuccess: async (result) => {
       workspaceFormKeyRef.current = null;
+      if (result.data) {
+        syncOperationalLogSnapshotInReportCaches(
+          queryClient,
+          carePlanId,
+          result.data,
+        );
+      }
       await queryClient.invalidateQueries({
         queryKey: [...OPERATIONAL_LOG_LIST_QUERY_KEY],
       });
-      await queryClient.invalidateQueries({
-        queryKey: carePlanReportWorkspaceQueryKey(carePlanId),
-        refetchType: 'active',
-      });
+      await invalidateReportWorkspaceCaches(queryClient, carePlanId);
       await queryClient.invalidateQueries({
         queryKey: ['care-plan-logs', carePlanId],
         refetchType: 'active',
@@ -693,10 +780,7 @@ export default function CarePlanReportWorkspace({
           '',
         notes: data?.feedback?.notes ?? submitReviewFeedback.notes ?? '',
       });
-      await queryClient.invalidateQueries({
-        queryKey: carePlanReportWorkspaceQueryKey(carePlanId),
-        refetchType: 'active',
-      });
+      await invalidateReportWorkspaceCaches(queryClient, carePlanId);
       await queryClient.invalidateQueries({
         queryKey: ['care-plan-logs', carePlanId],
         refetchType: 'active',
@@ -780,10 +864,7 @@ export default function CarePlanReportWorkspace({
     },
     onSuccess: async () => {
       workspaceFormKeyRef.current = null;
-      await queryClient.invalidateQueries({
-        queryKey: carePlanReportWorkspaceQueryKey(carePlanId),
-        refetchType: 'active',
-      });
+      await invalidateReportWorkspaceCaches(queryClient, carePlanId);
       await queryClient.invalidateQueries({
         queryKey: ['care-plan-logs', carePlanId],
         refetchType: 'active',
