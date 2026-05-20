@@ -15,6 +15,7 @@ import { type ComponentType, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
+import PublishedMarketingTitleLink from '@/components/admin/shared/PublishedMarketingTitleLink';
 import BlogPostRemovalBlockedAlert from '@/components/admin/modules/blog-posts/BlogPostRemovalBlockedAlert';
 import BlogPostFilters, {
   type BlogPostListLocale,
@@ -34,10 +35,11 @@ import {
 import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
-import { ROUTES } from '@/config/routes';
+import { MARKETING_ROUTES, ROUTES } from '@/config/routes';
 import { deleteBlogPost } from '@/domains/blogs/services';
 import type { AdminBlogPost, BlogPostStatus } from '@/domains/blogs/types';
 import { useTable } from '@/lib/table';
+import { resolveMarketingSiteUrl } from '@/lib/utils/url';
 
 const BLOG_POST_LIST_ENDPOINT = ENDPOINTS.ADMIN.MODULES.BLOG_POSTS.LIST;
 
@@ -123,6 +125,15 @@ function listLocaleFromParams(raw: string | undefined): BlogPostListLocale {
 }
 
 /** Same date pattern as enrollment list (`dd-MMMM-yyyy`). */
+function resolvePublishedBlogPostMarketingUrl(
+  post: AdminBlogPost,
+): string | null {
+  if (post.status !== 'published') return null;
+  const slug = post.slug?.trim();
+  if (!slug) return null;
+  return resolveMarketingSiteUrl(MARKETING_ROUTES.BLOG_POST(slug));
+}
+
 function formatDateCell(iso: string | null | undefined): string | null {
   if (!iso?.trim()) return null;
   try {
@@ -277,6 +288,8 @@ export default function BlogPostListTable() {
 
                 const statusStyle = BLOG_POST_STATUS_STYLES[post.status];
                 const StatusIcon = statusStyle.icon;
+                const titleLabel = post.title?.trim() || '—';
+                const marketingUrl = resolvePublishedBlogPostMarketingUrl(post);
 
                 return (
                   <TableRow key={post.id}>
@@ -284,9 +297,16 @@ export default function BlogPostListTable() {
                       <div className='flex items-start gap-3'>
                         <BlogPostThumbnail thumbnailUrl={post.thumbnail} />
                         <div className='min-w-0 flex-1 space-y-1'>
-                          <p className='text-foreground line-clamp-1 text-[13px] font-semibold wrap-break-word'>
-                            {post.title?.trim() || '—'}
-                          </p>
+                          {marketingUrl ? (
+                            <PublishedMarketingTitleLink
+                              title={titleLabel}
+                              href={marketingUrl}
+                            />
+                          ) : (
+                            <p className='text-foreground line-clamp-1 text-[13px] font-semibold wrap-break-word'>
+                              {titleLabel}
+                            </p>
+                          )}
                           <p className='text-muted-foreground line-clamp-1 text-xs leading-snug font-medium wrap-break-word'>
                             {post.excerpt?.trim() || post.slug || '—'}
                           </p>

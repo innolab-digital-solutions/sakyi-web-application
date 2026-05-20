@@ -16,4 +16,8 @@ export const MARKETING_ROUTES = {
   CONTACT: '/contact',
   PRIVACY_POLICY: '/privacy-policy',
   TERMS_OF_SERVICE: '/terms-of-service',
+  /** Public blog post detail (`app/(marketing)/blog/[slug]`). */
+  BLOG_POST: (slug: string) => `/blog/${encodeURIComponent(slug)}`,
+  /** Public program detail (`app/(marketing)/programs/[slug]`). */
+  PROGRAM: (slug: string) => `/programs/${encodeURIComponent(slug)}`,
 } as const;
