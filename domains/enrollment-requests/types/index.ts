@@ -69,6 +69,7 @@ export type EnrollmentRequestResource = {
     id: number;
     code: string;
     status: 'draft' | 'in_progress' | 'completed' | 'cancelled';
+    cancellation_note: string | null;
     completed_at?: string | null;
     cancelled_at?: string | null;
   } | null;
