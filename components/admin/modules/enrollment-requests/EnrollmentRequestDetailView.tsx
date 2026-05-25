@@ -572,7 +572,15 @@ export default function EnrollmentRequestDetailView({
                     }
                   >
                     <p className='text-muted-foreground text-[12.5px] leading-relaxed'>
+       {data.onboarding_intake.cancellation_note?.trim() ? (
+                    <p className='whitespace-pre-wrap'>
+                      {data.onboarding_intake.cancellation_note.trim()}
+                    </p>
+                  ) : (
+                    <p className='text-muted-foreground text-[12.5px] leading-relaxed'>
                       No cancellation note was provided on this intake record.
+                    </p>
+                  )}
                     </p>
                   </PipelineMetricStateNote>
                 ) : null}
