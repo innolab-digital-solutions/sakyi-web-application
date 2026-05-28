@@ -8,10 +8,10 @@ Last updated from codebase audit: May 2026.
 
 ## 1. Overview
 
-| Audience | Delivery | Push |
-|----------|----------|------|
+| Audience          | Delivery                                                 | Push                                |
+| ----------------- | -------------------------------------------------------- | ----------------------------------- |
 | **Mobile client** | `database` + `broadcast` (+ Expo push when tokens exist) | Yes, via `ClientExpoPushDispatcher` |
-| **Admin** | `database` + `broadcast` | No (in-app / websocket only) |
+| **Admin**         | `database` + `broadcast`                                 | No (in-app / websocket only)        |
 
 All in-app rows are stored in Laravel’s `notifications` table (`DatabaseNotification` model). The API exposes them through shared controllers and `NotificationResource`.
 
@@ -33,13 +33,13 @@ The **inner notification payload** is defined by each notification class `toArra
 
 Shared payload shape (`toArray()`):
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `type` | string | Stable machine identifier (e.g. `care_plan.activated`). Use for routing and analytics. |
-| `title` | string | Short heading. Client templates often store a **lang key** (e.g. `notifications.care_plan_activated.title`); admin templates usually store **plain English**. |
-| `message` | string | Body text or lang key (same rules as `title`). |
-| `action_url` | string \| null | Deep link path for the target app (see §3). |
-| `meta` | object | IDs and context for the UI (not sent on Expo push as nested JSON — see §2.3). |
+| Field        | Type           | Description                                                                                                                                                   |
+| ------------ | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`       | string         | Stable machine identifier (e.g. `care_plan.activated`). Use for routing and analytics.                                                                        |
+| `title`      | string         | Short heading. Client templates often store a **lang key** (e.g. `notifications.care_plan_activated.title`); admin templates usually store **plain English**. |
+| `message`    | string         | Body text or lang key (same rules as `title`).                                                                                                                |
+| `action_url` | string \| null | Deep link path for the target app (see §3).                                                                                                                   |
+| `meta`       | object         | IDs and context for the UI (not sent on Expo push as nested JSON — see §2.3).                                                                                 |
 
 Database inbox API shape (`NotificationResource`):
 
@@ -79,9 +79,9 @@ So yes, they are not the same **top-level** shape: inbox API wraps/normalizes fi
 
 ### 2.2 Event-driven vs scheduled
 
-| Mechanism | Examples |
-|-----------|----------|
-| **Domain events** (`EventServiceProvider`) | Enrollment activated, care plan published, contract signed, etc. |
+| Mechanism                                    | Examples                                                           |
+| -------------------------------------------- | ------------------------------------------------------------------ |
+| **Domain events** (`EventServiceProvider`)   | Enrollment activated, care plan published, contract signed, etc.   |
 | **Artisan schedules** (`routes/console.php`) | Daily log reminders (clients), care-plan action reminders (admins) |
 
 Most client listeners implement `ShouldQueue` and run asynchronously. Admin enrollment listeners and contract-assignment / onboarding listeners run **synchronously** unless the notification class itself implements `ShouldQueue`.
@@ -111,9 +111,9 @@ They are stored as-is on the notification (no Expo allowlist). The admin web app
 
 ### 2.5 Deduplication
 
-| Notification | Dedup rule |
-|--------------|------------|
-| `CarePlanDailyLogReminderNotification` | At most **one per client per care plan per calendar day** (`data.meta.care_plan_id` + `created_at` date). |
+| Notification                              | Dedup rule                                                                                                         |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `CarePlanDailyLogReminderNotification`    | At most **one per client per care plan per calendar day** (`data.meta.care_plan_id` + `created_at` date).          |
 | `AdminCarePlanActionReminderNotification` | At most **one per admin per calendar day** per `data.type` + `data.meta.entity_key` (see `AdminReminderNotifier`). |
 
 Other types are sent on every qualifying event (no automatic dedup).
@@ -124,19 +124,19 @@ Scheduled: `notifications:prune-database` daily at **01:45** (app timezone).
 
 Config: `config/notifications.php` (env overrides):
 
-| Setting | Default | Meaning |
-|---------|---------|---------|
-| `NOTIFICATIONS_PRUNE_READ_AFTER_DAYS` | 15 | Delete read notifications older than N days |
-| `NOTIFICATIONS_PRUNE_UNREAD_AFTER_DAYS` | 30 | Delete unread notifications older than N days |
+| Setting                                 | Default | Meaning                                       |
+| --------------------------------------- | ------- | --------------------------------------------- |
+| `NOTIFICATIONS_PRUNE_READ_AFTER_DAYS`   | 15      | Delete read notifications older than N days   |
+| `NOTIFICATIONS_PRUNE_UNREAD_AFTER_DAYS` | 30      | Delete unread notifications older than N days |
 
 ---
 
 ## 3. HTTP API (inbox)
 
-| App | List | Mark read | Mark all read | Delete |
-|-----|------|-----------|---------------|--------|
-| Mobile | `GET /api/v1/mobile/notifications` | `PATCH .../notifications/{id}/read` | `PATCH .../notifications/read-all` | — |
-| Admin | `GET /api/v1/web/admin/notifications` | `PATCH .../notifications/{id}/read` | `PATCH .../notifications/read-all` | `DELETE` one / selected |
+| App    | List                                  | Mark read                           | Mark all read                      | Delete                  |
+| ------ | ------------------------------------- | ----------------------------------- | ---------------------------------- | ----------------------- |
+| Mobile | `GET /api/v1/mobile/notifications`    | `PATCH .../notifications/{id}/read` | `PATCH .../notifications/read-all` | —                       |
+| Admin  | `GET /api/v1/web/admin/notifications` | `PATCH .../notifications/{id}/read` | `PATCH .../notifications/read-all` | `DELETE` one / selected |
 
 Authenticated user receives only their own `notifications` rows.
 
@@ -150,20 +150,20 @@ Channels: `database`, `broadcast`, optional **Expo push**.
 
 ### 4.1 Summary table
 
-| `data.type` | Class | When sent | Trigger | `action_url` |
-|-------------|-------|-----------|---------|--------------|
-| `user.onboarding.completed` | `UserOnboardingCompletedNotification` | Client finishes profile wizard (pending → active) | `UserOnboardingCompletedEvent` ← `ProfileSetupService` after step 3 | `/(app)/(tabs)/home` |
-| `enrollment.request.cancelled` | `EnrollmentRequestCancelledNotification` | Admin cancels enrollment request | `EnrollmentRequestCancelledEvent` ← `CancelEnrollmentRequestController` | `/(app)/(tabs)/home` |
-| `enrollment.contract.assigned` | `EnrollmentContractAssignedNotification` | Admin assigns contract to client | `EnrollmentContractAssignedEvent` ← `AssignEnrollmentContractController` | `/(app)/enrollment-contract?id={contractId}` |
-| `enrollment.scheduled` | `EnrollmentScheduledNotification` | Admin creates enrollment with **scheduled** status | `EnrollmentScheduledEvent` ← `StoreEnrollmentService` | `null` (no deep link in push) |
-| `enrollment.activated` | `EnrollmentActivatedNotification` | Enrollment becomes **active** (create or schedule update) | `EnrollmentActivatedEvent` ← `StoreEnrollmentService`, `UpdateEnrollmentScheduleService`, `ActivateEnrollmentService`, `EnrollmentLifecycleService` | `/(app)/(tabs)/today` |
-| `enrollment.cancelled` | `EnrollmentCancelledNotification` | Admin cancels enrollment | `EnrollmentCancelledEvent` ← `CancelEnrollmentService` | `/(app)/(tabs)/home` |
-| `enrollment.completed` | `EnrollmentCompletedNotification` | Enrollment lifecycle marks completed | `EnrollmentCompletedEvent` ← `CompleteEnrollmentService`, `EnrollmentLifecycleService` | `/(app)/(tabs)/home` |
-| `enrollment.schedule_updated` | `EnrollmentScheduleUpdatedNotification` | Enrollment schedule changes without triggering first activation | `EnrollmentScheduleUpdatedEvent` ← `UpdateEnrollmentScheduleService` | `null` |
-| `care_plan.activated` | `CarePlanActivatedNotification` | Care plan activated (manual or `care-plans:activate-due`) | `CarePlanActivatedEvent` ← `CarePlanBuilderService::activate` | `/(app)/(tabs)/today` |
-| `care_plan.cancelled` | `CarePlanCancelledNotification` | Active care plan cancelled | `CarePlanCancelledEvent` ← `CarePlanBuilderService::cancel` | `/(app)/(tabs)/home` |
-| `care_plan.report.published` | `CarePlanReportPublishedNotification` | Admin publishes client period report | `CarePlanReportPublishedEvent` ← `CarePlanReportWorkspaceService::publish` | `/(app)/report/{reportRunId}` |
-| `care_plan.daily_log_reminder` | `CarePlanDailyLogReminderNotification` | Scheduled job: unlogged tasks today | `care-plans:send-daily-log-reminders` (daily **19:30**) | `/(app)/(tabs)/today` |
+| `data.type`                    | Class                                    | When sent                                                       | Trigger                                                                                                                                             | `action_url`                                 |
+| ------------------------------ | ---------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `user.onboarding.completed`    | `UserOnboardingCompletedNotification`    | Client finishes profile wizard (pending → active)               | `UserOnboardingCompletedEvent` ← `ProfileSetupService` after step 3                                                                                 | `/(app)/(tabs)/home`                         |
+| `enrollment.request.cancelled` | `EnrollmentRequestCancelledNotification` | Admin cancels enrollment request                                | `EnrollmentRequestCancelledEvent` ← `CancelEnrollmentRequestController`                                                                             | `/(app)/(tabs)/home`                         |
+| `enrollment.contract.assigned` | `EnrollmentContractAssignedNotification` | Admin assigns contract to client                                | `EnrollmentContractAssignedEvent` ← `AssignEnrollmentContractController`                                                                            | `/(app)/enrollment-contract?id={contractId}` |
+| `enrollment.scheduled`         | `EnrollmentScheduledNotification`        | Admin creates enrollment with **scheduled** status              | `EnrollmentScheduledEvent` ← `StoreEnrollmentService`                                                                                               | `null` (no deep link in push)                |
+| `enrollment.activated`         | `EnrollmentActivatedNotification`        | Enrollment becomes **active** (create or schedule update)       | `EnrollmentActivatedEvent` ← `StoreEnrollmentService`, `UpdateEnrollmentScheduleService`, `ActivateEnrollmentService`, `EnrollmentLifecycleService` | `/(app)/(tabs)/today`                        |
+| `enrollment.cancelled`         | `EnrollmentCancelledNotification`        | Admin cancels enrollment                                        | `EnrollmentCancelledEvent` ← `CancelEnrollmentService`                                                                                              | `/(app)/(tabs)/home`                         |
+| `enrollment.completed`         | `EnrollmentCompletedNotification`        | Enrollment lifecycle marks completed                            | `EnrollmentCompletedEvent` ← `CompleteEnrollmentService`, `EnrollmentLifecycleService`                                                              | `/(app)/(tabs)/home`                         |
+| `enrollment.schedule_updated`  | `EnrollmentScheduleUpdatedNotification`  | Enrollment schedule changes without triggering first activation | `EnrollmentScheduleUpdatedEvent` ← `UpdateEnrollmentScheduleService`                                                                                | `null`                                       |
+| `care_plan.activated`          | `CarePlanActivatedNotification`          | Care plan activated (manual or `care-plans:activate-due`)       | `CarePlanActivatedEvent` ← `CarePlanBuilderService::activate`                                                                                       | `/(app)/(tabs)/today`                        |
+| `care_plan.cancelled`          | `CarePlanCancelledNotification`          | Active care plan cancelled                                      | `CarePlanCancelledEvent` ← `CarePlanBuilderService::cancel`                                                                                         | `/(app)/(tabs)/home`                         |
+| `care_plan.report.published`   | `CarePlanReportPublishedNotification`    | Admin publishes client period report                            | `CarePlanReportPublishedEvent` ← `CarePlanReportWorkspaceService::publish`                                                                          | `/(app)/report/{reportRunId}`                |
+| `care_plan.daily_log_reminder` | `CarePlanDailyLogReminderNotification`   | Scheduled job: unlogged tasks today                             | `care-plans:send-daily-log-reminders` (daily **19:30**)                                                                                             | `/(app)/(tabs)/today`                        |
 
 ### 4.2 Scenarios (detail)
 
@@ -239,10 +239,10 @@ Channels: `database`, `broadcast` only (no Expo).
 
 ### 5.1 Event-driven admin notifications
 
-| `data.type` | Class | When sent | Trigger | `action_url` |
-|-------------|-------|-----------|---------|--------------|
+| `data.type`                    | Class                                    | When sent                                 | Trigger                                                                | `action_url`                                       |
+| ------------------------------ | ---------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------- |
 | `enrollment.request.submitted` | `EnrollmentRequestSubmittedNotification` | Client submits program enrollment request | `EnrollmentRequestSubmittedEvent` ← `StoreEnrollmentRequestController` | `/admin/enrollment-requests/{enrollmentRequestId}` |
-| `enrollment.contract.signed` | `EnrollmentContractSignedNotification` | Client signs assigned contract | `EnrollmentContractSignedEvent` ← `SignEnrollmentContractController` | `/admin/enrollment-contracts/{contractId}` |
+| `enrollment.contract.signed`   | `EnrollmentContractSignedNotification`   | Client signs assigned contract            | `EnrollmentContractSignedEvent` ← `SignEnrollmentContractController`   | `/admin/enrollment-contracts/{contractId}`         |
 
 **Recipients:** All admin + super_admin users (not the client).
 
@@ -258,12 +258,12 @@ Command: `admin:send-care-plan-action-reminders` — daily at **09:00**.
 
 All use `AdminCarePlanActionReminderNotification` (queued). Copy is **English inline** in rule classes (not `lang/en/notifications.php`).
 
-| `data.type` | Title | When sent (rule) | `action_url` |
-|-------------|-------|------------------|--------------|
-| `admin.care_plan.operational_log.missing` | Operational Log Missing | Active/completed care plan ended (≤ reference date), **no** operational log | `/admin/care-plan-logs/{carePlanId}` |
-| `admin.care_plan.report.publish_overdue` | Report Publish Overdue | Plan ended (≤ yesterday), has operational log, but report not published (missing or still `in_review`) | `/admin/period-reports/{reportRunId}` if in-review run exists; else `/admin/care-plan-logs/{carePlanId}` |
-| `admin.care_plan.report.in_review_stale` | Report Review Pending Too Long | Report `in_review` with `submitted_for_review_at` ≤ 2 days ago | `/admin/period-reports/{reportRunId}` |
-| `admin.care_plan.client_logging_streak` | Client Logging Risk Detected | Active plan; client missed logging on **≥ 2 consecutive recent days** (within last 3 calendar days of plan days) | `/admin/care-plan-logs/{carePlanId}` |
+| `data.type`                               | Title                          | When sent (rule)                                                                                                 | `action_url`                                                                                             |
+| ----------------------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `admin.care_plan.operational_log.missing` | Operational Log Missing        | Active/completed care plan ended (≤ reference date), **no** operational log                                      | `/admin/care-plan-logs/{carePlanId}`                                                                     |
+| `admin.care_plan.report.publish_overdue`  | Report Publish Overdue         | Plan ended (≤ yesterday), has operational log, but report not published (missing or still `in_review`)           | `/admin/period-reports/{reportRunId}` if in-review run exists; else `/admin/care-plan-logs/{carePlanId}` |
+| `admin.care_plan.report.in_review_stale`  | Report Review Pending Too Long | Report `in_review` with `submitted_for_review_at` ≤ 2 days ago                                                   | `/admin/period-reports/{reportRunId}`                                                                    |
+| `admin.care_plan.client_logging_streak`   | Client Logging Risk Detected   | Active plan; client missed logging on **≥ 2 consecutive recent days** (within last 3 calendar days of plan days) | `/admin/care-plan-logs/{carePlanId}`                                                                     |
 
 **Dedup:** One notification per admin per day per `data.type` + `meta.entity_key` (`care_plan:{id}` or `report_run:{id}`).
 
@@ -280,19 +280,19 @@ Orchestration: `SendAdminCarePlanActionRemindersService` → `AdminReminderNotif
 
 ## 6. Schedules (cron)
 
-| Command | Schedule | Purpose |
-|---------|----------|---------|
-| `care-plans:send-daily-log-reminders` | Daily 19:30 | Client daily log reminders |
+| Command                                 | Schedule    | Purpose                          |
+| --------------------------------------- | ----------- | -------------------------------- |
+| `care-plans:send-daily-log-reminders`   | Daily 19:30 | Client daily log reminders       |
 | `admin:send-care-plan-action-reminders` | Daily 09:00 | Admin care-plan action reminders |
-| `notifications:prune-database` | Daily 01:45 | Prune old inbox rows |
+| `notifications:prune-database`          | Daily 01:45 | Prune old inbox rows             |
 
 Related lifecycle commands (may **emit client notifications** indirectly):
 
-| Command | Schedule | May trigger |
-|---------|----------|-------------|
+| Command                      | Schedule    | May trigger                                    |
+| ---------------------------- | ----------- | ---------------------------------------------- |
 | `enrollments:sync-lifecycle` | Daily 00:10 | `enrollment.activated`, `enrollment.completed` |
-| `care-plans:activate-due` | Daily 00:14 | `care_plan.activated` |
-| `care-plans:complete-due` | Daily 00:12 | (status only; no dedicated notification) |
+| `care-plans:activate-due`    | Daily 00:14 | `care_plan.activated`                          |
+| `care-plans:complete-due`    | Daily 00:12 | (status only; no dedicated notification)       |
 
 ---
 
@@ -310,19 +310,19 @@ Related lifecycle commands (may **emit client notifications** indirectly):
 
 ## 8. Source file index
 
-| Area | Path |
-|------|------|
-| Notification classes | `app/Notifications/*.php` |
-| Push translation trait | `app/Notifications/Concerns/TranslatesPushForUser.php` |
-| Client push dispatcher | `app/Services/Mobile/ClientExpoPushDispatcher.php` |
-| Expo data builder | `app/Support/Mobile/ExpoPushNotificationDataBuilder.php` |
-| Client copy | `lang/en/notifications.php` |
-| Event map | `app/Providers/EventServiceProvider.php` |
-| Listeners | `app/Listeners/Notify*.php`, `SendUserOnboardingCompletedNotification.php` |
-| Admin reminders | `app/Services/Web/Admin/CarePlan/Reminder/` |
-| API resource | `app/Http/Resources/V1/Shared/NotificationResource.php` |
-| Pruning | `app/Services/Notifications/DatabaseNotificationPruner.php` |
-| Tests (action URLs) | `tests/Feature/V1/Web/Admin/AdminReminderActionUrlTest.php` |
+| Area                   | Path                                                                       |
+| ---------------------- | -------------------------------------------------------------------------- |
+| Notification classes   | `app/Notifications/*.php`                                                  |
+| Push translation trait | `app/Notifications/Concerns/TranslatesPushForUser.php`                     |
+| Client push dispatcher | `app/Services/Mobile/ClientExpoPushDispatcher.php`                         |
+| Expo data builder      | `app/Support/Mobile/ExpoPushNotificationDataBuilder.php`                   |
+| Client copy            | `lang/en/notifications.php`                                                |
+| Event map              | `app/Providers/EventServiceProvider.php`                                   |
+| Listeners              | `app/Listeners/Notify*.php`, `SendUserOnboardingCompletedNotification.php` |
+| Admin reminders        | `app/Services/Web/Admin/CarePlan/Reminder/`                                |
+| API resource           | `app/Http/Resources/V1/Shared/NotificationResource.php`                    |
+| Pruning                | `app/Services/Notifications/DatabaseNotificationPruner.php`                |
+| Tests (action URLs)    | `tests/Feature/V1/Web/Admin/AdminReminderActionUrlTest.php`                |
 
 ---
 
@@ -330,30 +330,30 @@ Related lifecycle commands (may **emit client notifications** indirectly):
 
 ### Mobile (Expo allowlisted)
 
-| `data.type` | `action_url` |
-|-------------|--------------|
-| `user.onboarding.completed` | `/(app)/(tabs)/home` |
-| `enrollment.request.cancelled` | `/(app)/(tabs)/home` |
+| `data.type`                    | `action_url`                         |
+| ------------------------------ | ------------------------------------ |
+| `user.onboarding.completed`    | `/(app)/(tabs)/home`                 |
+| `enrollment.request.cancelled` | `/(app)/(tabs)/home`                 |
 | `enrollment.contract.assigned` | `/(app)/enrollment-contract?id={id}` |
-| `enrollment.scheduled` | *(omitted)* |
-| `enrollment.activated` | `/(app)/(tabs)/today` |
-| `enrollment.cancelled` | `/(app)/(tabs)/home` |
-| `enrollment.completed` | `/(app)/(tabs)/home` |
-| `enrollment.schedule_updated` | *(omitted)* |
-| `care_plan.activated` | `/(app)/(tabs)/today` |
-| `care_plan.cancelled` | `/(app)/(tabs)/home` |
-| `care_plan.report.published` | `/(app)/report/{reportRunId}` |
-| `care_plan.daily_log_reminder` | `/(app)/(tabs)/today` |
+| `enrollment.scheduled`         | _(omitted)_                          |
+| `enrollment.activated`         | `/(app)/(tabs)/today`                |
+| `enrollment.cancelled`         | `/(app)/(tabs)/home`                 |
+| `enrollment.completed`         | `/(app)/(tabs)/home`                 |
+| `enrollment.schedule_updated`  | _(omitted)_                          |
+| `care_plan.activated`          | `/(app)/(tabs)/today`                |
+| `care_plan.cancelled`          | `/(app)/(tabs)/home`                 |
+| `care_plan.report.published`   | `/(app)/report/{reportRunId}`        |
+| `care_plan.daily_log_reminder` | `/(app)/(tabs)/today`                |
 
 ### Admin (SPA routes)
 
-| `data.type` | `action_url` |
-|-------------|--------------|
-| `enrollment.request.submitted` | `/admin/enrollment-requests/{enrollmentRequestId}` |
-| `enrollment.contract.signed` | `/admin/enrollment-contracts/{contractId}` |
-| `admin.care_plan.operational_log.missing` | `/admin/care-plan-logs/{carePlanId}` |
-| `admin.care_plan.report.publish_overdue` | `/admin/period-reports/{reportRunId}` or `/admin/care-plan-logs/{carePlanId}` |
-| `admin.care_plan.report.in_review_stale` | `/admin/period-reports/{reportRunId}` |
-| `admin.care_plan.client_logging_streak` | `/admin/care-plan-logs/{carePlanId}` |
+| `data.type`                               | `action_url`                                                                  |
+| ----------------------------------------- | ----------------------------------------------------------------------------- |
+| `enrollment.request.submitted`            | `/admin/enrollment-requests/{enrollmentRequestId}`                            |
+| `enrollment.contract.signed`              | `/admin/enrollment-contracts/{contractId}`                                    |
+| `admin.care_plan.operational_log.missing` | `/admin/care-plan-logs/{carePlanId}`                                          |
+| `admin.care_plan.report.publish_overdue`  | `/admin/period-reports/{reportRunId}` or `/admin/care-plan-logs/{carePlanId}` |
+| `admin.care_plan.report.in_review_stale`  | `/admin/period-reports/{reportRunId}`                                         |
+| `admin.care_plan.client_logging_streak`   | `/admin/care-plan-logs/{carePlanId}`                                          |
 
 Replace `{id}` placeholders with integer IDs from `data.meta` or the URL segment shown in each notification class/rule.

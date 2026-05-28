@@ -355,7 +355,8 @@ const DashboardNotification = () => {
           );
         }
 
-        const normalizedRealtimeNotification = normalizeRealtimePayload(incoming);
+        const normalizedRealtimeNotification =
+          normalizeRealtimePayload(incoming);
         if (!normalizedRealtimeNotification) {
           if (shouldDebug) {
             console.warn(
