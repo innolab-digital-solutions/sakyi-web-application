@@ -123,6 +123,74 @@ const normalizeNotification = (
   };
 };
 
+/**
+ * Reverb payloads can vary by backend/framework version.
+ * Normalize to the API notification shape used by the drawer.
+ */
+const normalizeRealtimePayload = (
+  incoming: unknown,
+): BackendNotification | null => {
+  if (!incoming || typeof incoming !== 'object') return null;
+
+  const raw = incoming as Record<string, unknown>;
+  const nested =
+    raw.notification && typeof raw.notification === 'object'
+      ? (raw.notification as Record<string, unknown>)
+      : raw;
+
+  const id = nested.id;
+  if (typeof id !== 'string' || !id.trim()) return null;
+
+  const rawData =
+    nested.data && typeof nested.data === 'object'
+      ? (nested.data as Record<string, unknown>)
+      : null;
+  const fallbackData = {
+    type:
+      typeof nested.type === 'string' && nested.type.trim()
+        ? nested.type.trim()
+        : undefined,
+    title:
+      typeof nested.title === 'string' && nested.title.trim()
+        ? nested.title.trim()
+        : undefined,
+    message:
+      typeof nested.message === 'string' && nested.message.trim()
+        ? nested.message.trim()
+        : undefined,
+    action_url:
+      typeof nested.action_url === 'string' && nested.action_url.trim()
+        ? nested.action_url.trim()
+        : undefined,
+    meta:
+      nested.meta && typeof nested.meta === 'object'
+        ? (nested.meta as Record<string, unknown>)
+        : undefined,
+  };
+
+  const data = rawData ?? fallbackData;
+  const createdAt =
+    typeof nested.created_at === 'string' && nested.created_at.trim()
+      ? nested.created_at
+      : new Date().toISOString();
+  const readAt =
+    typeof nested.read_at === 'string' && nested.read_at.trim()
+      ? nested.read_at
+      : null;
+  const type =
+    typeof nested.type === 'string' && nested.type.trim()
+      ? nested.type
+      : 'BroadcastNotificationCreated';
+
+  return {
+    id,
+    type,
+    created_at: createdAt,
+    read_at: readAt,
+    data,
+  };
+};
+
 const extractNotifications = (
   payload: BackendNotification[] | { data?: BackendNotification[] },
 ) => {
@@ -279,15 +347,29 @@ const DashboardNotification = () => {
         console.warn('[notifications] Reverb connection error', error);
       };
 
-      channel.notification((incoming: BackendNotification) => {
+      channel.notification((incoming: unknown) => {
         if (shouldDebug) {
           console.info(
             '[notifications] Realtime notification received',
             incoming,
           );
         }
+
+        const normalizedRealtimeNotification =
+          normalizeRealtimePayload(incoming);
+        if (!normalizedRealtimeNotification) {
+          if (shouldDebug) {
+            console.warn(
+              '[notifications] Ignored malformed realtime payload',
+              incoming,
+            );
+          }
+          void loadNotifications();
+          return;
+        }
+
         setNotifications((current) => {
-          const mapped = normalizeNotification(incoming);
+          const mapped = normalizeNotification(normalizedRealtimeNotification);
           const next = [
             mapped,
             ...current.filter((item) => item.id !== mapped.id),
@@ -351,7 +433,10 @@ const DashboardNotification = () => {
         variant='ghost'
         size='icon'
         className='hover:text-foreground relative cursor-pointer rounded-full bg-gray-100 hover:bg-gray-50'
-        onClick={() => setNotificationsOpen(true)}
+        onClick={() => {
+          void loadNotifications();
+          setNotificationsOpen(true);
+        }}
         aria-label='Open notifications'
       >
         <Bell className='h-5 w-5' />
