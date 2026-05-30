@@ -318,7 +318,7 @@ export default function PeriodReportListTable() {
               return (
                 <TableRow key={row.id}>
                   {show('report') ? (
-                    <TableCell>
+                    <TableCell className='min-w-42'>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {row.code?.trim() || `#${row.id}`}
                       </p>
@@ -326,7 +326,7 @@ export default function PeriodReportListTable() {
                   ) : null}
 
                   {show('client') ? (
-                    <TableCell>
+                    <TableCell className='min-w-48'>
                       <div className='flex items-start gap-3'>
                         <Avatar
                           size='default'
@@ -355,7 +355,7 @@ export default function PeriodReportListTable() {
                   ) : null}
 
                   {show('carePlan') ? (
-                    <TableCell>
+                    <TableCell className='min-w-42'>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {carePlan?.code?.trim() || <TableCellEmpty label='—' />}
                       </p>
@@ -363,7 +363,7 @@ export default function PeriodReportListTable() {
                   ) : null}
 
                   {show('operationalLog') ? (
-                    <TableCell>
+                    <TableCell className='min-w-42'>
                       {row.operational_log ? (
                         <p className='text-foreground text-[13px] font-semibold'>
                           {row.operational_log.code?.trim() ||
@@ -376,7 +376,7 @@ export default function PeriodReportListTable() {
                   ) : null}
 
                   {show('period') ? (
-                    <TableCell>
+                    <TableCell className='min-w-64'>
                       {formatPeriodRange(
                         row.period?.starts_on,
                         row.period?.ends_on,
@@ -457,14 +457,14 @@ export default function PeriodReportListTable() {
                     </TableCell>
                   ) : null}
                   {show('submittedAt') ? (
-                    <TableCell>
+                    <TableCell className='min-w-36'>
                       {formatDateTimeCell(
                         row.timestamps?.submitted_for_review_at,
                       ) ?? <TableCellEmpty label='Not submitted' />}
                     </TableCell>
                   ) : null}
                   {show('publishedAt') ? (
-                    <TableCell>
+                    <TableCell className='min-w-36'>
                       {row.status === 'published' ? (
                         (formatDateTimeCell(row.timestamps?.published_at) ?? (
                           <TableCellEmpty label='Not published' />
