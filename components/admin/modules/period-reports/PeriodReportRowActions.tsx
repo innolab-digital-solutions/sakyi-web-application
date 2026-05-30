@@ -115,7 +115,7 @@ export default function PeriodReportRowActions({ row }: Props) {
       >
         <Link href={overviewHref} className='inline-flex items-center gap-1.5'>
           <FileTextIcon className='size-3.5 shrink-0' aria-hidden />
-          Open overview
+          Open Overview
         </Link>
       </Button>
 

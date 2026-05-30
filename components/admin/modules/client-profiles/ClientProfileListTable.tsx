@@ -432,7 +432,7 @@ export default function ClientProfileListTable() {
                     </TableCell>
                   ) : null}
                   {showColumn('contactPhone') ? (
-                    <TableCell>
+                    <TableCell className='min-w-42'>
                       {phone ? (
                         <span className='text-[13px] font-medium'>{phone}</span>
                       ) : (

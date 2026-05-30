@@ -457,7 +457,7 @@ export default function CarePlanListTable() {
               return (
                 <TableRow key={row.id}>
                   {showColumn('reference') ? (
-                    <TableCell>
+                    <TableCell className='min-w-42'>
                       <p className='text-foreground text-[13px] font-semibold'>
                         {getReference(row)}
                       </p>
@@ -534,12 +534,12 @@ export default function CarePlanListTable() {
                     </TableCell>
                   ) : null}
                   {showColumn('startsOn') ? (
-                    <TableCell>
+                    <TableCell className='min-w-36'>
                       {dateStart ?? <TableCellEmpty label='No start date' />}
                     </TableCell>
                   ) : null}
                   {showColumn('endsOn') ? (
-                    <TableCell>
+                    <TableCell className='min-w-36'>
                       {dateEnd ?? <TableCellEmpty label='Open-ended' />}
                     </TableCell>
                   ) : null}
