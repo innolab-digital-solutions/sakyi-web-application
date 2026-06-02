@@ -1,4 +1,4 @@
-import { FileText, Lock, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import type { Metadata } from 'next';
 
 import SectionBadge from '@/components/marketing/SectionBadge';
@@ -17,7 +17,7 @@ const sections = [
     number: '1.1',
     title: 'About Sa Kyi Health & Wellness',
     content:
-      'Sa Kyi Health & Wellness is a lifestyle modification platform designed to support individuals in building healthier daily habits through structured tracking, expert guidance, and personalized feedback. We operate as a private digital wellness service not a clinical or medical institution. All wellness guidance provided through our platform is lifestyle-focused and does not constitute any form of clinical treatment.',
+      'Sa Kyi Health & Wellness is a lifestyle modification platform designed to support individuals in building healthier daily habits through structured tracking, expert guidance, and personalized feedback. We operate as a private digital wellness service not as a clinical or medical institution. All wellness guidance provided through our platform is lifestyle-focused and does not constitute any form of clinical treatment.',
   },
   {
     number: '1.2',
@@ -53,7 +53,7 @@ const sections = [
     content: 'Your information is used strictly for the following purposes:',
     bullets: [
       {
-        text: 'To assign you to a personalized three-person support team and enable them to deliver your weekly lifestyle modification program.',
+        text: 'To assign you to support team and enable them to deliver your weekly lifestyle modification program.',
       },
       {
         text: 'To allow your Technical Lifestyle Expert to review your daily tracking data and generate your weekly progress report and instruction set.',
@@ -76,32 +76,21 @@ const sections = [
     number: '1.4',
     title: 'Your Support Team & Data Access',
     content:
-      'Upon enrollment in a Sa Kyi lifestyle program, you are assigned a dedicated support team. Your personal and health data is accessible only to this team and relevant administrative staff within Sa Kyi. The roles within your support team are as follows:',
-    numbered: [
-      {
-        label: 'Technical Lifestyle Expert',
-        text: 'Reviews your daily tracking logs, analyzes trends in your submitted data, and produces your weekly instruction sheet in PDF or video format. This team member provides all lifestyle feedback and guidance.',
-      },
-      {
-        label: 'Communication Coordinator',
-        text: 'Serves as your primary point of contact for scheduling, program queries, updates, and general support communication via the platform or designated communication channels.',
-      },
-      {
-        label: 'Data Coordinator',
-        text: 'Responsible for data verification, record-keeping, quality assurance of submitted logs, and the generation of structured progress reports.',
-      },
+      'Upon enrollment in a Sa Kyi lifestyle program, your personal and health data will be accessible only to authorized Sa Kyi personnel who are directly involved in delivering, supporting, monitoring, or administering your program. This may include staff responsible for lifestyle guidance, client communication, data verification, record-keeping, quality assurance, and progress reporting.',
+    paragraphs: [
+      'Sa Kyi will apply role-based access principles, meaning that each authorized person may access only the information necessary for their assigned responsibilities. No other Sa Kyi staff member, contractor, or third party will have access to your personal health data without your explicit informed consent, unless required by applicable law or for essential service administration.',
     ],
     footer:
-      'No other Sa Kyi staff member, contractor, or third party has access to your personal health data without your explicit written consent.',
+      'No other Sa Kyi staff member, contractor, or third party has access to your personal health data without your prior informed consent.',
   },
   {
     number: '1.5',
     title: 'Photographs & Media',
     content:
-      'Photographs uploaded to the Sa Kyi application — including meal logs and physical progress images — are stored in an encrypted, access-controlled environment. These images are accessible only to your assigned Technical Lifestyle Expert and relevant Data Coordinator for coaching and analysis purposes.',
+      'Photographs uploaded to the Sa Kyi application including meal logs and physical progress images are stored in an encrypted, access-controlled environment. These images are accessible only to your assigned Technical Lifestyle Expert and relevant Data Coordinator for coaching and analysis purposes.',
     bullets: [
       {
-        text: 'Your photographs will never be used in marketing materials, social media, or public-facing content without your explicit written consent.',
+        text: 'Your photographs will never be used in marketing materials, social media, or public-facing content without your prior informed consent.',
       },
       {
         text: 'You may request the removal of any uploaded media at any time by contacting our support team.',
@@ -195,7 +184,7 @@ const sections = [
       },
     ],
     footer:
-      'All data-related requests will be acknowledged within 3 business days and completed within 7 business days. To submit a request, contact: support@sakyi.com',
+      'All data-related requests will be acknowledged within 3 business days and completed within 7 business days. To submit a request, contact: operation@sakyihealthandwellness.com',
   },
   {
     number: '1.10',
@@ -230,17 +219,6 @@ export default function PrivacyPolicyPage() {
             Kyi mobile application.
           </Body1>
 
-          {/* Meta pills */}
-          <div className='flex flex-wrap items-center justify-center gap-3 pt-2'>
-            <span className='bg-muted text-muted-foreground inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-xs font-medium'>
-              <FileText className='h-3.5 w-3.5' />
-              Effective Date: April 2026
-            </span>
-            <span className='bg-muted text-muted-foreground inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-xs font-medium'>
-              <Lock className='h-3.5 w-3.5' />
-              Version 1.0
-            </span>
-          </div>
         </div>
 
         {/* Intro notice */}
@@ -304,25 +282,6 @@ export default function PrivacyPolicyPage() {
                 </ul>
               )}
 
-              {/* Numbered list */}
-              {'numbered' in section && section.numbered && (
-                <ol className='space-y-4'>
-                  {section.numbered.map((item, i) => (
-                    <li key={i} className='flex gap-3'>
-                      <span className='border-border text-muted-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full border font-sans text-xs font-semibold'>
-                        {i + 1}
-                      </span>
-                      <p className='text-muted-foreground font-sans text-sm leading-relaxed'>
-                        <span className='text-foreground font-semibold'>
-                          {item.label}
-                        </span>{' '}
-                        — {item.text}
-                      </p>
-                    </li>
-                  ))}
-                </ol>
-              )}
-
               {/* Extra paragraphs */}
               {'paragraphs' in section && section.paragraphs && (
                 <div className='mt-4 space-y-3'>
@@ -358,7 +317,7 @@ export default function PrivacyPolicyPage() {
               Our team is here to help with any data-related inquiries.
             </p>
             <a
-              href='mailto:customerservice@sakyihealthandwellness.com'
+              href='mailto:operation@sakyihealthandwellness.com'
               className='bg-brand-gradient inline-flex items-center rounded-full px-5 py-2.5 font-sans text-sm font-semibold text-white shadow transition-all duration-300 hover:scale-105 hover:shadow-md'
             >
               Contact Support

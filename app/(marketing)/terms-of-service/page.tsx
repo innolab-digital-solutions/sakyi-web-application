@@ -1,4 +1,4 @@
-import { FileText, Scale, ScrollText } from 'lucide-react';
+import { Scale, ScrollText } from 'lucide-react';
 import type { Metadata } from 'next';
 
 import SectionBadge from '@/components/marketing/SectionBadge';
@@ -15,19 +15,13 @@ export const metadata: Metadata = {
 const sections = [
   {
     number: '2.1',
-    title: 'Acceptance of Terms',
-    content:
-      'By downloading, installing, or using the Sa Kyi application, you confirm that you are at least 18 years of age (or have obtained verifiable parental or guardian consent if under 18), that you have read and understood these Terms & Conditions, and that you agree to comply with all applicable policies and guidelines of the Sa Kyi platform.',
-  },
-  {
-    number: '2.2',
     title: 'User Classification',
     content:
       'Sa Kyi operates with two distinct user categories, each with different levels of access and responsibilities:',
     bullets: [
       {
         label: 'Explore Users',
-        text: 'Individuals who have downloaded and registered on the Sa Kyi platform but have not yet enrolled in a paid lifestyle modification program. Explore Users may access the public newsfeed, browse program descriptions, and view general wellness content. Tracking tools and expert coaching services are not available to Explore Users.',
+        text: 'Individuals who have downloaded and registered on the Sa Kyi platform but have not yet enrolled in a paid lifestyle modification program. Explore Users may access the public newsfeed, browse program descriptions, view general wellness content, and use selected basic wellness tools and features, while advanced personalized tracking tools and expert coaching services are available only to enrolled program members.',
       },
       {
         label: 'Program Members',
@@ -36,7 +30,7 @@ const sections = [
     ],
   },
   {
-    number: '2.3',
+    number: '2.2',
     title: 'Enrollment & Program Access',
     content:
       'Enrollment as a Program Member is subject to administrative review and approval by Sa Kyi. Sa Kyi reserves the right to accept, defer, or decline any enrollment application at its sole discretion. Upon successful enrollment, Program Members will be notified and assigned to their dedicated support team.',
@@ -45,7 +39,7 @@ const sections = [
     ],
   },
   {
-    number: '2.4',
+    number: '2.3',
     title: 'The 7-Day Service Cycle',
     content:
       "Sa Kyi's core service is delivered on a structured 7-day tracking cycle. By enrolling as a Program Member, you agree to the following:",
@@ -57,7 +51,7 @@ const sections = [
         text: 'Submission of accurate and complete data for each tracking category. Incomplete or inaccurate logs may affect the quality and relevance of your weekly feedback.',
       },
       {
-        text: 'On Day 8 (designated Report Day), your Technical Lifestyle Expert will review the submitted data and issue a comprehensive weekly summary report, along with a new personalized instruction set for the following cycle. Reports may be delivered in PDF document format.',
+        text: 'On Day 8 (designated Report Day), your Technical Lifestyle Expert will review the submitted data and issue a comprehensive weekly summary report, along with a new personalized instruction set for the following cycle.',
       },
       {
         text: 'Failure to complete the tracking cycle due to user inaction does not entitle the member to a service refund or cycle extension.',
@@ -65,7 +59,7 @@ const sections = [
     ],
   },
   {
-    number: '2.5',
+    number: '2.4',
     title: 'External Payment Policy',
     content:
       'Sa Kyi is a lifestyle service and tracking platform. The Sa Kyi mobile application does not process, handle, or facilitate any financial transactions internally. There are no in-app purchases, in-app subscriptions, or payment gateways within the application itself.',
@@ -85,7 +79,7 @@ const sections = [
     ],
   },
   {
-    number: '2.6',
+    number: '2.5',
     title: 'User Conduct & Platform Integrity',
     content:
       'To ensure the quality, fairness, and effectiveness of the Sa Kyi platform for all members, users agree to the following standards of conduct:',
@@ -97,7 +91,7 @@ const sections = [
         text: 'You will not misrepresent your health condition, progress, or activities in any manner that could mislead your support team.',
       },
       {
-        text: 'You will not reproduce, distribute, share, sell, or otherwise disclose expert-generated instruction sheets, PDF reports, or proprietary program content to any non-member individual or third party. Such content is the intellectual property of Sa Kyi and is licensed exclusively for your personal use.',
+        text: 'You will not reproduce, distribute, share, sell, or otherwise disclose expert-generated instruction sheets, reports, or proprietary program content to any non-member individual or third party. Such content is the intellectual property of Sa Kyi and is licensed exclusively for your personal use.',
       },
       {
         text: 'You will not use the Sa Kyi platform for any unlawful, harmful, or fraudulent purpose.',
@@ -110,16 +104,16 @@ const sections = [
       'Violations of these conduct standards may result in immediate suspension or termination of your account without prior notice and without entitlement to a refund of any fees paid.',
   },
   {
-    number: '2.7',
+    number: '2.6',
     title: 'Intellectual Property',
     content:
-      'All content available on the Sa Kyi platform — including but not limited to text, graphics, logos, application design, weekly instruction materials, video content, program frameworks, and proprietary methodologies — is the exclusive intellectual property of Sa Kyi Health & Wellness and is protected by applicable copyright and intellectual property laws.',
+      'All content available on the Sa Kyi platform including but not limited to text, graphics, logos, application design, weekly instruction materials, video content, program frameworks, and proprietary methodologies is the exclusive intellectual property of Sa Kyi Health & Wellness and is protected by applicable copyright and intellectual property laws.',
     paragraphs: [
       'Users are granted a limited, non-exclusive, non-transferable license to access and use Sa Kyi content solely for personal, non-commercial wellness purposes within the scope of their enrollment. This license does not grant any right to reproduce, distribute, publicly display, or create derivative works from Sa Kyi content.',
     ],
   },
   {
-    number: '2.8',
+    number: '2.7',
     title: 'Technical Requirements & Connectivity',
     content:
       'The Sa Kyi platform requires a stable internet connection for data synchronization, report delivery, and communication features. Sa Kyi is not responsible for:',
@@ -138,7 +132,7 @@ const sections = [
       'Users are advised to ensure their application is kept up to date to maintain full functionality and access to the latest features and security improvements.',
   },
   {
-    number: '2.9',
+    number: '2.8',
     title: 'Modifications to Services & Terms',
     content:
       'Sa Kyi reserves the right to modify, update, suspend, or discontinue any aspect of its services, program offerings, or platform features at any time. Where material changes are made to these Terms & Conditions, Sa Kyi will provide advance notice through the application or by email.',
@@ -147,7 +141,7 @@ const sections = [
     ],
   },
   {
-    number: '2.10',
+    number: '2.9',
     title: 'Termination of Access',
     content:
       'Sa Kyi reserves the right to suspend or permanently terminate any user account that is found to be in violation of these Terms & Conditions, or where continued access is deemed contrary to the safety, integrity, or operational interests of the Sa Kyi platform.',
@@ -181,17 +175,6 @@ export default function TermsOfServicePage() {
             carefully before proceeding.
           </Body1>
 
-          {/* Meta pills */}
-          <div className='flex flex-wrap items-center justify-center gap-3 pt-2'>
-            <span className='bg-muted text-muted-foreground inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-xs font-medium'>
-              <FileText className='h-3.5 w-3.5' />
-              Effective Date: April 2026
-            </span>
-            <span className='bg-muted text-muted-foreground inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-xs font-medium'>
-              <Scale className='h-3.5 w-3.5' />
-              Version 1.0
-            </span>
-          </div>
         </div>
 
         {/* Intro notice */}
@@ -307,7 +290,7 @@ export default function TermsOfServicePage() {
               Conditions.
             </p>
             <a
-              href='mailto:customerservice@sakyihealthandwellness.com'
+              href='mailto:operation@sakyihealthandwellness.com'
               className='bg-brand-gradient inline-flex items-center rounded-full px-5 py-2.5 font-sans text-sm font-semibold text-white shadow transition-all duration-300 hover:scale-105 hover:shadow-md'
             >
               Contact Support
