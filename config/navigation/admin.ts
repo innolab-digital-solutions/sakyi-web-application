@@ -117,12 +117,12 @@ export const ADMIN_NAVIGATION: NavItem[] = [
     ],
   },
   {
-    name: 'Movement Library',
+    name: 'Exercise Library',
     icon: Dumbbell,
     path: '#',
     subitems: [
       {
-        name: 'Movement Categories',
+        name: 'Exercise Categories',
         path: ADMIN_ROUTES.MODULES.MOVEMENT_CATEGORIES.LIST,
       },
       {
