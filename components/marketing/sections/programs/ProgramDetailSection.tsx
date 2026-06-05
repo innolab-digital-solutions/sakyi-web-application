@@ -255,7 +255,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
               </h2>
             )}
             <div
-              className='mt-6 max-w-4xl text-lg leading-relaxed text-slate-600'
+              className='mt-6 max-w-4xl text-lg leading-relaxed text-slate-600 [&_a]:text-[#35bec5] [&_a]:underline [&_a]:underline-offset-2 [&_a:hover]:text-[#2aa0a7] [&_blockquote]:mb-6 [&_blockquote]:border-l-4 [&_blockquote]:border-[#35bec5] [&_blockquote]:bg-slate-50 [&_blockquote]:py-4 [&_blockquote]:pl-6 [&_blockquote]:text-slate-700 [&_blockquote]:italic [&_h1]:mb-4 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:tracking-tight [&_h1]:text-slate-900 [&_h2]:mb-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-slate-900 [&_h3]:mb-2 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-slate-900 [&_hr]:my-6 [&_hr]:border-t [&_hr]:border-slate-200 [&_li]:mb-1 [&_li]:leading-relaxed [&_ol]:mb-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:text-slate-600 [&_p]:mb-4 [&_p]:leading-relaxed [&_p]:text-slate-600 [&_strong]:text-slate-900 [&_ul]:mb-4 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:text-slate-600'
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               {isLoading ? (
@@ -265,7 +265,9 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                   <Skeleton className='h-4 w-4/5' />
                 </div>
               ) : (
-                <p>{program?.about}</p>
+                <div
+                  dangerouslySetInnerHTML={{ __html: program?.about ?? '' }}
+                />
               )}
             </div>
           </div>
