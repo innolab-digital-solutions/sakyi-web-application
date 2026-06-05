@@ -3,6 +3,9 @@
 import ComboboxField, {
   type ComboboxOption,
 } from '@/components/shared/form/ComboBoxField';
+import SelectField, {
+  type SelectFieldOption,
+} from '@/components/shared/form/SelectField';
 import TextField from '@/components/shared/form/TextField';
 import type {
   PrescriptionFieldHints,
@@ -37,7 +40,7 @@ type MovementPrescriptionFieldsProps = {
   fieldPlaceholders?: PrescriptionFieldPlaceholders | null;
   fieldHints?: PrescriptionFieldHints | null;
   intensityOptions: ComboboxOption[];
-  massUnitOptions: ComboboxOption[];
+  massUnitOptions: SelectFieldOption[];
   errors?: MovementPrescriptionRowErrors;
   disabled?: boolean;
   onFieldChange: (
@@ -297,17 +300,15 @@ export default function MovementPrescriptionFields({
     ) : null,
     showWeightUnit ? (
       <div key='equipment_weight_unit_id' className='space-y-1'>
-        <ComboboxField
+        <SelectField
           label={getPrescriptionFieldLabel(
             profile,
             'equipment_weight_unit_id',
             fieldLabels,
           )}
           placeholder='Select weight unit…'
-          searchPlaceholder='Search units…'
-          emptyMessage='No mass units found.'
           options={massUnitOptions}
-          value={exercise.equipment_weight_unit_id || null}
+          value={exercise.equipment_weight_unit_id || undefined}
           onChange={(value) =>
             onFieldChange('equipment_weight_unit_id', value ?? '')
           }

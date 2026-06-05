@@ -29,6 +29,7 @@ import MovementPrescriptionFields, {
 import ComboboxField, {
   type ComboboxOption,
 } from '@/components/shared/form/ComboBoxField';
+import { type SelectFieldOption } from '@/components/shared/form/SelectField';
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -760,14 +761,17 @@ export default function CarePlanBuilder({
     return kgRow ? String(kgRow.id) : null;
   }, [unitsLookupQuery.data]);
 
-  const massUnitOptions = React.useMemo<ComboboxOption[]>(() => {
+  const massUnitOptions = React.useMemo<SelectFieldOption[]>(() => {
     const rows = unitsLookupQuery.data ?? [];
     return rows
-      .filter((row) => toLookupToken(row.type) === 'mass')
+      .filter((row) => {
+        const type = toLookupToken(row.type);
+        const abbreviation = toLookupToken(row.abbreviation);
+        return type === 'mass' && (abbreviation === 'kg' || abbreviation === 'lb');
+      })
       .map((row) => ({
         value: String(row.id),
         label: `${row.name} (${row.abbreviation})`,
-        keywords: [row.name, row.abbreviation],
       }));
   }, [unitsLookupQuery.data]);
 
