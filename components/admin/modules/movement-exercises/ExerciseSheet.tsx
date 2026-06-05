@@ -56,7 +56,7 @@ export default function ExerciseSheet({
           </Button>
         </SheetTrigger>
       )}
-      <SheetContent className='overflow-y-auto px-6 sm:max-w-xl [&>button]:cursor-pointer'>
+      <SheetContent className='overflow-y-auto px-6 sm:max-w-3xl [&>button]:cursor-pointer'>
         <SheetHeader className='px-0'>
           <SheetTitle className='text-foreground text-[15.5px] font-bold capitalize'>
             {isEdit ? 'Edit exercise' : 'Create exercise'}

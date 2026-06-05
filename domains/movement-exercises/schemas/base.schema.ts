@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { PRESCRIPTION_PROFILES } from '@/domains/movement-prescriptions/types';
+
 export const MediaItemSchema = z.object({
   type: z.enum(['url', 'image', 'video', 'audio'], {
     error: 'Invalid media type.',
@@ -29,6 +31,9 @@ export const MovementExerciseBodySchema = z.object({
     .nullish(),
   difficulty: z.enum(['beginner', 'intermediate', 'advanced'], {
     error: 'The difficulty field is required.',
+  }),
+  prescription_profile: z.enum(PRESCRIPTION_PROFILES, {
+    error: 'The prescription profile field is required.',
   }),
   is_active: z.boolean(),
   media: z.array(MediaItemSchema).nullish(),

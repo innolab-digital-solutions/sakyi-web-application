@@ -20,6 +20,8 @@ export const LOOKUP_ENDPOINTS = {
   MOVEMENT_CATEGORIES: `${BASE}/movement-categories`,
   MOVEMENT_EQUIPMENT: `${BASE}/movement-equipment`,
   MOVEMENT_EXERCISES: `${BASE}/movement-exercises`,
+  MOVEMENT_PRESCRIPTION_PROFILES: `${BASE}/movement-prescription-profiles`,
+  MOVEMENT_PRESCRIPTION_INTENSITIES: `${BASE}/movement-prescription-intensities`,
   BLOG_CATEGORIES: `${BASE}/blog-categories`,
   TEAM_MEMBERS: `${BASE}/team-members`,
   ENROLLMENTS: `${BASE}/enrollments`,
