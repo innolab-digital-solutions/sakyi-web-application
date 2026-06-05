@@ -65,7 +65,7 @@ const SECTION_GUIDANCE: Record<CarePlanSectionKey, string> = {
   nutrition:
     'Document what the client should eat or drink for this day: meal timing, portions, and simple instructions they can follow at home. This plan is written for the enrolled client, as directed by their doctor.',
   movement:
-    'List the movement work the client should complete: choose each exercise and, where helpful, sets, reps, and rest so the client knows exactly what to do and can track progress.',
+    'List the exercises the client should complete: choose each exercise and, where helpful, sets, reps, and rest so the client knows exactly what to do and can track progress.',
   activity:
     'Add everyday activities the client should aim for (walking, stretching, errands, etc.) with a clear target and simple wording they can follow on their own.',
   recovery:
@@ -74,7 +74,7 @@ const SECTION_GUIDANCE: Record<CarePlanSectionKey, string> = {
 
 const SECTION_ADD_LABEL: Record<CarePlanSectionKey, string> = {
   nutrition: 'Add Nutrition',
-  movement: 'Add Movement',
+  movement: 'Add Exercise Session',
   activity: 'Add Activity',
   recovery: 'Add Recovery',
 };
@@ -576,12 +576,22 @@ class CarePlanDayNotesValidationError extends Error {
   }
 }
 
+function formatDayTaskValidationMessage(message: string): string {
+  return message
+    .replace(
+      /at least one item(?:\s+in)?\s+(nutrition,\s*movement,\s*activity,\s*or\s*recovery)/i,
+      'at least one task in any section ($1)',
+    )
+    .replace(/\bitem\b/gi, 'task')
+    .replace(/\bmovement\b/gi, 'exercise');
+}
+
 function extractValidationIssuesByDay(
   issues: CarePlanValidationIssue[],
 ): Record<number, string> {
   const dayIssueMessages: Record<number, string> = {};
   const defaultDayTaskMessage =
-    'Add at least one task in any section (nutrition, movement, activity, or recovery).';
+    'Add at least one task in any section (nutrition, exercise, activity, or recovery).';
 
   for (const issue of issues) {
     const field = String(issue?.field ?? '').trim();
@@ -592,12 +602,7 @@ function extractValidationIssuesByDay(
       const fieldDayNumber = Number(fieldMatch[1]);
       if (Number.isInteger(fieldDayNumber) && fieldDayNumber > 0) {
         dayIssueMessages[fieldDayNumber] = message
-          ? message
-              .replace(
-                /at least one item(?:\s+in)?\s+(nutrition,\s*movement,\s*activity,\s*or\s*recovery)/i,
-                'at least one task in any section ($1)',
-              )
-              .replace(/\bitem\b/gi, 'task')
+          ? formatDayTaskValidationMessage(message)
           : defaultDayTaskMessage;
       }
     }
@@ -608,12 +613,7 @@ function extractValidationIssuesByDay(
       if (Number.isInteger(messageDayNumber) && messageDayNumber > 0) {
         if (!dayIssueMessages[messageDayNumber]) {
           dayIssueMessages[messageDayNumber] = message
-            ? message
-                .replace(
-                  /at least one item(?:\s+in)?\s+(nutrition,\s*movement,\s*activity,\s*or\s*recovery)/i,
-                  'at least one task in any section ($1)',
-                )
-                .replace(/\bitem\b/gi, 'task')
+            ? formatDayTaskValidationMessage(message)
             : defaultDayTaskMessage;
         }
       }
@@ -1977,7 +1977,7 @@ export default function CarePlanBuilder({
               </p>
               <p className='text-muted-foreground mt-1 text-[13px] font-medium'>
                 Set the care timeline first, then add tasks to each day across
-                nutrition, movement, activity, and recovery.
+                nutrition, exercise, activity, and recovery.
               </p>
               {editable ? (
                 <Button
