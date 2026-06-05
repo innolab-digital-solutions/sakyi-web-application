@@ -6,6 +6,7 @@ export type UnitLookup = {
   id: number;
   name: string;
   abbreviation: string;
+  type?: string | null;
 };
 
 /**

@@ -35,11 +35,22 @@ import type {
   MovementDifficulty,
   MovementExercise,
 } from '@/domains/movement-exercises/types';
+import {
+  PRESCRIPTION_PROFILE_LABELS,
+  type PrescriptionProfile,
+} from '@/domains/movement-prescriptions/types';
 import { useTable } from '@/lib/table';
 
-const COLUMN_COUNT = 5;
+const COLUMN_COUNT = 6;
 
-const SKELETON_WIDTHS = ['w-56', 'w-28', 'w-24', 'w-40', 'w-44'] as const;
+const SKELETON_WIDTHS = [
+  'w-56',
+  'w-28',
+  'w-24',
+  'w-36',
+  'w-40',
+  'w-44',
+] as const;
 
 /** Aligned with intake / enrollment request status badge chrome (icon + border + semantic colors). */
 const DIFFICULTY_LABEL: Record<MovementDifficulty, string> = {
@@ -81,6 +92,15 @@ function asMovementDifficulty(
     value === 'advanced'
   ) {
     return value;
+  }
+  return null;
+}
+
+function asPrescriptionProfile(
+  value: string | undefined,
+): PrescriptionProfile | null {
+  if (value && value in PRESCRIPTION_PROFILE_LABELS) {
+    return value as PrescriptionProfile;
   }
   return null;
 }
@@ -183,6 +203,7 @@ export default function ExerciseListTable() {
               <TableHead>Exercise</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Difficulty</TableHead>
+              <TableHead>Prescription profile</TableHead>
               <TableHead>Equipment</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -240,7 +261,7 @@ export default function ExerciseListTable() {
                     </div>
                   </TableCell>
 
-                  <TableCell className='text-foreground/80 align-center'>
+                  <TableCell className='text-foreground/80 align-center min-w-42'>
                     {exercise.movement_category?.name?.trim() ? (
                       <span>{exercise.movement_category.name.trim()}</span>
                     ) : (
@@ -266,7 +287,22 @@ export default function ExerciseListTable() {
                     })()}
                   </TableCell>
 
-                  <TableCell className='text-foreground/80 align-center whitespace-normal'>
+                  <TableCell>
+                    {(() => {
+                      const profile = asPrescriptionProfile(
+                        exercise.prescription_profile,
+                      );
+                      return profile ? (
+                        <span className='wrap-break-word'>
+                          {PRESCRIPTION_PROFILE_LABELS[profile]}
+                        </span>
+                      ) : (
+                        <TableCellEmpty label='No profile' />
+                      );
+                    })()}
+                  </TableCell>
+
+                  <TableCell className='text-foreground/80 align-center min-w-42 whitespace-normal'>
                     {exercise.equipments.length === 0 ? (
                       <TableCellEmpty label='No equipment' />
                     ) : (

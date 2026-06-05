@@ -23,6 +23,9 @@ import { CarePlanBuilderSkeleton } from '@/components/admin/layout/AdminLoadingS
 import CarePlanDayNoteModal from '@/components/admin/modules/care-plans/CarePlanDayNoteModal';
 import CarePlanFinalizeConfirmation from '@/components/admin/modules/care-plans/CarePlanFinalizeConfirmation';
 import CarePlanGenerateDaysModal from '@/components/admin/modules/care-plans/CarePlanGenerateDaysModal';
+import MovementPrescriptionFields, {
+  type MovementPrescriptionRowErrors,
+} from '@/components/admin/modules/care-plans/MovementPrescriptionFields';
 import ComboboxField, {
   type ComboboxOption,
 } from '@/components/shared/form/ComboBoxField';
@@ -54,9 +57,24 @@ import type {
   CarePlanStatus,
   CarePlanValidationIssue,
 } from '@/domains/care-plans/types/admin';
+import {
+  getMovementExercisesLookup,
+  getMovementPrescriptionIntensitiesLookup,
+} from '@/domains/movement-prescriptions/services';
+import type {
+  MovementExerciseLookup,
+  PrescriptionProfile,
+} from '@/domains/movement-prescriptions/types';
 import { getUnitsLookup } from '@/domains/units/services';
-import { http } from '@/lib/api/client';
 import { CARE_PLAN_SECTION_TABS } from '@/lib/care-plans/carePlanSectionTabs';
+import {
+  buildMovementExerciseSavePayload,
+  isMovementPrescriptionMeaningful,
+  isPrescriptionProfile,
+  normalizeMovementExercisePrescription,
+  resetPrescriptionOnExerciseChange,
+  type MovementExercisePrescriptionInput,
+} from '@/lib/care-plans/movementPrescription';
 import { cn } from '@/lib/utils/styles';
 
 const SECTIONS = CARE_PLAN_SECTION_TABS;
@@ -65,7 +83,7 @@ const SECTION_GUIDANCE: Record<CarePlanSectionKey, string> = {
   nutrition:
     'Document what the client should eat or drink for this day: meal timing, portions, and simple instructions they can follow at home. This plan is written for the enrolled client, as directed by their doctor.',
   movement:
-    'List the exercises the client should complete: choose each exercise and, where helpful, sets, reps, and rest so the client knows exactly what to do and can track progress.',
+    'List the exercises the client should complete. Prescription fields adapt to each exercise profile (sets/reps, timed holds, cardio, load, and intervals).',
   activity:
     'Add everyday activities the client should aim for (walking, stretching, errands, etc.) with a clear target and simple wording they can follow on their own.',
   recovery:
@@ -82,17 +100,6 @@ const SECTION_ADD_LABEL: Record<CarePlanSectionKey, string> = {
 type CarePlanBuilderProps = {
   carePlanId: number;
   mode: 'edit' | 'detail';
-};
-
-type MovementExerciseLookupItem = {
-  id: number;
-  name: string;
-  description: string | null;
-  difficulty: string | null;
-  category: {
-    id: number;
-    name: string;
-  } | null;
 };
 
 function normalizeStatus(
@@ -198,26 +205,11 @@ function toEditableSectionItems(
     exercises: Array.isArray(item.exercises)
       ? item.exercises
           .map((exercise) => {
-            const id = String(exercise?.movement_exercise_id ?? '').trim();
-            if (!id) return null;
-            return {
-              movement_exercise_id: id,
-              sets:
-                exercise?.sets != null && String(exercise.sets).trim() !== ''
-                  ? exercise.sets
-                  : null,
-              reps:
-                exercise?.reps != null && String(exercise.reps).trim() !== ''
-                  ? exercise.reps
-                  : null,
-              rest_seconds:
-                exercise?.rest_seconds != null &&
-                String(exercise.rest_seconds).trim() !== ''
-                  ? exercise.rest_seconds
-                  : null,
-            };
+            const normalized = normalizeMovementExercisePrescription(exercise);
+            if (!normalized.movement_exercise_id) return null;
+            return normalized;
           })
-          .filter((x): x is NonNullable<typeof x> => x !== null)
+          .filter((x): x is MovementExercisePrescriptionInput => x !== null)
       : [],
   }));
 }
@@ -233,35 +225,16 @@ function createEmptySectionItem(): CarePlanSectionItem {
   };
 }
 
-function createEmptyMovementExercise() {
-  return {
-    movement_exercise_id: '',
-    sets: null,
-    reps: null,
-    rest_seconds: null,
-  };
-}
-
-type MovementExerciseInput = {
-  movement_exercise_id: string;
-  sets: string;
-  reps: string;
-  rest_seconds: string;
-};
-type MovementExerciseSource = {
-  movement_exercise_id?: string | number | null;
-  sets?: string | number | null;
-  reps?: string | number | null;
-  rest_seconds?: string | number | null;
-};
-
 type NormalizedSectionItem = {
+  id?: string | number;
   title: string;
   guidance: string;
   target_value: string;
   target_unit: string;
   movement_exercise_id: string;
-  exercises: MovementExerciseInput[];
+  exercises: MovementExercisePrescriptionInput[];
+  has_client_logs?: boolean;
+  exercises_editable?: boolean;
 };
 
 function normalizeValue(value: unknown): string {
@@ -276,28 +249,6 @@ function toNullableInteger(value: string): number | null {
   return Number.isNaN(parsed) ? null : parsed;
 }
 
-function normalizeMovementExercise(
-  exercise: MovementExerciseSource | undefined,
-): MovementExerciseInput {
-  return {
-    movement_exercise_id: normalizeValue(exercise?.movement_exercise_id),
-    sets: normalizeValue(exercise?.sets),
-    reps: normalizeValue(exercise?.reps),
-    rest_seconds: normalizeValue(exercise?.rest_seconds),
-  };
-}
-
-function isMovementExerciseMeaningful(
-  exercise: MovementExerciseInput,
-): boolean {
-  return Boolean(
-    exercise.movement_exercise_id ||
-    exercise.sets ||
-    exercise.reps ||
-    exercise.rest_seconds,
-  );
-}
-
 function normalizeSectionItemsForSave(
   items: CarePlanSectionItem[],
   section: CarePlanSectionKey,
@@ -309,11 +260,13 @@ function normalizeSectionItemsForSave(
       const targetValue = normalizeValue(item?.target_value);
       const targetUnit = normalizeValue(item?.target_unit);
       const exercises = Array.isArray(item?.exercises)
-        ? item.exercises.map((exercise) => normalizeMovementExercise(exercise))
+        ? item.exercises.map((exercise) =>
+            normalizeMovementExercisePrescription(exercise),
+          )
         : [];
       const meaningfulExercises =
         section === 'movement'
-          ? exercises.filter(isMovementExerciseMeaningful)
+          ? exercises.filter(isMovementPrescriptionMeaningful)
           : [];
       const movementExerciseId =
         meaningfulExercises.length > 0
@@ -321,12 +274,17 @@ function normalizeSectionItemsForSave(
           : normalizeValue(item?.movement_exercise_id || item?.exercise_id);
 
       return {
+        id: item?.id,
         title,
         guidance,
         target_value: targetValue,
         target_unit: targetUnit,
         movement_exercise_id: movementExerciseId,
         exercises: meaningfulExercises,
+        has_client_logs: Boolean(item?.has_client_logs),
+        exercises_editable:
+          item?.actions?.exercises_editable !== false &&
+          !item?.has_client_logs,
       } satisfies NormalizedSectionItem;
     })
     .filter((item) => {
@@ -351,26 +309,38 @@ function toSectionSavePayload(
   items: NormalizedSectionItem[],
   section: CarePlanSectionKey,
   resolveUnitId?: (value: string) => number | null,
+  resolveExerciseProfile?: (exerciseId: string) => PrescriptionProfile | null,
+  planStatus?: CarePlanStatus | null,
 ): CarePlanSectionItem[] {
   return items.map((item) => {
+    const omitExercisesOnActiveLoggedItem =
+      section === 'movement' &&
+      planStatus === 'active' &&
+      item.has_client_logs;
+
     const baseItem: CarePlanSectionItem = {
       title: item.title,
       guidance: item.guidance,
       target_value: item.target_value,
-      exercises: item.exercises.map((exercise) => ({
-        movement_exercise_id: toNullableInteger(exercise.movement_exercise_id),
-        sets: exercise.sets === '' ? null : exercise.sets,
-        reps: exercise.reps === '' ? null : exercise.reps,
-        rest_seconds:
-          exercise.rest_seconds === '' ? null : exercise.rest_seconds,
-      })),
     };
+
+    if (item.id != null && String(item.id).trim() !== '') {
+      baseItem.id = item.id;
+    }
 
     if (section === 'movement') {
       baseItem.movement_exercise_id = toNullableInteger(
         item.movement_exercise_id,
       );
       baseItem.target_unit = item.target_unit;
+      if (!omitExercisesOnActiveLoggedItem) {
+        baseItem.exercises = item.exercises.map((exercise) => {
+          const profile = resolveExerciseProfile?.(
+            exercise.movement_exercise_id,
+          );
+          return buildMovementExerciseSavePayload(exercise, profile);
+        });
+      }
       return baseItem;
     }
 
@@ -404,14 +374,7 @@ type CarePlanItemFieldErrors = {
 
 type CarePlanItemFieldErrorsState = Record<number, CarePlanItemFieldErrors>;
 
-type CarePlanMovementRowErrors = {
-  exercise?: string;
-  sets?: string;
-  reps?: string;
-  rest_seconds?: string;
-};
-
-type CarePlanMovementRowErrorsState = Record<string, CarePlanMovementRowErrors>;
+type CarePlanMovementRowErrorsState = Record<string, MovementPrescriptionRowErrors>;
 
 function firstApiValidationMessage(raw: unknown): string | undefined {
   if (typeof raw === 'string' && raw.trim()) return raw.trim();
@@ -509,7 +472,7 @@ function parseCarePlanSectionItemsApiErrors(
     }
 
     const exM =
-      /^items\.(\d+)\.exercises\.(\d+)\.(movement_exercise_id|sets|reps|rest_seconds)$/i.exec(
+      /^items\.(\d+)\.exercises\.(\d+)\.(movement_exercise_id|sets|reps|rest_seconds|duration_seconds|intensity|equipment_weight|equipment_weight_unit_id)$/i.exec(
         key,
       );
     if (exM) {
@@ -517,10 +480,10 @@ function parseCarePlanSectionItemsApiErrors(
       const j = Number(exM[2]);
       const apiField = exM[3].toLowerCase();
       const rowKey = `${i}-${j}`;
-      const uiField: keyof CarePlanMovementRowErrors =
+      const uiField: keyof MovementPrescriptionRowErrors =
         apiField === 'movement_exercise_id'
           ? 'exercise'
-          : (apiField as 'sets' | 'reps' | 'rest_seconds');
+          : (apiField as keyof MovementPrescriptionRowErrors);
       movementRows[rowKey] = {
         ...movementRows[rowKey],
         [uiField]: msg,
@@ -705,9 +668,16 @@ export default function CarePlanBuilder({
   const movementExercisesLookupQuery = useQuery({
     queryKey: ['lookup', LOOKUP_ENDPOINTS.MOVEMENT_EXERCISES],
     queryFn: async () => {
-      const response = await http.get<MovementExerciseLookupItem[]>(
-        LOOKUP_ENDPOINTS.MOVEMENT_EXERCISES,
-      );
+      const response = await getMovementExercisesLookup();
+      if (response.status !== 'success') return [];
+      return response.data;
+    },
+  });
+
+  const prescriptionIntensitiesLookupQuery = useQuery({
+    queryKey: ['lookup', LOOKUP_ENDPOINTS.MOVEMENT_PRESCRIPTION_INTENSITIES],
+    queryFn: async () => {
+      const response = await getMovementPrescriptionIntensitiesLookup();
       if (response.status !== 'success') return [];
       return response.data;
     },
@@ -772,26 +742,92 @@ export default function CarePlanBuilder({
     [resolveUnitId],
   );
 
+  const movementExerciseById = React.useMemo(() => {
+    const map = new Map<string, MovementExerciseLookup>();
+    (movementExercisesLookupQuery.data ?? []).forEach((row) => {
+      map.set(String(row.id), row);
+    });
+    return map;
+  }, [movementExercisesLookupQuery.data]);
+
+  const defaultMassUnitId = React.useMemo<string | null>(() => {
+    const rows = unitsLookupQuery.data ?? [];
+    const kgRow = rows.find((row) => {
+      const type = toLookupToken(row.type);
+      const abbreviation = toLookupToken(row.abbreviation);
+      return type === 'mass' && abbreviation === 'kg';
+    });
+    return kgRow ? String(kgRow.id) : null;
+  }, [unitsLookupQuery.data]);
+
+  const massUnitOptions = React.useMemo<ComboboxOption[]>(() => {
+    const rows = unitsLookupQuery.data ?? [];
+    return rows
+      .filter((row) => toLookupToken(row.type) === 'mass')
+      .map((row) => ({
+        value: String(row.id),
+        label: `${row.name} (${row.abbreviation})`,
+        keywords: [row.name, row.abbreviation],
+      }));
+  }, [unitsLookupQuery.data]);
+
+  const intensityOptions = React.useMemo<ComboboxOption[]>(() => {
+    return (prescriptionIntensitiesLookupQuery.data ?? []).map((row) => ({
+      value: row.value,
+      label: row.label,
+      keywords: [row.label, row.reference_range],
+      content: (
+        <div className='flex min-w-0 flex-col'>
+          <span className='text-[13px] font-semibold'>{row.label}</span>
+          <span className='text-muted-foreground text-xs'>
+            {row.reference_range}
+          </span>
+        </div>
+      ),
+    }));
+  }, [prescriptionIntensitiesLookupQuery.data]);
+
+  const resolveExerciseProfile = React.useCallback(
+    (exerciseId: string): PrescriptionProfile | null => {
+      const lookup = movementExerciseById.get(exerciseId);
+      const profile = lookup?.prescription_profile;
+      return isPrescriptionProfile(profile) ? profile : null;
+    },
+    [movementExerciseById],
+  );
+
   const movementExerciseOptions = React.useMemo<ComboboxOption[]>(() => {
     const rows = movementExercisesLookupQuery.data ?? [];
     return rows.map((row) => {
       const category = row.category?.name?.trim() || 'Uncategorized';
       const difficulty = row.difficulty?.trim() || 'No difficulty';
+      const profile = row.prescription_profile?.replace(/_/g, ' ') ?? '';
       return {
         value: String(row.id),
         label: row.name,
-        keywords: [row.name, category, difficulty, row.description ?? ''],
+        keywords: [
+          row.name,
+          category,
+          difficulty,
+          row.description ?? '',
+          profile,
+        ],
         content: (
           <div className='flex min-w-0 flex-col'>
             <span className='text-[13px] font-semibold'>{row.name}</span>
             <span className='text-muted-foreground text-xs'>
               {category} · {difficulty}
+              {profile ? ` · ${profile}` : ''}
             </span>
           </div>
         ),
       };
     });
   }, [movementExercisesLookupQuery.data]);
+
+  const createMovementExerciseRow = React.useCallback(() => {
+    return resetPrescriptionOnExerciseChange('', defaultMassUnitId);
+  }, [defaultMassUnitId]);
 
   const builder = builderQuery.data;
   const normalizedStatus = normalizeStatus(builder?.status);
@@ -872,7 +908,7 @@ export default function CarePlanBuilder({
           const baseItem = createEmptySectionItem();
           setLocalItems(
             editable
-              ? [{ ...baseItem, exercises: [createEmptyMovementExercise()] }]
+              ? [{ ...baseItem, exercises: [createMovementExerciseRow()] }]
               : [],
           );
           return;
@@ -884,7 +920,7 @@ export default function CarePlanBuilder({
               editable &&
               (!Array.isArray(movementItem.exercises) ||
                 movementItem.exercises.length === 0)
-                ? [createEmptyMovementExercise()]
+                ? [createMovementExerciseRow()]
                 : (movementItem.exercises ?? []),
           })),
         );
@@ -945,7 +981,7 @@ export default function CarePlanBuilder({
     (
       itemIndex: number,
       exerciseIndex: number,
-      field: keyof CarePlanMovementRowErrors,
+      field: keyof MovementPrescriptionRowErrors,
     ) => {
       const k = `${itemIndex}-${exerciseIndex}`;
       setMovementRowErrors((prev) => {
@@ -1374,7 +1410,9 @@ export default function CarePlanBuilder({
       if (sectionToValidate === 'movement') {
         const exercises = Array.isArray(item.exercises) ? item.exercises : [];
         const hasMeaningfulExercise = exercises.some((exercise) =>
-          isMovementExerciseMeaningful(normalizeMovementExercise(exercise)),
+          isMovementPrescriptionMeaningful(
+            normalizeMovementExercisePrescription(exercise),
+          ),
         );
         return Boolean(
           title ||
@@ -1406,9 +1444,9 @@ export default function CarePlanBuilder({
         const meaningfulExerciseRows = exercises
           .map((exercise, exerciseIndex) => ({
             exerciseIndex,
-            normalized: normalizeMovementExercise(exercise),
+            normalized: normalizeMovementExercisePrescription(exercise),
           }))
-          .filter((row) => isMovementExerciseMeaningful(row.normalized));
+          .filter((row) => isMovementPrescriptionMeaningful(row.normalized));
 
         if (meaningfulExerciseRows.length === 0) {
           movementRowErrs[`${itemIndex}-0`] = {
@@ -1500,6 +1538,8 @@ export default function CarePlanBuilder({
           normalizedLocalItems,
           activeSection,
           resolveUnitId,
+          resolveExerciseProfile,
+          normalizedStatus,
         ),
       });
     }
@@ -1599,7 +1639,7 @@ export default function CarePlanBuilder({
   const setMovementExerciseField = (
     itemIndex: number,
     exerciseIndex: number,
-    field: 'sets' | 'reps' | 'rest_seconds',
+    field: keyof MovementExercisePrescriptionInput,
     value: string,
   ) => {
     setLocalItems((prev) =>
@@ -1608,18 +1648,27 @@ export default function CarePlanBuilder({
         const existing = Array.isArray(entry.exercises) ? entry.exercises : [];
         return {
           ...entry,
-          exercises: existing.map((exercise, idx) =>
-            idx === exerciseIndex
-              ? {
-                  ...exercise,
-                  [field]: value.trim() === '' ? null : value,
-                }
-              : exercise,
-          ),
+          exercises: existing.map((exercise, rowIdx) => {
+            if (rowIdx !== exerciseIndex) return exercise;
+            return {
+              ...normalizeMovementExercisePrescription(exercise),
+              [field]: value,
+            };
+          }),
         };
       }),
     );
-    clearMovementRowField(itemIndex, exerciseIndex, field);
+    if (
+      field !== 'movement_exercise_id' &&
+      field !== 'id' &&
+      field !== 'summary'
+    ) {
+      clearMovementRowField(
+        itemIndex,
+        exerciseIndex,
+        field as keyof MovementPrescriptionRowErrors,
+      );
+    }
   };
 
   const setMovementExerciseSelection = (
@@ -1631,13 +1680,10 @@ export default function CarePlanBuilder({
       prev.map((entry, idx) => {
         if (idx !== itemIndex) return entry;
         const existing = Array.isArray(entry.exercises) ? entry.exercises : [];
-        const nextExercises = existing.map((exercise, idx) =>
-          idx === exerciseIndex
-            ? {
-                ...exercise,
-                movement_exercise_id: value,
-              }
-            : exercise,
+        const nextExercises = existing.map((exercise, rowIdx) =>
+          rowIdx === exerciseIndex
+            ? resetPrescriptionOnExerciseChange(value, defaultMassUnitId)
+            : normalizeMovementExercisePrescription(exercise),
         );
         const nextPrimaryExerciseId =
           nextExercises.length > 0
@@ -1662,7 +1708,7 @@ export default function CarePlanBuilder({
               ...entry,
               exercises: [
                 ...(Array.isArray(entry.exercises) ? entry.exercises : []),
-                createEmptyMovementExercise(),
+                createMovementExerciseRow(),
               ],
             }
           : entry,
@@ -1740,7 +1786,7 @@ export default function CarePlanBuilder({
         ...prev,
         {
           ...createEmptySectionItem(),
-          exercises: [createEmptyMovementExercise()],
+          exercises: [createMovementExerciseRow()],
         },
       ]);
       scrollToLastItemCard();
@@ -2255,19 +2301,51 @@ export default function CarePlanBuilder({
                                 />
                                 {activeSection === 'movement' ? (
                                   <>
+                                    {item.has_client_logs && editable ? (
+                                      <p className='rounded-md border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-[12px] font-medium text-amber-950'>
+                                        This task already has client logs. You
+                                        can edit the task title and guidance,
+                                        but exercise prescriptions are locked.
+                                        Create a revision to change exercises.
+                                      </p>
+                                    ) : null}
                                     <div className='space-y-3'>
                                       {(item.exercises ?? []).map(
                                         (exercise, exerciseIndex) => {
+                                          const normalizedExercise =
+                                            normalizeMovementExercisePrescription(
+                                              exercise,
+                                            );
                                           const exerciseId = String(
-                                            exercise.movement_exercise_id ?? '',
+                                            normalizedExercise.movement_exercise_id ??
+                                              '',
                                           ).trim();
+                                          const lookupExercise = exerciseId
+                                            ? movementExerciseById.get(
+                                                exerciseId,
+                                              )
+                                            : undefined;
+                                          const profile =
+                                            lookupExercise?.prescription_profile &&
+                                            isPrescriptionProfile(
+                                              lookupExercise.prescription_profile,
+                                            )
+                                              ? lookupExercise.prescription_profile
+                                              : null;
+                                          const exercisesEditable =
+                                            editable &&
+                                            !item.has_client_logs &&
+                                            item.actions?.exercises_editable !==
+                                              false;
                                           const selectedExerciseIds = new Set(
                                             (item.exercises ?? [])
                                               .map((row, rowIndex) =>
                                                 rowIndex === exerciseIndex
                                                   ? ''
                                                   : String(
-                                                      row.movement_exercise_id ??
+                                                      normalizeMovementExercisePrescription(
+                                                        row,
+                                                      ).movement_exercise_id ??
                                                         '',
                                                     ).trim(),
                                               )
@@ -2313,12 +2391,12 @@ export default function CarePlanBuilder({
                                                       ]?.exercise
                                                     }
                                                     disabled={
-                                                      !editable ||
+                                                      !exercisesEditable ||
                                                       movementExercisesLookupQuery.isLoading
                                                     }
                                                   />
                                                 </div>
-                                                {editable ? (
+                                                {exercisesEditable ? (
                                                   <Button
                                                     type='button'
                                                     variant='outline'
@@ -2341,85 +2419,48 @@ export default function CarePlanBuilder({
                                                 ) : null}
                                               </div>
 
-                                              <div className='mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3'>
-                                                <TextField
-                                                  label='Sets'
-                                                  type='number'
-                                                  min={1}
-                                                  max={1000}
-                                                  placeholder='e.g. 3'
-                                                  value={String(
-                                                    exercise.sets ?? '',
-                                                  )}
-                                                  onChange={(event) =>
-                                                    setMovementExerciseField(
-                                                      index,
-                                                      exerciseIndex,
-                                                      'sets',
-                                                      event.target.value,
-                                                    )
-                                                  }
-                                                  error={
-                                                    movementRowErrors[
-                                                      `${index}-${exerciseIndex}`
-                                                    ]?.sets
-                                                  }
-                                                  disabled={!editable}
-                                                />
-                                                <TextField
-                                                  label='Reps'
-                                                  type='number'
-                                                  min={1}
-                                                  max={1000}
-                                                  placeholder='e.g. 12'
-                                                  value={String(
-                                                    exercise.reps ?? '',
-                                                  )}
-                                                  onChange={(event) =>
-                                                    setMovementExerciseField(
-                                                      index,
-                                                      exerciseIndex,
-                                                      'reps',
-                                                      event.target.value,
-                                                    )
-                                                  }
-                                                  error={
-                                                    movementRowErrors[
-                                                      `${index}-${exerciseIndex}`
-                                                    ]?.reps
-                                                  }
-                                                  disabled={!editable}
-                                                />
-                                                <TextField
-                                                  label='Rest (Seconds)'
-                                                  type='number'
-                                                  min={0}
-                                                  max={7200}
-                                                  placeholder='e.g. 60'
-                                                  value={String(
-                                                    exercise.rest_seconds ?? '',
-                                                  )}
-                                                  onChange={(event) =>
-                                                    setMovementExerciseField(
-                                                      index,
-                                                      exerciseIndex,
-                                                      'rest_seconds',
-                                                      event.target.value,
-                                                    )
-                                                  }
-                                                  error={
-                                                    movementRowErrors[
-                                                      `${index}-${exerciseIndex}`
-                                                    ]?.rest_seconds
-                                                  }
-                                                  disabled={!editable}
-                                                />
-                                              </div>
+                                              <MovementPrescriptionFields
+                                                exercise={normalizedExercise}
+                                                profile={profile}
+                                                fieldLabels={
+                                                  lookupExercise?.prescription_field_labels
+                                                }
+                                                fieldPlaceholders={
+                                                  lookupExercise?.prescription_field_placeholders
+                                                }
+                                                fieldHints={
+                                                  lookupExercise?.prescription_field_hints
+                                                }
+                                                intensityOptions={
+                                                  intensityOptions
+                                                }
+                                                massUnitOptions={massUnitOptions}
+                                                errors={
+                                                  movementRowErrors[
+                                                    `${index}-${exerciseIndex}`
+                                                  ]
+                                                }
+                                                disabled={
+                                                  !exercisesEditable ||
+                                                  movementExercisesLookupQuery.isLoading
+                                                }
+                                                onFieldChange={(field, value) =>
+                                                  setMovementExerciseField(
+                                                    index,
+                                                    exerciseIndex,
+                                                    field,
+                                                    value,
+                                                  )
+                                                }
+                                              />
                                             </div>
                                           );
                                         },
                                       )}
-                                      {editable ? (
+                                      {editable &&
+                                      !item.has_client_logs &&
+                                      item.actions?.exercises_editable !==
+                                        false ? (
                                         <div className='pt-1'>
                                           <div className='flex justify-end'>
                                             <Button
