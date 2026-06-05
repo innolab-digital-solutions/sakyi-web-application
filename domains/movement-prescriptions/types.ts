@@ -50,6 +50,7 @@ export type PrescriptionDurationInputMode = 'seconds_only';
 
 export type MovementPrescriptionProfileLookup = {
   value: PrescriptionProfile;
+  name: string;
   label: string;
   field_labels: PrescriptionFieldLabels;
   duration_input_mode?: PrescriptionDurationInputMode;

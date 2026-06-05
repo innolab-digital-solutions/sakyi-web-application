@@ -1,6 +1,8 @@
 export type MovementEquipment = {
   id: number;
   name: string;
+  equipment_type: string | null;
+  training_section: string | null;
   is_active: boolean;
   actions: {
     deletable: boolean;

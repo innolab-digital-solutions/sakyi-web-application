@@ -45,11 +45,15 @@ export default function MovementEquipmentForm({
     if (mode === 'edit' && equipment) {
       return {
         name: equipment.name ?? '',
+        equipment_type: equipment.equipment_type ?? null,
+        training_section: equipment.training_section ?? null,
         is_active: equipment.is_active ?? true,
       };
     }
     return {
       name: '',
+      equipment_type: null,
+      training_section: null,
       is_active: true,
     };
   }, [mode, equipment]);
@@ -64,6 +68,8 @@ export default function MovementEquipmentForm({
     if (mode !== 'edit' || !equipment) return;
     form.setDataAndDefaults({
       name: equipment.name ?? '',
+      equipment_type: equipment.equipment_type ?? null,
+      training_section: equipment.training_section ?? null,
       is_active: equipment.is_active ?? true,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -137,6 +143,32 @@ export default function MovementEquipmentForm({
           value={String(form.fields.name ?? '')}
           onChange={(e) => form.setData('name', e.target.value)}
           error={form.errors.name}
+        />
+
+        <TextField
+          label='Equipment Type'
+          placeholder='e.g. Free weights'
+          value={String(form.fields.equipment_type ?? '')}
+          onChange={(e) =>
+            form.setData(
+              'equipment_type',
+              e.target.value === '' ? null : e.target.value,
+            )
+          }
+          error={form.errors.equipment_type}
+        />
+
+        <TextField
+          label='Training Section'
+          placeholder='e.g. Upper body'
+          value={String(form.fields.training_section ?? '')}
+          onChange={(e) =>
+            form.setData(
+              'training_section',
+              e.target.value === '' ? null : e.target.value,
+            )
+          }
+          error={form.errors.training_section}
         />
 
         <div className='flex flex-nowrap items-center justify-end gap-2'>

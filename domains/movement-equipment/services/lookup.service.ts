@@ -5,6 +5,8 @@ import { http } from '@/lib/api/client';
 export type MovementEquipmentLookup = {
   id: number;
   name: string;
+  equipment_type: string | null;
+  training_section: string | null;
 };
 
 /**
