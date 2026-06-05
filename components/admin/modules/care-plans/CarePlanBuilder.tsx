@@ -71,9 +71,9 @@ import {
   buildMovementExerciseSavePayload,
   isMovementPrescriptionMeaningful,
   isPrescriptionProfile,
+  type MovementExercisePrescriptionInput,
   normalizeMovementExercisePrescription,
   resetPrescriptionOnExerciseChange,
-  type MovementExercisePrescriptionInput,
 } from '@/lib/care-plans/movementPrescription';
 import { cn } from '@/lib/utils/styles';
 
@@ -902,13 +902,16 @@ export default function CarePlanBuilder({
 
   const [localItems, setLocalItems] = React.useState<CarePlanSectionItem[]>([]);
   React.useEffect(() => {
+    const createEmptyExerciseRow = () =>
+      resetPrescriptionOnExerciseChange('', defaultMassUnitId);
+
     queueMicrotask(() => {
       if (activeSection === 'movement') {
         if (sectionItems.length === 0) {
           const baseItem = createEmptySectionItem();
           setLocalItems(
             editable
-              ? [{ ...baseItem, exercises: [createMovementExerciseRow()] }]
+              ? [{ ...baseItem, exercises: [createEmptyExerciseRow()] }]
               : [],
           );
           return;
@@ -920,7 +923,7 @@ export default function CarePlanBuilder({
               editable &&
               (!Array.isArray(movementItem.exercises) ||
                 movementItem.exercises.length === 0)
-                ? [createMovementExerciseRow()]
+                ? [createEmptyExerciseRow()]
                 : (movementItem.exercises ?? []),
           })),
         );
@@ -951,7 +954,13 @@ export default function CarePlanBuilder({
       }
       setLocalItems(sectionItems);
     });
-  }, [activeSection, editable, nutritionKcalUnitValue, sectionItems]);
+  }, [
+    activeSection,
+    defaultMassUnitId,
+    editable,
+    nutritionKcalUnitValue,
+    sectionItems,
+  ]);
 
   React.useEffect(() => {
     queueMicrotask(() => {

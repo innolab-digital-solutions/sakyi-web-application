@@ -11,12 +11,10 @@ import type {
   PrescriptionProfile,
 } from '@/domains/movement-prescriptions/types';
 import {
-  formatDurationPreview,
   getPrescriptionFieldHint,
   getPrescriptionFieldLabel,
   getPrescriptionFieldPlaceholder,
   isPrescriptionFieldVisible,
-  toNullableInteger,
   type MovementExercisePrescriptionInput,
 } from '@/lib/care-plans/movementPrescription';
 import { cn } from '@/lib/utils/styles';
@@ -69,7 +67,6 @@ type SecondsFieldProps = {
   value: string;
   placeholder?: string;
   hint?: string;
-  storedPreview?: string | null;
   error?: string;
   disabled?: boolean;
   min?: number;
@@ -82,20 +79,12 @@ function SecondsField({
   value,
   placeholder,
   hint,
-  storedPreview,
   error,
   disabled = false,
   min = 0,
   max,
   onChange,
 }: SecondsFieldProps) {
-  const parsed = toNullableInteger(value);
-  const livePreview = formatDurationPreview(parsed);
-  const previewText =
-    disabled && storedPreview?.trim()
-      ? storedPreview.trim()
-      : livePreview;
-
   return (
     <div className='space-y-1'>
       <TextField
@@ -109,11 +98,6 @@ function SecondsField({
         error={error}
         disabled={disabled}
       />
-      {previewText ? (
-        <p className='text-muted-foreground text-[11px] font-medium'>
-          {previewText}
-        </p>
-      ) : null}
       <PrescriptionFieldHint hint={hint} disabled={disabled} />
     </div>
   );
@@ -240,7 +224,6 @@ export default function MovementPrescriptionFields({
           fieldPlaceholders,
         )}
         hint={getPrescriptionFieldHint('duration_seconds', fieldHints)}
-        storedPreview={exercise.duration_preview}
         error={errors?.duration_seconds}
         disabled={disabled}
         min={1}
@@ -258,7 +241,6 @@ export default function MovementPrescriptionFields({
           fieldPlaceholders,
         )}
         hint={getPrescriptionFieldHint('rest_seconds', fieldHints)}
-        storedPreview={exercise.rest_preview}
         error={errors?.rest_seconds}
         disabled={disabled}
         max={7200}
