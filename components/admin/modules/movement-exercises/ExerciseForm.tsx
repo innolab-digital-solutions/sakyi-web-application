@@ -184,7 +184,9 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
     }
 
     const extras = exercise.equipments
-      .filter((item) => !loaded.some((option) => option.value === String(item.id)))
+      .filter(
+        (item) => !loaded.some((option) => option.value === String(item.id)),
+      )
       .map((item) =>
         toEquipmentComboboxOption({
           id: item.id,
@@ -411,7 +413,10 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
                     : undefined
                 }
                 onChange={(val) =>
-                  form.setData('prescription_profile', val as PrescriptionProfile)
+                  form.setData(
+                    'prescription_profile',
+                    val as PrescriptionProfile,
+                  )
                 }
                 error={form.errors.prescription_profile}
               />
@@ -425,9 +430,9 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
                 searchPlaceholder='Search equipment…'
                 emptyMessage='No equipment found.'
                 options={equipmentOptions}
-                value={((form.fields.equipment_ids as number[] | null) ?? []).map(
-                  String,
-                )}
+                value={(
+                  (form.fields.equipment_ids as number[] | null) ?? []
+                ).map(String)}
                 onChange={(vals) =>
                   form.setData('equipment_ids', (vals as string[]).map(Number))
                 }

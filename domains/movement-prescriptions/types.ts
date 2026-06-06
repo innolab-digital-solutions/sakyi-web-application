@@ -44,7 +44,9 @@ export type PrescriptionFieldPlaceholders = Partial<
   Record<PrescriptionFieldKey, string>
 >;
 
-export type PrescriptionFieldHints = Partial<Record<PrescriptionFieldKey, string>>;
+export type PrescriptionFieldHints = Partial<
+  Record<PrescriptionFieldKey, string>
+>;
 
 export type PrescriptionDurationInputMode = 'seconds_only';
 

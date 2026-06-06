@@ -205,7 +205,9 @@ const SelectFieldSingle = React.forwardRef<
               >
                 {opt.description ? (
                   <div className='flex min-w-0 flex-col items-start gap-0.5 py-0.5'>
-                    <span className='text-[13px] font-semibold'>{opt.label}</span>
+                    <span className='text-[13px] font-semibold'>
+                      {opt.label}
+                    </span>
                     <span className='text-muted-foreground text-xs font-normal'>
                       {opt.description}
                     </span>

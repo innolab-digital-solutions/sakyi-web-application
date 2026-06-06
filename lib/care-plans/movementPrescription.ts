@@ -38,45 +38,48 @@ export type MovementExercisePrescriptionSource = {
   rest_preview?: string | null;
 };
 
-const FALLBACK_FIELD_PLACEHOLDERS: Partial<Record<PrescriptionFieldKey, string>> =
-  {
-    sets: 'e.g. 3',
-    reps: 'e.g. 12',
-    rest_seconds: 'e.g. 60',
-    duration_seconds: 'e.g. 1800',
-    equipment_weight: 'e.g. 60',
-  };
+const FALLBACK_FIELD_PLACEHOLDERS: Partial<
+  Record<PrescriptionFieldKey, string>
+> = {
+  sets: 'e.g. 3',
+  reps: 'e.g. 12',
+  rest_seconds: 'e.g. 60',
+  duration_seconds: 'e.g. 1800',
+  equipment_weight: 'e.g. 60',
+};
 
-const DEFAULT_FIELD_LABELS: Record<PrescriptionProfile, PrescriptionFieldLabels> =
-  {
-    sets_reps: {
-      sets: 'Sets',
-      reps: 'Reps',
-      rest_seconds: 'Rest (seconds)',
-    },
-    sets_reps_load: {
-      sets: 'Sets',
-      reps: 'Reps',
-      rest_seconds: 'Rest (seconds)',
-      equipment_weight: 'Weight',
-      equipment_weight_unit_id: 'Weight unit',
-    },
-    sets_duration: {
-      sets: 'Sets',
-      duration_seconds: 'Hold / work (seconds)',
-      rest_seconds: 'Rest (seconds)',
-    },
-    cardio_steady: {
-      duration_seconds: 'Duration (seconds)',
-      intensity: 'Intensity',
-    },
-    cardio_interval: {
-      sets: 'Rounds',
-      duration_seconds: 'Work interval (seconds)',
-      rest_seconds: 'Rest (seconds)',
-      intensity: 'Intensity',
-    },
-  };
+const DEFAULT_FIELD_LABELS: Record<
+  PrescriptionProfile,
+  PrescriptionFieldLabels
+> = {
+  sets_reps: {
+    sets: 'Sets',
+    reps: 'Reps',
+    rest_seconds: 'Rest (seconds)',
+  },
+  sets_reps_load: {
+    sets: 'Sets',
+    reps: 'Reps',
+    rest_seconds: 'Rest (seconds)',
+    equipment_weight: 'Weight',
+    equipment_weight_unit_id: 'Weight unit',
+  },
+  sets_duration: {
+    sets: 'Sets',
+    duration_seconds: 'Hold / work (seconds)',
+    rest_seconds: 'Rest (seconds)',
+  },
+  cardio_steady: {
+    duration_seconds: 'Duration (seconds)',
+    intensity: 'Intensity',
+  },
+  cardio_interval: {
+    sets: 'Rounds',
+    duration_seconds: 'Work interval (seconds)',
+    rest_seconds: 'Rest (seconds)',
+    intensity: 'Intensity',
+  },
+};
 
 const FIELD_VISIBILITY: Record<
   PrescriptionProfile,
@@ -229,13 +232,13 @@ export function isMovementPrescriptionMeaningful(
 ): boolean {
   return Boolean(
     exercise.movement_exercise_id ||
-      exercise.sets ||
-      exercise.reps ||
-      exercise.rest_seconds ||
-      exercise.duration_seconds ||
-      exercise.intensity ||
-      exercise.equipment_weight ||
-      exercise.equipment_weight_unit_id,
+    exercise.sets ||
+    exercise.reps ||
+    exercise.rest_seconds ||
+    exercise.duration_seconds ||
+    exercise.intensity ||
+    exercise.equipment_weight ||
+    exercise.equipment_weight_unit_id,
   );
 }
 
@@ -329,4 +332,3 @@ export function buildMovementExerciseSavePayload(
       : null,
   };
 }
-
