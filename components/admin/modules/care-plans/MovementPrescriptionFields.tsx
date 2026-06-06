@@ -182,7 +182,10 @@ export default function MovementPrescriptionFields({
           type='number'
           min={1}
           max={1000}
-          placeholder={getPrescriptionFieldPlaceholder('sets', fieldPlaceholders)}
+          placeholder={getPrescriptionFieldPlaceholder(
+            'sets',
+            fieldPlaceholders,
+          )}
           value={exercise.sets}
           onChange={(event) => onFieldChange('sets', event.target.value)}
           error={errors?.sets}
@@ -201,7 +204,10 @@ export default function MovementPrescriptionFields({
           type='number'
           min={1}
           max={1000}
-          placeholder={getPrescriptionFieldPlaceholder('reps', fieldPlaceholders)}
+          placeholder={getPrescriptionFieldPlaceholder(
+            'reps',
+            fieldPlaceholders,
+          )}
           value={exercise.reps}
           onChange={(event) => onFieldChange('reps', event.target.value)}
           error={errors?.reps}

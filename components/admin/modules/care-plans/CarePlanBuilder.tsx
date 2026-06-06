@@ -284,8 +284,7 @@ function normalizeSectionItemsForSave(
         exercises: meaningfulExercises,
         has_client_logs: Boolean(item?.has_client_logs),
         exercises_editable:
-          item?.actions?.exercises_editable !== false &&
-          !item?.has_client_logs,
+          item?.actions?.exercises_editable !== false && !item?.has_client_logs,
       } satisfies NormalizedSectionItem;
     })
     .filter((item) => {
@@ -315,9 +314,7 @@ function toSectionSavePayload(
 ): CarePlanSectionItem[] {
   return items.map((item) => {
     const omitExercisesOnActiveLoggedItem =
-      section === 'movement' &&
-      planStatus === 'active' &&
-      item.has_client_logs;
+      section === 'movement' && planStatus === 'active' && item.has_client_logs;
 
     const baseItem: CarePlanSectionItem = {
       title: item.title,
@@ -375,7 +372,10 @@ type CarePlanItemFieldErrors = {
 
 type CarePlanItemFieldErrorsState = Record<number, CarePlanItemFieldErrors>;
 
-type CarePlanMovementRowErrorsState = Record<string, MovementPrescriptionRowErrors>;
+type CarePlanMovementRowErrorsState = Record<
+  string,
+  MovementPrescriptionRowErrors
+>;
 
 function firstApiValidationMessage(raw: unknown): string | undefined {
   if (typeof raw === 'string' && raw.trim()) return raw.trim();
@@ -767,7 +767,9 @@ export default function CarePlanBuilder({
       .filter((row) => {
         const type = toLookupToken(row.type);
         const abbreviation = toLookupToken(row.abbreviation);
-        return type === 'mass' && (abbreviation === 'kg' || abbreviation === 'lb');
+        return (
+          type === 'mass' && (abbreviation === 'kg' || abbreviation === 'lb')
+        );
       })
       .map((row) => ({
         value: String(row.id),
@@ -2447,7 +2449,9 @@ export default function CarePlanBuilder({
                                                 intensityOptions={
                                                   intensityOptions
                                                 }
-                                                massUnitOptions={massUnitOptions}
+                                                massUnitOptions={
+                                                  massUnitOptions
+                                                }
                                                 errors={
                                                   movementRowErrors[
                                                     `${index}-${exerciseIndex}`
