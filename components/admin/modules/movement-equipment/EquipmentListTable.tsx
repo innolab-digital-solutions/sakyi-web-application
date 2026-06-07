@@ -27,9 +27,9 @@ import { deleteMovementEquipment } from '@/domains/movement-equipment/services';
 import type { MovementEquipment } from '@/domains/movement-equipment/types';
 import { useTable } from '@/lib/table';
 
-const COLUMN_COUNT = 2;
+const COLUMN_COUNT = 4;
 
-const SKELETON_WIDTHS = ['w-72', 'w-44'] as const;
+const SKELETON_WIDTHS = ['w-72', 'w-40', 'w-40', 'w-44'] as const;
 
 export default function MovementEquipmentListTable() {
   const queryClient = useQueryClient();
@@ -104,6 +104,8 @@ export default function MovementEquipmentListTable() {
           <TableHeader className='bg-muted/50 [&_tr]:border-border'>
             <TableRow className='border-border hover:bg-transparent'>
               <TableHead>Equipment</TableHead>
+              <TableHead>Equipment Type</TableHead>
+              <TableHead>Training Section</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -149,6 +151,24 @@ export default function MovementEquipmentListTable() {
                         item.name.trim()
                       ) : (
                         <TableCellEmpty label='Name not set' />
+                      )}
+                    </p>
+                  </TableCell>
+                  <TableCell className='align-center whitespace-normal'>
+                    <p className='text-foreground text-[13px] font-medium'>
+                      {item.equipment_type?.trim() ? (
+                        item.equipment_type.trim()
+                      ) : (
+                        <TableCellEmpty label='Type not set' />
+                      )}
+                    </p>
+                  </TableCell>
+                  <TableCell className='align-center whitespace-normal'>
+                    <p className='text-foreground text-[13px] font-medium'>
+                      {item.training_section?.trim() ? (
+                        item.training_section.trim()
+                      ) : (
+                        <TableCellEmpty label='Section not set' />
                       )}
                     </p>
                   </TableCell>

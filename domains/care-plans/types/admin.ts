@@ -1,4 +1,5 @@
 import { AdminEnrollment } from '@/domains/enrollment-records/types/admin';
+import type { CarePlanMovementExercisePrescription } from '@/domains/movement-prescriptions/types';
 
 import type { CarePlanEmbeddedOperationalLog } from './operational-log-embed';
 
@@ -52,12 +53,11 @@ export type CarePlanSectionItem = {
   target_unit_id?: number | string | null;
   movement_exercise_id?: number | string | null;
   exercise_id?: number | string | null;
-  exercises?: Array<{
-    movement_exercise_id: number | string | null;
-    sets?: number | string | null;
-    reps?: number | string | null;
-    rest_seconds?: number | string | null;
-  }> | null;
+  exercises?: Array<CarePlanMovementExercisePrescription> | null;
+  has_client_logs?: boolean;
+  actions?: {
+    exercises_editable?: boolean;
+  };
   [key: string]: unknown;
 };
 

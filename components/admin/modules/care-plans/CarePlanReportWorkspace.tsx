@@ -188,6 +188,8 @@ function emptyFeedback(): ReportRunFeedback {
 }
 
 function formatSectionLabel(sectionKey: string): string {
+  const tab = getCarePlanSectionTab(sectionKey);
+  if (tab) return tab.label;
   const k = sectionKey.replace(/_/g, ' ').trim() || 'other';
   return k.replace(/\b\w/g, (ch) => ch.toUpperCase());
 }

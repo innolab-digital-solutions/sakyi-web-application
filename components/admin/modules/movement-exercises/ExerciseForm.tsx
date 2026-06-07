@@ -25,8 +25,16 @@ import {
   MovementExerciseCreateSchema,
   MovementExerciseUpdateSchema,
 } from '@/domains/movement-exercises/schemas';
-import { getMovementEquipmentLookup } from '@/domains/movement-exercises/services';
+import {
+  getMovementEquipmentLookup,
+  type MovementEquipmentLookup,
+} from '@/domains/movement-exercises/services';
 import type { MovementExercise } from '@/domains/movement-exercises/types';
+import { getMovementPrescriptionProfilesLookup } from '@/domains/movement-prescriptions/services';
+import {
+  PRESCRIPTION_PROFILE_LABELS,
+  type PrescriptionProfile,
+} from '@/domains/movement-prescriptions/types';
 import { useForm } from '@/lib/form';
 
 const DIFFICULTY_OPTIONS: SelectFieldOption[] = [
@@ -63,6 +71,47 @@ function firstMediaItem(
   return list.length > 0 ? list[0] : null;
 }
 
+function formatEquipmentMeta(
+  equipment_type: string | null | undefined,
+  training_section: string | null | undefined,
+): string | null {
+  const parts = [equipment_type?.trim(), training_section?.trim()].filter(
+    Boolean,
+  ) as string[];
+
+  return parts.length > 0 ? parts.join(' · ') : null;
+}
+
+function toEquipmentComboboxOption(
+  equipment: Pick<
+    MovementEquipmentLookup,
+    'id' | 'name' | 'equipment_type' | 'training_section'
+  >,
+): ComboboxOption {
+  const meta = formatEquipmentMeta(
+    equipment.equipment_type,
+    equipment.training_section,
+  );
+
+  return {
+    value: String(equipment.id),
+    label: equipment.name,
+    keywords: [
+      equipment.name,
+      equipment.equipment_type ?? '',
+      equipment.training_section ?? '',
+    ],
+    content: (
+      <div className='flex min-w-0 flex-col'>
+        <span className='text-[13px] font-semibold'>{equipment.name}</span>
+        {meta ? (
+          <span className='text-muted-foreground text-xs'>{meta}</span>
+        ) : null}
+      </div>
+    ),
+  };
+}
+
 export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -76,6 +125,30 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
       return response.data;
     },
   });
+
+  const { data: prescriptionProfilesData } = useQuery({
+    queryKey: ['lookup', LOOKUP_ENDPOINTS.MOVEMENT_PRESCRIPTION_PROFILES],
+    queryFn: async () => {
+      const response = await getMovementPrescriptionProfilesLookup();
+      if (response.status !== 'success') return [];
+      return response.data;
+    },
+  });
+
+  const prescriptionProfileOptions = useMemo<SelectFieldOption[]>(() => {
+    return (prescriptionProfilesData ?? []).map((profile) => {
+      const name =
+        profile.name?.trim() ||
+        PRESCRIPTION_PROFILE_LABELS[profile.value] ||
+        profile.value;
+
+      return {
+        value: profile.value,
+        label: name,
+        description: profile.label?.trim() || undefined,
+      };
+    });
+  }, [prescriptionProfilesData]);
 
   const { data: equipmentData } = useQuery({
     queryKey: ['lookup', LOOKUP_ENDPOINTS.MOVEMENT_EQUIPMENT],
@@ -103,6 +176,29 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
     return loaded;
   }, [categoriesData, isEdit, exercise]);
 
+  const equipmentOptions = useMemo<ComboboxOption[]>(() => {
+    const loaded = (equipmentData ?? []).map(toEquipmentComboboxOption);
+
+    if (!isEdit || !exercise?.equipments.length) {
+      return loaded;
+    }
+
+    const extras = exercise.equipments
+      .filter(
+        (item) => !loaded.some((option) => option.value === String(item.id)),
+      )
+      .map((item) =>
+        toEquipmentComboboxOption({
+          id: item.id,
+          name: item.name,
+          equipment_type: null,
+          training_section: null,
+        }),
+      );
+
+    return extras.length > 0 ? [...extras, ...loaded] : loaded;
+  }, [equipmentData, isEdit, exercise]);
+
   const initialFields = useMemo(() => {
     if (isEdit && exercise) {
       return {
@@ -111,6 +207,8 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
         name: exercise.name ?? '',
         description: exercise.description ?? '',
         difficulty: exercise.difficulty ?? 'beginner',
+        prescription_profile:
+          exercise.prescription_profile ?? ('sets_reps' as PrescriptionProfile),
         is_active: exercise.is_active ?? true,
         media: exercise.media.length
           ? ([
@@ -132,6 +230,7 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
         | 'beginner'
         | 'intermediate'
         | 'advanced',
+      prescription_profile: undefined as PrescriptionProfile | undefined,
       is_active: true,
       media: [] as MediaItemInput[],
       equipment_ids: [] as number[],
@@ -151,6 +250,8 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
       name: exercise.name ?? '',
       description: exercise.description ?? '',
       difficulty: exercise.difficulty ?? 'beginner',
+      prescription_profile:
+        exercise.prescription_profile ?? ('sets_reps' as PrescriptionProfile),
       is_active: exercise.is_active ?? true,
       media: exercise.media.length
         ? [{ type: exercise.media[0].type, url: exercise.media[0].url }]
@@ -298,6 +399,47 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
               />
             </div>
           </div>
+          <div className='grid min-w-0 gap-6 sm:grid-cols-2'>
+            <div className='min-w-0'>
+              <SelectField
+                className='min-w-0'
+                label='Prescription Profile'
+                required
+                placeholder='Select a profile…'
+                options={prescriptionProfileOptions}
+                value={
+                  form.fields.prescription_profile != null
+                    ? String(form.fields.prescription_profile)
+                    : undefined
+                }
+                onChange={(val) =>
+                  form.setData(
+                    'prescription_profile',
+                    val as PrescriptionProfile,
+                  )
+                }
+                error={form.errors.prescription_profile}
+              />
+            </div>
+            <div className='min-w-0'>
+              <ComboboxField
+                className='min-w-0'
+                label='Equipment'
+                multiple
+                placeholder='Select equipment…'
+                searchPlaceholder='Search equipment…'
+                emptyMessage='No equipment found.'
+                options={equipmentOptions}
+                value={(
+                  (form.fields.equipment_ids as number[] | null) ?? []
+                ).map(String)}
+                onChange={(vals) =>
+                  form.setData('equipment_ids', (vals as string[]).map(Number))
+                }
+                error={form.errors.equipment_ids}
+              />
+            </div>
+          </div>
           <TextField
             label='YouTube link'
             type='url'
@@ -308,24 +450,6 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
               form.setData('media', mediaFromYoutubeInput(e.target.value))
             }
             error={form.errors['media.0.url'] || form.errors['media.0.type']}
-          />
-          <ComboboxField
-            label='Equipment'
-            multiple
-            placeholder='Select equipment…'
-            searchPlaceholder='Search equipment…'
-            emptyMessage='No equipment found.'
-            options={(equipmentData ?? []).map((e) => ({
-              value: String(e.id),
-              label: e.name,
-            }))}
-            value={((form.fields.equipment_ids as number[] | null) ?? []).map(
-              String,
-            )}
-            onChange={(vals) =>
-              form.setData('equipment_ids', (vals as string[]).map(Number))
-            }
-            error={form.errors.equipment_ids}
           />
 
           <div className='flex flex-nowrap items-center justify-end gap-2'>

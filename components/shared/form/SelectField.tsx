@@ -27,7 +27,10 @@ import { cn } from '@/lib/utils/styles';
 /** Option row for `SelectField` (plain labels; use `ComboBoxField` for search or rich rows). */
 export type SelectFieldOption = {
   value: string;
+  /** Primary line; also shown in the trigger when selected. */
   label: string;
+  /** Optional secondary line in the dropdown only. */
+  description?: string;
   disabled?: boolean;
 };
 
@@ -116,7 +119,8 @@ const SelectFieldSingle = React.forwardRef<
     const errorId = error ? `${id}-error` : undefined;
 
     const responsiveTriggerClass = cn(
-      'inline-flex w-full min-w-0 cursor-pointer items-center justify-between rounded-md font-medium whitespace-normal outline-none',
+      'inline-flex w-full min-w-0 cursor-pointer items-center justify-between rounded-md font-medium whitespace-nowrap outline-none',
+      '[&_[data-slot=select-value]]:min-w-0 [&_[data-slot=select-value]]:truncate',
       'border border-neutral-200 bg-transparent shadow-xs transition-[color,box-shadow]',
       'dark:bg-input/30',
       'text-xs h-10 py-1 px-3 md:h-12 md:px-4 md:text-sm',
@@ -195,10 +199,22 @@ const SelectFieldSingle = React.forwardRef<
               <SelectItem
                 key={`${opt.value}-${index}`}
                 value={opt.value}
+                textValue={opt.label}
                 disabled={opt.disabled}
                 className='py-2 text-xs font-medium md:text-sm'
               >
-                {opt.label}
+                {opt.description ? (
+                  <div className='flex min-w-0 flex-col items-start gap-0.5 py-0.5'>
+                    <span className='text-[13px] font-semibold'>
+                      {opt.label}
+                    </span>
+                    <span className='text-muted-foreground text-xs font-normal'>
+                      {opt.description}
+                    </span>
+                  </div>
+                ) : (
+                  opt.label
+                )}
               </SelectItem>
             ))}
           </SelectContent>
