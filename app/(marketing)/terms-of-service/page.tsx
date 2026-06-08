@@ -174,7 +174,6 @@ export default function TermsOfServicePage() {
             Kyi Health &amp; Wellness mobile application. Please read them
             carefully before proceeding.
           </Body1>
-
         </div>
 
         {/* Intro notice */}

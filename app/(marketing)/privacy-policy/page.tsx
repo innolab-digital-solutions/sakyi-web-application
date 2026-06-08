@@ -218,7 +218,6 @@ export default function PrivacyPolicyPage() {
             protect, and manage your personal information when you use the Sa
             Kyi mobile application.
           </Body1>
-
         </div>
 
         {/* Intro notice */}
