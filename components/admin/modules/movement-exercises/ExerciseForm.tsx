@@ -4,21 +4,29 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeftIcon, DumbbellIcon, SaveIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import ComboboxField, {
   type ComboboxOption,
 } from '@/components/shared/form/ComboBoxField';
+import FileUploadField, {
+  type FileUploadFieldRemoteFile,
+} from '@/components/shared/form/FileUploadField';
 import SelectField, {
   type SelectFieldOption,
 } from '@/components/shared/form/SelectField';
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
 import { Button } from '@/components/ui/button';
+import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
 import { ROUTES } from '@/config/routes';
+import {
+  ADMIN_IMAGE_UPLOAD_MAX_BYTES,
+  mimeTypeFromImageFilename,
+} from '@/config/uploads/admin-image-upload';
 import { getMovementCategoriesLookup } from '@/domains/movement-categories/services';
 import {
   type MediaItemInput,
@@ -56,6 +64,32 @@ type EditProps = {
 };
 
 type Props = CreateProps | EditProps;
+
+const MOVEMENT_EXERCISE_GIF_ACCEPT = '.gif';
+
+function resolveExerciseGifDisplayUrl(
+  raw: string | null | undefined,
+): string | null {
+  const trimmed = raw?.trim();
+  if (!trimmed) return null;
+  return trimmed.startsWith('http') ? trimmed : `${base.domainEndpoint}${trimmed}`;
+}
+
+function remoteGifFilesFromExercise(
+  exercise?: MovementExercise,
+): FileUploadFieldRemoteFile[] {
+  if (!exercise?.gif?.trim()) return [];
+  const fullUrl = resolveExerciseGifDisplayUrl(exercise.gif);
+  if (!fullUrl) return [];
+  const fileName = exercise.gif.split('/').pop()?.split('?')[0] ?? 'exercise.gif';
+  return [
+    {
+      url: fullUrl,
+      name: fileName,
+      mimeType: mimeTypeFromImageFilename(fileName),
+    },
+  ];
+}
 
 /** Single UI field maps to `media: [] | [{ type, url }]` (same API shape as before). */
 function mediaFromYoutubeInput(raw: string): MediaItemInput[] {
@@ -116,6 +150,10 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const isEdit = mode === 'edit';
+
+  const [existingGif, setExistingGif] = useState<FileUploadFieldRemoteFile[]>(
+    () => remoteGifFilesFromExercise(isEdit ? exercise : undefined),
+  );
 
   const { data: categoriesData } = useQuery({
     queryKey: ['lookup', LOOKUP_ENDPOINTS.MOVEMENT_CATEGORIES],
@@ -219,6 +257,8 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
             ] as MediaItemInput[])
           : [],
         equipment_ids: exercise.equipments.map((e) => e.id) as number[],
+        gif_url: exercise.gif ?? null,
+        gif: undefined,
       };
     }
     return {
@@ -234,6 +274,8 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
       is_active: true,
       media: [] as MediaItemInput[],
       equipment_ids: [] as number[],
+      gif_url: null,
+      gif: undefined,
     };
   }, [isEdit, exercise]);
 
@@ -245,6 +287,7 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
 
   useEffect(() => {
     if (!isEdit || !exercise) return;
+    setExistingGif(remoteGifFilesFromExercise(exercise));
     form.setDataAndDefaults({
       movement_category_id: exercise.movement_category?.id ?? null,
       name: exercise.name ?? '',
@@ -257,6 +300,8 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
         ? [{ type: exercise.media[0].type, url: exercise.media[0].url }]
         : [],
       equipment_ids: exercise.equipments.map((e) => e.id),
+      gif_url: exercise.gif ?? null,
+      gif: undefined,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEdit, exercise]);
@@ -343,7 +388,33 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
         }}
         noValidate
       >
-        <div className='space-y-6'>
+        <div className='space-y-6 pb-8'>
+          <FileUploadField
+            label='Exercise GIF'
+            name='gif'
+            accept={MOVEMENT_EXERCISE_GIF_ACCEPT}
+            maxFiles={1}
+            maxFileSize={ADMIN_IMAGE_UPLOAD_MAX_BYTES}
+            existingFiles={existingGif}
+            onExistingFilesChange={(files) => {
+              setExistingGif(files);
+              if (files.length === 0) {
+                form.setData('gif_url', null);
+              }
+            }}
+            onFilesChange={(files) => {
+              const file = files[0] ?? undefined;
+              form.setData('gif', file);
+              if (file) {
+                form.setData('gif_url', null);
+                form.clearErrors('gif');
+              }
+            }}
+            description='Optional — animated demonstration (GIF only).'
+            emptyHint='Browse'
+            disabled={loading}
+            error={form.errors.gif as string | undefined}
+          />
           <TextField
             label='Exercise Name'
             required
