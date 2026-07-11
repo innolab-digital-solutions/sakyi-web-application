@@ -16,6 +16,7 @@ export const LOOKUP_ENDPOINTS = {
   GOALS: `${BASE}/goals`,
   CLIENTS: `${BASE}/clients`,
   NUTRITION_CATEGORIES: `${BASE}/nutrition-categories`,
+  NUTRITION_ITEMS: `${BASE}/nutrition-items`,
   UNITS: `${BASE}/units`,
   MOVEMENT_CATEGORIES: `${BASE}/movement-categories`,
   MOVEMENT_EQUIPMENT: `${BASE}/movement-equipment`,

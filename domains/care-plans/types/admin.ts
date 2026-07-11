@@ -43,6 +43,19 @@ export type CarePlanSectionKey =
   | 'activity'
   | 'recovery';
 
+/**
+ * Link row between a care plan nutrition task and a nutrition library item.
+ *
+ * Mirrors the movement `exercises` link. In admin responses `id` is the link
+ * row id and `nutrition_item_id` references the library item (resolve display
+ * details from the nutrition-items lookup list). On save only
+ * `nutrition_item_id` is sent per entry.
+ */
+export type CarePlanNutritionItemLink = {
+  id?: number | string;
+  nutrition_item_id: number | string | null;
+};
+
 export type CarePlanSectionItem = {
   id?: number | string;
   title?: string | null;
@@ -54,6 +67,9 @@ export type CarePlanSectionItem = {
   movement_exercise_id?: number | string | null;
   exercise_id?: number | string | null;
   exercises?: Array<CarePlanMovementExercisePrescription> | null;
+  nutrition_items?: Array<CarePlanNutritionItemLink> | null;
+  /** Local editing helper: selected nutrition library item ids for the picker. */
+  nutrition_item_ids?: Array<number | string>;
   has_client_logs?: boolean;
   actions?: {
     exercises_editable?: boolean;
