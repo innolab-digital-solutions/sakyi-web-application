@@ -14,6 +14,7 @@ import type {
   PrescriptionProfile,
 } from '@/domains/movement-prescriptions/types';
 import {
+  formatSecondsReadable,
   getPrescriptionFieldHint,
   getPrescriptionFieldLabel,
   getPrescriptionFieldPlaceholder,
@@ -88,6 +89,8 @@ function SecondsField({
   max,
   onChange,
 }: SecondsFieldProps) {
+  const readable = formatSecondsReadable(value);
+
   return (
     <div className='space-y-1'>
       <TextField
@@ -101,6 +104,11 @@ function SecondsField({
         error={error}
         disabled={disabled}
       />
+      {readable ? (
+        <p className='text-primary text-[11px] leading-relaxed font-semibold'>
+          ≈ {readable}
+        </p>
+      ) : null}
       <PrescriptionFieldHint hint={hint} disabled={disabled} />
     </div>
   );
