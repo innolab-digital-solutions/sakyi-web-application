@@ -14,6 +14,7 @@ import {
   ExpandIcon,
   FileChartColumn,
   FileSymlink,
+  ImagesIcon,
   ListChecks,
   Loader2Icon,
   NotebookPenIcon,
@@ -57,6 +58,7 @@ import {
 } from '@/domains/care-plans/services';
 import type { AdminCarePlan } from '@/domains/care-plans/types/admin';
 import type {
+  CarePlanReportDayPhoto,
   CarePlanReportEvidenceDay,
   CarePlanReportEvidenceItem,
   CarePlanReportWorkspace,
@@ -1464,6 +1466,69 @@ function EvidenceLineItemCard({
   );
 }
 
+function DayPhotosGallery({
+  photos,
+  dayLabel,
+  onOpenImage,
+}: {
+  photos: CarePlanReportDayPhoto[];
+  dayLabel: string;
+  onOpenImage: (url: string, contextLabel: string) => void;
+}) {
+  return (
+    <div className='border-border dark:bg-card space-y-3 rounded-lg border bg-white p-3 sm:p-3.5'>
+      <div className='flex items-center gap-2'>
+        <span className='bg-muted text-foreground/70 flex size-6 shrink-0 items-center justify-center rounded-md'>
+          <ImagesIcon className='size-3.5' aria-hidden />
+        </span>
+        <p className='text-foreground/90 text-[11px] font-semibold tracking-wide uppercase'>
+          Day photo
+        </p>
+      </div>
+      <div className='grid grid-cols-3 gap-2 sm:grid-cols-4'>
+        {photos.map((photo) => {
+          const u = resolveMediaUrl(photo.url);
+          if (!u) return null;
+          return (
+            <button
+              key={photo.id}
+              type='button'
+              onClick={() => onOpenImage(u, dayLabel)}
+              className={cn(
+                'group border-border dark:bg-background relative aspect-square overflow-hidden rounded-md border bg-white',
+                'ring-offset-background focus-visible:ring-ring',
+                'transition-all hover:shadow-md hover:ring-1 hover:ring-primary/40',
+                'focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
+              )}
+            >
+              <Image
+                src={u}
+                alt=''
+                fill
+                sizes='(min-width: 640px) 25vw, 33vw'
+                className='object-cover transition-transform duration-200 group-hover:scale-105'
+                unoptimized
+              />
+              <span
+                className={cn(
+                  'absolute inset-0 flex items-center justify-center',
+                  'bg-black/0 transition-colors group-hover:bg-black/35',
+                )}
+                aria-hidden
+              >
+                <ExpandIcon className='size-4 text-white opacity-0 drop-shadow-sm transition-opacity group-hover:opacity-100' />
+              </span>
+              <span className='sr-only'>
+                View full-size photo for {dayLabel}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function EvidenceList({
   days,
   onOpenImage,
@@ -1484,6 +1549,8 @@ function EvidenceList({
       {days.map((d) => {
         const sectionGroups = groupEvidenceItemsBySection(d.items);
         const { totalTasks, totalLogs } = getEvidenceDayTaskLogCounts(d.items);
+        const dayPhotos = d.photos?.length ? d.photos : null;
+        const dayLabel = `Day ${d.day_index} — ${formatTargetDateLabel(d.target_date)}`;
         return (
           <li
             key={`${d.target_date}-${d.day_index}`}
@@ -1568,6 +1635,13 @@ function EvidenceList({
                 )}
               >
                 <div className='border-border/70 bg-muted/10 space-y-3 rounded-b-md border-t px-2.5 pt-2.5 pb-4 sm:px-3 sm:pt-3 sm:pb-5 dark:bg-black/5'>
+                  {dayPhotos ? (
+                    <DayPhotosGallery
+                      photos={dayPhotos}
+                      dayLabel={dayLabel}
+                      onOpenImage={onOpenImage}
+                    />
+                  ) : null}
                   {sectionGroups.map(([sectionKey, items]) => (
                     <div
                       key={`${d.target_date}-${sectionKey}`}
