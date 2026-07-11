@@ -1497,7 +1497,7 @@ function DayPhotosGallery({
               className={cn(
                 'group border-border dark:bg-background relative aspect-square overflow-hidden rounded-md border bg-white',
                 'ring-offset-background focus-visible:ring-ring',
-                'transition-all hover:shadow-md hover:ring-1 hover:ring-primary/40',
+                'hover:ring-primary/40 transition-all hover:shadow-md hover:ring-1',
                 'focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
               )}
             >

@@ -72,7 +72,9 @@ function resolveExerciseGifDisplayUrl(
 ): string | null {
   const trimmed = raw?.trim();
   if (!trimmed) return null;
-  return trimmed.startsWith('http') ? trimmed : `${base.domainEndpoint}${trimmed}`;
+  return trimmed.startsWith('http')
+    ? trimmed
+    : `${base.domainEndpoint}${trimmed}`;
 }
 
 function remoteGifFilesFromExercise(
@@ -81,7 +83,8 @@ function remoteGifFilesFromExercise(
   if (!exercise?.gif?.trim()) return [];
   const fullUrl = resolveExerciseGifDisplayUrl(exercise.gif);
   if (!fullUrl) return [];
-  const fileName = exercise.gif.split('/').pop()?.split('?')[0] ?? 'exercise.gif';
+  const fileName =
+    exercise.gif.split('/').pop()?.split('?')[0] ?? 'exercise.gif';
   return [
     {
       url: fullUrl,
@@ -287,21 +290,23 @@ export default function ExerciseForm({ mode, exercise, onSuccess }: Props) {
 
   useEffect(() => {
     if (!isEdit || !exercise) return;
-    setExistingGif(remoteGifFilesFromExercise(exercise));
-    form.setDataAndDefaults({
-      movement_category_id: exercise.movement_category?.id ?? null,
-      name: exercise.name ?? '',
-      description: exercise.description ?? '',
-      difficulty: exercise.difficulty ?? 'beginner',
-      prescription_profile:
-        exercise.prescription_profile ?? ('sets_reps' as PrescriptionProfile),
-      is_active: exercise.is_active ?? true,
-      media: exercise.media.length
-        ? [{ type: exercise.media[0].type, url: exercise.media[0].url }]
-        : [],
-      equipment_ids: exercise.equipments.map((e) => e.id),
-      gif_url: exercise.gif ?? null,
-      gif: undefined,
+    queueMicrotask(() => {
+      setExistingGif(remoteGifFilesFromExercise(exercise));
+      form.setDataAndDefaults({
+        movement_category_id: exercise.movement_category?.id ?? null,
+        name: exercise.name ?? '',
+        description: exercise.description ?? '',
+        difficulty: exercise.difficulty ?? 'beginner',
+        prescription_profile:
+          exercise.prescription_profile ?? ('sets_reps' as PrescriptionProfile),
+        is_active: exercise.is_active ?? true,
+        media: exercise.media.length
+          ? [{ type: exercise.media[0].type, url: exercise.media[0].url }]
+          : [],
+        equipment_ids: exercise.equipments.map((e) => e.id),
+        gif_url: exercise.gif ?? null,
+        gif: undefined,
+      });
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEdit, exercise]);

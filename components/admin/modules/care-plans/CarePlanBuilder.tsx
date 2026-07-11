@@ -2609,67 +2609,67 @@ export default function CarePlanBuilder({
                                 ) : (
                                   <>
                                     <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-                                    <TextField
-                                      label='Target'
-                                      type='number'
-                                      placeholder='Enter a target value'
-                                      value={String(item.target_value ?? '')}
-                                      onChange={(event) =>
-                                        setItemField(
-                                          index,
-                                          'target_value',
-                                          event.target.value,
-                                        )
-                                      }
-                                      error={
-                                        itemFieldErrors[index]?.target_value
-                                      }
-                                      disabled={!editable}
-                                    />
-                                    <ComboboxField
-                                      label='Measurement'
-                                      placeholder={
-                                        activeSection === 'nutrition'
-                                          ? 'kcal'
-                                          : 'Please select a measurement unit…'
-                                      }
-                                      searchPlaceholder='Search measurement unit…'
-                                      emptyMessage={
-                                        activeSection === 'nutrition'
-                                          ? 'kcal unit is not available.'
-                                          : 'No measurement units found.'
-                                      }
-                                      options={
-                                        activeSection === 'nutrition'
-                                          ? nutritionUnitOptions
-                                          : unitOptions
-                                      }
-                                      value={
-                                        activeSection === 'nutrition'
-                                          ? nutritionKcalUnitValue
-                                          : resolveUnitComboboxValue(
-                                              item.target_unit,
-                                            )
-                                      }
-                                      onChange={(value) =>
-                                        setItemField(
-                                          index,
-                                          'target_unit',
+                                      <TextField
+                                        label='Target'
+                                        type='number'
+                                        placeholder='Enter a target value'
+                                        value={String(item.target_value ?? '')}
+                                        onChange={(event) =>
+                                          setItemField(
+                                            index,
+                                            'target_value',
+                                            event.target.value,
+                                          )
+                                        }
+                                        error={
+                                          itemFieldErrors[index]?.target_value
+                                        }
+                                        disabled={!editable}
+                                      />
+                                      <ComboboxField
+                                        label='Measurement'
+                                        placeholder={
                                           activeSection === 'nutrition'
-                                            ? (nutritionKcalUnitValue ?? '')
-                                            : (value ?? ''),
-                                        )
-                                      }
-                                      error={
-                                        itemFieldErrors[index]?.target_unit
-                                      }
-                                      readOnly={
-                                        activeSection === 'nutrition' &&
-                                        nutritionKcalUnitValue != null &&
-                                        editable
-                                      }
-                                      disabled={!editable}
-                                    />
+                                            ? 'kcal'
+                                            : 'Please select a measurement unit…'
+                                        }
+                                        searchPlaceholder='Search measurement unit…'
+                                        emptyMessage={
+                                          activeSection === 'nutrition'
+                                            ? 'kcal unit is not available.'
+                                            : 'No measurement units found.'
+                                        }
+                                        options={
+                                          activeSection === 'nutrition'
+                                            ? nutritionUnitOptions
+                                            : unitOptions
+                                        }
+                                        value={
+                                          activeSection === 'nutrition'
+                                            ? nutritionKcalUnitValue
+                                            : resolveUnitComboboxValue(
+                                                item.target_unit,
+                                              )
+                                        }
+                                        onChange={(value) =>
+                                          setItemField(
+                                            index,
+                                            'target_unit',
+                                            activeSection === 'nutrition'
+                                              ? (nutritionKcalUnitValue ?? '')
+                                              : (value ?? ''),
+                                          )
+                                        }
+                                        error={
+                                          itemFieldErrors[index]?.target_unit
+                                        }
+                                        readOnly={
+                                          activeSection === 'nutrition' &&
+                                          nutritionKcalUnitValue != null &&
+                                          editable
+                                        }
+                                        disabled={!editable}
+                                      />
                                     </div>
                                     {activeSection === 'nutrition' ? (
                                       <div className='space-y-2'>
