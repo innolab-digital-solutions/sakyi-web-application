@@ -8,11 +8,11 @@ Base API prefix: `/v1`. All admin endpoints require the admin bearer token.
 
 ## What changed (summary)
 
-| Before | After |
-|--------|-------|
+| Before                                                      | After                                                                            |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | 4 sections: `nutrition`, `movement`, `activity`, `recovery` | **5 sections:** `nutrition`, `movement`, `activity`, **`hydration`**, `recovery` |
-| — | New `sections.hydration` array on every care plan builder response |
-| — | New upsert route segment: `section=hydration` |
+| —                                                           | New `sections.hydration` array on every care plan builder response               |
+| —                                                           | New upsert route segment: `section=hydration`                                    |
 
 **No breaking changes** to existing sections. Activity, recovery, nutrition, and movement payloads are unchanged.
 
@@ -63,16 +63,17 @@ Content-Type: application/json
 }
 ```
 
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `id` | integer | No | Include when updating an existing row; omit for new items |
-| `title` | string | Yes | Max 150 characters |
-| `guidance` | string | No | Free-text coach notes |
-| `target_value` | number | No | Decimal allowed (e.g. `2.5`) |
-| `target_unit_id` | integer | No | Must exist in `units` table (e.g. liters, ml) |
-| `meta` | object | No | Optional JSON metadata |
+| Field            | Type    | Required | Notes                                                     |
+| ---------------- | ------- | -------- | --------------------------------------------------------- |
+| `id`             | integer | No       | Include when updating an existing row; omit for new items |
+| `title`          | string  | Yes      | Max 150 characters                                        |
+| `guidance`       | string  | No       | Free-text coach notes                                     |
+| `target_value`   | number  | No       | Decimal allowed (e.g. `2.5`)                              |
+| `target_unit_id` | integer | No       | Must exist in `units` table (e.g. liters, ml)             |
+| `meta`           | object  | No       | Optional JSON metadata                                    |
 
 **Sync semantics** (same as activity):
+
 - The `items` array is the **full desired set** for that day’s hydration section.
 - Items in the payload but not in DB → **created**.
 - Items in DB but missing from payload → **deleted**.
@@ -98,8 +99,12 @@ Every care plan builder response now includes `hydration`:
         "target_date": "2026-07-12",
         "general_notes": null,
         "sections": {
-          "nutrition": [ /* unchanged */ ],
-          "movement": [ /* unchanged */ ],
+          "nutrition": [
+            /* unchanged */
+          ],
+          "movement": [
+            /* unchanged */
+          ],
           "activity": [
             {
               "id": 8,
@@ -120,7 +125,9 @@ Every care plan builder response now includes `hydration`:
               "meta": null
             }
           ],
-          "recovery": [ /* unchanged */ ]
+          "recovery": [
+            /* unchanged */
+          ]
         }
       }
     ]
@@ -131,14 +138,14 @@ Every care plan builder response now includes `hydration`:
 
 Each hydration item has the **same columns as activity**:
 
-| Field | Description |
-|-------|-------------|
-| `id` | Row id — use as `item_id` reference in logs/report workspace |
-| `title` | Task title shown to client |
-| `guidance` | Optional coach guidance |
-| `target_value` | Numeric goal (integer when whole, decimal when fractional) |
-| `target_unit_id` | FK to units — resolve name/abbreviation via units lookup |
-| `meta` | Optional JSON blob |
+| Field            | Description                                                  |
+| ---------------- | ------------------------------------------------------------ |
+| `id`             | Row id — use as `item_id` reference in logs/report workspace |
+| `title`          | Task title shown to client                                   |
+| `guidance`       | Optional coach guidance                                      |
+| `target_value`   | Numeric goal (integer when whole, decimal when fractional)   |
+| `target_unit_id` | FK to units — resolve name/abbreviation via units lookup     |
+| `meta`           | Optional JSON blob                                           |
 
 ---
 
@@ -146,12 +153,12 @@ Each hydration item has the **same columns as activity**:
 
 All existing care plan builder endpoints now include `sections.hydration`:
 
-| Method | Endpoint |
-|--------|----------|
-| `GET` | `/v1/web/admin/care-plans/{care_plan}/builder` |
-| `PUT` | `/v1/web/admin/care-plans/{care_plan}/days/{day}/sections/hydration/items` |
-| `PATCH` | `/v1/web/admin/care-plans/{care_plan}/days/{day}/notes` |
-| `POST` | `/v1/web/admin/care-plans/{care_plan}/days/generate` |
+| Method  | Endpoint                                                                   |
+| ------- | -------------------------------------------------------------------------- |
+| `GET`   | `/v1/web/admin/care-plans/{care_plan}/builder`                             |
+| `PUT`   | `/v1/web/admin/care-plans/{care_plan}/days/{day}/sections/hydration/items` |
+| `PATCH` | `/v1/web/admin/care-plans/{care_plan}/days/{day}/notes`                    |
+| `POST`  | `/v1/web/admin/care-plans/{care_plan}/days/generate`                       |
 
 ---
 
@@ -167,7 +174,9 @@ All existing care plan builder endpoints now include `sections.hydration`:
   "title": "Water intake",
   "guidance": "Spread evenly through the day",
   "target": { "value": 2.5, "unit": "L", "unit_id": 27 },
-  "log": { /* client log if exists */ }
+  "log": {
+    /* client log if exists */
+  }
 }
 ```
 
@@ -198,12 +207,12 @@ A care plan day still needs **at least one item** in any section before activati
 
 ## 7. Comparison: hydration vs activity
 
-| | Activity | Hydration |
-|---|----------|-----------|
-| Upsert section | `activity` | `hydration` |
-| Response key | `sections.activity` | `sections.hydration` |
-| Fields | title, guidance, target_value, target_unit_id, meta | **Same** |
-| Library linking | None | None |
-| Client logging section | `"activity"` | `"hydration"` |
+|                        | Activity                                            | Hydration            |
+| ---------------------- | --------------------------------------------------- | -------------------- |
+| Upsert section         | `activity`                                          | `hydration`          |
+| Response key           | `sections.activity`                                 | `sections.hydration` |
+| Fields                 | title, guidance, target_value, target_unit_id, meta | **Same**             |
+| Library linking        | None                                                | None                 |
+| Client logging section | `"activity"`                                        | `"hydration"`        |
 
 The only difference is the section name — implementation is identical.
