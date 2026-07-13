@@ -1,5 +1,6 @@
 import {
   AppleIcon,
+  DropletsIcon,
   DumbbellIcon,
   FootprintsIcon,
   HeartPulseIcon,
@@ -10,7 +11,7 @@ import type { CarePlanSectionKey } from '@/domains/care-plans/types/admin';
 
 /**
  * Care plan day builder tabs: section key, label, and the same icon used in
- * {@link CarePlanBuilder} `TabsList` (Nutrition, Exercise, Activity, Recovery).
+ * {@link CarePlanBuilder} `TabsList` (Nutrition, Exercise, Activity, Hydration, Recovery).
  */
 export const CARE_PLAN_SECTION_TABS: ReadonlyArray<{
   key: CarePlanSectionKey;
@@ -20,6 +21,7 @@ export const CARE_PLAN_SECTION_TABS: ReadonlyArray<{
   { key: 'nutrition', label: 'Nutrition', icon: AppleIcon },
   { key: 'movement', label: 'Exercise', icon: DumbbellIcon },
   { key: 'activity', label: 'Activity', icon: FootprintsIcon },
+  { key: 'hydration', label: 'Hydration', icon: DropletsIcon },
   { key: 'recovery', label: 'Recovery', icon: HeartPulseIcon },
 ];
 

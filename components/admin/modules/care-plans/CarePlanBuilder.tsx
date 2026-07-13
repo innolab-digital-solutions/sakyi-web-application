@@ -91,6 +91,8 @@ const SECTION_GUIDANCE: Record<CarePlanSectionKey, string> = {
     'List the exercises the client should complete. Prescription fields adapt to each exercise profile (sets/reps, timed holds, cardio, load, and intervals).',
   activity:
     'Add everyday activities the client should aim for (walking, stretching, errands, etc.) with a clear target and simple wording they can follow on their own.',
+  hydration:
+    'Set daily fluid goals the client should track (water, electrolytes, etc.) with a clear target volume and simple guidance they can follow throughout the day.',
   recovery:
     'Describe rest, wind-down, and recovery habits for the client, including sleep windows, light mobility, breathing, or relaxation, so they can recover well between harder days.',
 };
@@ -99,6 +101,7 @@ const SECTION_ADD_LABEL: Record<CarePlanSectionKey, string> = {
   nutrition: 'Add Nutrition',
   movement: 'Add Exercise Session',
   activity: 'Add Activity',
+  hydration: 'Add Hydration',
   recovery: 'Add Recovery',
 };
 
@@ -607,7 +610,7 @@ class CarePlanDayNotesValidationError extends Error {
 function formatDayTaskValidationMessage(message: string): string {
   return message
     .replace(
-      /at least one item(?:\s+in)?\s+(nutrition,\s*movement,\s*activity,\s*or\s*recovery)/i,
+      /at least one item(?:\s+in)?\s+(nutrition,\s*movement,\s*activity(?:,\s*hydration)?,?\s*or\s*recovery)/i,
       'at least one task in any section ($1)',
     )
     .replace(/\bitem\b/gi, 'task')
@@ -619,7 +622,7 @@ function extractValidationIssuesByDay(
 ): Record<number, string> {
   const dayIssueMessages: Record<number, string> = {};
   const defaultDayTaskMessage =
-    'Add at least one task in any section (nutrition, exercise, activity, or recovery).';
+    'Add at least one task in any section (nutrition, exercise, activity, hydration, or recovery).';
 
   for (const issue of issues) {
     const field = String(issue?.field ?? '').trim();
@@ -2148,7 +2151,7 @@ export default function CarePlanBuilder({
               </p>
               <p className='text-muted-foreground mt-1 text-[13px] font-medium'>
                 Set the care timeline first, then add tasks to each day across
-                nutrition, exercise, activity, and recovery.
+                nutrition, exercise, activity, hydration, and recovery.
               </p>
               {editable ? (
                 <Button
@@ -2382,7 +2385,9 @@ export default function CarePlanBuilder({
                                           ? 'Enter a task name (e.g. Strength Training Session)'
                                           : activeSection === 'activity'
                                             ? 'Enter a task name (e.g. Morning walk)'
-                                            : 'Enter a task name (e.g. Sleep)'
+                                            : activeSection === 'hydration'
+                                              ? 'Enter a task name (e.g. Water intake)'
+                                              : 'Enter a task name (e.g. Sleep)'
                                     }
                                     value={String(item.title ?? '')}
                                     onChange={(event) =>

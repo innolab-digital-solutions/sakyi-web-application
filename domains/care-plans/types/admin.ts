@@ -41,6 +41,7 @@ export type CarePlanSectionKey =
   | 'nutrition'
   | 'movement'
   | 'activity'
+  | 'hydration'
   | 'recovery';
 
 /**
