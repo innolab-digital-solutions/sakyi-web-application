@@ -209,6 +209,38 @@ export function formatDurationPreview(
   return remainder === 0 ? `${minutes} min` : `${minutes} min ${remainder}s`;
 }
 
+/**
+ * Converts a raw seconds value into a friendly, spelled-out breakdown for
+ * display next to seconds inputs (e.g. `90` → "1 min 30 sec", `3661` →
+ * "1 hr 1 min 1 sec"). Purely presentational — never used for saved data.
+ *
+ * @param value - The raw input value (string or number) entered by the user.
+ * @returns A readable string, or `null` when there is nothing meaningful to show.
+ */
+export function formatSecondsReadable(
+  value: string | number | null | undefined,
+): string | null {
+  if (value == null) return null;
+
+  const trimmed = typeof value === 'string' ? value.trim() : value;
+  if (trimmed === '') return null;
+
+  const totalSeconds = Number(trimmed);
+  if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) return null;
+
+  const whole = Math.floor(totalSeconds);
+  const hours = Math.floor(whole / 3600);
+  const minutes = Math.floor((whole % 3600) / 60);
+  const seconds = whole % 60;
+
+  const parts: string[] = [];
+  if (hours > 0) parts.push(`${hours} hr`);
+  if (minutes > 0) parts.push(`${minutes} min`);
+  if (seconds > 0) parts.push(`${seconds} sec`);
+
+  return parts.length > 0 ? parts.join(' ') : null;
+}
+
 export function getPrescriptionFieldPlaceholder(
   field: PrescriptionFieldKey,
   customPlaceholders?: PrescriptionFieldPlaceholders | null,

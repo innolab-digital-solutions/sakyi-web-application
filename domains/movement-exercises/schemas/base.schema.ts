@@ -38,6 +38,8 @@ export const MovementExerciseBodySchema = z.object({
   is_active: z.boolean(),
   media: z.array(MediaItemSchema).nullish(),
   equipment_ids: z.array(z.number().int().positive()).nullish(),
+  /** Existing GIF URL from the API; set to null when the user removes the stored file. */
+  gif_url: z.string().max(2048).nullish(),
 });
 
 export type MovementExerciseBodyInput = z.infer<

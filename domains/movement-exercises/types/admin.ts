@@ -28,6 +28,7 @@ export type MovementExercise = {
   is_active: boolean;
   movement_category: { id: number; name: string } | null;
   media: MovementExerciseMedia[];
+  gif: string | null;
   equipments: { id: number; name: string }[];
   actions: {
     deletable: boolean;

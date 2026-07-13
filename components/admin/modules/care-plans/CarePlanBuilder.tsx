@@ -66,6 +66,10 @@ import type {
   MovementExerciseLookup,
   PrescriptionProfile,
 } from '@/domains/movement-prescriptions/types';
+import {
+  getNutritionItemsLookup,
+  type NutritionItemLookup,
+} from '@/domains/nutrition-items/services';
 import { getUnitsLookup } from '@/domains/units/services';
 import { CARE_PLAN_SECTION_TABS } from '@/lib/care-plans/carePlanSectionTabs';
 import {
@@ -87,6 +91,8 @@ const SECTION_GUIDANCE: Record<CarePlanSectionKey, string> = {
     'List the exercises the client should complete. Prescription fields adapt to each exercise profile (sets/reps, timed holds, cardio, load, and intervals).',
   activity:
     'Add everyday activities the client should aim for (walking, stretching, errands, etc.) with a clear target and simple wording they can follow on their own.',
+  hydration:
+    'Set daily fluid goals the client should track (water, electrolytes, etc.) with a clear target volume and simple guidance they can follow throughout the day.',
   recovery:
     'Describe rest, wind-down, and recovery habits for the client, including sleep windows, light mobility, breathing, or relaxation, so they can recover well between harder days.',
 };
@@ -95,6 +101,7 @@ const SECTION_ADD_LABEL: Record<CarePlanSectionKey, string> = {
   nutrition: 'Add Nutrition',
   movement: 'Add Exercise Session',
   activity: 'Add Activity',
+  hydration: 'Add Hydration',
   recovery: 'Add Recovery',
 };
 
@@ -212,6 +219,15 @@ function toEditableSectionItems(
           })
           .filter((x): x is MovementExercisePrescriptionInput => x !== null)
       : [],
+    nutrition_item_ids: Array.isArray(item.nutrition_items)
+      ? item.nutrition_items
+          .map((link) => normalizeValue(link?.nutrition_item_id))
+          .filter((id) => id !== '')
+      : Array.isArray(item.nutrition_item_ids)
+        ? item.nutrition_item_ids
+            .map((id) => normalizeValue(id))
+            .filter((id) => id !== '')
+        : [],
   }));
 }
 
@@ -223,6 +239,7 @@ function createEmptySectionItem(): CarePlanSectionItem {
     target_unit: '',
     movement_exercise_id: '',
     exercises: [],
+    nutrition_item_ids: [],
   };
 }
 
@@ -234,6 +251,7 @@ type NormalizedSectionItem = {
   target_unit: string;
   movement_exercise_id: string;
   exercises: MovementExercisePrescriptionInput[];
+  nutrition_item_ids: string[];
   has_client_logs?: boolean;
   exercises_editable?: boolean;
 };
@@ -273,6 +291,16 @@ function normalizeSectionItemsForSave(
         meaningfulExercises.length > 0
           ? meaningfulExercises[0].movement_exercise_id
           : normalizeValue(item?.movement_exercise_id || item?.exercise_id);
+      const nutritionItemIds =
+        section === 'nutrition' && Array.isArray(item?.nutrition_item_ids)
+          ? Array.from(
+              new Set(
+                item.nutrition_item_ids
+                  .map((id) => normalizeValue(id))
+                  .filter((id) => id !== ''),
+              ),
+            )
+          : [];
 
       return {
         id: item?.id,
@@ -282,6 +310,7 @@ function normalizeSectionItemsForSave(
         target_unit: targetUnit,
         movement_exercise_id: movementExerciseId,
         exercises: meaningfulExercises,
+        nutrition_item_ids: nutritionItemIds,
         has_client_logs: Boolean(item?.has_client_logs),
         exercises_editable:
           item?.actions?.exercises_editable !== false && !item?.has_client_logs,
@@ -296,6 +325,16 @@ function normalizeSectionItemsForSave(
           item.target_unit ||
           item.exercises.length > 0 ||
           item.movement_exercise_id,
+        );
+      }
+
+      if (section === 'nutrition') {
+        return Boolean(
+          item.title ||
+          item.guidance ||
+          item.target_value ||
+          item.target_unit ||
+          item.nutrition_item_ids.length > 0,
         );
       }
 
@@ -347,6 +386,23 @@ function toSectionSavePayload(
       resolveUnitId?.(item.target_unit) ??
       null;
 
+    if (section === 'nutrition') {
+      const omitNutritionItemsOnActiveLoggedItem =
+        planStatus === 'active' && item.has_client_logs;
+
+      baseItem.target_unit_id = resolvedTargetUnitId;
+      if (!omitNutritionItemsOnActiveLoggedItem) {
+        baseItem.nutrition_items = Array.from(
+          new Set(
+            item.nutrition_item_ids
+              .map((id) => toNullableInteger(id))
+              .filter((id): id is number => id != null),
+          ),
+        ).map((nutrition_item_id) => ({ nutrition_item_id }));
+      }
+      return baseItem;
+    }
+
     return {
       title: item.title,
       guidance: item.guidance,
@@ -368,6 +424,7 @@ type CarePlanItemFieldErrors = {
   guidance?: string;
   target_value?: string;
   target_unit?: string;
+  nutrition_items?: string;
 };
 
 type CarePlanItemFieldErrorsState = Record<number, CarePlanItemFieldErrors>;
@@ -472,6 +529,16 @@ function parseCarePlanSectionItemsApiErrors(
       continue;
     }
 
+    const niM =
+      /^items\.(\d+)\.nutrition_items(?:\.\d+(?:\.nutrition_item_id)?)?$/i.exec(
+        key,
+      );
+    if (niM) {
+      const i = Number(niM[1]);
+      itemFields[i] = { ...itemFields[i], nutrition_items: msg };
+      continue;
+    }
+
     const exM =
       /^items\.(\d+)\.exercises\.(\d+)\.(movement_exercise_id|sets|reps|rest_seconds|duration_seconds|intensity|equipment_weight|equipment_weight_unit_id)$/i.exec(
         key,
@@ -543,7 +610,7 @@ class CarePlanDayNotesValidationError extends Error {
 function formatDayTaskValidationMessage(message: string): string {
   return message
     .replace(
-      /at least one item(?:\s+in)?\s+(nutrition,\s*movement,\s*activity,\s*or\s*recovery)/i,
+      /at least one item(?:\s+in)?\s+(nutrition,\s*movement,\s*activity(?:,\s*hydration)?,?\s*or\s*recovery)/i,
       'at least one task in any section ($1)',
     )
     .replace(/\bitem\b/gi, 'task')
@@ -555,7 +622,7 @@ function extractValidationIssuesByDay(
 ): Record<number, string> {
   const dayIssueMessages: Record<number, string> = {};
   const defaultDayTaskMessage =
-    'Add at least one task in any section (nutrition, exercise, activity, or recovery).';
+    'Add at least one task in any section (nutrition, exercise, activity, hydration, or recovery).';
 
   for (const issue of issues) {
     const field = String(issue?.field ?? '').trim();
@@ -679,6 +746,15 @@ export default function CarePlanBuilder({
     queryKey: ['lookup', LOOKUP_ENDPOINTS.MOVEMENT_PRESCRIPTION_INTENSITIES],
     queryFn: async () => {
       const response = await getMovementPrescriptionIntensitiesLookup();
+      if (response.status !== 'success') return [];
+      return response.data;
+    },
+  });
+
+  const nutritionItemsLookupQuery = useQuery({
+    queryKey: ['lookup', LOOKUP_ENDPOINTS.NUTRITION_ITEMS],
+    queryFn: async () => {
+      const response = await getNutritionItemsLookup();
       if (response.status !== 'success') return [];
       return response.data;
     },
@@ -834,6 +910,34 @@ export default function CarePlanBuilder({
   const createMovementExerciseRow = React.useCallback(() => {
     return resetPrescriptionOnExerciseChange('', defaultMassUnitId);
   }, [defaultMassUnitId]);
+
+  const nutritionItemOptions = React.useMemo<ComboboxOption[]>(() => {
+    const rows = nutritionItemsLookupQuery.data ?? [];
+    return rows.map((row: NutritionItemLookup) => {
+      const category = row.category?.name?.trim() || 'Uncategorized';
+      const unit = row.default_unit?.abbreviation?.trim() || '';
+      return {
+        value: String(row.id),
+        label: row.name,
+        keywords: [
+          row.name,
+          category,
+          row.description ?? '',
+          row.default_unit?.name ?? '',
+          unit,
+        ],
+        content: (
+          <div className='flex min-w-0 flex-col'>
+            <span className='text-[13px] font-semibold'>{row.name}</span>
+            <span className='text-muted-foreground text-xs'>
+              {category}
+              {unit ? ` · ${unit}` : ''}
+            </span>
+          </div>
+        ),
+      };
+    });
+  }, [nutritionItemsLookupQuery.data]);
 
   const builder = builderQuery.data;
   const normalizedStatus = normalizeStatus(builder?.status);
@@ -1651,6 +1755,15 @@ export default function CarePlanBuilder({
     if (field === 'target_unit') clearItemFieldError(index, 'target_unit');
   };
 
+  const setNutritionItemIds = (index: number, ids: string[]) => {
+    setLocalItems((prev) =>
+      prev.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, nutrition_item_ids: ids } : item,
+      ),
+    );
+    clearItemFieldError(index, 'nutrition_items');
+  };
+
   const setMovementExerciseField = (
     itemIndex: number,
     exerciseIndex: number,
@@ -2038,7 +2151,7 @@ export default function CarePlanBuilder({
               </p>
               <p className='text-muted-foreground mt-1 text-[13px] font-medium'>
                 Set the care timeline first, then add tasks to each day across
-                nutrition, exercise, activity, and recovery.
+                nutrition, exercise, activity, hydration, and recovery.
               </p>
               {editable ? (
                 <Button
@@ -2272,7 +2385,9 @@ export default function CarePlanBuilder({
                                           ? 'Enter a task name (e.g. Strength Training Session)'
                                           : activeSection === 'activity'
                                             ? 'Enter a task name (e.g. Morning walk)'
-                                            : 'Enter a task name (e.g. Sleep)'
+                                            : activeSection === 'hydration'
+                                              ? 'Enter a task name (e.g. Water intake)'
+                                              : 'Enter a task name (e.g. Sleep)'
                                     }
                                     value={String(item.title ?? '')}
                                     onChange={(event) =>
@@ -2497,69 +2612,111 @@ export default function CarePlanBuilder({
                                     </div>
                                   </>
                                 ) : (
-                                  <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-                                    <TextField
-                                      label='Target'
-                                      type='number'
-                                      placeholder='Enter a target value'
-                                      value={String(item.target_value ?? '')}
-                                      onChange={(event) =>
-                                        setItemField(
-                                          index,
-                                          'target_value',
-                                          event.target.value,
-                                        )
-                                      }
-                                      error={
-                                        itemFieldErrors[index]?.target_value
-                                      }
-                                      disabled={!editable}
-                                    />
-                                    <ComboboxField
-                                      label='Measurement'
-                                      placeholder={
-                                        activeSection === 'nutrition'
-                                          ? 'kcal'
-                                          : 'Please select a measurement unit…'
-                                      }
-                                      searchPlaceholder='Search measurement unit…'
-                                      emptyMessage={
-                                        activeSection === 'nutrition'
-                                          ? 'kcal unit is not available.'
-                                          : 'No measurement units found.'
-                                      }
-                                      options={
-                                        activeSection === 'nutrition'
-                                          ? nutritionUnitOptions
-                                          : unitOptions
-                                      }
-                                      value={
-                                        activeSection === 'nutrition'
-                                          ? nutritionKcalUnitValue
-                                          : resolveUnitComboboxValue(
-                                              item.target_unit,
-                                            )
-                                      }
-                                      onChange={(value) =>
-                                        setItemField(
-                                          index,
-                                          'target_unit',
+                                  <>
+                                    <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                                      <TextField
+                                        label='Target'
+                                        type='number'
+                                        placeholder='Enter a target value'
+                                        value={String(item.target_value ?? '')}
+                                        onChange={(event) =>
+                                          setItemField(
+                                            index,
+                                            'target_value',
+                                            event.target.value,
+                                          )
+                                        }
+                                        error={
+                                          itemFieldErrors[index]?.target_value
+                                        }
+                                        disabled={!editable}
+                                      />
+                                      <ComboboxField
+                                        label='Measurement'
+                                        placeholder={
                                           activeSection === 'nutrition'
-                                            ? (nutritionKcalUnitValue ?? '')
-                                            : (value ?? ''),
-                                        )
-                                      }
-                                      error={
-                                        itemFieldErrors[index]?.target_unit
-                                      }
-                                      readOnly={
-                                        activeSection === 'nutrition' &&
-                                        nutritionKcalUnitValue != null &&
-                                        editable
-                                      }
-                                      disabled={!editable}
-                                    />
-                                  </div>
+                                            ? 'kcal'
+                                            : 'Please select a measurement unit…'
+                                        }
+                                        searchPlaceholder='Search measurement unit…'
+                                        emptyMessage={
+                                          activeSection === 'nutrition'
+                                            ? 'kcal unit is not available.'
+                                            : 'No measurement units found.'
+                                        }
+                                        options={
+                                          activeSection === 'nutrition'
+                                            ? nutritionUnitOptions
+                                            : unitOptions
+                                        }
+                                        value={
+                                          activeSection === 'nutrition'
+                                            ? nutritionKcalUnitValue
+                                            : resolveUnitComboboxValue(
+                                                item.target_unit,
+                                              )
+                                        }
+                                        onChange={(value) =>
+                                          setItemField(
+                                            index,
+                                            'target_unit',
+                                            activeSection === 'nutrition'
+                                              ? (nutritionKcalUnitValue ?? '')
+                                              : (value ?? ''),
+                                          )
+                                        }
+                                        error={
+                                          itemFieldErrors[index]?.target_unit
+                                        }
+                                        readOnly={
+                                          activeSection === 'nutrition' &&
+                                          nutritionKcalUnitValue != null &&
+                                          editable
+                                        }
+                                        disabled={!editable}
+                                      />
+                                    </div>
+                                    {activeSection === 'nutrition' ? (
+                                      <div className='space-y-2'>
+                                        {item.has_client_logs && editable ? (
+                                          <p className='rounded-md border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-[12px] font-medium text-amber-950'>
+                                            This task already has client logs.
+                                            You can edit the task title,
+                                            guidance, and target, but linked
+                                            nutrition items are locked. Create a
+                                            revision to change them.
+                                          </p>
+                                        ) : null}
+                                        <ComboboxField
+                                          multiple
+                                          label='Nutrition items'
+                                          placeholder={
+                                            nutritionItemsLookupQuery.isLoading
+                                              ? 'Loading nutrition items…'
+                                              : 'Link nutrition library items…'
+                                          }
+                                          searchPlaceholder='Search nutrition items…'
+                                          emptyMessage='No nutrition items found.'
+                                          options={nutritionItemOptions}
+                                          value={(
+                                            item.nutrition_item_ids ?? []
+                                          ).map((id) => String(id))}
+                                          onChange={(ids) =>
+                                            setNutritionItemIds(index, ids)
+                                          }
+                                          error={
+                                            itemFieldErrors[index]
+                                              ?.nutrition_items
+                                          }
+                                          disabled={
+                                            !editable ||
+                                            Boolean(item.has_client_logs) ||
+                                            nutritionItemsLookupQuery.isLoading
+                                          }
+                                        />
+                                      </div>
+                                    ) : null}
+                                  </>
                                 )}
                               </div>
                             </div>

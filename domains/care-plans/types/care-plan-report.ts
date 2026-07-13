@@ -33,10 +33,21 @@ export type CarePlanReportEvidenceItem = {
   log: CarePlanLogEvidence | null;
 };
 
+/** Day-level photo attached directly to a care-plan day (not to a specific log item). */
+export type CarePlanReportDayPhoto = {
+  id: number;
+  url: string;
+  mime_type: string;
+  size_bytes: number;
+  original_name: string;
+  created_at: string;
+};
+
 export type CarePlanReportEvidenceDay = {
   day_index: number;
   day_number: number;
   target_date: string;
+  photos: CarePlanReportDayPhoto[] | null;
   items: CarePlanReportEvidenceItem[];
 };
 
