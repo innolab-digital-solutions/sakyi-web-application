@@ -1354,6 +1354,17 @@ export default function CarePlanReportWorkspace({
   );
 }
 
+function formatClientNoteUpdatedAt(
+  raw: string | null | undefined,
+): string | null {
+  if (!raw?.trim()) return null;
+  try {
+    return format(new Date(raw), 'MMM d, yyyy · h:mm a');
+  } catch {
+    return null;
+  }
+}
+
 function EvidenceLineItemCard({
   item,
   onOpenImage,
@@ -1378,6 +1389,11 @@ function EvidenceLineItemCard({
       })()
     : null;
   const media = log?.media?.length ? log.media : null;
+  const clientNoteBody = String(item.client_note?.body ?? '').trim();
+  const hasClientNote = clientNoteBody.length > 0;
+  const clientNoteUpdatedAt = hasClientNote
+    ? formatClientNoteUpdatedAt(item.client_note?.updated_at)
+    : null;
 
   return (
     <div className='border-border dark:bg-card space-y-2 rounded-md border bg-white px-3 pt-3 pb-4 sm:px-3.5 sm:pt-3.5 sm:pb-5'>
@@ -1403,6 +1419,24 @@ function EvidenceLineItemCard({
           </p>
         </div>
       </div>
+
+      {hasClientNote ? (
+        <div className='w-full min-w-0 space-y-1 rounded-md border border-orange-200/80 bg-orange-50/70 px-2.5 py-2 sm:px-3 sm:py-2.5 dark:border-orange-900/50 dark:bg-orange-950/30'>
+          <div className='flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5'>
+            <p className='text-[10px] font-semibold tracking-wide text-orange-800 uppercase dark:text-orange-300'>
+              Client note
+            </p>
+            {clientNoteUpdatedAt ? (
+              <p className='text-muted-foreground text-[10px] font-medium'>
+                {clientNoteUpdatedAt}
+              </p>
+            ) : null}
+          </div>
+          <p className='text-foreground/90 text-[11px] leading-relaxed font-medium wrap-break-word whitespace-pre-wrap'>
+            {clientNoteBody}
+          </p>
+        </div>
+      ) : null}
 
       {hasLog ? (
         <div className='bg-muted/15 border-border w-full min-w-0 space-y-1 rounded-md border px-2.5 py-2 sm:px-3 sm:py-2.5'>
