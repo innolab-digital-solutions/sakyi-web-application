@@ -173,6 +173,38 @@ export async function getPeriodReportById(
   );
 }
 
+export type PeriodReportPdfDownload = {
+  blob: Blob;
+  filename: string;
+};
+
+/**
+ * Downloads the backend-generated period report PDF for a list/detail row id.
+ *
+ * Calls `GET …/period-reports/{id}/download` and returns raw PDF bytes. The
+ * filename prefers the server `Content-Disposition` header when present.
+ *
+ * @param periodReportListId - Same `id` as the period reports list row.
+ * @returns PDF blob and a safe download filename.
+ *
+ * @throws {ApiClientError} On auth, permission, not-found, or PDF generation failures.
+ */
+export async function downloadPeriodReportPdf(
+  periodReportListId: number,
+): Promise<PeriodReportPdfDownload> {
+  const result = await http.getBlob(
+    ENDPOINTS.ADMIN.MODULES.PERIOD_REPORTS.DOWNLOAD(
+      String(periodReportListId),
+    ),
+  );
+
+  return {
+    blob: result.blob,
+    filename:
+      result.filename?.trim() || `period-report-${periodReportListId}.pdf`,
+  };
+}
+
 export async function listCarePlanReportRuns(
   carePlanId: number,
 ): Promise<ApiResponse<ListCarePlanReportRunsData>> {

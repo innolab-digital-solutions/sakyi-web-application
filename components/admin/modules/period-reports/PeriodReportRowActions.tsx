@@ -5,8 +5,10 @@ import { endOfDay, format, parseISO } from 'date-fns';
 import {
   CheckCircle2Icon,
   ClipboardCopyIcon,
+  DownloadIcon,
   EyeIcon,
   FileTextIcon,
+  Loader2Icon,
   MoreHorizontalIcon,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -27,8 +29,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
-import { postCarePlanReportRunPublish } from '@/domains/care-plans/services';
+import {
+  downloadPeriodReportPdf,
+  postCarePlanReportRunPublish,
+} from '@/domains/care-plans/services';
 import type { ClientReportListRow } from '@/domains/care-plans/types/client-report-list';
+import { triggerBrowserFileDownload } from '@/lib/downloads/browserFileDownload';
 
 const primaryButtonClass =
   'normal-case bg-background hover:bg-muted text-foreground h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold';
@@ -39,6 +45,21 @@ type Props = {
   row: ClientReportListRow;
 };
 
+/**
+ * Returns an optional tooltip for watermarked draft / archived PDFs.
+ */
+function watermarkDownloadHint(
+  status: ClientReportListRow['status'],
+): string | undefined {
+  if (status === 'in_review') {
+    return 'Draft PDF includes a watermark';
+  }
+  if (status === 'archived') {
+    return 'Archived PDF includes a watermark';
+  }
+  return undefined;
+}
+
 export default function PeriodReportRowActions({ row }: Props) {
   const queryClient = useQueryClient();
   const [publishBlockedOpen, setPublishBlockedOpen] = React.useState(false);
@@ -46,6 +67,7 @@ export default function PeriodReportRowActions({ row }: Props) {
   const carePlanId = row.care_plan?.id;
   const reportCode = row.code?.trim() || `#${row.id}`;
   const carePlanEndsOn = row.care_plan?.ends_on?.trim() ?? '';
+  const downloadHint = watermarkDownloadHint(row.status);
 
   const overviewHref = buildPeriodReportOverviewHref(row.id);
 
@@ -94,6 +116,20 @@ export default function PeriodReportRowActions({ row }: Props) {
     },
   });
 
+  const { mutate: downloadPdf, isPending: downloadPending } = useMutation({
+    mutationFn: async () => {
+      const { blob, filename } = await downloadPeriodReportPdf(row.id);
+      triggerBrowserFileDownload(blob, filename);
+      return filename;
+    },
+    onSuccess: () => {
+      toast.success('Report downloaded.');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message ?? 'Failed to download period report.');
+    },
+  });
+
   const copyReference = () => {
     void (async () => {
       try {
@@ -117,6 +153,26 @@ export default function PeriodReportRowActions({ row }: Props) {
           <FileTextIcon className='size-3.5 shrink-0' aria-hidden />
           Open Overview
         </Link>
+      </Button>
+
+      <Button
+        type='button'
+        variant='outline'
+        size='sm'
+        className={primaryButtonClass}
+        disabled={downloadPending}
+        title={downloadHint}
+        aria-label={
+          downloadPending ? 'Downloading period report PDF' : 'Download PDF'
+        }
+        onClick={() => downloadPdf()}
+      >
+        {downloadPending ? (
+          <Loader2Icon className='size-3.5 shrink-0 animate-spin' aria-hidden />
+        ) : (
+          <DownloadIcon className='size-3.5 shrink-0' aria-hidden />
+        )}
+        {downloadPending ? 'Downloading…' : 'Download'}
       </Button>
 
       <DropdownMenu>

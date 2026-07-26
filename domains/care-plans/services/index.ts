@@ -31,8 +31,12 @@ export type {
   PeriodReportDetail,
   PeriodReportHighlight,
 } from '../types/period-report-detail';
-export type { GetReportWorkspaceParams } from './admin.service';
+export type {
+  GetReportWorkspaceParams,
+  PeriodReportPdfDownload,
+} from './admin.service';
 export {
+  downloadPeriodReportPdf,
   getCarePlanBuilderById,
   getCarePlanById,
   getCarePlanLogSummary,

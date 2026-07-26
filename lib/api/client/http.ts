@@ -1,3 +1,5 @@
+import { fetchBlob } from './blob';
+import type { BlobDownloadResult } from './blob';
 import { client } from './core';
 import type { ApiResponse, ReadOptions, WriteOptions } from './types';
 
@@ -10,11 +12,12 @@ import type { ApiResponse, ReadOptions, WriteOptions } from './types';
  * All methods delegate to the shared `client` function, applying the correct HTTP verb and
  * handling body inclusion/exclusion as per method requirements.
  *
- * @property get    - Perform a GET request (no request body).
- * @property post   - Perform a POST request (with optional request body).
- * @property put    - Perform a PUT request (with optional request body).
- * @property patch  - Perform a PATCH request (with optional request body).
- * @property delete - Perform a DELETE request (no request body).
+ * @property get     - Perform a GET request (no request body).
+ * @property getBlob - Perform a GET that returns raw binary content (PDF, etc.).
+ * @property post    - Perform a POST request (with optional request body).
+ * @property put     - Perform a PUT request (with optional request body).
+ * @property patch   - Perform a PATCH request (with optional request body).
+ * @property delete  - Perform a DELETE request (no request body).
  */
 export const http = {
   /**
@@ -29,6 +32,20 @@ export const http = {
    */
   get<T>(endpoint: string, options?: ReadOptions): Promise<ApiResponse<T>> {
     return client<T>(endpoint, { ...options, method: 'GET' });
+  },
+
+  /**
+   * Perform a GET that returns raw binary content (e.g. a PDF attachment).
+   *
+   * @param endpoint - API route to query (relative to API base).
+   * @param options - Optional read-only request options (no body allowed).
+   * @returns Promise resolving to the blob and optional server filename.
+   */
+  getBlob(
+    endpoint: string,
+    options?: ReadOptions,
+  ): Promise<BlobDownloadResult> {
+    return fetchBlob(endpoint, options);
   },
 
   /**
