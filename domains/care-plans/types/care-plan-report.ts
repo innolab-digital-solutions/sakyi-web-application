@@ -19,6 +19,16 @@ export type CarePlanLogEvidence = {
   media?: CarePlanReportMediaRef[];
 };
 
+/**
+ * Sticky note left by the enrolled client on a care-plan task.
+ * Shown only on report-workspace evidence; never counts as a log.
+ */
+export type CarePlanTaskClientNote = {
+  id: number;
+  body: string;
+  updated_at: string | null;
+};
+
 export type CarePlanReportEvidenceItem = {
   section: CarePlanSectionKey;
   morph: string;
@@ -31,6 +41,8 @@ export type CarePlanReportEvidenceItem = {
     unit_id: number | null;
   } | null;
   log: CarePlanLogEvidence | null;
+  /** Sticky client note for this task; independent of daily progress logs. */
+  client_note?: CarePlanTaskClientNote | null;
 };
 
 /** Day-level photo attached directly to a care-plan day (not to a specific log item). */

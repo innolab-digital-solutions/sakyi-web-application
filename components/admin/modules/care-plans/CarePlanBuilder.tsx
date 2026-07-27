@@ -93,6 +93,8 @@ const SECTION_GUIDANCE: Record<CarePlanSectionKey, string> = {
     'Add everyday activities the client should aim for (walking, stretching, errands, etc.) with a clear target and simple wording they can follow on their own.',
   hydration:
     'Set daily fluid goals the client should track (water, electrolytes, etc.) with a clear target volume and simple guidance they can follow throughout the day.',
+  sleep:
+    'Set sleep goals the client should aim for each night, including target duration and simple bedtime guidance they can follow independently.',
   recovery:
     'Describe rest, wind-down, and recovery habits for the client, including sleep windows, light mobility, breathing, or relaxation, so they can recover well between harder days.',
 };
@@ -102,6 +104,7 @@ const SECTION_ADD_LABEL: Record<CarePlanSectionKey, string> = {
   movement: 'Add Exercise Session',
   activity: 'Add Activity',
   hydration: 'Add Hydration',
+  sleep: 'Add Sleep',
   recovery: 'Add Recovery',
 };
 
@@ -566,6 +569,37 @@ function toLookupToken(value: unknown): string {
   return normalizeValue(value).toLowerCase();
 }
 
+function isHydrationLiterUnit(row: {
+  abbreviation: string;
+  name: string;
+  type?: string | null;
+}): boolean {
+  const abbreviation = toLookupToken(row.abbreviation);
+  const name = toLookupToken(row.name);
+  const type = toLookupToken(row.type);
+
+  if (
+    abbreviation === 'ml' ||
+    abbreviation === 'milliliter' ||
+    abbreviation === 'millilitre' ||
+    name.includes('milliliter') ||
+    name.includes('millilitre')
+  ) {
+    return false;
+  }
+
+  return (
+    abbreviation === 'l' ||
+    abbreviation === 'liter' ||
+    abbreviation === 'litre' ||
+    name === 'liter' ||
+    name === 'litre' ||
+    name === 'liters' ||
+    name === 'litres' ||
+    (type === 'volume' && abbreviation === 'l')
+  );
+}
+
 function hasCarePlanSectionItemsFieldErrors(parsed: {
   itemFields: CarePlanItemFieldErrorsState;
   movementRows: CarePlanMovementRowErrorsState;
@@ -610,7 +644,7 @@ class CarePlanDayNotesValidationError extends Error {
 function formatDayTaskValidationMessage(message: string): string {
   return message
     .replace(
-      /at least one item(?:\s+in)?\s+(nutrition,\s*movement,\s*activity(?:,\s*hydration)?,?\s*or\s*recovery)/i,
+      /at least one item(?:\s+in)?\s+(nutrition,\s*movement,\s*activity(?:,\s*hydration(?:,\s*sleep)?)?,?\s*or\s*recovery)/i,
       'at least one task in any section ($1)',
     )
     .replace(/\bitem\b/gi, 'task')
@@ -622,7 +656,7 @@ function extractValidationIssuesByDay(
 ): Record<number, string> {
   const dayIssueMessages: Record<number, string> = {};
   const defaultDayTaskMessage =
-    'Add at least one task in any section (nutrition, exercise, activity, hydration, or recovery).';
+    'Add at least one task in any section (nutrition, exercise, activity, hydration, sleep, or recovery).';
 
   for (const issue of issues) {
     const field = String(issue?.field ?? '').trim();
@@ -787,6 +821,45 @@ export default function CarePlanBuilder({
       (option) => option.value === nutritionKcalUnitValue,
     );
   }, [nutritionKcalUnitValue, unitOptions]);
+
+  const hydrationLiterUnitValue = React.useMemo<string | null>(() => {
+    const rows = unitsLookupQuery.data ?? [];
+    const literRow = rows.find((row) => isHydrationLiterUnit(row));
+    return literRow ? String(literRow.id) : null;
+  }, [unitsLookupQuery.data]);
+
+  const hydrationUnitOptions = React.useMemo<ComboboxOption[]>(() => {
+    if (!hydrationLiterUnitValue) return [];
+    return unitOptions.filter(
+      (option) => option.value === hydrationLiterUnitValue,
+    );
+  }, [hydrationLiterUnitValue, unitOptions]);
+
+  const sleepHourUnitValue = React.useMemo<string | null>(() => {
+    const rows = unitsLookupQuery.data ?? [];
+    const hourRow = rows.find((row) => {
+      const abbreviation = toLookupToken(row.abbreviation);
+      const name = toLookupToken(row.name);
+      const type = toLookupToken(row.type);
+      return (
+        abbreviation === 'h' ||
+        abbreviation === 'hr' ||
+        abbreviation === 'hrs' ||
+        abbreviation === 'hour' ||
+        name.includes('hour') ||
+        (type === 'time' &&
+          (abbreviation === 'h' ||
+            abbreviation === 'hr' ||
+            name.includes('hour')))
+      );
+    });
+    return hourRow ? String(hourRow.id) : null;
+  }, [unitsLookupQuery.data]);
+
+  const sleepUnitOptions = React.useMemo<ComboboxOption[]>(() => {
+    if (!sleepHourUnitValue) return [];
+    return unitOptions.filter((option) => option.value === sleepHourUnitValue);
+  }, [sleepHourUnitValue, unitOptions]);
 
   const unitIdByToken = React.useMemo(() => {
     const map = new Map<string, number>();
@@ -1058,6 +1131,44 @@ export default function CarePlanBuilder({
         );
         return;
       }
+      if (activeSection === 'hydration') {
+        if (editable && sectionItems.length === 0) {
+          setLocalItems([
+            {
+              ...createEmptySectionItem(),
+              target_unit: hydrationLiterUnitValue ?? '',
+            },
+          ]);
+          return;
+        }
+        setLocalItems(
+          sectionItems.map((item) => ({
+            ...item,
+            target_unit:
+              normalizeValue(item.target_unit) || hydrationLiterUnitValue || '',
+          })),
+        );
+        return;
+      }
+      if (activeSection === 'sleep') {
+        if (editable && sectionItems.length === 0) {
+          setLocalItems([
+            {
+              ...createEmptySectionItem(),
+              target_unit: sleepHourUnitValue ?? '',
+            },
+          ]);
+          return;
+        }
+        setLocalItems(
+          sectionItems.map((item) => ({
+            ...item,
+            target_unit:
+              normalizeValue(item.target_unit) || sleepHourUnitValue || '',
+          })),
+        );
+        return;
+      }
       if (editable && sectionItems.length === 0) {
         setLocalItems([createEmptySectionItem()]);
         return;
@@ -1068,8 +1179,10 @@ export default function CarePlanBuilder({
     activeSection,
     defaultMassUnitId,
     editable,
+    hydrationLiterUnitValue,
     nutritionKcalUnitValue,
     sectionItems,
+    sleepHourUnitValue,
   ]);
 
   React.useEffect(() => {
@@ -2151,7 +2264,7 @@ export default function CarePlanBuilder({
               </p>
               <p className='text-muted-foreground mt-1 text-[13px] font-medium'>
                 Set the care timeline first, then add tasks to each day across
-                nutrition, exercise, activity, hydration, and recovery.
+                nutrition, exercise, activity, hydration, sleep, and recovery.
               </p>
               {editable ? (
                 <Button
@@ -2387,7 +2500,9 @@ export default function CarePlanBuilder({
                                             ? 'Enter a task name (e.g. Morning walk)'
                                             : activeSection === 'hydration'
                                               ? 'Enter a task name (e.g. Water intake)'
-                                              : 'Enter a task name (e.g. Sleep)'
+                                              : activeSection === 'sleep'
+                                                ? 'Enter a task name (e.g. Night sleep)'
+                                                : 'Enter a task name (e.g. Evening wind-down)'
                                     }
                                     value={String(item.title ?? '')}
                                     onChange={(event) =>
@@ -2636,25 +2751,41 @@ export default function CarePlanBuilder({
                                         placeholder={
                                           activeSection === 'nutrition'
                                             ? 'kcal'
-                                            : 'Please select a measurement unit…'
+                                            : activeSection === 'hydration'
+                                              ? 'L'
+                                              : activeSection === 'sleep'
+                                                ? 'h'
+                                                : 'Please select a measurement unit…'
                                         }
                                         searchPlaceholder='Search measurement unit…'
                                         emptyMessage={
                                           activeSection === 'nutrition'
                                             ? 'kcal unit is not available.'
-                                            : 'No measurement units found.'
+                                            : activeSection === 'hydration'
+                                              ? 'Liter unit is not available.'
+                                              : activeSection === 'sleep'
+                                                ? 'Hour unit is not available.'
+                                                : 'No measurement units found.'
                                         }
                                         options={
                                           activeSection === 'nutrition'
                                             ? nutritionUnitOptions
-                                            : unitOptions
+                                            : activeSection === 'hydration'
+                                              ? hydrationUnitOptions
+                                              : activeSection === 'sleep'
+                                                ? sleepUnitOptions
+                                                : unitOptions
                                         }
                                         value={
                                           activeSection === 'nutrition'
                                             ? nutritionKcalUnitValue
-                                            : resolveUnitComboboxValue(
-                                                item.target_unit,
-                                              )
+                                            : activeSection === 'hydration'
+                                              ? hydrationLiterUnitValue
+                                              : activeSection === 'sleep'
+                                                ? sleepHourUnitValue
+                                                : resolveUnitComboboxValue(
+                                                    item.target_unit,
+                                                  )
                                         }
                                         onChange={(value) =>
                                           setItemField(
@@ -2662,16 +2793,27 @@ export default function CarePlanBuilder({
                                             'target_unit',
                                             activeSection === 'nutrition'
                                               ? (nutritionKcalUnitValue ?? '')
-                                              : (value ?? ''),
+                                              : activeSection === 'hydration'
+                                                ? (hydrationLiterUnitValue ??
+                                                  '')
+                                                : activeSection === 'sleep'
+                                                  ? (sleepHourUnitValue ?? '')
+                                                  : (value ?? ''),
                                           )
                                         }
                                         error={
                                           itemFieldErrors[index]?.target_unit
                                         }
                                         readOnly={
-                                          activeSection === 'nutrition' &&
-                                          nutritionKcalUnitValue != null &&
-                                          editable
+                                          (activeSection === 'nutrition' &&
+                                            nutritionKcalUnitValue != null &&
+                                            editable) ||
+                                          (activeSection === 'hydration' &&
+                                            hydrationLiterUnitValue != null &&
+                                            editable) ||
+                                          (activeSection === 'sleep' &&
+                                            sleepHourUnitValue != null &&
+                                            editable)
                                         }
                                         disabled={!editable}
                                       />
@@ -2731,15 +2873,18 @@ export default function CarePlanBuilder({
                               ) : null}
                               <div className='flex flex-wrap items-center justify-between gap-3'>
                                 <div className='flex flex-wrap items-center gap-2'>
-                                  <Button
-                                    type='button'
-                                    variant='outline'
-                                    className='text-foreground bg-background hover:bg-muted h-10 gap-1.5 border-neutral-300 px-3 text-[13px]! font-semibold'
-                                    onClick={addItem}
-                                  >
-                                    <PlusIcon className='size-3.5' />
-                                    {SECTION_ADD_LABEL[activeSection]}
-                                  </Button>
+                                  {activeSection !== 'hydration' &&
+                                  activeSection !== 'sleep' ? (
+                                    <Button
+                                      type='button'
+                                      variant='outline'
+                                      className='text-foreground bg-background hover:bg-muted h-10 gap-1.5 border-neutral-300 px-3 text-[13px]! font-semibold'
+                                      onClick={addItem}
+                                    >
+                                      <PlusIcon className='size-3.5' />
+                                      {SECTION_ADD_LABEL[activeSection]}
+                                    </Button>
+                                  ) : null}
                                 </div>
                                 <div className='flex flex-wrap items-center justify-end gap-2'>
                                   <Button

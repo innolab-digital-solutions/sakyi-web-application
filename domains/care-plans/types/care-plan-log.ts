@@ -5,6 +5,7 @@ export type CarePlanLogSection =
   | 'movement'
   | 'activity'
   | 'hydration'
+  | 'sleep'
   | 'recovery';
 
 export type CarePlanLogCompletionSignal = {

@@ -163,6 +163,8 @@ export const ADMIN_ENDPOINTS = {
       LIST: `${BASE}/period-reports`,
       /** Same `{id}` as list row `data[].id` (@see period-report-overview.md §2). */
       DETAIL: (id: string) => `${BASE}/period-reports/${id}`,
+      /** Raw PDF bytes (`GET …/period-reports/{id}/download`). */
+      DOWNLOAD: (id: string) => `${BASE}/period-reports/${id}/download`,
     },
     USERS: {
       LIST: `${BASE}/users`,
