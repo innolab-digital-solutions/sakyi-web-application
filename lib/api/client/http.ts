@@ -1,5 +1,5 @@
-import { fetchBlob } from './blob';
 import type { BlobDownloadResult } from './blob';
+import { fetchBlob } from './blob';
 import { client } from './core';
 import type { ApiResponse, ReadOptions, WriteOptions } from './types';
 

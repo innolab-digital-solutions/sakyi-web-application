@@ -848,7 +848,9 @@ export default function CarePlanBuilder({
         abbreviation === 'hour' ||
         name.includes('hour') ||
         (type === 'time' &&
-          (abbreviation === 'h' || abbreviation === 'hr' || name.includes('hour')))
+          (abbreviation === 'h' ||
+            abbreviation === 'hr' ||
+            name.includes('hour')))
       );
     });
     return hourRow ? String(hourRow.id) : null;
@@ -856,9 +858,7 @@ export default function CarePlanBuilder({
 
   const sleepUnitOptions = React.useMemo<ComboboxOption[]>(() => {
     if (!sleepHourUnitValue) return [];
-    return unitOptions.filter(
-      (option) => option.value === sleepHourUnitValue,
-    );
+    return unitOptions.filter((option) => option.value === sleepHourUnitValue);
   }, [sleepHourUnitValue, unitOptions]);
 
   const unitIdByToken = React.useMemo(() => {
@@ -2794,7 +2794,8 @@ export default function CarePlanBuilder({
                                             activeSection === 'nutrition'
                                               ? (nutritionKcalUnitValue ?? '')
                                               : activeSection === 'hydration'
-                                                ? (hydrationLiterUnitValue ?? '')
+                                                ? (hydrationLiterUnitValue ??
+                                                  '')
                                                 : activeSection === 'sleep'
                                                   ? (sleepHourUnitValue ?? '')
                                                   : (value ?? ''),

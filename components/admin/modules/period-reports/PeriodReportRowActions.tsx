@@ -155,26 +155,6 @@ export default function PeriodReportRowActions({ row }: Props) {
         </Link>
       </Button>
 
-      <Button
-        type='button'
-        variant='outline'
-        size='sm'
-        className={primaryButtonClass}
-        disabled={downloadPending}
-        title={downloadHint}
-        aria-label={
-          downloadPending ? 'Downloading period report PDF' : 'Download PDF'
-        }
-        onClick={() => downloadPdf()}
-      >
-        {downloadPending ? (
-          <Loader2Icon className='size-3.5 shrink-0 animate-spin' aria-hidden />
-        ) : (
-          <DownloadIcon className='size-3.5 shrink-0' aria-hidden />
-        )}
-        {downloadPending ? 'Downloading…' : 'Download'}
-      </Button>
-
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -192,6 +172,23 @@ export default function PeriodReportRowActions({ row }: Props) {
             Actions
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+
+          <DropdownMenuItem
+            className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+            disabled={downloadPending}
+            title={downloadHint}
+            onClick={() => downloadPdf()}
+          >
+            {downloadPending ? (
+              <Loader2Icon
+                className='size-3.5 shrink-0 animate-spin'
+                aria-hidden
+              />
+            ) : (
+              <DownloadIcon className='size-3.5 shrink-0' aria-hidden />
+            )}
+            {downloadPending ? 'Downloading…' : 'Download PDF'}
+          </DropdownMenuItem>
 
           <DropdownMenuItem
             className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'

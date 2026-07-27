@@ -193,9 +193,7 @@ export async function downloadPeriodReportPdf(
   periodReportListId: number,
 ): Promise<PeriodReportPdfDownload> {
   const result = await http.getBlob(
-    ENDPOINTS.ADMIN.MODULES.PERIOD_REPORTS.DOWNLOAD(
-      String(periodReportListId),
-    ),
+    ENDPOINTS.ADMIN.MODULES.PERIOD_REPORTS.DOWNLOAD(String(periodReportListId)),
   );
 
   return {

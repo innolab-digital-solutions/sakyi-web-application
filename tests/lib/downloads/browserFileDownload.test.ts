@@ -18,7 +18,7 @@ describe('parseFilenameFromContentDisposition', () => {
     it('prefers RFC 5987 filename* over a plain filename', () => {
       expect(
         parseFilenameFromContentDisposition(
-          "attachment; filename=\"fallback.pdf\"; filename*=UTF-8''period-report%20draft.pdf",
+          'attachment; filename="fallback.pdf"; filename*=UTF-8\'\'period-report%20draft.pdf',
         ),
       ).toBe('period-report draft.pdf');
     });
@@ -78,15 +78,13 @@ describe('triggerBrowserFileDownload', () => {
     const revokeObjectURL = vi
       .spyOn(URL, 'revokeObjectURL')
       .mockImplementation(() => undefined);
-    const createElement = vi
-      .spyOn(document, 'createElement')
-      .mockReturnValue({
-        href: '',
-        download: '',
-        rel: '',
-        click,
-        remove,
-      } as unknown as HTMLAnchorElement);
+    const createElement = vi.spyOn(document, 'createElement').mockReturnValue({
+      href: '',
+      download: '',
+      rel: '',
+      click,
+      remove,
+    } as unknown as HTMLAnchorElement);
 
     const blob = new Blob(['%PDF'], { type: 'application/pdf' });
     triggerBrowserFileDownload(blob, 'period-report-9.pdf');

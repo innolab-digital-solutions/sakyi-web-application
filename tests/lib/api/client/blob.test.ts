@@ -7,7 +7,8 @@ function mockFetchResponse(init: {
   ok: boolean;
   status: number;
   statusText?: string;
-  body?: BodyInit | null;
+  /** Blob contents only — not full BodyInit (streams are not BlobPart). */
+  body?: BlobPart;
   headers?: Record<string, string>;
   json?: unknown;
 }) {
