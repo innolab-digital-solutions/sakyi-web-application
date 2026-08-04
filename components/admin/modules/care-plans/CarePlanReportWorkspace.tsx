@@ -67,6 +67,7 @@ import {
   applyMealsTotalKcalToFormMetrics,
   applyNutritionActualCaloriesToWorkspace,
   isEditableNutritionKcalEvidenceItem,
+  MEALS_TOTAL_KCAL_METRIC_KEY,
   resolveCarePlanDayId,
 } from '@/lib/care-plans/applyNutritionActualCaloriesResponse';
 import { getCarePlanSectionTab } from '@/lib/care-plans/carePlanSectionTabs';
@@ -922,6 +923,9 @@ export default function CarePlanReportWorkspace({
   const renderMetricEditorCard = (metric: ReportRunMetric, mi: number) => {
     const sectionTab = getCarePlanSectionTab(metric.section);
     const SectionIcon = sectionTab?.icon;
+    /** Day actuals for All Nutrition Meals come from evidence meal edits only. */
+    const canEditDailyBreakdown =
+      canEditMetrics && metric.metric_key !== MEALS_TOTAL_KCAL_METRIC_KEY;
 
     return (
       <div className='border-border min-w-0 space-y-3 rounded-md border bg-white p-3 sm:p-4'>
@@ -1077,9 +1081,14 @@ export default function CarePlanReportWorkspace({
                               target_value: Math.max(0, n),
                             });
                           }}
-                          disabled={!canEditMetrics}
+                          disabled={!canEditDailyBreakdown}
                           id={`m-${mi}-d-${di}-t`}
                           aria-label={`${metric.label} day ${dp.day_number} target`}
+                          title={
+                            metric.metric_key === MEALS_TOTAL_KCAL_METRIC_KEY
+                              ? 'Edit meal calories in evidence; this day total updates automatically'
+                              : undefined
+                          }
                         />
                       </td>
                       <td className='px-1.5 py-1.5 align-middle sm:px-2 sm:py-2'>
@@ -1102,9 +1111,14 @@ export default function CarePlanReportWorkspace({
                               actual_value: Math.max(0, n),
                             });
                           }}
-                          disabled={!canEditMetrics}
+                          disabled={!canEditDailyBreakdown}
                           id={`m-${mi}-d-${di}-a`}
                           aria-label={`${metric.label} day ${dp.day_number} actual`}
+                          title={
+                            metric.metric_key === MEALS_TOTAL_KCAL_METRIC_KEY
+                              ? 'Edit meal calories in evidence; this day total updates automatically'
+                              : undefined
+                          }
                         />
                       </td>
                       <td className='w-20 px-2 py-1.5 text-center align-middle sm:w-14 sm:py-2'>
@@ -1117,7 +1131,7 @@ export default function CarePlanReportWorkspace({
                                 on_target: c === true,
                               })
                             }
-                            disabled={!canEditMetrics}
+                            disabled={!canEditDailyBreakdown}
                             aria-label={`On target day ${dp.day_number}`}
                           />
                         </div>
