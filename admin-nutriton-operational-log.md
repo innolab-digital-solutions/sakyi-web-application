@@ -8,14 +8,14 @@ Base API prefix: `/v1/web/admin`. Requires admin bearer token (same as the rest 
 
 ## What changed
 
-| Area | Change |
-|------|--------|
-| New API | Upsert actual calories on a single nutrition task |
-| Evidence nutrition items | Still use `log.actual_value` — after this API, that field updates |
-| All Nutrition Meals (`meals_total_kcal`) | Day actual is **recalculated from task sums** when you use the new API |
-| Existing operational-log PUT | Still works for full metric saves / other sections |
-| Nutrition task completion | **Unchanged** — still image-based; calories alone do not complete the task |
-| Mobile client | **No change** |
+| Area                                     | Change                                                                     |
+| ---------------------------------------- | -------------------------------------------------------------------------- |
+| New API                                  | Upsert actual calories on a single nutrition task                          |
+| Evidence nutrition items                 | Still use `log.actual_value` — after this API, that field updates          |
+| All Nutrition Meals (`meals_total_kcal`) | Day actual is **recalculated from task sums** when you use the new API     |
+| Existing operational-log PUT             | Still works for full metric saves / other sections                         |
+| Nutrition task completion                | **Unchanged** — still image-based; calories alone do not complete the task |
+| Mobile client                            | **No change**                                                              |
 
 ### Mental model
 
@@ -32,11 +32,11 @@ Now they can also edit **each meal**, and the day total updates automatically.
 
 ## Endpoints at a glance
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| `GET` | `/v1/web/admin/care-plans/{care_plan}/report-workspace` | Load evidence + metrics (unchanged contract) |
-| `PUT` | `/v1/web/admin/care-plans/{care_plan}/days/{day}/nutritions/{nutrition}/actual-calories` | **New** — set/clear one meal’s actual calories |
-| `PUT` | `/v1/web/admin/care-plans/{care_plan}/operational-logs/{operational_log}` | Existing — full metrics save (still available) |
+| Method | Path                                                                                     | Purpose                                        |
+| ------ | ---------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `GET`  | `/v1/web/admin/care-plans/{care_plan}/report-workspace`                                  | Load evidence + metrics (unchanged contract)   |
+| `PUT`  | `/v1/web/admin/care-plans/{care_plan}/days/{day}/nutritions/{nutrition}/actual-calories` | **New** — set/clear one meal’s actual calories |
+| `PUT`  | `/v1/web/admin/care-plans/{care_plan}/operational-logs/{operational_log}`                | Existing — full metrics save (still available) |
 
 ---
 
@@ -50,11 +50,11 @@ Authorization: Bearer {token}
 
 ### Path params
 
-| Param | Type | Source |
-|-------|------|--------|
-| `care_plan` | int | Care plan id |
-| `day` | int | **Care plan day primary key** (`care_plan_days.id`) — not `day_number` / `day_index` |
-| `nutrition` | int | Nutrition task id = evidence item `item_id` when `section === "nutrition"` |
+| Param       | Type | Source                                                                               |
+| ----------- | ---- | ------------------------------------------------------------------------------------ |
+| `care_plan` | int  | Care plan id                                                                         |
+| `day`       | int  | **Care plan day primary key** (`care_plan_days.id`) — not `day_number` / `day_index` |
+| `nutrition` | int  | Nutrition task id = evidence item `item_id` when `section === "nutrition"`           |
 
 ### How to resolve `day` and `nutrition` from report workspace
 
@@ -90,10 +90,10 @@ From `GET …/report-workspace`:
 }
 ```
 
-| Need | Use |
-|------|-----|
-| `nutrition` | `evidence[].items[].item_id` (nutrition rows only) |
-| `day` | Care plan day **id**. Evidence currently exposes `day_number` + `target_date`, not `id`. Resolve by matching `target_date` (preferred) or `day_number` to builder `days[].id`, or any cached day map you already keep for the plan. |
+| Need        | Use                                                                                                                                                                                                                                 |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nutrition` | `evidence[].items[].item_id` (nutrition rows only)                                                                                                                                                                                  |
+| `day`       | Care plan day **id**. Evidence currently exposes `day_number` + `target_date`, not `id`. Resolve by matching `target_date` (preferred) or `day_number` to builder `days[].id`, or any cached day map you already keep for the plan. |
 
 Only show the calorie input for items where:
 
@@ -106,8 +106,8 @@ Only show the calorie input for items where:
 { "actual_value": 450 }
 ```
 
-| Field | Rules |
-|-------|--------|
+| Field          | Rules                                                                                         |
+| -------------- | --------------------------------------------------------------------------------------------- |
 | `actual_value` | **Required key** (`present`). `null` clears the value. Must be `numeric` and `>= 0` when set. |
 
 Clear example:
@@ -153,14 +153,14 @@ Clear example:
 }
 ```
 
-| Field | Meaning |
-|-------|---------|
-| `data.log` | Updated task log — patch into evidence item `log` |
-| `data.log.meta.actual_source` | `"admin"` when set via this API |
-| `data.log.is_completed` | Still driven by meal **images**, not calories |
-| `data.day_rollup` | Sum of kcal nutrition tasks on that care-plan day |
-| `data.day_rollup.day_number` | Care plan `day_number` (plan day label) |
-| `data.meals_total_kcal` | Refreshed All Nutrition Meals summary, or `null` (see below) |
+| Field                                          | Meaning                                                                                                                                |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `data.log`                                     | Updated task log — patch into evidence item `log`                                                                                      |
+| `data.log.meta.actual_source`                  | `"admin"` when set via this API                                                                                                        |
+| `data.log.is_completed`                        | Still driven by meal **images**, not calories                                                                                          |
+| `data.day_rollup`                              | Sum of kcal nutrition tasks on that care-plan day                                                                                      |
+| `data.day_rollup.day_number`                   | Care plan `day_number` (plan day label)                                                                                                |
+| `data.meals_total_kcal`                        | Refreshed All Nutrition Meals summary, or `null` (see below)                                                                           |
 | `data.meals_total_kcal.daily_point.day_number` | **Period index** (1-based within the operational log period) — same numbering as `operational_log.metrics[].daily_points[].day_number` |
 
 ### When `meals_total_kcal` is `null`
@@ -197,12 +197,12 @@ If `operational_log.status === "locked"`, disable calorie inputs. The API return
 
 ## Errors
 
-| Status | When |
-|--------|------|
-| `401` | Guest / missing auth |
-| `403` | Non-admin / cannot view care plan |
-| `404` | Day not on care plan, or nutrition not on that day |
-| `422` | Validation (`actual_value` negative / missing key), care plan not reportable, **or operational log locked** |
+| Status | When                                                                                                        |
+| ------ | ----------------------------------------------------------------------------------------------------------- |
+| `401`  | Guest / missing auth                                                                                        |
+| `403`  | Non-admin / cannot view care plan                                                                           |
+| `404`  | Day not on care plan, or nutrition not on that day                                                          |
+| `422`  | Validation (`actual_value` negative / missing key), care plan not reportable, **or operational log locked** |
 
 Locked example:
 
@@ -227,11 +227,11 @@ PUT /v1/web/admin/care-plans/{care_plan}/operational-logs/{operational_log}
 
 Still used to save the full metrics worksheet (All Nutrition Meals, activity, hydration, etc.).
 
-| Action | Effect on day’s All Nutrition Meals actual |
-|--------|---------------------------------------------|
-| Edit All Nutrition Meals day point via metrics PUT | Manual override saved |
-| Then edit a meal via new actual-calories API | **Recalculates that day from task sums** (overwrites the manual day value) |
-| Edit meals only via new API | Day total always = sum of kcal task actuals |
+| Action                                             | Effect on day’s All Nutrition Meals actual                                 |
+| -------------------------------------------------- | -------------------------------------------------------------------------- |
+| Edit All Nutrition Meals day point via metrics PUT | Manual override saved                                                      |
+| Then edit a meal via new actual-calories API       | **Recalculates that day from task sums** (overwrites the manual day value) |
+| Edit meals only via new API                        | Day total always = sum of kcal task actuals                                |
 
 Frontend tip: after per-task saves, prefer trusting `data.meals_total_kcal` from the new API (or refetch workspace) rather than keeping a stale manual day total in local state.
 

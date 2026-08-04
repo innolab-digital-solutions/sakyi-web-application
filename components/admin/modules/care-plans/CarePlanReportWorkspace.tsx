@@ -76,10 +76,8 @@ import {
   cloneReportRunMetrics,
   rollUpMetricFromDailyPoints,
 } from '@/lib/care-plans/operationalLogMetricsRollup';
+import { resolveReportAverageInputForDialog } from '@/lib/care-plans/reportGenerationAverageInputs';
 import { resolveOperationalLogForReportWorkspace } from '@/lib/care-plans/resolveOperationalLogForReportWorkspace';
-import {
-  resolveReportAverageInputForDialog,
-} from '@/lib/care-plans/reportGenerationAverageInputs';
 import {
   adminCarePlanBriefQueryKey,
   carePlanReportWorkspaceQueryKey,
@@ -275,7 +273,10 @@ export default function CarePlanReportWorkspace({
     },
   });
 
-  const builderDays = carePlanBuilder?.days ?? [];
+  const builderDays = React.useMemo(
+    () => carePlanBuilder?.days ?? [],
+    [carePlanBuilder?.days],
+  );
 
   const resolveEvidenceDayId = React.useCallback(
     (targetDate: string, dayNumber: number) =>
@@ -438,8 +439,10 @@ export default function CarePlanReportWorkspace({
         highlights: overrides?.highlights ?? reportHighlights,
         existingAverageInputs:
           overrides?.existingAverageInputs ??
-          ((existingReportDraftState?.average_inputs ??
-            null) as Record<string, unknown> | null),
+          ((existingReportDraftState?.average_inputs ?? null) as Record<
+            string,
+            unknown
+          > | null),
         generationDefault,
         currentValue,
       }),
@@ -601,6 +604,9 @@ export default function CarePlanReportWorkspace({
     },
   });
 
+  const { mutate: mutateNutritionActualCalories } =
+    nutritionActualCaloriesMutation;
+
   const commitNutritionActual = React.useCallback(
     (args: {
       dayIndex: number;
@@ -617,7 +623,7 @@ export default function CarePlanReportWorkspace({
         return;
       }
       const savingKey = `${args.targetDate}:${args.itemId}`;
-      nutritionActualCaloriesMutation.mutate({
+      mutateNutritionActualCalories({
         dayId,
         itemId: args.itemId,
         dayIndex: args.dayIndex,
@@ -626,7 +632,7 @@ export default function CarePlanReportWorkspace({
         savingKey,
       });
     },
-    [nutritionActualCaloriesMutation, resolveEvidenceDayId],
+    [mutateNutritionActualCalories, resolveEvidenceDayId],
   );
 
   const saveMetricsMutation = useMutation({
@@ -1430,7 +1436,9 @@ function formatClientNoteUpdatedAt(
   }
 }
 
-function formatLogActualDraft(value: number | string | null | undefined): string {
+function formatLogActualDraft(
+  value: number | string | null | undefined,
+): string {
   if (value == null) return '';
   if (typeof value === 'number') {
     return Number.isFinite(value) ? String(value) : '';
@@ -1477,10 +1485,16 @@ function EvidenceLineItemCard({
     dayIdResolved;
   const serverActualDraft = formatLogActualDraft(log?.actual_value);
   const [actualDraft, setActualDraft] = React.useState(serverActualDraft);
-
-  React.useEffect(() => {
+  const [draftSyncKey, setDraftSyncKey] = React.useState(
+    () => `${item.item_id}|${targetDate}|${serverActualDraft}`,
+  );
+  const nextDraftSyncKey = `${item.item_id}|${targetDate}|${serverActualDraft}`;
+  // Sync local draft when the server value (or item identity) changes — during
+  // render, not in an effect, so we avoid cascading effect-driven setState.
+  if (nextDraftSyncKey !== draftSyncKey) {
+    setDraftSyncKey(nextDraftSyncKey);
     setActualDraft(serverActualDraft);
-  }, [serverActualDraft, item.item_id, targetDate]);
+  }
 
   const commitActualDraft = React.useCallback(() => {
     if (!canEditThisLog || isSavingNutritionActual) return;
@@ -1492,7 +1506,9 @@ function EvidenceLineItemCard({
       const n = Number(trimmed);
       if (!Number.isFinite(n) || n < 0) {
         setActualDraft(serverActualDraft);
-        toast.error('Actual calories must be a number greater than or equal to 0.');
+        toast.error(
+          'Actual calories must be a number greater than or equal to 0.',
+        );
         return;
       }
       nextValue = n;
@@ -1766,8 +1782,7 @@ function EvidenceList({
         const { totalTasks, totalLogs } = getEvidenceDayTaskLogCounts(d.items);
         const dayPhotos = d.photos?.length ? d.photos : null;
         const dayLabel = `Day ${d.day_index} — ${formatTargetDateLabel(d.target_date)}`;
-        const dayIdResolved =
-          resolveDayId(d.target_date, d.day_number) != null;
+        const dayIdResolved = resolveDayId(d.target_date, d.day_number) != null;
         return (
           <li
             key={`${d.target_date}-${d.day_index}`}

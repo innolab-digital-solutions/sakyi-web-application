@@ -64,7 +64,8 @@ export function resolveReportAverageInputForDialog(
   });
   if (fromHighlights) {
     const highlightValue = readAverageInputValue(fromHighlights.value);
-    if (highlightValue != null) return formatAverageInputDisplay(highlightValue);
+    if (highlightValue != null)
+      return formatAverageInputDisplay(highlightValue);
   }
 
   const fromExisting = readAverageInputValue(

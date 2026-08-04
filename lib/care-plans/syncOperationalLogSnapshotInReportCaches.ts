@@ -84,9 +84,7 @@ export function syncOperationalLogSnapshotInReportCaches(
       if (op != null && op.id !== snapshot.id) return old;
       const snapshotMetrics = snapshot.metrics ?? [];
       const nextMetrics =
-        snapshotMetrics.length > 0
-          ? snapshotMetrics
-          : (op?.metrics ?? []);
+        snapshotMetrics.length > 0 ? snapshotMetrics : (op?.metrics ?? []);
       return {
         ...old,
         operational_log: {
