@@ -148,6 +148,13 @@ export const ADMIN_ENDPOINTS = {
         operationalLogId: string,
       ) =>
         `${BASE}/care-plans/${carePlanId}/operational-logs/${operationalLogId}/submit-for-review`,
+      /** Upsert actual calories on a single nutrition task (meal). */
+      NUTRITION_ACTUAL_CALORIES: (
+        carePlanId: string,
+        dayId: string,
+        nutritionId: string,
+      ) =>
+        `${BASE}/care-plans/${carePlanId}/days/${dayId}/nutritions/${nutritionId}/actual-calories`,
     },
     CARE_PLAN_LOGS: {
       LIST: `${BASE}/care-plan-logs`,

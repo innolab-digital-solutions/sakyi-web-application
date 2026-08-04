@@ -44,22 +44,31 @@ import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
 import {
+  getCarePlanBuilderById,
   getCarePlanById,
   getCarePlanReportWorkspace,
   postCarePlanOperationalLog,
   postCarePlanOperationalLogDraft,
   postOperationalLogSubmitForReview,
   putCarePlanOperationalLog,
+  putNutritionActualCalories,
 } from '@/domains/care-plans/services';
 import type {
   CarePlanReportDayPhoto,
   CarePlanReportEvidenceDay,
   CarePlanReportEvidenceItem,
+  CarePlanReportWorkspace,
   ReportMetricDailyPoint,
   ReportRunFeedback,
   ReportRunMetric,
   SubmitForReviewManualHighlightPayload,
 } from '@/domains/care-plans/types/care-plan-report';
+import {
+  applyMealsTotalKcalToFormMetrics,
+  applyNutritionActualCaloriesToWorkspace,
+  isEditableNutritionKcalEvidenceItem,
+  resolveCarePlanDayId,
+} from '@/lib/care-plans/applyNutritionActualCaloriesResponse';
 import { getCarePlanSectionTab } from '@/lib/care-plans/carePlanSectionTabs';
 import { diffReportRunMetrics } from '@/lib/care-plans/diffReportRunMetrics';
 import {
@@ -79,6 +88,10 @@ const OPERATIONAL_LOG_LIST_QUERY_KEY = [
   'table',
   ENDPOINTS.ADMIN.MODULES.OPERATIONAL_LOGS.LIST,
 ] as const;
+
+function carePlanBuilderQueryKey(carePlanId: number) {
+  return ['care-plan', carePlanId, 'builder'] as const;
+}
 
 /** Same format as `CarePlanBuilder` day schedule (short weekday + date). */
 function formatTargetDateLabel(ymd: string | null | undefined): string {
@@ -247,6 +260,25 @@ export default function CarePlanReportWorkspace({
 
   const carePlan = carePlanResult;
 
+  const { data: carePlanBuilder } = useQuery({
+    queryKey: carePlanBuilderQueryKey(carePlanId),
+    queryFn: async () => {
+      const res = await getCarePlanBuilderById(carePlanId);
+      if (res.status === 'error') {
+        throw new Error(res.message ?? 'Could not load care plan days.');
+      }
+      return res.data;
+    },
+  });
+
+  const builderDays = carePlanBuilder?.days ?? [];
+
+  const resolveEvidenceDayId = React.useCallback(
+    (targetDate: string, dayNumber: number) =>
+      resolveCarePlanDayId(builderDays, targetDate, dayNumber),
+    [builderDays],
+  );
+
   React.useEffect(() => {
     if (searchParams.toString() === '') return;
     router.replace(workspacePath, { scroll: false });
@@ -322,6 +354,8 @@ export default function CarePlanReportWorkspace({
           operationalLog.status === 'in_progress') &&
         operationalLog.is_editable !== false
       : !clientReport;
+  /** Same gating as metrics worksheet; locked op logs disable nutrition kcal inputs. */
+  const canEditNutritionActuals = canEditMetrics;
   const activeOpLogId = operationalLog?.id ?? null;
   const canShowSubmitForReview =
     operationalLog != null &&
@@ -535,6 +569,92 @@ export default function CarePlanReportWorkspace({
       });
     },
     [],
+  );
+
+  const [nutritionActualSavingKey, setNutritionActualSavingKey] =
+    React.useState<string | null>(null);
+
+  const nutritionActualCaloriesMutation = useMutation({
+    mutationFn: async (vars: {
+      dayId: number;
+      itemId: number;
+      dayIndex: number;
+      targetDate: string;
+      actualValue: number | null;
+      savingKey: string;
+    }) => {
+      const res = await putNutritionActualCalories(
+        carePlanId,
+        vars.dayId,
+        vars.itemId,
+        { actual_value: vars.actualValue },
+      );
+      if (res.status === 'error') {
+        throw new Error(
+          res.message ?? 'Could not update nutrition actual calories.',
+        );
+      }
+      if (!res.data) {
+        throw new Error('No data returned when updating nutrition calories.');
+      }
+      return { data: res.data, vars };
+    },
+    onMutate: (vars) => {
+      setNutritionActualSavingKey(vars.savingKey);
+    },
+    onSuccess: ({ data, vars }) => {
+      const locate = {
+        targetDate: vars.targetDate,
+        dayIndex: vars.dayIndex,
+        itemId: vars.itemId,
+      };
+      queryClient.setQueryData<CarePlanReportWorkspace | undefined>(
+        carePlanReportWorkspaceQueryKey(carePlanId),
+        (old) => {
+          if (!old) return old;
+          return applyNutritionActualCaloriesToWorkspace(old, locate, data);
+        },
+      );
+      if (data.meals_total_kcal != null) {
+        setFormMetrics((prev) =>
+          applyMealsTotalKcalToFormMetrics(prev, data.meals_total_kcal),
+        );
+      }
+    },
+    onError: (e: Error) => {
+      toast.error(e.message);
+    },
+    onSettled: () => {
+      setNutritionActualSavingKey(null);
+    },
+  });
+
+  const commitNutritionActual = React.useCallback(
+    (args: {
+      dayIndex: number;
+      dayNumber: number;
+      targetDate: string;
+      itemId: number;
+      actualValue: number | null;
+    }) => {
+      const dayId = resolveEvidenceDayId(args.targetDate, args.dayNumber);
+      if (dayId == null) {
+        toast.error(
+          'Could not resolve this care-plan day. Reload the workspace and try again.',
+        );
+        return;
+      }
+      const savingKey = `${args.targetDate}:${args.itemId}`;
+      nutritionActualCaloriesMutation.mutate({
+        dayId,
+        itemId: args.itemId,
+        dayIndex: args.dayIndex,
+        targetDate: args.targetDate,
+        actualValue: args.actualValue,
+        savingKey,
+      });
+    },
+    [nutritionActualCaloriesMutation, resolveEvidenceDayId],
   );
 
   const saveMetricsMutation = useMutation({
@@ -1134,6 +1254,10 @@ export default function CarePlanReportWorkspace({
               <div className='min-h-0 min-w-0 space-y-3 lg:col-span-1'>
                 <EvidenceList
                   days={workspace.evidence}
+                  canEditNutritionActuals={canEditNutritionActuals}
+                  nutritionActualSavingKey={nutritionActualSavingKey}
+                  resolveDayId={resolveEvidenceDayId}
+                  onCommitNutritionActual={commitNutritionActual}
                   onOpenImage={(url, contextLabel) =>
                     setLightboxMedia({ url, contextLabel })
                   }
@@ -1284,11 +1408,40 @@ function formatClientNoteUpdatedAt(
   }
 }
 
+function formatLogActualDraft(value: number | string | null | undefined): string {
+  if (value == null) return '';
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? String(value) : '';
+  }
+  const s = String(value).trim();
+  return s;
+}
+
 function EvidenceLineItemCard({
   item,
+  dayIndex,
+  dayNumber,
+  targetDate,
+  canEditNutritionActuals,
+  isSavingNutritionActual,
+  dayIdResolved,
+  onCommitNutritionActual,
   onOpenImage,
 }: {
   item: CarePlanReportEvidenceItem;
+  dayIndex: number;
+  dayNumber: number;
+  targetDate: string;
+  canEditNutritionActuals: boolean;
+  isSavingNutritionActual: boolean;
+  dayIdResolved: boolean;
+  onCommitNutritionActual: (args: {
+    dayIndex: number;
+    dayNumber: number;
+    targetDate: string;
+    itemId: number;
+    actualValue: number | null;
+  }) => void;
   onOpenImage: (url: string, contextLabel: string) => void;
 }) {
   const targetDisplay = item.target
@@ -1296,6 +1449,58 @@ function EvidenceLineItemCard({
     : '—';
   const log = item.log;
   const hasLog = log != null;
+  const canEditThisLog =
+    canEditNutritionActuals &&
+    isEditableNutritionKcalEvidenceItem(item) &&
+    dayIdResolved;
+  const serverActualDraft = formatLogActualDraft(log?.actual_value);
+  const [actualDraft, setActualDraft] = React.useState(serverActualDraft);
+
+  React.useEffect(() => {
+    setActualDraft(serverActualDraft);
+  }, [serverActualDraft, item.item_id, targetDate]);
+
+  const commitActualDraft = React.useCallback(() => {
+    if (!canEditThisLog || isSavingNutritionActual) return;
+    const trimmed = actualDraft.trim();
+    let nextValue: number | null;
+    if (trimmed === '') {
+      nextValue = null;
+    } else {
+      const n = Number(trimmed);
+      if (!Number.isFinite(n) || n < 0) {
+        setActualDraft(serverActualDraft);
+        toast.error('Actual calories must be a number greater than or equal to 0.');
+        return;
+      }
+      nextValue = n;
+    }
+    const prevNormalized =
+      serverActualDraft === '' ? null : Number(serverActualDraft);
+    const prevComparable =
+      prevNormalized != null && Number.isFinite(prevNormalized)
+        ? prevNormalized
+        : null;
+    if (nextValue === prevComparable) return;
+    onCommitNutritionActual({
+      dayIndex,
+      dayNumber,
+      targetDate,
+      itemId: item.item_id,
+      actualValue: nextValue,
+    });
+  }, [
+    actualDraft,
+    canEditThisLog,
+    dayIndex,
+    dayNumber,
+    isSavingNutritionActual,
+    item.item_id,
+    onCommitNutritionActual,
+    serverActualDraft,
+    targetDate,
+  ]);
+
   const logValueDisplay = hasLog
     ? `${log.actual_value ?? '—'} ${log.unit ?? ''}`.trim()
     : 'No log yet';
@@ -1327,9 +1532,36 @@ function EvidenceLineItemCard({
           <p className='text-[10px] font-semibold tracking-wide text-sky-700 uppercase dark:text-sky-400'>
             Log
           </p>
-          <p className='text-foreground/90 text-[11px] leading-snug font-medium'>
-            {logValueDisplay}
-          </p>
+          {canEditThisLog ? (
+            <div className='flex items-center gap-1.5'>
+              <TextField
+                type='number'
+                variant='tableDense'
+                className='w-full min-w-0'
+                min={0}
+                step='any'
+                value={actualDraft}
+                onChange={(e) => setActualDraft(e.target.value)}
+                onBlur={commitActualDraft}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.currentTarget.blur();
+                  }
+                }}
+                disabled={isSavingNutritionActual}
+                id={`nutrition-actual-${targetDate}-${item.item_id}`}
+                aria-label={`${item.title} actual calories`}
+                placeholder='kcal'
+              />
+              <span className='text-muted-foreground shrink-0 text-[10px] font-semibold tracking-wide uppercase'>
+                kcal
+              </span>
+            </div>
+          ) : (
+            <p className='text-foreground/90 text-[11px] leading-snug font-medium'>
+              {logValueDisplay}
+            </p>
+          )}
         </div>
       </div>
 
@@ -1478,9 +1710,23 @@ function DayPhotosGallery({
 
 function EvidenceList({
   days,
+  canEditNutritionActuals,
+  nutritionActualSavingKey,
+  resolveDayId,
+  onCommitNutritionActual,
   onOpenImage,
 }: {
   days: CarePlanReportEvidenceDay[];
+  canEditNutritionActuals: boolean;
+  nutritionActualSavingKey: string | null;
+  resolveDayId: (targetDate: string, dayNumber: number) => number | null;
+  onCommitNutritionActual: (args: {
+    dayIndex: number;
+    dayNumber: number;
+    targetDate: string;
+    itemId: number;
+    actualValue: number | null;
+  }) => void;
   onOpenImage: (url: string, contextLabel: string) => void;
 }) {
   if (!days.length) {
@@ -1498,6 +1744,8 @@ function EvidenceList({
         const { totalTasks, totalLogs } = getEvidenceDayTaskLogCounts(d.items);
         const dayPhotos = d.photos?.length ? d.photos : null;
         const dayLabel = `Day ${d.day_index} — ${formatTargetDateLabel(d.target_date)}`;
+        const dayIdResolved =
+          resolveDayId(d.target_date, d.day_number) != null;
         return (
           <li
             key={`${d.target_date}-${d.day_index}`}
@@ -1603,13 +1851,25 @@ function EvidenceList({
                         </span>
                       </div>
                       <div className='space-y-2.5'>
-                        {items.map((item) => (
-                          <EvidenceLineItemCard
-                            key={`${d.target_date}-${item.item_id}-${item.section}`}
-                            item={item}
-                            onOpenImage={onOpenImage}
-                          />
-                        ))}
+                        {items.map((item) => {
+                          const savingKey = `${d.target_date}:${item.item_id}`;
+                          return (
+                            <EvidenceLineItemCard
+                              key={`${d.target_date}-${item.item_id}-${item.section}`}
+                              item={item}
+                              dayIndex={d.day_index}
+                              dayNumber={d.day_number}
+                              targetDate={d.target_date}
+                              canEditNutritionActuals={canEditNutritionActuals}
+                              isSavingNutritionActual={
+                                nutritionActualSavingKey === savingKey
+                              }
+                              dayIdResolved={dayIdResolved}
+                              onCommitNutritionActual={onCommitNutritionActual}
+                              onOpenImage={onOpenImage}
+                            />
+                          );
+                        })}
                       </div>
                     </div>
                   ))}

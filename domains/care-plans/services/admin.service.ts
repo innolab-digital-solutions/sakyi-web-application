@@ -22,8 +22,10 @@ import type {
   CreateOperationalLogDraftPayload,
   CreateOperationalLogPayload,
   ListCarePlanReportRunsData,
+  NutritionActualCaloriesResult,
   OperationalLogSnapshot,
   PublishCarePlanReportRunPayload,
+  PutNutritionActualCaloriesPayload,
   SubmitOperationalLogForReviewPayload,
   UpdateCarePlanReportRunPayload,
   UpdateOperationalLogPayload,
@@ -291,6 +293,28 @@ export async function putCarePlanOperationalLog(
     ENDPOINTS.ADMIN.MODULES.CARE_PLANS.OPERATIONAL_LOG(
       String(carePlanId),
       String(operationalLogId),
+    ),
+    body,
+    { throwOnError: false },
+  );
+}
+
+/**
+ * Upserts actual calories on a single nutrition task (meal). Server recalculates
+ * that day's All Nutrition Meals (`meals_total_kcal`) when an operational log
+ * with metrics already exists.
+ */
+export async function putNutritionActualCalories(
+  carePlanId: number,
+  dayId: number,
+  nutritionId: number,
+  body: PutNutritionActualCaloriesPayload,
+): Promise<ApiResponse<NutritionActualCaloriesResult>> {
+  return http.put<NutritionActualCaloriesResult>(
+    ENDPOINTS.ADMIN.MODULES.CARE_PLANS.NUTRITION_ACTUAL_CALORIES(
+      String(carePlanId),
+      String(dayId),
+      String(nutritionId),
     ),
     body,
     { throwOnError: false },
