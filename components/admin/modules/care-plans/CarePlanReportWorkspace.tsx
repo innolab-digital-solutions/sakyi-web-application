@@ -1299,14 +1299,8 @@ function EvidenceLineItemCard({
   const logValueDisplay = hasLog
     ? `${log.actual_value ?? '—'} ${log.unit ?? ''}`.trim()
     : 'No log yet';
-  const noteText = hasLog
-    ? (() => {
-        const raw = log.notes;
-        if (raw == null) return '—';
-        const s = String(raw).trim();
-        return s.length > 0 ? s : '—';
-      })()
-    : null;
+  const logNoteText = hasLog ? String(log.notes ?? '').trim() : '';
+  const hasLogNote = logNoteText.length > 0;
   const media = log?.media?.length ? log.media : null;
   const clientNoteBody = String(item.client_note?.body ?? '').trim();
   const hasClientNote = clientNoteBody.length > 0;
@@ -1357,13 +1351,13 @@ function EvidenceLineItemCard({
         </div>
       ) : null}
 
-      {hasLog ? (
+      {hasLogNote ? (
         <div className='bg-muted/15 border-border w-full min-w-0 space-y-1 rounded-md border px-2.5 py-2 sm:px-3 sm:py-2.5'>
           <p className='text-[10px] font-semibold tracking-wide text-violet-700 uppercase dark:text-violet-400'>
             Log note
           </p>
           <p className='text-foreground/90 text-[11px] leading-relaxed font-medium wrap-break-word whitespace-pre-wrap'>
-            {noteText}
+            {logNoteText}
           </p>
         </div>
       ) : null}
