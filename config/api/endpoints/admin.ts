@@ -128,6 +128,8 @@ export const ADMIN_ENDPOINTS = {
       REVISION: (id: string) => `${BASE}/care-plans/${id}/revision`,
       DAY_NOTES_UPDATE: (id: string, dayId: string) =>
         `${BASE}/care-plans/${id}/days/${dayId}/notes`,
+      DAY_MOTIVATION_UPDATE: (id: string, dayId: string) =>
+        `${BASE}/care-plans/${id}/days/${dayId}/motivation`,
       REPORT_WORKSPACE: (id: string) =>
         `${BASE}/care-plans/${id}/report-workspace`,
       REPORT_RUNS: (id: string) => `${BASE}/care-plans/${id}/report-runs`,

@@ -11,6 +11,7 @@ import {
 export type ClonedCarePlanDayContent = {
   sections: Record<CarePlanSectionKey, CarePlanSectionItem[]>;
   general_notes: string | null;
+  daily_motivation: string | null;
 };
 
 const SECTION_KEYS = CARE_PLAN_SECTION_TABS.map((tab) => tab.key);
@@ -85,6 +86,7 @@ export function cloneCarePlanSectionItem(
 export function cloneCarePlanDayContent(source: {
   sections: Record<CarePlanSectionKey, CarePlanSectionItem[]>;
   general_notes: string | null;
+  daily_motivation?: string | null;
 }): ClonedCarePlanDayContent {
   const sections = {} as Record<CarePlanSectionKey, CarePlanSectionItem[]>;
 
@@ -94,9 +96,11 @@ export function cloneCarePlanDayContent(source: {
   }
 
   const notes = String(source.general_notes ?? '').trim();
+  const motivation = String(source.daily_motivation ?? '').trim();
   return {
     sections,
     general_notes: notes.length > 0 ? notes : null,
+    daily_motivation: motivation.length > 0 ? motivation : null,
   };
 }
 

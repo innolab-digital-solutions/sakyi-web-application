@@ -50,6 +50,7 @@ export {
   listCarePlanLogs,
   listCarePlanReportRuns,
   patchCarePlanBasics,
+  patchCarePlanDayMotivation,
   patchCarePlanDayNotes,
   postCarePlanActivate,
   postCarePlanCancel,

@@ -14,6 +14,7 @@ import {
   PencilLineIcon,
   PlusIcon,
   RefreshCwIcon,
+  SparklesIcon,
   Trash2Icon,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -21,6 +22,7 @@ import * as React from 'react';
 import { toast } from 'sonner';
 
 import { CarePlanBuilderSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
+import CarePlanDayMotivationModal from '@/components/admin/modules/care-plans/CarePlanDayMotivationModal';
 import CarePlanDayNoteModal from '@/components/admin/modules/care-plans/CarePlanDayNoteModal';
 import CarePlanFinalizeConfirmation from '@/components/admin/modules/care-plans/CarePlanFinalizeConfirmation';
 import CarePlanGenerateDaysModal from '@/components/admin/modules/care-plans/CarePlanGenerateDaysModal';
@@ -48,6 +50,7 @@ import { LOOKUP_ENDPOINTS } from '@/config/api/endpoints/lookup';
 import { ROUTES } from '@/config/routes';
 import {
   getCarePlanBuilderById,
+  patchCarePlanDayMotivation,
   patchCarePlanDayNotes,
   postCarePlanGenerateDays,
   postCarePlanRevision,
@@ -662,6 +665,16 @@ class CarePlanDayNotesValidationError extends Error {
   }
 }
 
+class CarePlanDayMotivationValidationError extends Error {
+  readonly fieldError?: string;
+
+  constructor(message: string, fieldError?: string) {
+    super(message);
+    this.name = 'CarePlanDayMotivationValidationError';
+    this.fieldError = fieldError;
+  }
+}
+
 function formatDayTaskValidationMessage(message: string): string {
   return message
     .replace(
@@ -749,6 +762,14 @@ export default function CarePlanBuilder({
   const [dayNotesDraft, setDayNotesDraft] = React.useState('');
   const [dayNotesSavedValue, setDayNotesSavedValue] = React.useState('');
   const [dayNotesError, setDayNotesError] = React.useState<
+    string | undefined
+  >();
+  const [dayMotivationModalOpen, setDayMotivationModalOpen] =
+    React.useState(false);
+  const [dayMotivationDraft, setDayMotivationDraft] = React.useState('');
+  const [dayMotivationSavedValue, setDayMotivationSavedValue] =
+    React.useState('');
+  const [dayMotivationError, setDayMotivationError] = React.useState<
     string | undefined
   >();
   const [duplicateDaySourceId, setDuplicateDaySourceId] = React.useState<
@@ -1082,6 +1103,15 @@ export default function CarePlanBuilder({
       setDayNotesError(undefined);
     });
   }, [selectedDay?.id, selectedDay?.general_notes]);
+
+  React.useEffect(() => {
+    const next = String(selectedDay?.daily_motivation ?? '');
+    queueMicrotask(() => {
+      setDayMotivationDraft(next);
+      setDayMotivationSavedValue(next);
+      setDayMotivationError(undefined);
+    });
+  }, [selectedDay?.id, selectedDay?.daily_motivation]);
 
   const activeSectionIndex = React.useMemo(
     () => SECTIONS.findIndex((section) => section.key === activeSection),
@@ -1425,6 +1455,38 @@ export default function CarePlanBuilder({
     },
   });
 
+  const dayMotivationMutation = useMutation({
+    mutationFn: async (payload: {
+      dayId: number;
+      daily_motivation: string | null;
+    }) => {
+      const response = await patchCarePlanDayMotivation(
+        carePlanId,
+        payload.dayId,
+        payload,
+      );
+      if (response.status === 'error') {
+        const fieldError = firstApiValidationMessage(
+          response.errors?.daily_motivation,
+        );
+        throw new CarePlanDayMotivationValidationError(
+          response.message ?? 'Could not save daily motivation.',
+          fieldError,
+        );
+      }
+      return response.data;
+    },
+    onError: (error: Error) => {
+      if (error instanceof CarePlanDayMotivationValidationError) {
+        if (error.fieldError) {
+          setDayMotivationError(error.fieldError);
+          return;
+        }
+      }
+      toast.error(error.message ?? 'Could not save daily motivation.');
+    },
+  });
+
   const openGenerateDayModal = () => {
     setGenerateDayModalForm({
       starts_on: basicsForm.starts_on.trim(),
@@ -1537,9 +1599,44 @@ export default function CarePlanBuilder({
     return true;
   };
 
+  const saveDayMotivationIfNeeded = async (dayId: number): Promise<boolean> => {
+    const nextValue = dayMotivationDraft.trim();
+    const savedValue = dayMotivationSavedValue.trim();
+    if (nextValue === savedValue) return false;
+    setDayMotivationError(undefined);
+    await dayMotivationMutation.mutateAsync({
+      dayId,
+      daily_motivation: nextValue.length > 0 ? nextValue : null,
+    });
+    queryClient.setQueryData(
+      ['care-plan', carePlanId, 'builder'],
+      (prev: typeof builderQuery.data) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          days: prev.days.map((day) =>
+            day.id === dayId
+              ? {
+                  ...day,
+                  daily_motivation: nextValue.length > 0 ? nextValue : null,
+                }
+              : day,
+          ),
+        };
+      },
+    );
+    setDayMotivationSavedValue(nextValue);
+    return true;
+  };
+
   const openDayNotesModal = (dayId: number) => {
     if (selectedDayId !== dayId) setSelectedDayId(dayId);
     setDayNotesModalOpen(true);
+  };
+
+  const openDayMotivationModal = (dayId: number) => {
+    if (selectedDayId !== dayId) setSelectedDayId(dayId);
+    setDayMotivationModalOpen(true);
   };
 
   const openDuplicateDayDialog = (dayId: number) => {
@@ -1558,11 +1655,14 @@ export default function CarePlanBuilder({
     const hasUnsavedNotes =
       dayNotesDraft.trim() !== dayNotesSavedValue.trim() &&
       selectedDayId != null;
+    const hasUnsavedMotivation =
+      dayMotivationDraft.trim() !== dayMotivationSavedValue.trim() &&
+      selectedDayId != null;
 
     // Always allow duplicate from last-saved builder data. Empty placeholder
     // tabs (e.g. Hydration with only a default Liter unit) are not blocked.
     // Soft-warn only when there are real unsaved edits that will be omitted.
-    if (hasUnsavedSection || hasUnsavedNotes) {
+    if (hasUnsavedSection || hasUnsavedNotes || hasUnsavedMotivation) {
       toast.info(
         'Unsaved edits on this tab won’t be included. Duplicate uses the last saved day content.',
       );
@@ -1605,6 +1705,7 @@ export default function CarePlanBuilder({
       const cloned = cloneCarePlanDayContent({
         sections: source.sections,
         general_notes: source.general_notes,
+        daily_motivation: source.daily_motivation,
       });
 
       const targets = vars.targetDayIds
@@ -1662,6 +1763,18 @@ export default function CarePlanBuilder({
           throw new Error(
             notesResponse.message ??
               `Could not copy the day note onto day ${target.day_number}.`,
+          );
+        }
+
+        const motivationResponse = await patchCarePlanDayMotivation(
+          carePlanId,
+          target.id,
+          { daily_motivation: cloned.daily_motivation },
+        );
+        if (motivationResponse.status === 'error') {
+          throw new Error(
+            motivationResponse.message ??
+              `Could not copy daily motivation onto day ${target.day_number}.`,
           );
         }
       }
@@ -1729,6 +1842,42 @@ export default function CarePlanBuilder({
     };
   };
 
+  const getDayMotivationVisual = (day: {
+    id: number;
+    day_number: number;
+    daily_motivation?: string | null;
+  }) => {
+    const hasSavedMotivation =
+      String(day.daily_motivation ?? '').trim().length > 0;
+    const isSelectedDay = selectedDayId === day.id;
+    const hasUnsavedMotivationDraft =
+      isSelectedDay &&
+      dayMotivationDraft.trim() !== dayMotivationSavedValue.trim();
+
+    if (hasUnsavedMotivationDraft) {
+      return {
+        icon: PencilLineIcon,
+        label: 'Edit motivation',
+        toneClass:
+          'text-primary border-primary/30 bg-primary/10 hover:bg-primary/15',
+      };
+    }
+    if (hasSavedMotivation) {
+      return {
+        icon: SparklesIcon,
+        label: 'View motivation',
+        toneClass:
+          'text-primary border-primary/25 bg-primary/8 hover:bg-primary/12',
+      };
+    }
+    return {
+      icon: SparklesIcon,
+      label: 'Add motivation',
+      toneClass:
+        'text-muted-foreground border-border/70 bg-background hover:bg-muted/70',
+    };
+  };
+
   const handleSaveDayNotesFromModal = async () => {
     if (!selectedDay) return;
     try {
@@ -1741,6 +1890,25 @@ export default function CarePlanBuilder({
         toast.success(`${dayLabel} note has been successfully saved.`);
       }
       setDayNotesModalOpen(false);
+    } catch {
+      // Mutation onError already handles inline messages and toast fallback.
+    }
+  };
+
+  const handleSaveDayMotivationFromModal = async () => {
+    if (!selectedDay) return;
+    try {
+      const didSave = await saveDayMotivationIfNeeded(selectedDay.id);
+      if (didSave) {
+        const dayLabel =
+          selectedDay?.day_number != null
+            ? `Day ${selectedDay.day_number}`
+            : 'The day';
+        toast.success(
+          `${dayLabel} daily motivation has been successfully saved.`,
+        );
+      }
+      setDayMotivationModalOpen(false);
     } catch {
       // Mutation onError already handles inline messages and toast fallback.
     }
@@ -2483,6 +2651,8 @@ export default function CarePlanBuilder({
                         {builder.days.map((day) => {
                           const noteVisual = getDayNoteVisual(day);
                           const NoteIcon = noteVisual.icon;
+                          const motivationVisual = getDayMotivationVisual(day);
+                          const MotivationIcon = motivationVisual.icon;
                           const isSelected = selectedDayId === day.id;
                           const dayValidationMessage =
                             validationIssuesByDay[day.day_number];
@@ -2495,7 +2665,7 @@ export default function CarePlanBuilder({
                                 <button
                                   type='button'
                                   className={cn(
-                                    'w-full min-w-0 rounded-md border px-3 py-2.5 pr-28 text-left transition-all',
+                                    'w-full min-w-0 rounded-md border px-3 py-2.5 pr-36 text-left transition-all',
                                     isSelected
                                       ? 'bg-primary/8 border-primary/40 text-foreground shadow-xs'
                                       : 'text-foreground/90 hover:border-border/70 hover:bg-background/80 border-transparent',
@@ -2594,39 +2764,101 @@ export default function CarePlanBuilder({
                                   ) : null}
 
                                   {editable ? (
-                                    <span
-                                      role='button'
-                                      tabIndex={0}
-                                      aria-label={`${noteVisual.label} for day ${day.day_number}`}
-                                      className={cn(
-                                        'inline-flex size-7 items-center justify-center rounded-md border transition-colors focus-visible:ring-2 focus-visible:outline-hidden',
-                                        isSelected
-                                          ? 'border-primary/30 bg-primary/10 text-primary hover:bg-primary/15'
-                                          : noteVisual.toneClass,
-                                        dayNotesMutation.isPending
-                                          ? 'pointer-events-none opacity-60'
-                                          : '',
-                                      )}
-                                      onClick={(event) => {
-                                        event.stopPropagation();
-                                        if (dayNotesMutation.isPending) return;
-                                        openDayNotesModal(day.id);
-                                      }}
-                                      onKeyDown={(event) => {
-                                        if (
-                                          event.key === 'Enter' ||
-                                          event.key === ' '
-                                        ) {
-                                          event.preventDefault();
-                                          event.stopPropagation();
-                                          if (dayNotesMutation.isPending)
-                                            return;
-                                          openDayNotesModal(day.id);
-                                        }
-                                      }}
-                                    >
-                                      <NoteIcon className='size-3.5' />
-                                    </span>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span
+                                          role='button'
+                                          tabIndex={0}
+                                          aria-label={`${motivationVisual.label} for day ${day.day_number}`}
+                                          className={cn(
+                                            'inline-flex size-7 items-center justify-center rounded-md border transition-colors focus-visible:ring-2 focus-visible:outline-hidden',
+                                            isSelected
+                                              ? 'border-primary/30 bg-primary/10 text-primary hover:bg-primary/15'
+                                              : motivationVisual.toneClass,
+                                            dayMotivationMutation.isPending
+                                              ? 'pointer-events-none opacity-60'
+                                              : '',
+                                          )}
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            if (dayMotivationMutation.isPending)
+                                              return;
+                                            openDayMotivationModal(day.id);
+                                          }}
+                                          onKeyDown={(event) => {
+                                            if (
+                                              event.key === 'Enter' ||
+                                              event.key === ' '
+                                            ) {
+                                              event.preventDefault();
+                                              event.stopPropagation();
+                                              if (
+                                                dayMotivationMutation.isPending
+                                              )
+                                                return;
+                                              openDayMotivationModal(day.id);
+                                            }
+                                          }}
+                                        >
+                                          <MotivationIcon className='size-3.5' />
+                                        </span>
+                                      </TooltipTrigger>
+                                      <TooltipContent
+                                        surface
+                                        side='top'
+                                        sideOffset={8}
+                                      >
+                                        {motivationVisual.label}
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  ) : null}
+
+                                  {editable ? (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span
+                                          role='button'
+                                          tabIndex={0}
+                                          aria-label={`${noteVisual.label} for day ${day.day_number}`}
+                                          className={cn(
+                                            'inline-flex size-7 items-center justify-center rounded-md border transition-colors focus-visible:ring-2 focus-visible:outline-hidden',
+                                            isSelected
+                                              ? 'border-primary/30 bg-primary/10 text-primary hover:bg-primary/15'
+                                              : noteVisual.toneClass,
+                                            dayNotesMutation.isPending
+                                              ? 'pointer-events-none opacity-60'
+                                              : '',
+                                          )}
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            if (dayNotesMutation.isPending)
+                                              return;
+                                            openDayNotesModal(day.id);
+                                          }}
+                                          onKeyDown={(event) => {
+                                            if (
+                                              event.key === 'Enter' ||
+                                              event.key === ' '
+                                            ) {
+                                              event.preventDefault();
+                                              event.stopPropagation();
+                                              if (dayNotesMutation.isPending)
+                                                return;
+                                              openDayNotesModal(day.id);
+                                            }
+                                          }}
+                                        >
+                                          <NoteIcon className='size-3.5' />
+                                        </span>
+                                      </TooltipTrigger>
+                                      <TooltipContent
+                                        surface
+                                        side='top'
+                                        sideOffset={8}
+                                      >
+                                        {noteVisual.label}
+                                      </TooltipContent>
+                                    </Tooltip>
                                   ) : null}
                                 </div>
                               </div>
@@ -2669,23 +2901,43 @@ export default function CarePlanBuilder({
                       </TabsList>
 
                       {showReadOnlyDayNotes ? (
-                        <div
-                          role='region'
-                          aria-label={`Day notes for day ${selectedDay.day_number}`}
-                          className='border-border bg-muted/20 mt-3 rounded-md border p-4 md:p-5'
-                        >
-                          <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
-                            Day notes
-                          </p>
-                          {selectedDay.general_notes?.trim() ? (
-                            <p className='text-foreground/90 mt-1.5 text-[13px] leading-relaxed font-medium whitespace-pre-wrap'>
-                              {selectedDay.general_notes.trim()}
+                        <div className='mt-3 space-y-3'>
+                          <div
+                            role='region'
+                            aria-label={`Day notes for day ${selectedDay.day_number}`}
+                            className='border-border bg-muted/20 rounded-md border p-4 md:p-5'
+                          >
+                            <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+                              Day notes
                             </p>
-                          ) : (
-                            <p className='text-foreground/90 mt-1.5 text-[13px] font-medium'>
-                              -
+                            {selectedDay.general_notes?.trim() ? (
+                              <p className='text-foreground/90 mt-1.5 text-[13px] leading-relaxed font-medium whitespace-pre-wrap'>
+                                {selectedDay.general_notes.trim()}
+                              </p>
+                            ) : (
+                              <p className='text-foreground/90 mt-1.5 text-[13px] font-medium'>
+                                -
+                              </p>
+                            )}
+                          </div>
+                          <div
+                            role='region'
+                            aria-label={`Daily motivation for day ${selectedDay.day_number}`}
+                            className='border-border bg-muted/20 rounded-md border p-4 md:p-5'
+                          >
+                            <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+                              Daily motivation
                             </p>
-                          )}
+                            {selectedDay.daily_motivation?.trim() ? (
+                              <p className='text-foreground/90 mt-1.5 text-[13px] leading-relaxed font-medium whitespace-pre-wrap'>
+                                {selectedDay.daily_motivation.trim()}
+                              </p>
+                            ) : (
+                              <p className='text-foreground/90 mt-1.5 text-[13px] font-medium'>
+                                -
+                              </p>
+                            )}
+                          </div>
                         </div>
                       ) : null}
 
@@ -3121,7 +3373,8 @@ export default function CarePlanBuilder({
                                     disabled={
                                       !canGoBack ||
                                       sectionSaveMutation.isPending ||
-                                      dayNotesMutation.isPending
+                                      dayNotesMutation.isPending ||
+                                      dayMotivationMutation.isPending
                                     }
                                   >
                                     <ArrowLeftIcon className='size-3.5' />
@@ -3132,18 +3385,21 @@ export default function CarePlanBuilder({
                                     className='h-10 gap-1.5 px-3 text-[13px]! font-semibold'
                                     disabled={
                                       sectionSaveMutation.isPending ||
-                                      dayNotesMutation.isPending
+                                      dayNotesMutation.isPending ||
+                                      dayMotivationMutation.isPending
                                     }
                                     onClick={() => void handleSaveSection(true)}
                                   >
                                     {!sectionSaveMutation.isPending &&
                                     !dayNotesMutation.isPending &&
+                                    !dayMotivationMutation.isPending &&
                                     isLastSection &&
                                     isLastDay ? (
                                       <CheckCircle2Icon className='size-3.5' />
                                     ) : null}
                                     {sectionSaveMutation.isPending ||
-                                    dayNotesMutation.isPending
+                                    dayNotesMutation.isPending ||
+                                    dayMotivationMutation.isPending
                                       ? 'Saving…'
                                       : isLastSection
                                         ? isLastDay
@@ -3152,6 +3408,7 @@ export default function CarePlanBuilder({
                                         : 'Continue'}
                                     {!sectionSaveMutation.isPending &&
                                     !dayNotesMutation.isPending &&
+                                    !dayMotivationMutation.isPending &&
                                     !(isLastSection && isLastDay) ? (
                                       <ChevronRightIcon className='size-3.5' />
                                     ) : null}
@@ -3187,6 +3444,24 @@ export default function CarePlanBuilder({
           if (dayNotesError) setDayNotesError(undefined);
         }}
         onSave={() => void handleSaveDayNotesFromModal()}
+      />
+
+      <CarePlanDayMotivationModal
+        open={dayMotivationModalOpen}
+        dayLabel={
+          selectedDay
+            ? `Day ${selectedDay.day_number} (${formatTargetDateLabel(selectedDay.target_date)})`
+            : 'Selected day'
+        }
+        motivation={dayMotivationDraft}
+        error={dayMotivationError}
+        isSaving={dayMotivationMutation.isPending}
+        onOpenChange={setDayMotivationModalOpen}
+        onMotivationChange={(value) => {
+          setDayMotivationDraft(value);
+          if (dayMotivationError) setDayMotivationError(undefined);
+        }}
+        onSave={() => void handleSaveDayMotivationFromModal()}
       />
 
       <DuplicateCarePlanDayDialog

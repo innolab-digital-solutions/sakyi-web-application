@@ -164,9 +164,11 @@ describe('cloneCarePlanDayContent', () => {
       const cloned = cloneCarePlanDayContent({
         sections,
         general_notes: 'Focus on recovery',
+        daily_motivation: 'Stay consistent today.',
       });
 
       expect(cloned.general_notes).toBe('Focus on recovery');
+      expect(cloned.daily_motivation).toBe('Stay consistent today.');
       expect(cloned.sections.nutrition).toHaveLength(1);
       expect(cloned.sections.nutrition[0]).not.toHaveProperty('id');
       expect(cloned.sections.nutrition[0]).not.toHaveProperty('has_client_logs');
@@ -184,20 +186,24 @@ describe('cloneCarePlanDayContent', () => {
       const cloned = cloneCarePlanDayContent({
         sections: emptySections(),
         general_notes: null,
+        daily_motivation: null,
       });
 
       for (const key of SECTION_KEYS) {
         expect(cloned.sections[key]).toEqual([]);
       }
       expect(cloned.general_notes).toBeNull();
+      expect(cloned.daily_motivation).toBeNull();
     });
 
-    it('normalizes whitespace-only notes to null', () => {
+    it('normalizes whitespace-only notes and motivation to null', () => {
       const cloned = cloneCarePlanDayContent({
         sections: emptySections(),
         general_notes: '   \n\t  ',
+        daily_motivation: '  ',
       });
       expect(cloned.general_notes).toBeNull();
+      expect(cloned.daily_motivation).toBeNull();
     });
 
     it('treats missing section keys as empty arrays', () => {
@@ -208,11 +214,13 @@ describe('cloneCarePlanDayContent', () => {
       const cloned = cloneCarePlanDayContent({
         sections: partial,
         general_notes: 'Note',
+        daily_motivation: 'Tip',
       });
 
       expect(cloned.sections.nutrition).toHaveLength(1);
       expect(cloned.sections.movement).toEqual([]);
       expect(cloned.general_notes).toBe('Note');
+      expect(cloned.daily_motivation).toBe('Tip');
     });
   });
 });

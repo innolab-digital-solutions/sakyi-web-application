@@ -100,7 +100,7 @@ export default function DuplicateCarePlanDayDialog({
               Duplicate day onto…
             </DialogTitle>
             <DialogDescription className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
-              Copy all sections and the day note from{' '}
+              Copy all sections, the day note, and daily motivation from{' '}
               <span className='font-semibold'>
                 Day {sourceDayNumber ?? '—'}
                 {sourceDateLabel ? ` (${sourceDateLabel})` : ''}

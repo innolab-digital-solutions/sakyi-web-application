@@ -52,6 +52,10 @@ export type UpdateCarePlanDayNotesPayload = {
   general_notes: string | null;
 };
 
+export type UpdateCarePlanDayMotivationPayload = {
+  daily_motivation: string | null;
+};
+
 export type CancelCarePlanPayload = {
   cancellation_note: string;
 };
@@ -479,6 +483,24 @@ export async function patchCarePlanDayNotes(
 ): Promise<ApiResponse<AdminCarePlanBuilder>> {
   return http.patch<AdminCarePlanBuilder>(
     ENDPOINTS.ADMIN.MODULES.CARE_PLANS.DAY_NOTES_UPDATE(
+      String(carePlanId),
+      String(dayId),
+    ),
+    body,
+  );
+}
+
+/**
+ * Updates the client-facing daily motivation tip for a care plan day.
+ * Does not modify admin day notes (`general_notes`).
+ */
+export async function patchCarePlanDayMotivation(
+  carePlanId: number,
+  dayId: number,
+  body: UpdateCarePlanDayMotivationPayload,
+): Promise<ApiResponse<AdminCarePlanBuilder>> {
+  return http.patch<AdminCarePlanBuilder>(
+    ENDPOINTS.ADMIN.MODULES.CARE_PLANS.DAY_MOTIVATION_UPDATE(
       String(carePlanId),
       String(dayId),
     ),

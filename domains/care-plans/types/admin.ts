@@ -84,6 +84,8 @@ export interface AdminCarePlanDay {
   day_number: number;
   target_date: string | null;
   general_notes: string | null;
+  /** Client-facing tip shown on mobile home for this day. */
+  daily_motivation: string | null;
   sections: Record<CarePlanSectionKey, CarePlanSectionItem[]>;
 }
 
