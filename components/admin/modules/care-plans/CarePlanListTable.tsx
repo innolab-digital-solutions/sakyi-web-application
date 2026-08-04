@@ -501,7 +501,7 @@ export default function CarePlanListTable() {
                     </TableCell>
                   ) : null}
                   {showColumn('enrolledProgram') ? (
-                    <TableCell>
+                    <TableCell className='min-w-72'>
                       <div className='flex items-start gap-3'>
                         <ProgramThumbnail thumbnailUrl={programThumbnail} />
                         <div className='min-w-0 flex-1 space-y-1'>

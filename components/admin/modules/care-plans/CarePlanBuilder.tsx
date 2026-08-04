@@ -8,6 +8,7 @@ import {
   CalendarIcon,
   CheckCircle2Icon,
   ChevronRightIcon,
+  CopyPlusIcon,
   FilePlus2Icon,
   FileTextIcon,
   PencilLineIcon,
@@ -23,6 +24,7 @@ import { CarePlanBuilderSkeleton } from '@/components/admin/layout/AdminLoadingS
 import CarePlanDayNoteModal from '@/components/admin/modules/care-plans/CarePlanDayNoteModal';
 import CarePlanFinalizeConfirmation from '@/components/admin/modules/care-plans/CarePlanFinalizeConfirmation';
 import CarePlanGenerateDaysModal from '@/components/admin/modules/care-plans/CarePlanGenerateDaysModal';
+import DuplicateCarePlanDayDialog from '@/components/admin/modules/care-plans/DuplicateCarePlanDayDialog';
 import MovementPrescriptionFields, {
   type MovementPrescriptionRowErrors,
 } from '@/components/admin/modules/care-plans/MovementPrescriptionFields';
@@ -72,6 +74,10 @@ import {
 } from '@/domains/nutrition-items/services';
 import { getUnitsLookup } from '@/domains/units/services';
 import { CARE_PLAN_SECTION_TABS } from '@/lib/care-plans/carePlanSectionTabs';
+import {
+  cloneCarePlanDayContent,
+  dayHasClientLoggedItems,
+} from '@/lib/care-plans/cloneCarePlanDayContent';
 import {
   buildMovementExerciseSavePayload,
   isMovementPrescriptionMeaningful,
@@ -422,6 +428,21 @@ function areNormalizedItemsEqual(
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
+/**
+ * True when a normalized row has real content (not just a default measurement
+ * unit on an empty placeholder form).
+ */
+function isMeaningfulNormalizedItem(item: NormalizedSectionItem): boolean {
+  return Boolean(
+    item.title ||
+      item.guidance ||
+      item.target_value ||
+      item.movement_exercise_id ||
+      item.exercises.length > 0 ||
+      item.nutrition_item_ids.length > 0,
+  );
+}
+
 type CarePlanItemFieldErrors = {
   title?: string;
   guidance?: string;
@@ -730,6 +751,12 @@ export default function CarePlanBuilder({
   const [dayNotesError, setDayNotesError] = React.useState<
     string | undefined
   >();
+  const [duplicateDaySourceId, setDuplicateDaySourceId] = React.useState<
+    number | null
+  >(null);
+  const [duplicateDayTargetIds, setDuplicateDayTargetIds] = React.useState<
+    number[]
+  >([]);
   const [sectionSaveError, setSectionSaveError] = React.useState<
     string | undefined
   >();
@@ -1514,6 +1541,159 @@ export default function CarePlanBuilder({
     if (selectedDayId !== dayId) setSelectedDayId(dayId);
     setDayNotesModalOpen(true);
   };
+
+  const openDuplicateDayDialog = (dayId: number) => {
+    if (!editable) return;
+    const normalizedLocal = normalizeSectionItemsForSave(
+      localItems,
+      activeSection,
+    );
+    const meaningfulLocal = normalizedLocal.filter(isMeaningfulNormalizedItem);
+    const meaningfulSaved = normalizedSectionItems.filter(
+      isMeaningfulNormalizedItem,
+    );
+    const hasUnsavedSection =
+      meaningfulLocal.length > 0 &&
+      !areNormalizedItemsEqual(meaningfulLocal, meaningfulSaved);
+    const hasUnsavedNotes =
+      dayNotesDraft.trim() !== dayNotesSavedValue.trim() &&
+      selectedDayId != null;
+
+    // Always allow duplicate from last-saved builder data. Empty placeholder
+    // tabs (e.g. Hydration with only a default Liter unit) are not blocked.
+    // Soft-warn only when there are real unsaved edits that will be omitted.
+    if (hasUnsavedSection || hasUnsavedNotes) {
+      toast.info(
+        'Unsaved edits on this tab won’t be included. Duplicate uses the last saved day content.',
+      );
+    }
+    setDuplicateDaySourceId(dayId);
+    setDuplicateDayTargetIds([]);
+  };
+
+  const duplicateDaySource = React.useMemo(
+    () => builder?.days.find((day) => day.id === duplicateDaySourceId) ?? null,
+    [builder?.days, duplicateDaySourceId],
+  );
+
+  const duplicateDayTargetOptions = React.useMemo(() => {
+    if (!builder || duplicateDaySourceId == null) return [];
+    return builder.days
+      .filter((day) => day.id !== duplicateDaySourceId)
+      .map((day) => {
+        const blocked = dayHasClientLoggedItems(day.sections);
+        return {
+          id: day.id,
+          day_number: day.day_number,
+          target_date_label: formatTargetDateLabel(day.target_date),
+          blocked,
+          blockedReason: blocked
+            ? 'This day has client logs and cannot be replaced.'
+            : undefined,
+        };
+      });
+  }, [builder, duplicateDaySourceId]);
+
+  const duplicateDayMutation = useMutation({
+    mutationFn: async (vars: {
+      sourceDayId: number;
+      targetDayIds: number[];
+    }) => {
+      const source = builder?.days.find((d) => d.id === vars.sourceDayId);
+      if (!source) throw new Error('Source day could not be found.');
+
+      const cloned = cloneCarePlanDayContent({
+        sections: source.sections,
+        general_notes: source.general_notes,
+      });
+
+      const targets = vars.targetDayIds
+        .map((id) => builder?.days.find((d) => d.id === id))
+        .filter((d): d is NonNullable<typeof d> => d != null);
+
+      if (targets.length === 0) {
+        throw new Error('Select at least one target day.');
+      }
+
+      for (const target of targets) {
+        if (dayHasClientLoggedItems(target.sections)) {
+          throw new Error(
+            `Day ${target.day_number} has client logs and cannot be replaced.`,
+          );
+        }
+
+        for (const sectionTab of SECTIONS) {
+          const sectionKey = sectionTab.key;
+          const normalized = normalizeSectionItemsForSave(
+            toEditableSectionItems(cloned.sections[sectionKey] ?? []),
+            sectionKey,
+          );
+          // Backend rejects empty `items` (`"The items field is required."`).
+          // Mirror normal section save, which also skips empty payloads.
+          if (normalized.length === 0) continue;
+
+          const payload = toSectionSavePayload(
+            normalized,
+            sectionKey,
+            resolveUnitId,
+            resolveExerciseProfile,
+            normalizedStatus,
+          );
+          const response = await putCarePlanSectionItems(
+            carePlanId,
+            target.id,
+            sectionKey,
+            payload,
+          );
+          if (response.status === 'error') {
+            throw new Error(
+              response.message ??
+                `Could not copy ${sectionTab.label.toLowerCase()} onto day ${target.day_number}.`,
+            );
+          }
+        }
+
+        const notesResponse = await patchCarePlanDayNotes(
+          carePlanId,
+          target.id,
+          { general_notes: cloned.general_notes },
+        );
+        if (notesResponse.status === 'error') {
+          throw new Error(
+            notesResponse.message ??
+              `Could not copy the day note onto day ${target.day_number}.`,
+          );
+        }
+      }
+
+      return { targetCount: targets.length, sourceDayNumber: source.day_number };
+    },
+    onSuccess: (result) => {
+      setDuplicateDaySourceId(null);
+      setDuplicateDayTargetIds([]);
+      toast.success(
+        `Day ${result.sourceDayNumber} was duplicated onto ${result.targetCount} day${result.targetCount === 1 ? '' : 's'}.`,
+      );
+      invalidateBuilder();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message ?? 'Could not duplicate day content.');
+      invalidateBuilder();
+    },
+  });
+
+  const { mutate: mutateDuplicateDay, isPending: isDuplicatingDay } =
+    duplicateDayMutation;
+
+  const confirmDuplicateDay = React.useCallback(() => {
+    if (duplicateDaySourceId == null || duplicateDayTargetIds.length === 0) {
+      return;
+    }
+    mutateDuplicateDay({
+      sourceDayId: duplicateDaySourceId,
+      targetDayIds: duplicateDayTargetIds,
+    });
+  }, [duplicateDaySourceId, duplicateDayTargetIds, mutateDuplicateDay]);
 
   const getDayNoteVisual = (day: {
     id: number;
@@ -2315,7 +2495,7 @@ export default function CarePlanBuilder({
                                 <button
                                   type='button'
                                   className={cn(
-                                    'w-full min-w-0 rounded-md border px-3 py-2.5 pr-20 text-left transition-all',
+                                    'w-full min-w-0 rounded-md border px-3 py-2.5 pr-28 text-left transition-all',
                                     isSelected
                                       ? 'bg-primary/8 border-primary/40 text-foreground shadow-xs'
                                       : 'text-foreground/90 hover:border-border/70 hover:bg-background/80 border-transparent',
@@ -2363,6 +2543,52 @@ export default function CarePlanBuilder({
                                         className='max-w-64 text-[11.5px] font-medium'
                                       >
                                         {dayValidationMessage}
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  ) : null}
+
+                                  {editable ? (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span
+                                          role='button'
+                                          tabIndex={0}
+                                          aria-label={`Duplicate day ${day.day_number} onto other days`}
+                                          className={cn(
+                                            'inline-flex size-7 items-center justify-center rounded-md border transition-colors focus-visible:ring-2 focus-visible:outline-hidden',
+                                            isSelected
+                                              ? 'border-primary/30 bg-primary/10 text-primary hover:bg-primary/15'
+                                              : 'text-muted-foreground border-border/70 bg-background hover:bg-muted/70',
+                                            isDuplicatingDay
+                                              ? 'pointer-events-none opacity-60'
+                                              : '',
+                                          )}
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            if (isDuplicatingDay) return;
+                                            openDuplicateDayDialog(day.id);
+                                          }}
+                                          onKeyDown={(event) => {
+                                            if (
+                                              event.key === 'Enter' ||
+                                              event.key === ' '
+                                            ) {
+                                              event.preventDefault();
+                                              event.stopPropagation();
+                                              if (isDuplicatingDay) return;
+                                              openDuplicateDayDialog(day.id);
+                                            }
+                                          }}
+                                        >
+                                          <CopyPlusIcon className='size-3.5' />
+                                        </span>
+                                      </TooltipTrigger>
+                                      <TooltipContent
+                                        surface
+                                        side='top'
+                                        sideOffset={8}
+                                      >
+                                        Duplicate day onto…
                                       </TooltipContent>
                                     </Tooltip>
                                   ) : null}
@@ -2961,6 +3187,27 @@ export default function CarePlanBuilder({
           if (dayNotesError) setDayNotesError(undefined);
         }}
         onSave={() => void handleSaveDayNotesFromModal()}
+      />
+
+      <DuplicateCarePlanDayDialog
+        open={duplicateDaySourceId != null}
+        sourceDayNumber={duplicateDaySource?.day_number ?? null}
+        sourceDateLabel={
+          duplicateDaySource
+            ? formatTargetDateLabel(duplicateDaySource.target_date)
+            : null
+        }
+        targetOptions={duplicateDayTargetOptions}
+        selectedTargetIds={duplicateDayTargetIds}
+        isSubmitting={isDuplicatingDay}
+        onOpenChange={(open) => {
+          if (!open && !isDuplicatingDay) {
+            setDuplicateDaySourceId(null);
+            setDuplicateDayTargetIds([]);
+          }
+        }}
+        onSelectedTargetIdsChange={setDuplicateDayTargetIds}
+        onConfirm={confirmDuplicateDay}
       />
 
       <CarePlanGenerateDaysModal
