@@ -21,6 +21,11 @@ export const NutritionItemBodySchema = z.object({
     .int()
     .positive('The category field is required.'),
   default_unit_id: z.number().int().positive().nullish(),
+  estimated_calories: z
+    .number({ error: 'Estimated calories must be a number.' })
+    .min(0, 'Estimated calories must be at least 0.')
+    .max(999999.99, 'Estimated calories must not be greater than 999999.99.')
+    .nullish(),
   is_active: z.boolean().default(true),
 });
 
