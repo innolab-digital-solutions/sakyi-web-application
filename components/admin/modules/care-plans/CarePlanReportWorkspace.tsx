@@ -78,6 +78,9 @@ import {
 } from '@/lib/care-plans/operationalLogMetricsRollup';
 import { resolveOperationalLogForReportWorkspace } from '@/lib/care-plans/resolveOperationalLogForReportWorkspace';
 import {
+  resolveReportAverageInputForDialog,
+} from '@/lib/care-plans/reportGenerationAverageInputs';
+import {
   adminCarePlanBriefQueryKey,
   carePlanReportWorkspaceQueryKey,
   invalidateReportWorkspaceCaches,
@@ -385,9 +388,6 @@ export default function CarePlanReportWorkspace({
       })),
     [operationalLog?.metrics, formMetrics],
   );
-  const reportGenerationDefaults =
-    workspace?.report_generation_defaults?.average_inputs;
-
   type ReportAverageInputs = {
     avg_intake?: { value: number | null } | number | null;
     avg_burn?: { value: number | null } | number | null;
@@ -423,56 +423,27 @@ export default function CarePlanReportWorkspace({
     return raw as ReportHighlight[];
   }, [existingReportDraftState?.highlights]);
 
-  const formatAverageInputDefault = React.useCallback(
-    (value: number | null | undefined) => {
-      if (value == null || !Number.isFinite(value)) return '0';
-      return String(value);
-    },
-    [],
-  );
-
   const resolveAverageInputForDialog = React.useCallback(
     (
       key: 'avg_intake' | 'avg_burn' | 'avg_steps' | 'avg_training_time',
-      fallbackValue: number | null | undefined,
+      generationDefault: unknown,
       currentValue: string,
-    ) => {
-      const fromHighlights = reportHighlights.find((h) => {
-        if (h.metric_key !== key) return false;
-        if (h.is_visible_to_client === false) return false;
-        return true;
-      });
-      if (
-        fromHighlights &&
-        typeof fromHighlights.value === 'number' &&
-        Number.isFinite(fromHighlights.value)
-      ) {
-        return String(fromHighlights.value);
-      }
-
-      const fromExisting = existingReportDraftState?.average_inputs?.[key];
-
-      if (typeof fromExisting === 'number' && Number.isFinite(fromExisting)) {
-        return String(fromExisting);
-      }
-
-      if (
-        fromExisting &&
-        typeof fromExisting === 'object' &&
-        'value' in fromExisting
-      ) {
-        const value = (fromExisting as { value?: unknown }).value;
-        if (typeof value === 'number' && Number.isFinite(value)) {
-          return String(value);
-        }
-      }
-
-      const normalizedCurrent = currentValue.trim();
-      if (normalizedCurrent.length > 0) return normalizedCurrent;
-
-      return formatAverageInputDefault(fallbackValue);
-    },
-    [existingReportDraftState, formatAverageInputDefault, reportHighlights],
+      overrides?: {
+        highlights?: typeof reportHighlights;
+        existingAverageInputs?: Record<string, unknown> | null;
+      },
+    ) =>
+      resolveReportAverageInputForDialog({
+        metricKey: key,
+        highlights: overrides?.highlights ?? reportHighlights,
+        existingAverageInputs:
+          overrides?.existingAverageInputs ??
+          ((existingReportDraftState?.average_inputs ??
+            null) as Record<string, unknown> | null),
+        generationDefault,
+        currentValue,
+      }),
+    [existingReportDraftState?.average_inputs, reportHighlights],
   );
 
   const resolveIncludedMetricKeysForDialog = React.useCallback(() => {
@@ -840,61 +811,94 @@ export default function CarePlanReportWorkspace({
     },
   });
 
-  const openSubmitForReviewDialog = React.useCallback(() => {
-    const reportFeedback = clientReport?.feedback;
-    setSubmitReviewFeedback({
-      summary: reportFeedback?.summary ?? formFeedback.summary ?? '',
-      focus_next_period:
-        reportFeedback?.focus_next_period ??
-        formFeedback.focus_next_period ??
-        '',
-      notes: reportFeedback?.notes ?? formFeedback.notes ?? '',
-    });
-    setSubmitReviewIncludedMetricKeys(resolveIncludedMetricKeysForDialog());
-    setSubmitReviewAverageIntake(
-      resolveAverageInputForDialog(
-        'avg_intake',
-        reportGenerationDefaults?.avg_intake?.value,
-        submitReviewAverageIntake,
-      ),
-    );
-    setSubmitReviewAverageBurn(
-      resolveAverageInputForDialog(
-        'avg_burn',
-        reportGenerationDefaults?.avg_burn?.value,
-        submitReviewAverageBurn,
-      ),
-    );
-    setSubmitReviewAverageSteps(
-      resolveAverageInputForDialog(
-        'avg_steps',
-        reportGenerationDefaults?.avg_steps?.value,
-        submitReviewAverageSteps,
-      ),
-    );
-    setSubmitReviewAverageTrainingMinutes(
-      resolveAverageInputForDialog(
-        'avg_training_time',
-        reportGenerationDefaults?.avg_training_time?.value,
-        submitReviewAverageTrainingMinutes,
-      ),
-    );
-    setSubmitForReviewDialogOpen(true);
+  const [isOpeningSubmitForReviewDialog, setIsOpeningSubmitForReviewDialog] =
+    React.useState(false);
+
+  const openSubmitForReviewDialog = React.useCallback(async () => {
+    setIsOpeningSubmitForReviewDialog(true);
+    try {
+      // Fresh defaults are computed server-side after metrics save; refetch so
+      // Generate report does not open with a stale pre-save workspace cache.
+      await queryClient.refetchQueries({
+        queryKey: carePlanReportWorkspaceQueryKey(carePlanId),
+        type: 'active',
+      });
+      const fresh = queryClient.getQueryData<CarePlanReportWorkspace>(
+        carePlanReportWorkspaceQueryKey(carePlanId),
+      );
+      const freshClientReport =
+        fresh?.client_report ?? fresh?.report_run ?? null;
+      const freshDefaults =
+        fresh?.report_generation_defaults?.average_inputs ?? null;
+      const freshDraft = freshClientReport
+        ? (freshClientReport as unknown as ExistingReportDraftState)
+        : null;
+      const freshHighlights = Array.isArray(freshDraft?.highlights)
+        ? (freshDraft.highlights as ReportHighlight[])
+        : [];
+      const freshExistingAverages =
+        (freshDraft?.average_inputs as Record<string, unknown> | null) ?? null;
+
+      const reportFeedback = freshClientReport?.feedback;
+      setSubmitReviewFeedback({
+        summary: reportFeedback?.summary ?? formFeedback.summary ?? '',
+        focus_next_period:
+          reportFeedback?.focus_next_period ??
+          formFeedback.focus_next_period ??
+          '',
+        notes: reportFeedback?.notes ?? formFeedback.notes ?? '',
+      });
+      setSubmitReviewIncludedMetricKeys(resolveIncludedMetricKeysForDialog());
+
+      const averageOverrides = {
+        highlights: freshHighlights,
+        existingAverageInputs: freshExistingAverages,
+      };
+      // Pass empty currentValue so leftover local drafts cannot mask defaults.
+      setSubmitReviewAverageIntake(
+        resolveAverageInputForDialog(
+          'avg_intake',
+          freshDefaults?.avg_intake,
+          '',
+          averageOverrides,
+        ),
+      );
+      setSubmitReviewAverageBurn(
+        resolveAverageInputForDialog(
+          'avg_burn',
+          freshDefaults?.avg_burn,
+          '',
+          averageOverrides,
+        ),
+      );
+      setSubmitReviewAverageSteps(
+        resolveAverageInputForDialog(
+          'avg_steps',
+          freshDefaults?.avg_steps,
+          '',
+          averageOverrides,
+        ),
+      );
+      setSubmitReviewAverageTrainingMinutes(
+        resolveAverageInputForDialog(
+          'avg_training_time',
+          freshDefaults?.avg_training_time,
+          '',
+          averageOverrides,
+        ),
+      );
+      setSubmitForReviewDialogOpen(true);
+    } finally {
+      setIsOpeningSubmitForReviewDialog(false);
+    }
   }, [
-    clientReport?.feedback,
+    carePlanId,
     formFeedback.focus_next_period,
     formFeedback.notes,
     formFeedback.summary,
-    reportGenerationDefaults?.avg_burn?.value,
-    reportGenerationDefaults?.avg_intake?.value,
-    reportGenerationDefaults?.avg_steps?.value,
-    reportGenerationDefaults?.avg_training_time?.value,
+    queryClient,
     resolveAverageInputForDialog,
     resolveIncludedMetricKeysForDialog,
-    submitReviewAverageBurn,
-    submitReviewAverageIntake,
-    submitReviewAverageSteps,
-    submitReviewAverageTrainingMinutes,
   ]);
 
   const createOperationalLogDraftMutation = useMutation({
@@ -1173,13 +1177,17 @@ export default function CarePlanReportWorkspace({
                       <Button
                         type='button'
                         className='h-10 gap-1.5 text-[13px]! font-semibold'
-                        onClick={openSubmitForReviewDialog}
+                        onClick={() => {
+                          void openSubmitForReviewDialog();
+                        }}
                         disabled={
                           !canSubmitForReview ||
-                          submitForReviewMutation.isPending
+                          submitForReviewMutation.isPending ||
+                          isOpeningSubmitForReviewDialog
                         }
                       >
-                        {submitForReviewMutation.isPending ? (
+                        {submitForReviewMutation.isPending ||
+                        isOpeningSubmitForReviewDialog ? (
                           <Loader2Icon className='size-4 animate-spin' />
                         ) : hasExistingReport ? (
                           <FileSymlink className='size-4' aria-hidden />
