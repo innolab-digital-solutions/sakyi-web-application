@@ -1,11 +1,6 @@
 'use client';
 
-import {
-  type QueryClient,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format, parse } from 'date-fns';
 import {
   ChevronDownIcon,
@@ -56,13 +51,10 @@ import {
   postOperationalLogSubmitForReview,
   putCarePlanOperationalLog,
 } from '@/domains/care-plans/services';
-import type { AdminCarePlan } from '@/domains/care-plans/types/admin';
 import type {
   CarePlanReportDayPhoto,
   CarePlanReportEvidenceDay,
   CarePlanReportEvidenceItem,
-  CarePlanReportWorkspace,
-  OperationalLogSnapshot,
   ReportMetricDailyPoint,
   ReportRunFeedback,
   ReportRunMetric,
@@ -75,95 +67,13 @@ import {
   rollUpMetricFromDailyPoints,
 } from '@/lib/care-plans/operationalLogMetricsRollup';
 import { resolveOperationalLogForReportWorkspace } from '@/lib/care-plans/resolveOperationalLogForReportWorkspace';
+import {
+  adminCarePlanBriefQueryKey,
+  carePlanReportWorkspaceQueryKey,
+  invalidateReportWorkspaceCaches,
+  syncOperationalLogSnapshotInReportCaches,
+} from '@/lib/care-plans/syncOperationalLogSnapshotInReportCaches';
 import { cn } from '@/lib/utils/styles';
-
-const WORKSPACE_QUERY_KEY = 'care-plan-report-workspace' as const;
-
-/** Stable reference for {@link useQuery} key hashing (must not be recreated each render). */
-const DEFAULT_REPORT_WORKSPACE_PARAMS = { carePlanDefault: true as const };
-
-function carePlanReportWorkspaceQueryKey(carePlanId: number) {
-  return [
-    WORKSPACE_QUERY_KEY,
-    carePlanId,
-    DEFAULT_REPORT_WORKSPACE_PARAMS,
-  ] as const;
-}
-
-function adminCarePlanBriefQueryKey(carePlanId: number) {
-  return ['admin-care-plan-brief', carePlanId] as const;
-}
-
-/**
- * Keeps generate-report gating in sync after save: {@link resolveOperationalLogForReportWorkspace}
- * overlays status from the care-plan brief, which otherwise stays stale until a full reload.
- */
-function syncOperationalLogSnapshotInReportCaches(
-  queryClient: QueryClient,
-  carePlanId: number,
-  snapshot: OperationalLogSnapshot,
-) {
-  queryClient.setQueryData<AdminCarePlan | undefined>(
-    adminCarePlanBriefQueryKey(carePlanId),
-    (old) => {
-      if (!old) return old;
-      const embed = old.operational_log;
-      if (embed != null && embed.id !== snapshot.id) return old;
-      return {
-        ...old,
-        operational_log: {
-          id: snapshot.id,
-          code: snapshot.code ?? embed?.code ?? null,
-          status: snapshot.status,
-          is_editable: snapshot.is_editable,
-          period: embed?.period,
-        },
-      };
-    },
-  );
-
-  queryClient.setQueryData<CarePlanReportWorkspace | undefined>(
-    carePlanReportWorkspaceQueryKey(carePlanId),
-    (old) => {
-      if (!old) return old;
-      const op = old.operational_log;
-      if (op != null && op.id !== snapshot.id) return old;
-      return {
-        ...old,
-        operational_log: {
-          ...(op ?? {
-            id: snapshot.id,
-            code: snapshot.code,
-            adherence_percentage: snapshot.adherence_percentage,
-            client_report_id: snapshot.client_report_id,
-            metrics: snapshot.metrics,
-          }),
-          id: snapshot.id,
-          code: snapshot.code ?? op?.code ?? null,
-          status: snapshot.status,
-          is_editable: snapshot.is_editable,
-          metrics: op?.metrics?.length ? op.metrics : snapshot.metrics,
-        },
-      };
-    },
-  );
-}
-
-async function invalidateReportWorkspaceCaches(
-  queryClient: QueryClient,
-  carePlanId: number,
-) {
-  await Promise.all([
-    queryClient.invalidateQueries({
-      queryKey: carePlanReportWorkspaceQueryKey(carePlanId),
-      refetchType: 'active',
-    }),
-    queryClient.invalidateQueries({
-      queryKey: adminCarePlanBriefQueryKey(carePlanId),
-      refetchType: 'active',
-    }),
-  ]);
-}
 
 const OPERATIONAL_LOG_LIST_QUERY_KEY = [
   'table',
@@ -315,6 +225,11 @@ export default function CarePlanReportWorkspace({
   ] = React.useState('');
   const workspaceFormKeyRef = React.useRef<string | null>(null);
   const formMetricsRef = React.useRef<ReportRunMetric[]>([]);
+  /**
+   * Bumped after workspace mutations so the form rehydrates from the refetched
+   * server payload even when period / operational-log / report ids are unchanged.
+   */
+  const [workspaceHydrateNonce, setWorkspaceHydrateNonce] = React.useState(0);
   const [metricsSnapshotBaseline, setMetricsSnapshotBaseline] = React.useState<
     ReportRunMetric[] | null
   >(null);
@@ -365,7 +280,7 @@ export default function CarePlanReportWorkspace({
     if (!workspace) return;
     const cr = workspace.client_report ?? workspace.report_run;
     const op = workspace.operational_log;
-    const k = `${workspace.period.starts_on}|${workspace.period.ends_on}|op:${op?.id ?? 'n'}|cr:${cr?.id ?? 'n'}`;
+    const k = `${workspace.period.starts_on}|${workspace.period.ends_on}|op:${op?.id ?? 'n'}|cr:${cr?.id ?? 'n'}|h:${workspaceHydrateNonce}`;
     if (workspaceFormKeyRef.current === k) return;
     workspaceFormKeyRef.current = k;
     const metricsSource = op?.metrics?.length
@@ -387,7 +302,7 @@ export default function CarePlanReportWorkspace({
           }
         : emptyFeedback(),
     );
-  }, [workspace]);
+  }, [workspace, workspaceHydrateNonce]);
 
   React.useEffect(() => {
     formMetricsRef.current = formMetrics;
@@ -646,7 +561,13 @@ export default function CarePlanReportWorkspace({
       return { mode: 'create' as const, data: res.data };
     },
     onSuccess: async (result) => {
-      workspaceFormKeyRef.current = null;
+      await queryClient.invalidateQueries({
+        queryKey: [...OPERATIONAL_LOG_LIST_QUERY_KEY],
+      });
+      // Refetch workspace + care-plan brief from the server first…
+      await invalidateReportWorkspaceCaches(queryClient, carePlanId);
+      // …then overlay the save response so status/metrics cannot lag behind a
+      // stale brief (resolveOperationalLog prefers the brief for gating).
       if (result.data) {
         syncOperationalLogSnapshotInReportCaches(
           queryClient,
@@ -655,16 +576,14 @@ export default function CarePlanReportWorkspace({
         );
       }
       await queryClient.invalidateQueries({
-        queryKey: [...OPERATIONAL_LOG_LIST_QUERY_KEY],
-      });
-      await invalidateReportWorkspaceCaches(queryClient, carePlanId);
-      await queryClient.invalidateQueries({
         queryKey: ['care-plan-logs', carePlanId],
         refetchType: 'active',
       });
       await queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.PERIOD_REPORTS.LIST],
       });
+      // Force worksheet rehydrate from the refreshed cache (same op/report ids).
+      setWorkspaceHydrateNonce((n) => n + 1);
       toast.success(
         result.mode === 'create'
           ? 'Operational log saved. Continue editing, then submit for review when ready.'
@@ -775,7 +694,6 @@ export default function CarePlanReportWorkspace({
     },
     onSuccess: async (data) => {
       setSubmitForReviewDialogOpen(false);
-      workspaceFormKeyRef.current = null;
       setFormFeedback({
         summary: data?.feedback?.summary ?? submitReviewFeedback.summary ?? '',
         focus_next_period:
@@ -792,6 +710,7 @@ export default function CarePlanReportWorkspace({
       await queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.PERIOD_REPORTS.LIST],
       });
+      setWorkspaceHydrateNonce((n) => n + 1);
       router.replace(workspacePath, { scroll: false });
       toast.success('The report has been generated successfully.');
     },
@@ -867,12 +786,12 @@ export default function CarePlanReportWorkspace({
       }
     },
     onSuccess: async () => {
-      workspaceFormKeyRef.current = null;
       await invalidateReportWorkspaceCaches(queryClient, carePlanId);
       await queryClient.invalidateQueries({
         queryKey: ['care-plan-logs', carePlanId],
         refetchType: 'active',
       });
+      setWorkspaceHydrateNonce((n) => n + 1);
       toast.success('Operational log created. You can add metrics, then save.');
     },
     onError: (e: Error) => {
