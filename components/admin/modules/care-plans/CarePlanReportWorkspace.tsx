@@ -64,7 +64,7 @@ import type {
   SubmitForReviewManualHighlightPayload,
 } from '@/domains/care-plans/types/care-plan-report';
 import {
-  applyMealsTotalKcalToFormMetrics,
+  applyNutritionActualCaloriesToFormMetrics,
   applyNutritionActualCaloriesToWorkspace,
   isEditableNutritionKcalEvidenceItem,
   MEALS_TOTAL_KCAL_METRIC_KEY,
@@ -590,11 +590,13 @@ export default function CarePlanReportWorkspace({
           return applyNutritionActualCaloriesToWorkspace(old, locate, data);
         },
       );
-      if (data.meals_total_kcal != null) {
-        setFormMetrics((prev) =>
-          applyMealsTotalKcalToFormMetrics(prev, data.meals_total_kcal),
-        );
-      }
+      // Prefer server `meals_total_kcal` (in_progress); fall back to `day_rollup`
+      // so draft logs still update All Nutrition Meals without a full reload.
+      setFormMetrics((prev) =>
+        applyNutritionActualCaloriesToFormMetrics(prev, data, {
+          dayIndexFallback: vars.dayIndex,
+        }),
+      );
     },
     onError: (e: Error) => {
       toast.error(e.message);

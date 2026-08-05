@@ -7,7 +7,9 @@ import type {
   ReportRunMetric,
 } from '@/domains/care-plans/types/care-plan-report';
 import {
+  applyDayRollupToMealsTotalFormMetrics,
   applyMealsTotalKcalToFormMetrics,
+  applyNutritionActualCaloriesToFormMetrics,
   applyNutritionActualCaloriesToWorkspace,
   isEditableNutritionKcalEvidenceItem,
   MEALS_TOTAL_KCAL_METRIC_KEY,
@@ -282,6 +284,105 @@ describe('applyMealsTotalKcalToFormMetrics', () => {
     });
     expect(cleared[0].daily_points[0].actual_value).toBeNull();
     expect(cleared[0].actual_value).toBe(0);
+  });
+});
+
+describe('applyDayRollupToMealsTotalFormMetrics', () => {
+  const twoDayMetrics: ReportRunMetric[] = [
+    metric({
+      metric_key: MEALS_TOTAL_KCAL_METRIC_KEY,
+      label: 'All Nutrition Meals',
+      target_value: 2000,
+      actual_value: 0,
+      days_on_target: 0,
+      days_total: 2,
+      daily_points: [
+        {
+          day_number: 1,
+          target_value: 1000,
+          actual_value: 0,
+          on_target: false,
+        },
+        {
+          day_number: 2,
+          target_value: 1000,
+          actual_value: 0,
+          on_target: false,
+        },
+      ],
+    }),
+  ];
+
+  it('updates the matching day actual and rolls up period totals', () => {
+    const next = applyDayRollupToMealsTotalFormMetrics(
+      twoDayMetrics,
+      successResult.day_rollup,
+    );
+    expect(next[0].daily_points[0].actual_value).toBe(450);
+    expect(next[0].daily_points[1].actual_value).toBe(0);
+    expect(next[0].actual_value).toBe(450);
+    expect(next[0].days_on_target).toBe(0);
+    expect(next[0].days_total).toBe(2);
+  });
+
+  it('uses dayIndexFallback when day_number does not match', () => {
+    const next = applyDayRollupToMealsTotalFormMetrics(
+      twoDayMetrics,
+      {
+        day_number: 99,
+        target_value: 1000,
+        actual_value: 320,
+        on_target: false,
+      },
+      2,
+    );
+    expect(next[0].daily_points[1].actual_value).toBe(320);
+    expect(next[0].actual_value).toBe(320);
+  });
+
+  it('leaves metrics unchanged when the meals metric is missing', () => {
+    const other = [metric({ metric_key: 'steps', daily_points: [] })];
+    expect(
+      applyDayRollupToMealsTotalFormMetrics(other, successResult.day_rollup),
+    ).toBe(other);
+  });
+});
+
+describe('applyNutritionActualCaloriesToFormMetrics', () => {
+  const metrics: ReportRunMetric[] = [
+    metric({
+      metric_key: MEALS_TOTAL_KCAL_METRIC_KEY,
+      label: 'All Nutrition Meals',
+      target_value: 1000,
+      actual_value: 0,
+      days_on_target: 0,
+      days_total: 1,
+      daily_points: [
+        {
+          day_number: 1,
+          target_value: 1000,
+          actual_value: 0,
+          on_target: false,
+        },
+      ],
+    }),
+  ];
+
+  it('prefers meals_total_kcal when present', () => {
+    const next = applyNutritionActualCaloriesToFormMetrics(
+      metrics,
+      successResult,
+    );
+    expect(next[0].daily_points[0].actual_value).toBe(450);
+  });
+
+  it('falls back to day_rollup when meals_total_kcal is null (draft)', () => {
+    const next = applyNutritionActualCaloriesToFormMetrics(metrics, {
+      ...successResult,
+      meals_total_kcal: null,
+    });
+    expect(next[0].daily_points[0].actual_value).toBe(450);
+    expect(next[0].actual_value).toBe(450);
   });
 });
 

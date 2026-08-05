@@ -2,6 +2,7 @@ import type {
   CarePlanLogEvidence,
   CarePlanReportEvidenceDay,
   CarePlanReportWorkspace,
+  NutritionActualCaloriesDayRollup,
   NutritionActualCaloriesMealsTotalKcal,
   NutritionActualCaloriesResult,
   ReportRunMetric,
@@ -141,6 +142,76 @@ export function applyMealsTotalKcalToFormMetrics(
 
   next[mi] = rollUpMetricFromDailyPoints(metric);
   return next;
+}
+
+/**
+ * Patches All Nutrition Meals from `day_rollup` when the API omits
+ * `meals_total_kcal` (common for draft operational logs that still show
+ * suggested metrics in the worksheet).
+ *
+ * @param metrics - Current form metrics
+ * @param dayRollup - Per-day rollup from the actual-calories API
+ * @param dayIndexFallback - Evidence `day_index` (1-based) if day_number miss
+ */
+export function applyDayRollupToMealsTotalFormMetrics(
+  metrics: ReportRunMetric[],
+  dayRollup: NutritionActualCaloriesDayRollup,
+  dayIndexFallback?: number,
+): ReportRunMetric[] {
+  const mi = metrics.findIndex(
+    (m) => m.metric_key === MEALS_TOTAL_KCAL_METRIC_KEY,
+  );
+  if (mi < 0) return metrics;
+
+  const next = cloneReportRunMetrics(metrics);
+  const metric = next[mi];
+  let pointIdx = metric.daily_points.findIndex(
+    (p) => p.day_number === dayRollup.day_number,
+  );
+  if (pointIdx < 0 && dayIndexFallback != null) {
+    pointIdx = metric.daily_points.findIndex(
+      (p) => p.day_number === dayIndexFallback,
+    );
+  }
+  if (pointIdx < 0 && dayIndexFallback != null) {
+    const byIndex = dayIndexFallback - 1;
+    if (byIndex >= 0 && byIndex < metric.daily_points.length) {
+      pointIdx = byIndex;
+    }
+  }
+  if (pointIdx < 0) return metrics;
+
+  metric.daily_points[pointIdx] = {
+    ...metric.daily_points[pointIdx],
+    target_value: dayRollup.target_value,
+    actual_value: dayRollup.actual_value,
+    on_target: dayRollup.on_target,
+  };
+  next[mi] = rollUpMetricFromDailyPoints(metric);
+  return next;
+}
+
+/**
+ * Updates All Nutrition Meals worksheet metrics from an actual-calories response.
+ * Prefers full `meals_total_kcal` when present; otherwise applies `day_rollup`
+ * so draft status still updates live without a full workspace reload.
+ */
+export function applyNutritionActualCaloriesToFormMetrics(
+  metrics: ReportRunMetric[],
+  result: Pick<
+    NutritionActualCaloriesResult,
+    'meals_total_kcal' | 'day_rollup'
+  >,
+  options?: { dayIndexFallback?: number },
+): ReportRunMetric[] {
+  if (result.meals_total_kcal != null) {
+    return applyMealsTotalKcalToFormMetrics(metrics, result.meals_total_kcal);
+  }
+  return applyDayRollupToMealsTotalFormMetrics(
+    metrics,
+    result.day_rollup,
+    options?.dayIndexFallback,
+  );
 }
 
 /**

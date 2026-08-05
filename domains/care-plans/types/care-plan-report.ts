@@ -253,7 +253,9 @@ export type NutritionActualCaloriesMealsTotalKcal = {
 
 /**
  * Success `data` from nutrition actual-calories PUT.
- * When `meals_total_kcal` is null, only the task log was persisted (no op-log metrics yet).
+ * When `meals_total_kcal` is null (typical for draft before metrics are
+ * persisted on the op log), only the task log + `day_rollup` are returned;
+ * the UI still applies `day_rollup` to All Nutrition Meals locally.
  */
 export type NutritionActualCaloriesResult = {
   log: CarePlanLogEvidence;
