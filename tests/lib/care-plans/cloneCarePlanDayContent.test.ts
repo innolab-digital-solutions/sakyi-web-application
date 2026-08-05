@@ -14,10 +14,9 @@ import {
 const SECTION_KEYS = CARE_PLAN_SECTION_TABS.map((tab) => tab.key);
 
 function emptySections(): Record<CarePlanSectionKey, CarePlanSectionItem[]> {
-  return Object.fromEntries(SECTION_KEYS.map((key) => [key, []])) as Record<
-    CarePlanSectionKey,
-    CarePlanSectionItem[]
-  >;
+  return Object.fromEntries(
+    SECTION_KEYS.map((key) => [key, []]),
+  ) as unknown as Record<CarePlanSectionKey, CarePlanSectionItem[]>;
 }
 
 describe('cloneCarePlanSectionItem', () => {
@@ -120,7 +119,7 @@ describe('cloneCarePlanSectionItem', () => {
       const cloned = cloneCarePlanSectionItem({
         title: 'Incomplete',
         exercises: [
-          { id: 1, sets: 2, reps: 10 },
+          { id: 1, movement_exercise_id: null, sets: 2, reps: 10 },
           { movement_exercise_id: 9, sets: 1, reps: 5 },
         ],
       });
@@ -171,9 +170,13 @@ describe('cloneCarePlanDayContent', () => {
       expect(cloned.daily_motivation).toBe('Stay consistent today.');
       expect(cloned.sections.nutrition).toHaveLength(1);
       expect(cloned.sections.nutrition[0]).not.toHaveProperty('id');
-      expect(cloned.sections.nutrition[0]).not.toHaveProperty('has_client_logs');
+      expect(cloned.sections.nutrition[0]).not.toHaveProperty(
+        'has_client_logs',
+      );
       expect(cloned.sections.nutrition[0]?.title).toBe('Breakfast');
-      expect(cloned.sections.movement[0]?.exercises?.[0]).not.toHaveProperty('id');
+      expect(cloned.sections.movement[0]?.exercises?.[0]).not.toHaveProperty(
+        'id',
+      );
       expect(cloned.sections.hydration).toEqual([]);
       expect(cloned.sections.sleep).toEqual([]);
       expect(cloned.sections.activity).toEqual([]);

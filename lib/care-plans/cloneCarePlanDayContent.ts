@@ -4,8 +4,8 @@ import type {
 } from '@/domains/care-plans/types/admin';
 import { CARE_PLAN_SECTION_TABS } from '@/lib/care-plans/carePlanSectionTabs';
 import {
-  normalizeMovementExercisePrescription,
   type MovementExercisePrescriptionInput,
+  normalizeMovementExercisePrescription,
 } from '@/lib/care-plans/movementPrescription';
 
 export type ClonedCarePlanDayContent = {
@@ -67,7 +67,9 @@ export function cloneCarePlanSectionItem(
           : '',
     target_unit_id: item.target_unit_id ?? null,
     movement_exercise_id:
-      item.movement_exercise_id ?? item.exercise_id ?? (exercises[0]?.movement_exercise_id || ''),
+      item.movement_exercise_id ??
+      item.exercise_id ??
+      (exercises[0]?.movement_exercise_id || ''),
     exercises,
     nutrition_item_ids: nutritionItemIds,
     nutrition_items: nutritionItemIds.map((nutrition_item_id) => ({
@@ -108,7 +110,10 @@ export function cloneCarePlanDayContent(source: {
  * True when any section item on the day has client logs (paste should be blocked).
  */
 export function dayHasClientLoggedItems(
-  sections: Record<CarePlanSectionKey, CarePlanSectionItem[]> | null | undefined,
+  sections:
+    | Record<CarePlanSectionKey, CarePlanSectionItem[]>
+    | null
+    | undefined,
 ): boolean {
   if (!sections) return false;
   for (const key of SECTION_KEYS) {

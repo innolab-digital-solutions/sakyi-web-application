@@ -438,11 +438,11 @@ function areNormalizedItemsEqual(
 function isMeaningfulNormalizedItem(item: NormalizedSectionItem): boolean {
   return Boolean(
     item.title ||
-      item.guidance ||
-      item.target_value ||
-      item.movement_exercise_id ||
-      item.exercises.length > 0 ||
-      item.nutrition_item_ids.length > 0,
+    item.guidance ||
+    item.target_value ||
+    item.movement_exercise_id ||
+    item.exercises.length > 0 ||
+    item.nutrition_item_ids.length > 0,
   );
 }
 
@@ -1779,7 +1779,10 @@ export default function CarePlanBuilder({
         }
       }
 
-      return { targetCount: targets.length, sourceDayNumber: source.day_number };
+      return {
+        targetCount: targets.length,
+        sourceDayNumber: source.day_number,
+      };
     },
     onSuccess: (result) => {
       setDuplicateDaySourceId(null);

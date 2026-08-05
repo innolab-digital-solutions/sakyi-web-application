@@ -161,7 +161,7 @@ export default function DuplicateCarePlanDayDialog({
                         {day.target_date_label}
                       </p>
                       {day.blocked && day.blockedReason ? (
-                        <p className='text-amber-700 dark:text-amber-400 mt-1 text-[11px] font-medium'>
+                        <p className='mt-1 text-[11px] font-medium text-amber-700 dark:text-amber-400'>
                           {day.blockedReason}
                         </p>
                       ) : null}

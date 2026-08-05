@@ -60,10 +60,9 @@ export default function CarePlanDayMotivationModal({
               Daily Motivation
             </DialogTitle>
             <DialogDescription className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
-              Optional tip for{' '}
-              <span className='font-semibold'>{dayLabel}</span>. Clients see
-              this on the mobile home overview for that day. Separate from day
-              notes.
+              Optional tip for <span className='font-semibold'>{dayLabel}</span>
+              . Clients see this on the mobile home overview for that day.
+              Separate from day notes.
             </DialogDescription>
           </DialogHeader>
 
