@@ -13,6 +13,8 @@ export type NutritionItemLookup = {
   id: number;
   name: string;
   description: string | null;
+  /** Typical serving estimate in kcal; null when unknown. */
+  estimated_calories: number | null;
   category: {
     id: number;
     name: string;

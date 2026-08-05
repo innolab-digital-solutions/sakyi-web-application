@@ -21,7 +21,9 @@ export type {
   CarePlanReportRun,
   CarePlanReportWorkspace,
   CreateOperationalLogDraftPayload,
+  NutritionActualCaloriesResult,
   OperationalLogSnapshot,
+  PutNutritionActualCaloriesPayload,
   ReportRunMetric,
 } from '../types/care-plan-report';
 export type { ClientReportListRow } from '../types/client-report-list';
@@ -48,6 +50,7 @@ export {
   listCarePlanLogs,
   listCarePlanReportRuns,
   patchCarePlanBasics,
+  patchCarePlanDayMotivation,
   patchCarePlanDayNotes,
   postCarePlanActivate,
   postCarePlanCancel,
@@ -63,4 +66,5 @@ export {
   putCarePlanOperationalLog,
   putCarePlanReportRun,
   putCarePlanSectionItems,
+  putNutritionActualCalories,
 } from './admin.service';

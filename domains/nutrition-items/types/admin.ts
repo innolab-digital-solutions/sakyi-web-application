@@ -2,6 +2,8 @@ export type NutritionItem = {
   id: number;
   name: string;
   description: string | null;
+  /** Typical serving estimate in kcal; null when unknown. */
+  estimated_calories: number | null;
   is_active: boolean;
   nutrition_category: {
     id: number;

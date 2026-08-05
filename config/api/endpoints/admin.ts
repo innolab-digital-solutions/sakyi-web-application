@@ -128,6 +128,8 @@ export const ADMIN_ENDPOINTS = {
       REVISION: (id: string) => `${BASE}/care-plans/${id}/revision`,
       DAY_NOTES_UPDATE: (id: string, dayId: string) =>
         `${BASE}/care-plans/${id}/days/${dayId}/notes`,
+      DAY_MOTIVATION_UPDATE: (id: string, dayId: string) =>
+        `${BASE}/care-plans/${id}/days/${dayId}/motivation`,
       REPORT_WORKSPACE: (id: string) =>
         `${BASE}/care-plans/${id}/report-workspace`,
       REPORT_RUNS: (id: string) => `${BASE}/care-plans/${id}/report-runs`,
@@ -148,6 +150,13 @@ export const ADMIN_ENDPOINTS = {
         operationalLogId: string,
       ) =>
         `${BASE}/care-plans/${carePlanId}/operational-logs/${operationalLogId}/submit-for-review`,
+      /** Upsert actual calories on a single nutrition task (meal). */
+      NUTRITION_ACTUAL_CALORIES: (
+        carePlanId: string,
+        dayId: string,
+        nutritionId: string,
+      ) =>
+        `${BASE}/care-plans/${carePlanId}/days/${dayId}/nutritions/${nutritionId}/actual-calories`,
     },
     CARE_PLAN_LOGS: {
       LIST: `${BASE}/care-plan-logs`,

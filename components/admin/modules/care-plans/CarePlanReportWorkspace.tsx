@@ -1,11 +1,6 @@
 'use client';
 
-import {
-  type QueryClient,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format, parse } from 'date-fns';
 import {
   ChevronDownIcon,
@@ -49,126 +44,56 @@ import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
 import { ROUTES } from '@/config/routes';
 import {
+  getCarePlanBuilderById,
   getCarePlanById,
   getCarePlanReportWorkspace,
   postCarePlanOperationalLog,
   postCarePlanOperationalLogDraft,
   postOperationalLogSubmitForReview,
   putCarePlanOperationalLog,
+  putNutritionActualCalories,
 } from '@/domains/care-plans/services';
-import type { AdminCarePlan } from '@/domains/care-plans/types/admin';
 import type {
   CarePlanReportDayPhoto,
   CarePlanReportEvidenceDay,
   CarePlanReportEvidenceItem,
   CarePlanReportWorkspace,
-  OperationalLogSnapshot,
   ReportMetricDailyPoint,
   ReportRunFeedback,
   ReportRunMetric,
   SubmitForReviewManualHighlightPayload,
 } from '@/domains/care-plans/types/care-plan-report';
+import {
+  applyNutritionActualCaloriesToFormMetrics,
+  applyNutritionActualCaloriesToWorkspace,
+  isEditableNutritionKcalEvidenceItem,
+  MEALS_TOTAL_KCAL_METRIC_KEY,
+  resolveCarePlanDayId,
+} from '@/lib/care-plans/applyNutritionActualCaloriesResponse';
 import { getCarePlanSectionTab } from '@/lib/care-plans/carePlanSectionTabs';
 import { diffReportRunMetrics } from '@/lib/care-plans/diffReportRunMetrics';
 import {
   cloneReportRunMetrics,
   rollUpMetricFromDailyPoints,
 } from '@/lib/care-plans/operationalLogMetricsRollup';
+import { resolveReportAverageInputForDialog } from '@/lib/care-plans/reportGenerationAverageInputs';
 import { resolveOperationalLogForReportWorkspace } from '@/lib/care-plans/resolveOperationalLogForReportWorkspace';
+import {
+  adminCarePlanBriefQueryKey,
+  carePlanReportWorkspaceQueryKey,
+  invalidateReportWorkspaceCaches,
+  syncOperationalLogSnapshotInReportCaches,
+} from '@/lib/care-plans/syncOperationalLogSnapshotInReportCaches';
 import { cn } from '@/lib/utils/styles';
-
-const WORKSPACE_QUERY_KEY = 'care-plan-report-workspace' as const;
-
-/** Stable reference for {@link useQuery} key hashing (must not be recreated each render). */
-const DEFAULT_REPORT_WORKSPACE_PARAMS = { carePlanDefault: true as const };
-
-function carePlanReportWorkspaceQueryKey(carePlanId: number) {
-  return [
-    WORKSPACE_QUERY_KEY,
-    carePlanId,
-    DEFAULT_REPORT_WORKSPACE_PARAMS,
-  ] as const;
-}
-
-function adminCarePlanBriefQueryKey(carePlanId: number) {
-  return ['admin-care-plan-brief', carePlanId] as const;
-}
-
-/**
- * Keeps generate-report gating in sync after save: {@link resolveOperationalLogForReportWorkspace}
- * overlays status from the care-plan brief, which otherwise stays stale until a full reload.
- */
-function syncOperationalLogSnapshotInReportCaches(
-  queryClient: QueryClient,
-  carePlanId: number,
-  snapshot: OperationalLogSnapshot,
-) {
-  queryClient.setQueryData<AdminCarePlan | undefined>(
-    adminCarePlanBriefQueryKey(carePlanId),
-    (old) => {
-      if (!old) return old;
-      const embed = old.operational_log;
-      if (embed != null && embed.id !== snapshot.id) return old;
-      return {
-        ...old,
-        operational_log: {
-          id: snapshot.id,
-          code: snapshot.code ?? embed?.code ?? null,
-          status: snapshot.status,
-          is_editable: snapshot.is_editable,
-          period: embed?.period,
-        },
-      };
-    },
-  );
-
-  queryClient.setQueryData<CarePlanReportWorkspace | undefined>(
-    carePlanReportWorkspaceQueryKey(carePlanId),
-    (old) => {
-      if (!old) return old;
-      const op = old.operational_log;
-      if (op != null && op.id !== snapshot.id) return old;
-      return {
-        ...old,
-        operational_log: {
-          ...(op ?? {
-            id: snapshot.id,
-            code: snapshot.code,
-            adherence_percentage: snapshot.adherence_percentage,
-            client_report_id: snapshot.client_report_id,
-            metrics: snapshot.metrics,
-          }),
-          id: snapshot.id,
-          code: snapshot.code ?? op?.code ?? null,
-          status: snapshot.status,
-          is_editable: snapshot.is_editable,
-          metrics: op?.metrics?.length ? op.metrics : snapshot.metrics,
-        },
-      };
-    },
-  );
-}
-
-async function invalidateReportWorkspaceCaches(
-  queryClient: QueryClient,
-  carePlanId: number,
-) {
-  await Promise.all([
-    queryClient.invalidateQueries({
-      queryKey: carePlanReportWorkspaceQueryKey(carePlanId),
-      refetchType: 'active',
-    }),
-    queryClient.invalidateQueries({
-      queryKey: adminCarePlanBriefQueryKey(carePlanId),
-      refetchType: 'active',
-    }),
-  ]);
-}
 
 const OPERATIONAL_LOG_LIST_QUERY_KEY = [
   'table',
   ENDPOINTS.ADMIN.MODULES.OPERATIONAL_LOGS.LIST,
 ] as const;
+
+function carePlanBuilderQueryKey(carePlanId: number) {
+  return ['care-plan', carePlanId, 'builder'] as const;
+}
 
 /** Same format as `CarePlanBuilder` day schedule (short weekday + date). */
 function formatTargetDateLabel(ymd: string | null | undefined): string {
@@ -315,6 +240,11 @@ export default function CarePlanReportWorkspace({
   ] = React.useState('');
   const workspaceFormKeyRef = React.useRef<string | null>(null);
   const formMetricsRef = React.useRef<ReportRunMetric[]>([]);
+  /**
+   * Bumped after workspace mutations so the form rehydrates from the refetched
+   * server payload even when period / operational-log / report ids are unchanged.
+   */
+  const [workspaceHydrateNonce, setWorkspaceHydrateNonce] = React.useState(0);
   const [metricsSnapshotBaseline, setMetricsSnapshotBaseline] = React.useState<
     ReportRunMetric[] | null
   >(null);
@@ -331,6 +261,28 @@ export default function CarePlanReportWorkspace({
   });
 
   const carePlan = carePlanResult;
+
+  const { data: carePlanBuilder } = useQuery({
+    queryKey: carePlanBuilderQueryKey(carePlanId),
+    queryFn: async () => {
+      const res = await getCarePlanBuilderById(carePlanId);
+      if (res.status === 'error') {
+        throw new Error(res.message ?? 'Could not load care plan days.');
+      }
+      return res.data;
+    },
+  });
+
+  const builderDays = React.useMemo(
+    () => carePlanBuilder?.days ?? [],
+    [carePlanBuilder?.days],
+  );
+
+  const resolveEvidenceDayId = React.useCallback(
+    (targetDate: string, dayNumber: number) =>
+      resolveCarePlanDayId(builderDays, targetDate, dayNumber),
+    [builderDays],
+  );
 
   React.useEffect(() => {
     if (searchParams.toString() === '') return;
@@ -365,7 +317,7 @@ export default function CarePlanReportWorkspace({
     if (!workspace) return;
     const cr = workspace.client_report ?? workspace.report_run;
     const op = workspace.operational_log;
-    const k = `${workspace.period.starts_on}|${workspace.period.ends_on}|op:${op?.id ?? 'n'}|cr:${cr?.id ?? 'n'}`;
+    const k = `${workspace.period.starts_on}|${workspace.period.ends_on}|op:${op?.id ?? 'n'}|cr:${cr?.id ?? 'n'}|h:${workspaceHydrateNonce}`;
     if (workspaceFormKeyRef.current === k) return;
     workspaceFormKeyRef.current = k;
     const metricsSource = op?.metrics?.length
@@ -387,7 +339,7 @@ export default function CarePlanReportWorkspace({
           }
         : emptyFeedback(),
     );
-  }, [workspace]);
+  }, [workspace, workspaceHydrateNonce]);
 
   React.useEffect(() => {
     formMetricsRef.current = formMetrics;
@@ -407,6 +359,8 @@ export default function CarePlanReportWorkspace({
           operationalLog.status === 'in_progress') &&
         operationalLog.is_editable !== false
       : !clientReport;
+  /** Same gating as metrics worksheet; locked op logs disable nutrition kcal inputs. */
+  const canEditNutritionActuals = canEditMetrics;
   const activeOpLogId = operationalLog?.id ?? null;
   const canShowSubmitForReview =
     operationalLog != null &&
@@ -435,9 +389,6 @@ export default function CarePlanReportWorkspace({
       })),
     [operationalLog?.metrics, formMetrics],
   );
-  const reportGenerationDefaults =
-    workspace?.report_generation_defaults?.average_inputs;
-
   type ReportAverageInputs = {
     avg_intake?: { value: number | null } | number | null;
     avg_burn?: { value: number | null } | number | null;
@@ -473,56 +424,29 @@ export default function CarePlanReportWorkspace({
     return raw as ReportHighlight[];
   }, [existingReportDraftState?.highlights]);
 
-  const formatAverageInputDefault = React.useCallback(
-    (value: number | null | undefined) => {
-      if (value == null || !Number.isFinite(value)) return '0';
-      return String(value);
-    },
-    [],
-  );
-
   const resolveAverageInputForDialog = React.useCallback(
     (
       key: 'avg_intake' | 'avg_burn' | 'avg_steps' | 'avg_training_time',
-      fallbackValue: number | null | undefined,
+      generationDefault: unknown,
       currentValue: string,
-    ) => {
-      const fromHighlights = reportHighlights.find((h) => {
-        if (h.metric_key !== key) return false;
-        if (h.is_visible_to_client === false) return false;
-        return true;
-      });
-      if (
-        fromHighlights &&
-        typeof fromHighlights.value === 'number' &&
-        Number.isFinite(fromHighlights.value)
-      ) {
-        return String(fromHighlights.value);
-      }
-
-      const fromExisting = existingReportDraftState?.average_inputs?.[key];
-
-      if (typeof fromExisting === 'number' && Number.isFinite(fromExisting)) {
-        return String(fromExisting);
-      }
-
-      if (
-        fromExisting &&
-        typeof fromExisting === 'object' &&
-        'value' in fromExisting
-      ) {
-        const value = (fromExisting as { value?: unknown }).value;
-        if (typeof value === 'number' && Number.isFinite(value)) {
-          return String(value);
-        }
-      }
-
-      const normalizedCurrent = currentValue.trim();
-      if (normalizedCurrent.length > 0) return normalizedCurrent;
-
-      return formatAverageInputDefault(fallbackValue);
-    },
-    [existingReportDraftState, formatAverageInputDefault, reportHighlights],
+      overrides?: {
+        highlights?: typeof reportHighlights;
+        existingAverageInputs?: Record<string, unknown> | null;
+      },
+    ) =>
+      resolveReportAverageInputForDialog({
+        metricKey: key,
+        highlights: overrides?.highlights ?? reportHighlights,
+        existingAverageInputs:
+          overrides?.existingAverageInputs ??
+          ((existingReportDraftState?.average_inputs ?? null) as Record<
+            string,
+            unknown
+          > | null),
+        generationDefault,
+        currentValue,
+      }),
+    [existingReportDraftState?.average_inputs, reportHighlights],
   );
 
   const resolveIncludedMetricKeysForDialog = React.useCallback(() => {
@@ -622,6 +546,97 @@ export default function CarePlanReportWorkspace({
     [],
   );
 
+  const [nutritionActualSavingKey, setNutritionActualSavingKey] =
+    React.useState<string | null>(null);
+
+  const nutritionActualCaloriesMutation = useMutation({
+    mutationFn: async (vars: {
+      dayId: number;
+      itemId: number;
+      dayIndex: number;
+      targetDate: string;
+      actualValue: number | null;
+      savingKey: string;
+    }) => {
+      const res = await putNutritionActualCalories(
+        carePlanId,
+        vars.dayId,
+        vars.itemId,
+        { actual_value: vars.actualValue },
+      );
+      if (res.status === 'error') {
+        throw new Error(
+          res.message ?? 'Could not update nutrition actual calories.',
+        );
+      }
+      if (!res.data) {
+        throw new Error('No data returned when updating nutrition calories.');
+      }
+      return { data: res.data, vars };
+    },
+    onMutate: (vars) => {
+      setNutritionActualSavingKey(vars.savingKey);
+    },
+    onSuccess: ({ data, vars }) => {
+      const locate = {
+        targetDate: vars.targetDate,
+        dayIndex: vars.dayIndex,
+        itemId: vars.itemId,
+      };
+      queryClient.setQueryData<CarePlanReportWorkspace | undefined>(
+        carePlanReportWorkspaceQueryKey(carePlanId),
+        (old) => {
+          if (!old) return old;
+          return applyNutritionActualCaloriesToWorkspace(old, locate, data);
+        },
+      );
+      // Prefer server `meals_total_kcal` (in_progress); fall back to `day_rollup`
+      // so draft logs still update All Nutrition Meals without a full reload.
+      setFormMetrics((prev) =>
+        applyNutritionActualCaloriesToFormMetrics(prev, data, {
+          dayIndexFallback: vars.dayIndex,
+        }),
+      );
+    },
+    onError: (e: Error) => {
+      toast.error(e.message);
+    },
+    onSettled: () => {
+      setNutritionActualSavingKey(null);
+    },
+  });
+
+  const { mutate: mutateNutritionActualCalories } =
+    nutritionActualCaloriesMutation;
+
+  const commitNutritionActual = React.useCallback(
+    (args: {
+      dayIndex: number;
+      dayNumber: number;
+      targetDate: string;
+      itemId: number;
+      actualValue: number | null;
+    }) => {
+      const dayId = resolveEvidenceDayId(args.targetDate, args.dayNumber);
+      if (dayId == null) {
+        toast.error(
+          'Could not resolve this care-plan day. Reload the workspace and try again.',
+        );
+        return;
+      }
+      const savingKey = `${args.targetDate}:${args.itemId}`;
+      mutateNutritionActualCalories({
+        dayId,
+        itemId: args.itemId,
+        dayIndex: args.dayIndex,
+        targetDate: args.targetDate,
+        actualValue: args.actualValue,
+        savingKey,
+      });
+    },
+    [mutateNutritionActualCalories, resolveEvidenceDayId],
+  );
+
   const saveMetricsMutation = useMutation({
     mutationFn: async () => {
       if (!workspace) throw new Error('Workspace not ready');
@@ -646,7 +661,13 @@ export default function CarePlanReportWorkspace({
       return { mode: 'create' as const, data: res.data };
     },
     onSuccess: async (result) => {
-      workspaceFormKeyRef.current = null;
+      await queryClient.invalidateQueries({
+        queryKey: [...OPERATIONAL_LOG_LIST_QUERY_KEY],
+      });
+      // Refetch workspace + care-plan brief from the server first…
+      await invalidateReportWorkspaceCaches(queryClient, carePlanId);
+      // …then overlay the save response so status/metrics cannot lag behind a
+      // stale brief (resolveOperationalLog prefers the brief for gating).
       if (result.data) {
         syncOperationalLogSnapshotInReportCaches(
           queryClient,
@@ -655,16 +676,14 @@ export default function CarePlanReportWorkspace({
         );
       }
       await queryClient.invalidateQueries({
-        queryKey: [...OPERATIONAL_LOG_LIST_QUERY_KEY],
-      });
-      await invalidateReportWorkspaceCaches(queryClient, carePlanId);
-      await queryClient.invalidateQueries({
         queryKey: ['care-plan-logs', carePlanId],
         refetchType: 'active',
       });
       await queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.PERIOD_REPORTS.LIST],
       });
+      // Force worksheet rehydrate from the refreshed cache (same op/report ids).
+      setWorkspaceHydrateNonce((n) => n + 1);
       toast.success(
         result.mode === 'create'
           ? 'Operational log saved. Continue editing, then submit for review when ready.'
@@ -775,7 +794,6 @@ export default function CarePlanReportWorkspace({
     },
     onSuccess: async (data) => {
       setSubmitForReviewDialogOpen(false);
-      workspaceFormKeyRef.current = null;
       setFormFeedback({
         summary: data?.feedback?.summary ?? submitReviewFeedback.summary ?? '',
         focus_next_period:
@@ -792,6 +810,7 @@ export default function CarePlanReportWorkspace({
       await queryClient.invalidateQueries({
         queryKey: ['table', ENDPOINTS.ADMIN.MODULES.PERIOD_REPORTS.LIST],
       });
+      setWorkspaceHydrateNonce((n) => n + 1);
       router.replace(workspacePath, { scroll: false });
       toast.success('The report has been generated successfully.');
     },
@@ -800,61 +819,94 @@ export default function CarePlanReportWorkspace({
     },
   });
 
-  const openSubmitForReviewDialog = React.useCallback(() => {
-    const reportFeedback = clientReport?.feedback;
-    setSubmitReviewFeedback({
-      summary: reportFeedback?.summary ?? formFeedback.summary ?? '',
-      focus_next_period:
-        reportFeedback?.focus_next_period ??
-        formFeedback.focus_next_period ??
-        '',
-      notes: reportFeedback?.notes ?? formFeedback.notes ?? '',
-    });
-    setSubmitReviewIncludedMetricKeys(resolveIncludedMetricKeysForDialog());
-    setSubmitReviewAverageIntake(
-      resolveAverageInputForDialog(
-        'avg_intake',
-        reportGenerationDefaults?.avg_intake?.value,
-        submitReviewAverageIntake,
-      ),
-    );
-    setSubmitReviewAverageBurn(
-      resolveAverageInputForDialog(
-        'avg_burn',
-        reportGenerationDefaults?.avg_burn?.value,
-        submitReviewAverageBurn,
-      ),
-    );
-    setSubmitReviewAverageSteps(
-      resolveAverageInputForDialog(
-        'avg_steps',
-        reportGenerationDefaults?.avg_steps?.value,
-        submitReviewAverageSteps,
-      ),
-    );
-    setSubmitReviewAverageTrainingMinutes(
-      resolveAverageInputForDialog(
-        'avg_training_time',
-        reportGenerationDefaults?.avg_training_time?.value,
-        submitReviewAverageTrainingMinutes,
-      ),
-    );
-    setSubmitForReviewDialogOpen(true);
+  const [isOpeningSubmitForReviewDialog, setIsOpeningSubmitForReviewDialog] =
+    React.useState(false);
+
+  const openSubmitForReviewDialog = React.useCallback(async () => {
+    setIsOpeningSubmitForReviewDialog(true);
+    try {
+      // Fresh defaults are computed server-side after metrics save; refetch so
+      // Generate report does not open with a stale pre-save workspace cache.
+      await queryClient.refetchQueries({
+        queryKey: carePlanReportWorkspaceQueryKey(carePlanId),
+        type: 'active',
+      });
+      const fresh = queryClient.getQueryData<CarePlanReportWorkspace>(
+        carePlanReportWorkspaceQueryKey(carePlanId),
+      );
+      const freshClientReport =
+        fresh?.client_report ?? fresh?.report_run ?? null;
+      const freshDefaults =
+        fresh?.report_generation_defaults?.average_inputs ?? null;
+      const freshDraft = freshClientReport
+        ? (freshClientReport as unknown as ExistingReportDraftState)
+        : null;
+      const freshHighlights = Array.isArray(freshDraft?.highlights)
+        ? (freshDraft.highlights as ReportHighlight[])
+        : [];
+      const freshExistingAverages =
+        (freshDraft?.average_inputs as Record<string, unknown> | null) ?? null;
+
+      const reportFeedback = freshClientReport?.feedback;
+      setSubmitReviewFeedback({
+        summary: reportFeedback?.summary ?? formFeedback.summary ?? '',
+        focus_next_period:
+          reportFeedback?.focus_next_period ??
+          formFeedback.focus_next_period ??
+          '',
+        notes: reportFeedback?.notes ?? formFeedback.notes ?? '',
+      });
+      setSubmitReviewIncludedMetricKeys(resolveIncludedMetricKeysForDialog());
+
+      const averageOverrides = {
+        highlights: freshHighlights,
+        existingAverageInputs: freshExistingAverages,
+      };
+      // Pass empty currentValue so leftover local drafts cannot mask defaults.
+      setSubmitReviewAverageIntake(
+        resolveAverageInputForDialog(
+          'avg_intake',
+          freshDefaults?.avg_intake,
+          '',
+          averageOverrides,
+        ),
+      );
+      setSubmitReviewAverageBurn(
+        resolveAverageInputForDialog(
+          'avg_burn',
+          freshDefaults?.avg_burn,
+          '',
+          averageOverrides,
+        ),
+      );
+      setSubmitReviewAverageSteps(
+        resolveAverageInputForDialog(
+          'avg_steps',
+          freshDefaults?.avg_steps,
+          '',
+          averageOverrides,
+        ),
+      );
+      setSubmitReviewAverageTrainingMinutes(
+        resolveAverageInputForDialog(
+          'avg_training_time',
+          freshDefaults?.avg_training_time,
+          '',
+          averageOverrides,
+        ),
+      );
+      setSubmitForReviewDialogOpen(true);
+    } finally {
+      setIsOpeningSubmitForReviewDialog(false);
+    }
   }, [
-    clientReport?.feedback,
+    carePlanId,
     formFeedback.focus_next_period,
     formFeedback.notes,
     formFeedback.summary,
-    reportGenerationDefaults?.avg_burn?.value,
-    reportGenerationDefaults?.avg_intake?.value,
-    reportGenerationDefaults?.avg_steps?.value,
-    reportGenerationDefaults?.avg_training_time?.value,
+    queryClient,
     resolveAverageInputForDialog,
     resolveIncludedMetricKeysForDialog,
-    submitReviewAverageBurn,
-    submitReviewAverageIntake,
-    submitReviewAverageSteps,
-    submitReviewAverageTrainingMinutes,
   ]);
 
   const createOperationalLogDraftMutation = useMutation({
@@ -867,12 +919,12 @@ export default function CarePlanReportWorkspace({
       }
     },
     onSuccess: async () => {
-      workspaceFormKeyRef.current = null;
       await invalidateReportWorkspaceCaches(queryClient, carePlanId);
       await queryClient.invalidateQueries({
         queryKey: ['care-plan-logs', carePlanId],
         refetchType: 'active',
       });
+      setWorkspaceHydrateNonce((n) => n + 1);
       toast.success('Operational log created. You can add metrics, then save.');
     },
     onError: (e: Error) => {
@@ -883,6 +935,9 @@ export default function CarePlanReportWorkspace({
   const renderMetricEditorCard = (metric: ReportRunMetric, mi: number) => {
     const sectionTab = getCarePlanSectionTab(metric.section);
     const SectionIcon = sectionTab?.icon;
+    /** Day actuals for All Nutrition Meals come from evidence meal edits only. */
+    const canEditDailyBreakdown =
+      canEditMetrics && metric.metric_key !== MEALS_TOTAL_KCAL_METRIC_KEY;
 
     return (
       <div className='border-border min-w-0 space-y-3 rounded-md border bg-white p-3 sm:p-4'>
@@ -1038,9 +1093,14 @@ export default function CarePlanReportWorkspace({
                               target_value: Math.max(0, n),
                             });
                           }}
-                          disabled={!canEditMetrics}
+                          disabled={!canEditDailyBreakdown}
                           id={`m-${mi}-d-${di}-t`}
                           aria-label={`${metric.label} day ${dp.day_number} target`}
+                          title={
+                            metric.metric_key === MEALS_TOTAL_KCAL_METRIC_KEY
+                              ? 'Edit meal calories in evidence; this day total updates automatically'
+                              : undefined
+                          }
                         />
                       </td>
                       <td className='px-1.5 py-1.5 align-middle sm:px-2 sm:py-2'>
@@ -1063,9 +1123,14 @@ export default function CarePlanReportWorkspace({
                               actual_value: Math.max(0, n),
                             });
                           }}
-                          disabled={!canEditMetrics}
+                          disabled={!canEditDailyBreakdown}
                           id={`m-${mi}-d-${di}-a`}
                           aria-label={`${metric.label} day ${dp.day_number} actual`}
+                          title={
+                            metric.metric_key === MEALS_TOTAL_KCAL_METRIC_KEY
+                              ? 'Edit meal calories in evidence; this day total updates automatically'
+                              : undefined
+                          }
                         />
                       </td>
                       <td className='w-20 px-2 py-1.5 text-center align-middle sm:w-14 sm:py-2'>
@@ -1078,7 +1143,7 @@ export default function CarePlanReportWorkspace({
                                 on_target: c === true,
                               })
                             }
-                            disabled={!canEditMetrics}
+                            disabled={!canEditDailyBreakdown}
                             aria-label={`On target day ${dp.day_number}`}
                           />
                         </div>
@@ -1120,13 +1185,17 @@ export default function CarePlanReportWorkspace({
                       <Button
                         type='button'
                         className='h-10 gap-1.5 text-[13px]! font-semibold'
-                        onClick={openSubmitForReviewDialog}
+                        onClick={() => {
+                          void openSubmitForReviewDialog();
+                        }}
                         disabled={
                           !canSubmitForReview ||
-                          submitForReviewMutation.isPending
+                          submitForReviewMutation.isPending ||
+                          isOpeningSubmitForReviewDialog
                         }
                       >
-                        {submitForReviewMutation.isPending ? (
+                        {submitForReviewMutation.isPending ||
+                        isOpeningSubmitForReviewDialog ? (
                           <Loader2Icon className='size-4 animate-spin' />
                         ) : hasExistingReport ? (
                           <FileSymlink className='size-4' aria-hidden />
@@ -1215,6 +1284,10 @@ export default function CarePlanReportWorkspace({
               <div className='min-h-0 min-w-0 space-y-3 lg:col-span-1'>
                 <EvidenceList
                   days={workspace.evidence}
+                  canEditNutritionActuals={canEditNutritionActuals}
+                  nutritionActualSavingKey={nutritionActualSavingKey}
+                  resolveDayId={resolveEvidenceDayId}
+                  onCommitNutritionActual={commitNutritionActual}
                   onOpenImage={(url, contextLabel) =>
                     setLightboxMedia({ url, contextLabel })
                   }
@@ -1365,11 +1438,42 @@ function formatClientNoteUpdatedAt(
   }
 }
 
+function formatLogActualDraft(
+  value: number | string | null | undefined,
+): string {
+  if (value == null) return '';
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? String(value) : '';
+  }
+  const s = String(value).trim();
+  return s;
+}
+
 function EvidenceLineItemCard({
   item,
+  dayIndex,
+  dayNumber,
+  targetDate,
+  canEditNutritionActuals,
+  isSavingNutritionActual,
+  dayIdResolved,
+  onCommitNutritionActual,
   onOpenImage,
 }: {
   item: CarePlanReportEvidenceItem;
+  dayIndex: number;
+  dayNumber: number;
+  targetDate: string;
+  canEditNutritionActuals: boolean;
+  isSavingNutritionActual: boolean;
+  dayIdResolved: boolean;
+  onCommitNutritionActual: (args: {
+    dayIndex: number;
+    dayNumber: number;
+    targetDate: string;
+    itemId: number;
+    actualValue: number | null;
+  }) => void;
   onOpenImage: (url: string, contextLabel: string) => void;
 }) {
   const targetDisplay = item.target
@@ -1377,17 +1481,71 @@ function EvidenceLineItemCard({
     : '—';
   const log = item.log;
   const hasLog = log != null;
+  const canEditThisLog =
+    canEditNutritionActuals &&
+    isEditableNutritionKcalEvidenceItem(item) &&
+    dayIdResolved;
+  const serverActualDraft = formatLogActualDraft(log?.actual_value);
+  const [actualDraft, setActualDraft] = React.useState(serverActualDraft);
+  const [draftSyncKey, setDraftSyncKey] = React.useState(
+    () => `${item.item_id}|${targetDate}|${serverActualDraft}`,
+  );
+  const nextDraftSyncKey = `${item.item_id}|${targetDate}|${serverActualDraft}`;
+  // Sync local draft when the server value (or item identity) changes — during
+  // render, not in an effect, so we avoid cascading effect-driven setState.
+  if (nextDraftSyncKey !== draftSyncKey) {
+    setDraftSyncKey(nextDraftSyncKey);
+    setActualDraft(serverActualDraft);
+  }
+
+  const commitActualDraft = React.useCallback(() => {
+    if (!canEditThisLog || isSavingNutritionActual) return;
+    const trimmed = actualDraft.trim();
+    let nextValue: number | null;
+    if (trimmed === '') {
+      nextValue = null;
+    } else {
+      const n = Number(trimmed);
+      if (!Number.isFinite(n) || n < 0) {
+        setActualDraft(serverActualDraft);
+        toast.error(
+          'Actual calories must be a number greater than or equal to 0.',
+        );
+        return;
+      }
+      nextValue = n;
+    }
+    const prevNormalized =
+      serverActualDraft === '' ? null : Number(serverActualDraft);
+    const prevComparable =
+      prevNormalized != null && Number.isFinite(prevNormalized)
+        ? prevNormalized
+        : null;
+    if (nextValue === prevComparable) return;
+    onCommitNutritionActual({
+      dayIndex,
+      dayNumber,
+      targetDate,
+      itemId: item.item_id,
+      actualValue: nextValue,
+    });
+  }, [
+    actualDraft,
+    canEditThisLog,
+    dayIndex,
+    dayNumber,
+    isSavingNutritionActual,
+    item.item_id,
+    onCommitNutritionActual,
+    serverActualDraft,
+    targetDate,
+  ]);
+
   const logValueDisplay = hasLog
     ? `${log.actual_value ?? '—'} ${log.unit ?? ''}`.trim()
     : 'No log yet';
-  const noteText = hasLog
-    ? (() => {
-        const raw = log.notes;
-        if (raw == null) return '—';
-        const s = String(raw).trim();
-        return s.length > 0 ? s : '—';
-      })()
-    : null;
+  const logNoteText = hasLog ? String(log.notes ?? '').trim() : '';
+  const hasLogNote = logNoteText.length > 0;
   const media = log?.media?.length ? log.media : null;
   const clientNoteBody = String(item.client_note?.body ?? '').trim();
   const hasClientNote = clientNoteBody.length > 0;
@@ -1414,9 +1572,36 @@ function EvidenceLineItemCard({
           <p className='text-[10px] font-semibold tracking-wide text-sky-700 uppercase dark:text-sky-400'>
             Log
           </p>
-          <p className='text-foreground/90 text-[11px] leading-snug font-medium'>
-            {logValueDisplay}
-          </p>
+          {canEditThisLog ? (
+            <div className='flex items-center gap-1.5'>
+              <TextField
+                type='number'
+                variant='tableDense'
+                className='w-full min-w-0'
+                min={0}
+                step='any'
+                value={actualDraft}
+                onChange={(e) => setActualDraft(e.target.value)}
+                onBlur={commitActualDraft}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.currentTarget.blur();
+                  }
+                }}
+                disabled={isSavingNutritionActual}
+                id={`nutrition-actual-${targetDate}-${item.item_id}`}
+                aria-label={`${item.title} actual calories`}
+                placeholder='kcal'
+              />
+              <span className='text-muted-foreground shrink-0 text-[10px] font-semibold tracking-wide uppercase'>
+                kcal
+              </span>
+            </div>
+          ) : (
+            <p className='text-foreground/90 text-[11px] leading-snug font-medium'>
+              {logValueDisplay}
+            </p>
+          )}
         </div>
       </div>
 
@@ -1438,13 +1623,13 @@ function EvidenceLineItemCard({
         </div>
       ) : null}
 
-      {hasLog ? (
+      {hasLogNote ? (
         <div className='bg-muted/15 border-border w-full min-w-0 space-y-1 rounded-md border px-2.5 py-2 sm:px-3 sm:py-2.5'>
           <p className='text-[10px] font-semibold tracking-wide text-violet-700 uppercase dark:text-violet-400'>
             Log note
           </p>
           <p className='text-foreground/90 text-[11px] leading-relaxed font-medium wrap-break-word whitespace-pre-wrap'>
-            {noteText}
+            {logNoteText}
           </p>
         </div>
       ) : null}
@@ -1565,9 +1750,23 @@ function DayPhotosGallery({
 
 function EvidenceList({
   days,
+  canEditNutritionActuals,
+  nutritionActualSavingKey,
+  resolveDayId,
+  onCommitNutritionActual,
   onOpenImage,
 }: {
   days: CarePlanReportEvidenceDay[];
+  canEditNutritionActuals: boolean;
+  nutritionActualSavingKey: string | null;
+  resolveDayId: (targetDate: string, dayNumber: number) => number | null;
+  onCommitNutritionActual: (args: {
+    dayIndex: number;
+    dayNumber: number;
+    targetDate: string;
+    itemId: number;
+    actualValue: number | null;
+  }) => void;
   onOpenImage: (url: string, contextLabel: string) => void;
 }) {
   if (!days.length) {
@@ -1585,6 +1784,7 @@ function EvidenceList({
         const { totalTasks, totalLogs } = getEvidenceDayTaskLogCounts(d.items);
         const dayPhotos = d.photos?.length ? d.photos : null;
         const dayLabel = `Day ${d.day_index} — ${formatTargetDateLabel(d.target_date)}`;
+        const dayIdResolved = resolveDayId(d.target_date, d.day_number) != null;
         return (
           <li
             key={`${d.target_date}-${d.day_index}`}
@@ -1690,13 +1890,25 @@ function EvidenceList({
                         </span>
                       </div>
                       <div className='space-y-2.5'>
-                        {items.map((item) => (
-                          <EvidenceLineItemCard
-                            key={`${d.target_date}-${item.item_id}-${item.section}`}
-                            item={item}
-                            onOpenImage={onOpenImage}
-                          />
-                        ))}
+                        {items.map((item) => {
+                          const savingKey = `${d.target_date}:${item.item_id}`;
+                          return (
+                            <EvidenceLineItemCard
+                              key={`${d.target_date}-${item.item_id}-${item.section}`}
+                              item={item}
+                              dayIndex={d.day_index}
+                              dayNumber={d.day_number}
+                              targetDate={d.target_date}
+                              canEditNutritionActuals={canEditNutritionActuals}
+                              isSavingNutritionActual={
+                                nutritionActualSavingKey === savingKey
+                              }
+                              dayIdResolved={dayIdResolved}
+                              onCommitNutritionActual={onCommitNutritionActual}
+                              onOpenImage={onOpenImage}
+                            />
+                          );
+                        })}
                       </div>
                     </div>
                   ))}

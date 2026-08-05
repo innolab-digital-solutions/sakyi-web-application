@@ -227,3 +227,38 @@ export type UpdateCarePlanReportRunPayload = {
 export type PublishCarePlanReportRunPayload = {
   adherence_percentage?: number | null;
 };
+
+/** `PUT …/days/{day}/nutritions/{nutrition}/actual-calories` body. */
+export type PutNutritionActualCaloriesPayload = {
+  /** Required key; `null` clears the value. */
+  actual_value: number | null;
+};
+
+export type NutritionActualCaloriesDayRollup = {
+  day_number: number;
+  target_value: number | null;
+  actual_value: number | null;
+  on_target: boolean;
+};
+
+export type NutritionActualCaloriesMealsTotalKcal = {
+  metric_key: string;
+  label: string;
+  target_value: number | null;
+  actual_value: number | null;
+  days_on_target: number;
+  days_total: number;
+  daily_point: ReportMetricDailyPoint;
+};
+
+/**
+ * Success `data` from nutrition actual-calories PUT.
+ * When `meals_total_kcal` is null (typical for draft before metrics are
+ * persisted on the op log), only the task log + `day_rollup` are returned;
+ * the UI still applies `day_rollup` to All Nutrition Meals locally.
+ */
+export type NutritionActualCaloriesResult = {
+  log: CarePlanLogEvidence;
+  day_rollup: NutritionActualCaloriesDayRollup;
+  meals_total_kcal: NutritionActualCaloriesMealsTotalKcal | null;
+};

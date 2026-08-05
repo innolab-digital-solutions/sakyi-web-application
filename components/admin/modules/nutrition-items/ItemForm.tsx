@@ -82,6 +82,7 @@ export default function NutritionItemForm({ mode, item, onSuccess }: Props) {
         nutrition_category_id:
           item.nutrition_category?.id ?? (null as number | null),
         default_unit_id: item.default_unit?.id ?? (null as number | null),
+        estimated_calories: item.estimated_calories ?? (null as number | null),
         is_active: item.is_active ?? true,
       };
     }
@@ -90,6 +91,7 @@ export default function NutritionItemForm({ mode, item, onSuccess }: Props) {
       description: '',
       nutrition_category_id: null as number | null,
       default_unit_id: null as number | null,
+      estimated_calories: null as number | null,
       is_active: true,
     };
   }, [mode, item]);
@@ -105,6 +107,7 @@ export default function NutritionItemForm({ mode, item, onSuccess }: Props) {
       description: item.description ?? '',
       nutrition_category_id: item.nutrition_category?.id ?? null,
       default_unit_id: item.default_unit?.id ?? null,
+      estimated_calories: item.estimated_calories ?? null,
       is_active: item.is_active ?? true,
     });
     // Intentionally omit `form` to avoid re-snapshotting defaults.
@@ -228,6 +231,29 @@ export default function NutritionItemForm({ mode, item, onSuccess }: Props) {
             form.setData('default_unit_id', val ? Number(val) : null)
           }
           error={form.errors.default_unit_id}
+        />
+        <TextField
+          label='Estimated calories (kcal)'
+          type='number'
+          min={0}
+          step='any'
+          placeholder='Optional estimate for a typical serving'
+          value={
+            form.fields.estimated_calories == null
+              ? ''
+              : String(form.fields.estimated_calories)
+          }
+          onChange={(e) => {
+            const raw = e.target.value;
+            if (raw === '') {
+              form.setData('estimated_calories', null);
+              return;
+            }
+            const n = Number(raw);
+            if (Number.isNaN(n)) return;
+            form.setData('estimated_calories', Math.max(0, n));
+          }}
+          error={form.errors.estimated_calories}
         />
 
         <div className='flex flex-nowrap items-center justify-end gap-2'>

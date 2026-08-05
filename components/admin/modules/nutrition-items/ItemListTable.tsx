@@ -26,9 +26,9 @@ import { deleteNutritionItem } from '@/domains/nutrition-items/services';
 import type { NutritionItem } from '@/domains/nutrition-items/types';
 import { useTable } from '@/lib/table';
 
-const COLUMN_COUNT = 4;
+const COLUMN_COUNT = 5;
 
-const SKELETON_WIDTHS = ['w-48', 'w-32', 'w-36', 'w-44'] as const;
+const SKELETON_WIDTHS = ['w-48', 'w-32', 'w-36', 'w-28', 'w-44'] as const;
 
 export default function NutritionItemListTable() {
   const queryClient = useQueryClient();
@@ -99,6 +99,7 @@ export default function NutritionItemListTable() {
               <TableHead>Item</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Measurement</TableHead>
+              <TableHead>Est. calories</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -175,6 +176,20 @@ export default function NutritionItemListTable() {
                       </span>
                     ) : (
                       <TableCellEmpty label='No measurement' />
+                    )}
+                  </TableCell>
+
+                  <TableCell className='text-foreground/80 align-center tabular-nums'>
+                    {nutritionItem.estimated_calories != null &&
+                    Number.isFinite(nutritionItem.estimated_calories) ? (
+                      <span className='text-[13px]'>
+                        {nutritionItem.estimated_calories}{' '}
+                        <span className='text-muted-foreground text-xs'>
+                          kcal
+                        </span>
+                      </span>
+                    ) : (
+                      <TableCellEmpty label='—' />
                     )}
                   </TableCell>
 
