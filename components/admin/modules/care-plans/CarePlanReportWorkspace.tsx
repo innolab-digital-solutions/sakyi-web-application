@@ -77,6 +77,11 @@ import {
   rollUpMetricFromDailyPoints,
 } from '@/lib/care-plans/operationalLogMetricsRollup';
 import { resolveReportAverageInputForDialog } from '@/lib/care-plans/reportGenerationAverageInputs';
+import {
+  canEditReportWorkspaceMetrics,
+  canShowSubmitOperationalLogForReview,
+  isPublishedClientReportStatus,
+} from '@/lib/care-plans/reportWorkspaceEditGating';
 import { resolveOperationalLogForReportWorkspace } from '@/lib/care-plans/resolveOperationalLogForReportWorkspace';
 import {
   adminCarePlanBriefQueryKey,
@@ -353,20 +358,20 @@ export default function CarePlanReportWorkspace({
     [workspace, carePlan],
   );
 
-  const canEditMetrics =
-    operationalLog != null
-      ? (operationalLog.status === 'draft' ||
-          operationalLog.status === 'in_progress') &&
-        operationalLog.is_editable !== false
-      : !clientReport;
-  /** Same gating as metrics worksheet; locked op logs disable nutrition kcal inputs. */
+  const canEditMetrics = canEditReportWorkspaceMetrics({
+    operationalLog,
+    clientReport,
+  });
+  /** Same gating as metrics worksheet; locked/published logs stay correctable. */
   const canEditNutritionActuals = canEditMetrics;
+  const isLivePublishedReport = isPublishedClientReportStatus(
+    clientReport?.status,
+  );
   const activeOpLogId = operationalLog?.id ?? null;
-  const canShowSubmitForReview =
-    operationalLog != null &&
-    operationalLog.status !== 'locked' &&
-    operationalLog.is_editable !== false &&
-    clientReport?.status !== 'published';
+  const canShowSubmitForReview = canShowSubmitOperationalLogForReview({
+    operationalLog,
+    clientReport,
+  });
   const canSubmitForReview =
     canShowSubmitForReview && operationalLog?.status === 'in_progress';
   const submitForReviewDisabledReason =
@@ -687,7 +692,9 @@ export default function CarePlanReportWorkspace({
       toast.success(
         result.mode === 'create'
           ? 'Operational log saved. Continue editing, then submit for review when ready.'
-          : 'The operational log data has been saved successfully.',
+          : isLivePublishedReport
+            ? 'The operational log was saved. The live client report now shows these numbers.'
+            : 'The operational log data has been saved successfully.',
       );
     },
     onError: (e: Error) => {
@@ -1215,6 +1222,21 @@ export default function CarePlanReportWorkspace({
               </TooltipProvider>
             ) : null}
           </div>
+          {isLivePublishedReport && canEditMetrics ? (
+            <div
+              role='note'
+              className='border-sky-200/80 bg-sky-50/80 dark:border-sky-900 dark:bg-sky-950/30 rounded-md border px-3 py-2.5'
+            >
+              <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
+                Live client report
+              </p>
+              <p className='text-foreground/90 mt-1 text-[13px] leading-relaxed'>
+                This report is live on the client app. Saving will update the
+                numbers the client already sees. It will not create a new
+                report.
+              </p>
+            </div>
+          ) : null}
           <div className='border-border/70 border-t' />
           <OperationalLogWorkspaceContextBar
             {...operationalLogsSummaryCardsProps}
@@ -1312,14 +1334,8 @@ export default function CarePlanReportWorkspace({
                 </div>
                 {operationalLog && !canEditMetrics ? (
                   <p className='text-muted-foreground text-xs leading-relaxed'>
-                    Metrics are read-only when this operational log is not in{' '}
-                    <span className='text-foreground font-medium'>draft</span>{' '}
-                    or{' '}
-                    <span className='text-foreground font-medium'>
-                      in progress
-                    </span>
-                    , or when the log is marked as not editable on the server
-                    (for example after submit or publish).
+                    Metrics are read-only for archived reports, or when the
+                    server marks this operational log as not editable.
                   </p>
                 ) : null}
               </div>
@@ -1387,6 +1403,7 @@ export default function CarePlanReportWorkspace({
         open={saveCarePlanConfirmOpen}
         isSubmitting={saveMetricsMutation.isPending}
         carePlanCode={saveCarePlanCodeForDialog}
+        isPublishedCorrection={isLivePublishedReport}
         onOpenChange={setSaveCarePlanConfirmOpen}
         onConfirm={confirmSaveCarePlanData}
       />

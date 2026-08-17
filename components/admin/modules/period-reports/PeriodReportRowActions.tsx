@@ -10,12 +10,16 @@ import {
   FileTextIcon,
   Loader2Icon,
   MoreHorizontalIcon,
+  NotebookPenIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import * as React from 'react';
 import { toast } from 'sonner';
 
-import { buildPeriodReportOverviewHref } from '@/components/admin/modules/operational-logs/reportRunListHelpers';
+import {
+  buildOperationalLogWorkspaceHref,
+  buildPeriodReportOverviewHref,
+} from '@/components/admin/modules/operational-logs/reportRunListHelpers';
 import PeriodReportPublishBlockedAlert from '@/components/admin/modules/period-reports/PeriodReportPublishBlockedAlert';
 import PeriodReportPublishConfirmation from '@/components/admin/modules/period-reports/PeriodReportPublishConfirmation';
 import { Button } from '@/components/ui/button';
@@ -70,6 +74,11 @@ export default function PeriodReportRowActions({ row }: Props) {
   const downloadHint = watermarkDownloadHint(row.status);
 
   const overviewHref = buildPeriodReportOverviewHref(row.id);
+  const workspaceHref =
+    carePlanId != null
+      ? buildOperationalLogWorkspaceHref(carePlanId, row.operational_log?.id)
+      : null;
+  const canOpenWorkspace = workspaceHref != null && row.status !== 'archived';
 
   const canShowPublishAction = row.status === 'in_review';
 
@@ -221,6 +230,17 @@ export default function PeriodReportRowActions({ row }: Props) {
           {carePlanId != null ? (
             <>
               <DropdownMenuSeparator />
+              {canOpenWorkspace && workspaceHref ? (
+                <DropdownMenuItem asChild className='cursor-pointer'>
+                  <Link
+                    className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                    href={workspaceHref}
+                  >
+                    <NotebookPenIcon className='size-3.5 shrink-0' aria-hidden />
+                    Open workspace
+                  </Link>
+                </DropdownMenuItem>
+              ) : null}
               <DropdownMenuItem asChild className='cursor-pointer'>
                 <Link
                   className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
