@@ -40,6 +40,8 @@ export type SubmitOperationalLogForReviewDialogProps = {
   open: boolean;
   isSubmitting: boolean;
   hasExistingReport: boolean;
+  /** Published reports update in place; they do not regenerate. */
+  isPublishedCorrection?: boolean;
   metricOptions: SubmitMetricOption[];
   includedMetricKeys: string[];
   feedback: ReportRunFeedback;
@@ -68,6 +70,7 @@ export default function SubmitOperationalLogForReviewDialog({
   open,
   isSubmitting,
   hasExistingReport,
+  isPublishedCorrection = false,
   metricOptions,
   includedMetricKeys,
   feedback,
@@ -85,12 +88,21 @@ export default function SubmitOperationalLogForReviewDialog({
   onSubmit,
 }: SubmitOperationalLogForReviewDialogProps) {
   const [step, setStep] = React.useState<1 | 2 | 3>(1);
-  const actionTitle = hasExistingReport
-    ? 'Regenerate client report'
-    : 'Generate client report';
-  const submitLabel = hasExistingReport
-    ? 'Regenerate report'
-    : 'Generate report';
+  const actionTitle = isPublishedCorrection
+    ? 'Update client report'
+    : hasExistingReport
+      ? 'Regenerate client report'
+      : 'Generate client report';
+  const submitLabel = isPublishedCorrection
+    ? 'Update client report'
+    : hasExistingReport
+      ? 'Regenerate report'
+      : 'Generate report';
+  const submittingLabel = isPublishedCorrection
+    ? 'Updating...'
+    : hasExistingReport
+      ? 'Regenerating...'
+      : 'Generating...';
   const STEPS = [
     {
       id: 1 as const,
@@ -136,9 +148,9 @@ export default function SubmitOperationalLogForReviewDialog({
               {actionTitle}
             </DialogTitle>
             <DialogDescription className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
-              Use this guided workflow to prepare a high-quality client report
-              draft from the operational log before final review and
-              publication.
+              {isPublishedCorrection
+                ? 'Update averages, visible metrics, and narrative on the live client report. Saving keeps the same published report and does not notify the client again.'
+                : 'Use this guided workflow to prepare a high-quality client report draft from the operational log before final review and publication.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -394,9 +406,7 @@ export default function SubmitOperationalLogForReviewDialog({
                 <FileChartColumn className='size-3.5 shrink-0' />
               )}
               {isSubmitting
-                ? hasExistingReport
-                  ? 'Regenerating...'
-                  : 'Generating...'
+                ? submittingLabel
                 : submitLabel}
             </Button>
           )}

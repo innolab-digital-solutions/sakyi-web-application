@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  canConfirmClientReportAuthoring,
   canEditReportWorkspaceMetrics,
   canShowSubmitOperationalLogForReview,
   isArchivedClientReportStatus,
@@ -131,19 +132,13 @@ describe('canShowSubmitOperationalLogForReview', () => {
     ).toBe(true);
   });
 
-  it('hides submit after publish or when the log is locked', () => {
+  it('shows the same dialog for a published / locked report', () => {
     expect(
       canShowSubmitOperationalLogForReview({
         operationalLog: { status: 'locked', is_editable: true },
-        clientReport: { status: 'published' },
+        clientReport: { status: 'published', is_editable: true },
       }),
-    ).toBe(false);
-    expect(
-      canShowSubmitOperationalLogForReview({
-        operationalLog: { status: 'in_progress', is_editable: true },
-        clientReport: { status: 'published' },
-      }),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it('hides submit when there is no log or the report is archived', () => {
@@ -155,9 +150,35 @@ describe('canShowSubmitOperationalLogForReview', () => {
     ).toBe(false);
     expect(
       canShowSubmitOperationalLogForReview({
-        operationalLog: { status: 'in_progress', is_editable: true },
+        operationalLog: { status: 'locked', is_editable: true },
         clientReport: { status: 'archived' },
       }),
     ).toBe(false);
+  });
+});
+
+describe('canConfirmClientReportAuthoring', () => {
+  it('requires in_progress before the first generate', () => {
+    expect(
+      canConfirmClientReportAuthoring({
+        operationalLog: { status: 'draft', is_editable: true },
+        clientReport: null,
+      }),
+    ).toBe(false);
+    expect(
+      canConfirmClientReportAuthoring({
+        operationalLog: { status: 'in_progress', is_editable: true },
+        clientReport: null,
+      }),
+    ).toBe(true);
+  });
+
+  it('allows confirm on a published report even when the log is locked', () => {
+    expect(
+      canConfirmClientReportAuthoring({
+        operationalLog: { status: 'locked', is_editable: true },
+        clientReport: { status: 'published', is_editable: true },
+      }),
+    ).toBe(true);
   });
 });

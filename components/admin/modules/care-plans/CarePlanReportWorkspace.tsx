@@ -61,7 +61,6 @@ import type {
   ReportMetricDailyPoint,
   ReportRunFeedback,
   ReportRunMetric,
-  SubmitForReviewManualHighlightPayload,
 } from '@/domains/care-plans/types/care-plan-report';
 import {
   applyNutritionActualCaloriesToFormMetrics,
@@ -71,6 +70,7 @@ import {
   resolveCarePlanDayId,
 } from '@/lib/care-plans/applyNutritionActualCaloriesResponse';
 import { getCarePlanSectionTab } from '@/lib/care-plans/carePlanSectionTabs';
+import { buildAverageInputsAndManualHighlights } from '@/lib/care-plans/clientReportNarrativePayload';
 import { diffReportRunMetrics } from '@/lib/care-plans/diffReportRunMetrics';
 import {
   cloneReportRunMetrics,
@@ -78,6 +78,7 @@ import {
 } from '@/lib/care-plans/operationalLogMetricsRollup';
 import { resolveReportAverageInputForDialog } from '@/lib/care-plans/reportGenerationAverageInputs';
 import {
+  canConfirmClientReportAuthoring,
   canEditReportWorkspaceMetrics,
   canShowSubmitOperationalLogForReview,
   isPublishedClientReportStatus,
@@ -372,16 +373,20 @@ export default function CarePlanReportWorkspace({
     operationalLog,
     clientReport,
   });
-  const canSubmitForReview =
-    canShowSubmitForReview && operationalLog?.status === 'in_progress';
+  const canSubmitForReview = canConfirmClientReportAuthoring({
+    operationalLog,
+    clientReport,
+  });
   const submitForReviewDisabledReason =
     canShowSubmitForReview && !canSubmitForReview
       ? 'Save operational log metrics first. Generate report is available after the log moves to in progress.'
       : null;
   const hasExistingReport = clientReport != null;
-  const submitForReviewLabel = hasExistingReport
-    ? 'Regenerate report'
-    : 'Generate report';
+  const submitForReviewLabel = isLivePublishedReport
+    ? 'Update client report'
+    : hasExistingReport
+      ? 'Regenerate report'
+      : 'Generate report';
   const submitReviewMetricOptions = React.useMemo(
     () =>
       (operationalLog?.metrics?.length
@@ -722,59 +727,13 @@ export default function CarePlanReportWorkspace({
     mutationFn: async () => {
       if (activeOpLogId == null)
         throw new Error('No operational log to submit.');
-      const manualHighlights: SubmitForReviewManualHighlightPayload[] = [];
-      const averageInputPayload: {
-        avg_intake?: number;
-        avg_burn?: number;
-        avg_steps?: number;
-        avg_training_time?: number;
-      } = {};
-      const avgIntakeValue = Number.parseFloat(submitReviewAverageIntake);
-      if (Number.isFinite(avgIntakeValue) && avgIntakeValue >= 0) {
-        averageInputPayload.avg_intake = avgIntakeValue;
-        manualHighlights.push({
-          metric_key: 'avg_intake',
-          label: 'Average intake',
-          value: avgIntakeValue,
-          unit: 'Kilocalorie',
-          is_visible_to_client: true,
+      const { averageInputs, manualHighlights } =
+        buildAverageInputsAndManualHighlights({
+          avgIntake: submitReviewAverageIntake,
+          avgBurn: submitReviewAverageBurn,
+          avgSteps: submitReviewAverageSteps,
+          avgTrainingTime: submitReviewAverageTrainingMinutes,
         });
-      }
-      const avgBurnValue = Number.parseFloat(submitReviewAverageBurn);
-      if (Number.isFinite(avgBurnValue) && avgBurnValue >= 0) {
-        averageInputPayload.avg_burn = avgBurnValue;
-        manualHighlights.push({
-          metric_key: 'avg_burn',
-          label: 'Average burn',
-          value: avgBurnValue,
-          unit: 'Kilocalorie',
-          is_visible_to_client: true,
-        });
-      }
-      const avgStepsValue = Number.parseFloat(submitReviewAverageSteps);
-      if (Number.isFinite(avgStepsValue) && avgStepsValue >= 0) {
-        averageInputPayload.avg_steps = avgStepsValue;
-        manualHighlights.push({
-          metric_key: 'avg_steps',
-          label: 'Average steps',
-          value: avgStepsValue,
-          unit: 'steps',
-          is_visible_to_client: true,
-        });
-      }
-      const avgTrainingTimeValue = Number.parseFloat(
-        submitReviewAverageTrainingMinutes,
-      );
-      if (Number.isFinite(avgTrainingTimeValue) && avgTrainingTimeValue >= 0) {
-        averageInputPayload.avg_training_time = avgTrainingTimeValue;
-        manualHighlights.push({
-          metric_key: 'avg_training_time',
-          label: 'Average training time',
-          value: avgTrainingTimeValue,
-          unit: 'minute',
-          is_visible_to_client: true,
-        });
-      }
       const res = await postOperationalLogSubmitForReview(
         carePlanId,
         activeOpLogId,
@@ -787,15 +746,18 @@ export default function CarePlanReportWorkspace({
             notes: (submitReviewFeedback.notes ?? '').trim(),
           },
           average_inputs:
-            Object.keys(averageInputPayload).length > 0
-              ? averageInputPayload
-              : undefined,
+            Object.keys(averageInputs).length > 0 ? averageInputs : undefined,
           included_metric_keys: submitReviewIncludedMetricKeys,
           manual_highlights: manualHighlights,
         },
       );
       if (res.status === 'error') {
-        throw new Error(res.message ?? 'Could not submit for review.');
+        throw new Error(
+          res.message ??
+            (isLivePublishedReport
+              ? 'Could not update the client report.'
+              : 'Could not submit for review.'),
+        );
       }
       return res.data;
     },
@@ -819,7 +781,11 @@ export default function CarePlanReportWorkspace({
       });
       setWorkspaceHydrateNonce((n) => n + 1);
       router.replace(workspacePath, { scroll: false });
-      toast.success('The report has been generated successfully.');
+      toast.success(
+        isLivePublishedReport
+          ? 'The live client report was updated. The client keeps the same report.'
+          : 'The report has been generated successfully.',
+      );
     },
     onError: (e: Error) => {
       toast.error(e.message);
@@ -1416,6 +1382,7 @@ export default function CarePlanReportWorkspace({
         open={submitForReviewDialogOpen}
         isSubmitting={submitForReviewMutation.isPending}
         hasExistingReport={hasExistingReport}
+        isPublishedCorrection={isLivePublishedReport}
         metricOptions={submitReviewMetricOptions}
         includedMetricKeys={submitReviewIncludedMetricKeys}
         feedback={submitReviewFeedback}

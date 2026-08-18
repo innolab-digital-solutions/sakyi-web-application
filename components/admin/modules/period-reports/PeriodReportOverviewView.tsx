@@ -454,9 +454,9 @@ export default function PeriodReportOverviewView({
             >
               <p className={METRIC_TILE_LABEL_CLASS}>Live client report</p>
               <p className='text-foreground/90 text-[13px] leading-relaxed'>
-                This report is live on the client app. To correct numbers, open
-                the workspace and save — the client keeps the same report. Do
-                not unpublish or generate a new report.
+                This report is live on the client app. To correct numbers or
+                highlights, open the workspace and save or update the client
+                report. The client keeps the same report; it stays published.
               </p>
             </div>
           ) : null}

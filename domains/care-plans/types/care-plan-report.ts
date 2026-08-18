@@ -219,9 +219,20 @@ export type SubmitOperationalLogForReviewPayload = {
   manual_highlights?: SubmitForReviewManualHighlightPayload[];
 };
 
-/** `PUT` client report: feedback only (object required; fields may be null). */
+/** `PUT` client report: feedback required; highlights replace the full list when sent. */
+export type UpdateCarePlanReportHighlightPayload = {
+  metric_key: string;
+  label: string;
+  value: number;
+  unit: string | null;
+  source?: string;
+  is_visible_to_client: boolean;
+  display_order?: number;
+};
+
 export type UpdateCarePlanReportRunPayload = {
   feedback: ReportRunFeedback;
+  highlights?: UpdateCarePlanReportHighlightPayload[];
 };
 
 export type PublishCarePlanReportRunPayload = {

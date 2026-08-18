@@ -1,5 +1,3 @@
-import type { ReportRunStatus } from '@/domains/care-plans/types/care-plan-report';
-
 type OperationalLogGating = {
   status?: string | null;
   is_editable?: boolean;
@@ -63,8 +61,8 @@ export function canEditReportWorkspaceMetrics(args: {
 }
 
 /**
- * Submit-for-review / generate-report is only for the first publish cycle.
- * After publish the API returns 422; corrections use PUT instead.
+ * Whether the generate / regenerate / update-client-report dialog can open.
+ * Published reports stay available (same UI as in review). Archived is hidden.
  */
 export function canShowSubmitOperationalLogForReview(args: {
   operationalLog: OperationalLogGating;
@@ -73,22 +71,22 @@ export function canShowSubmitOperationalLogForReview(args: {
   const { operationalLog, clientReport } = args;
   if (operationalLog == null) return false;
   if (operationalLog.is_editable === false) return false;
-  if (normalizeStatus(operationalLog.status) === 'locked') return false;
-  if (isPublishedClientReportStatus(clientReport?.status)) return false;
   if (isArchivedClientReportStatus(clientReport?.status)) return false;
+  if (clientReport?.is_editable === false) return false;
+  if (isPublishedClientReportStatus(clientReport?.status)) return true;
+  if (normalizeStatus(operationalLog.status) === 'locked') return false;
   return true;
 }
 
-export function clientReportStatusForGating(
-  status: string | null | undefined,
-): ReportRunStatus | null {
-  const normalized = normalizeStatus(status);
-  if (
-    normalized === 'in_review' ||
-    normalized === 'published' ||
-    normalized === 'archived'
-  ) {
-    return normalized;
-  }
-  return null;
+/**
+ * Whether the dialog confirm action is enabled.
+ * Draft logs must be saved to `in_progress` first. Published logs stay enabled.
+ */
+export function canConfirmClientReportAuthoring(args: {
+  operationalLog: OperationalLogGating;
+  clientReport: ClientReportGating;
+}): boolean {
+  if (!canShowSubmitOperationalLogForReview(args)) return false;
+  if (isPublishedClientReportStatus(args.clientReport?.status)) return true;
+  return normalizeStatus(args.operationalLog?.status) === 'in_progress';
 }
