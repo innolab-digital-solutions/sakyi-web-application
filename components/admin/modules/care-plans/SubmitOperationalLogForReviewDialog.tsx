@@ -405,9 +405,7 @@ export default function SubmitOperationalLogForReviewDialog({
               ) : (
                 <FileChartColumn className='size-3.5 shrink-0' />
               )}
-              {isSubmitting
-                ? submittingLabel
-                : submitLabel}
+              {isSubmitting ? submittingLabel : submitLabel}
             </Button>
           )}
         </DialogFooter>

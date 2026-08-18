@@ -11,8 +11,8 @@ import {
   formatDateTimeCell,
   resolveClientPictureUrl,
 } from '@/components/admin/modules/operational-logs/reportRunListHelpers';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   Collapsible,
   CollapsibleContent,
@@ -412,7 +412,7 @@ export default function PeriodReportOverviewView({
               <Button
                 variant='outline'
                 size='sm'
-                className='normal-case bg-background hover:bg-muted text-foreground h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+                className='bg-background hover:bg-muted text-foreground h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold normal-case'
                 asChild
               >
                 <Link

@@ -236,7 +236,10 @@ export default function PeriodReportRowActions({ row }: Props) {
                     className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
                     href={workspaceHref}
                   >
-                    <NotebookPenIcon className='size-3.5 shrink-0' aria-hidden />
+                    <NotebookPenIcon
+                      className='size-3.5 shrink-0'
+                      aria-hidden
+                    />
                     Open workspace
                   </Link>
                 </DropdownMenuItem>

@@ -1191,7 +1191,7 @@ export default function CarePlanReportWorkspace({
           {isLivePublishedReport && canEditMetrics ? (
             <div
               role='note'
-              className='border-sky-200/80 bg-sky-50/80 dark:border-sky-900 dark:bg-sky-950/30 rounded-md border px-3 py-2.5'
+              className='rounded-md border border-sky-200/80 bg-sky-50/80 px-3 py-2.5 dark:border-sky-900 dark:bg-sky-950/30'
             >
               <p className='text-muted-foreground text-[10px] font-semibold tracking-wide uppercase'>
                 Live client report

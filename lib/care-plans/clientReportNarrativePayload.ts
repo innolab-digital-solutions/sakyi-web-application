@@ -121,9 +121,7 @@ function finiteNumber(value: unknown): number | null {
 
 function highlightValueFromMetric(metric: WorksheetMetricSource): number {
   return (
-    finiteNumber(metric.actual_value) ??
-    finiteNumber(metric.target_value) ??
-    0
+    finiteNumber(metric.actual_value) ?? finiteNumber(metric.target_value) ?? 0
   );
 }
 
@@ -145,7 +143,9 @@ export function buildPublishedReportHighlights(args: {
   const existingByKey = new Map<string, ExistingClientReportHighlight>();
   for (const highlight of args.existingHighlights) {
     const metricKey =
-      typeof highlight.metric_key === 'string' ? highlight.metric_key.trim() : '';
+      typeof highlight.metric_key === 'string'
+        ? highlight.metric_key.trim()
+        : '';
     if (!metricKey || isAverageHighlightKey(metricKey)) continue;
     existingByKey.set(metricKey, highlight);
   }
@@ -166,8 +166,7 @@ export function buildPublishedReportHighlights(args: {
     const worksheet = worksheetByKey.get(metricKey);
     const existingValue = existing ? finiteNumber(existing.value) : null;
     const value =
-      existingValue ??
-      (worksheet ? highlightValueFromMetric(worksheet) : null);
+      existingValue ?? (worksheet ? highlightValueFromMetric(worksheet) : null);
     if (value == null) continue;
 
     next.push({
@@ -210,5 +209,7 @@ export function buildPublishedReportHighlights(args: {
 export function hasClientVisibleHighlight(
   highlights: ReadonlyArray<{ is_visible_to_client?: boolean }>,
 ): boolean {
-  return highlights.some((highlight) => highlight.is_visible_to_client !== false);
+  return highlights.some(
+    (highlight) => highlight.is_visible_to_client !== false,
+  );
 }
