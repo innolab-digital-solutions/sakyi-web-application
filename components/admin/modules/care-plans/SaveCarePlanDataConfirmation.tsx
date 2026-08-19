@@ -18,6 +18,8 @@ export type SaveCarePlanDataConfirmationProps = {
   isSubmitting: boolean;
   /** Optional care plan code shown for reference. */
   carePlanCode?: string | null;
+  /** When true, warn that save updates the live published client report. */
+  isPublishedCorrection?: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
 };
@@ -30,6 +32,7 @@ export default function SaveCarePlanDataConfirmation({
   open,
   isSubmitting,
   carePlanCode,
+  isPublishedCorrection = false,
   onOpenChange,
   onConfirm,
 }: SaveCarePlanDataConfirmationProps) {
@@ -51,9 +54,10 @@ export default function SaveCarePlanDataConfirmation({
                 <span className='text-primary text-xs font-semibold tabular-nums'>
                   {carePlanCode?.trim() || 'this care plan'}
                 </span>
-                . Check targets, actuals, and each day&apos;s values carefully:
-                this data is reused in period reports, adherence summaries, and
-                downstream workflows, and mistakes are hard to unwind later.
+                .{' '}
+                {isPublishedCorrection
+                  ? 'This report is live on the client app. Saving will update the numbers the client already sees. It will not create a new report.'
+                  : 'Check targets, actuals, and each day\u2019s values carefully: this data is reused in period reports, adherence summaries, and downstream workflows, and mistakes are hard to unwind later.'}
               </AlertDialogDescription>
             </div>
           </div>

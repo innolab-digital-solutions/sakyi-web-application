@@ -11,7 +11,7 @@ import { carePlanEmbedToOperationalLogSnapshot } from './carePlanEmbedToOperatio
  * (PUT), and read-only copy. The report-workspace `GET` may return a light
  * `operational_log` (e.g. evidence only) with missing `status` / `is_editable`;
  * the care plan `GET` is the **source of truth** for those fields and should be
- * overlaid when present.
+ * overlaid when present. `locked` still allows saves when `is_editable` is true.
  */
 export function resolveOperationalLogForReportWorkspace(
   workspace: CarePlanReportWorkspace | null | undefined,

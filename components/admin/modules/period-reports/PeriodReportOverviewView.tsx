@@ -2,14 +2,17 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
-import { ChevronDownIcon } from 'lucide-react';
+import { ChevronDownIcon, NotebookPenIcon } from 'lucide-react';
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import {
+  buildOperationalLogWorkspaceHref,
   formatDateTimeCell,
   resolveClientPictureUrl,
 } from '@/components/admin/modules/operational-logs/reportRunListHelpers';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   Collapsible,
   CollapsibleContent,
@@ -394,14 +397,37 @@ export default function PeriodReportOverviewView({
     <div className='grid gap-3 lg:grid-cols-3 lg:gap-4'>
       <section className={`${CARD_SURFACE} space-y-5 lg:col-span-2`}>
         <header className='border-border shrink-0 border-b pb-5'>
-          <h3 className='text-foreground text-sm font-semibold'>
-            Period report
-          </h3>
-          <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
-            Report reference, status, and period context; care plan details are
-            on the right. Use highlights and metrics below to decide publish or
-            follow-up from the period reports list.
-          </p>
+          <div className='flex flex-wrap items-start justify-between gap-3'>
+            <div className='min-w-0'>
+              <h3 className='text-foreground text-sm font-semibold'>
+                Period report
+              </h3>
+              <p className='text-muted-foreground mt-1 max-w-3xl text-[13px] leading-relaxed font-medium'>
+                Report reference, status, and period context; care plan details
+                are on the right. Use highlights and metrics below to review
+                what the client sees.
+              </p>
+            </div>
+            {detail.care_plan?.id != null && detail.status !== 'archived' ? (
+              <Button
+                variant='outline'
+                size='sm'
+                className='bg-background hover:bg-muted text-foreground h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold normal-case'
+                asChild
+              >
+                <Link
+                  href={buildOperationalLogWorkspaceHref(
+                    detail.care_plan.id,
+                    detail.operational_log?.id,
+                  )}
+                  className='inline-flex items-center gap-1.5'
+                >
+                  <NotebookPenIcon className='size-3.5 shrink-0' aria-hidden />
+                  Open workspace
+                </Link>
+              </Button>
+            ) : null}
+          </div>
           {detail.status === 'in_review' ? (
             <div
               role='note'
@@ -415,6 +441,22 @@ export default function PeriodReportOverviewView({
                 Confirm metrics, highlights, and narrative are accurate while
                 this report remains in review. Use actions on the period reports
                 list (for example Publish) once you are satisfied.
+              </p>
+            </div>
+          ) : null}
+          {detail.status === 'published' ? (
+            <div
+              role='note'
+              className={cn(
+                METRIC_TILE_CLASS,
+                'mt-5 min-h-0 justify-start border-sky-200/80 bg-sky-50/80 py-3 dark:border-sky-900 dark:bg-sky-950/30',
+              )}
+            >
+              <p className={METRIC_TILE_LABEL_CLASS}>Live client report</p>
+              <p className='text-foreground/90 text-[13px] leading-relaxed'>
+                This report is live on the client app. To correct numbers or
+                highlights, open the workspace and save or update the client
+                report. The client keeps the same report; it stays published.
               </p>
             </div>
           ) : null}
@@ -536,8 +578,9 @@ export default function PeriodReportOverviewView({
           <div>
             <h3 className='text-foreground text-sm font-semibold'>Metrics</h3>
             <p className='text-muted-foreground mt-1 text-[13px] leading-relaxed font-medium'>
-              Rolled‑up totals and daily breakdowns as stored on this report
-              (read-only).
+              Rolled‑up totals and daily breakdowns as stored on this report.
+              Correct values from the operational log workspace; this overview
+              does not edit them.
             </p>
           </div>
           {metricsSorted.length === 0 ? (

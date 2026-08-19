@@ -19,7 +19,7 @@ describe('carePlanEmbedToOperationalLogSnapshot', () => {
     });
   });
 
-  it('defaults unknown status to locked (read-only)', () => {
+  it('defaults unknown status to locked', () => {
     const s = carePlanEmbedToOperationalLogSnapshot({
       id: 2,
       code: null,
