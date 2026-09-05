@@ -25,17 +25,23 @@ export const buildQueryString = (params?: Record<string, unknown>): string => {
  * Fetches a page of table data from a specified API endpoint, with optional query parameters.
  *
  * Constructs the full URL with query string and calls the shared HTTP client.
- * Throws on HTTP errors by default.
+ * Throws on HTTP errors by default. Pass `signal` so React Query can cancel an
+ * in-flight request when the search/page key changes before the response arrives.
  *
  * @template T Response data type
  * @param {string} endpoint - The API endpoint path.
  * @param {Record<string, unknown>} [params] - Optional query parameters to include.
+ * @param {{ signal?: AbortSignal }} [options] - Optional fetch abort signal from React Query.
  * @returns {Promise<ApiResponse<T>>} The structured API response with data of type T.
  */
 export const fetchTablePage = async <T>(
   endpoint: string,
   params?: Record<string, unknown>,
+  options?: { signal?: AbortSignal },
 ): Promise<ApiResponse<T>> => {
   const url = params ? `${endpoint}${buildQueryString(params)}` : endpoint;
-  return http.get<T>(url, { throwOnError: true });
+  return http.get<T>(url, {
+    throwOnError: true,
+    ...(options?.signal ? { signal: options.signal } : {}),
+  });
 };

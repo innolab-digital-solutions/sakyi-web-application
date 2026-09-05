@@ -3,7 +3,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
-  startTransition,
   useCallback,
   useEffect,
   useMemo,
@@ -30,7 +29,10 @@ import type {
   UseTableOptions,
   UseTableReturn,
 } from './types';
-import { tableQueriesEqual } from './utils';
+import {
+  shouldApplyUrlSearchToLocalState,
+  tableQueriesEqual,
+} from './utils';
 
 /**
  * React hook for managing the state, controls, and data fetching of a table component.
@@ -44,7 +46,7 @@ import { tableQueriesEqual } from './utils';
  * const { rows, controls } = useTable('/api/items', {
  *   params: { enabled: true, sync: true, initial: { page: 1, perPage: 10 } },
  *   pagination: { enabled: true },
- *   search: { enabled: true, debounceMs: 300 },
+ *   search: { enabled: true, debounceMs: 500 },
  * });
  * ```
  *
@@ -146,19 +148,6 @@ export const useTable = <TItem>(
     navigateToQuery,
   ]);
 
-  /**
-   * Clear loop guard when the router reports the same query we wrote.
-   */
-  useEffect(() => {
-    if (!syncUrl) return;
-    if (
-      lastWrittenQueryRef.current !== null &&
-      tableQueriesEqual(lastWrittenQueryRef.current, searchParamsString)
-    ) {
-      lastWrittenQueryRef.current = null;
-    }
-  }, [searchParamsString, syncUrl]);
-
   const parsed = useMemo(() => {
     return parseTableUrlParams(new URLSearchParams(searchParamsString));
   }, [searchParamsString]);
@@ -181,36 +170,57 @@ export const useTable = <TItem>(
   const [searchInput, setSearchInput] = useState(initialSearchValue);
   const [appliedSearch, setAppliedSearch] = useState(initialSearchValue);
 
-  // Ref so the URL sync effect can read the current appliedSearch without it becoming a dep.
+  // Keep refs current during render so the URL-sync effect never reads a stale input.
+  const searchInputRef = useRef(searchInput);
   const appliedSearchRef = useRef(appliedSearch);
-  useEffect(() => {
-    appliedSearchRef.current = appliedSearch;
-  }, [appliedSearch]);
+  searchInputRef.current = searchInput;
+  appliedSearchRef.current = appliedSearch;
 
   // Align local search state with URL changes (back/forward, external navigation).
+  // Must not copy the URL into the field while the user is still typing, or when the
+  // URL change is our own debounced write landing late — that is what made the box
+  // look like it was backspacing.
   useEffect(() => {
     if (!syncUrl) return;
-    // Only flag a skip when the URL is driving a *different* search value (e.g. back/forward nav).
-    // When the URL change is just confirming our own write the values are already equal,
-    // so we must not set the flag — otherwise the next user-typed search would incorrectly skip the page reset.
-    if (initialSearchValue !== appliedSearchRef.current) {
-      skipPageResetForUrlSyncRef.current = true;
-    }
-    startTransition(() => {
+    const shouldApply = shouldApplyUrlSearchToLocalState({
+      urlSearch: initialSearchValue,
+      searchInput: searchInputRef.current,
+      appliedSearch: appliedSearchRef.current,
+      hasPendingOwnWrite: lastWrittenQueryRef.current !== null,
+    });
+    if (shouldApply) {
+      skipPageResetForUrlSyncRef.current =
+        initialSearchValue !== appliedSearchRef.current;
       setSearchInput(initialSearchValue);
       setAppliedSearch(initialSearchValue);
-    });
-  }, [syncUrl, initialSearchValue]);
+    }
+  }, [syncUrl, initialSearchValue, searchParamsString]);
 
-  // Debounce applied search.
+  /**
+   * Clear loop guard after the URL-sync effect has had a chance to ignore our own write.
+   * This effect must stay below the URL-sync effect so lastWrittenQueryRef is still set
+   * when deciding whether to clobber the input.
+   */
+  useEffect(() => {
+    if (!syncUrl) return;
+    if (
+      lastWrittenQueryRef.current !== null &&
+      tableQueriesEqual(lastWrittenQueryRef.current, searchParamsString)
+    ) {
+      lastWrittenQueryRef.current = null;
+    }
+  }, [searchParamsString, syncUrl]);
+
+  // Debounce applied search: wait until typing pauses before fetching / writing the URL.
   useEffect(() => {
     if (!searchEnabled) return;
+    if (searchInput === appliedSearchRef.current) return;
     if (debounceMs <= 0) {
-      startTransition(() => setAppliedSearch(searchInput));
+      setAppliedSearch(searchInput);
       return;
     }
     const id = window.setTimeout(() => {
-      startTransition(() => setAppliedSearch(searchInput));
+      setAppliedSearch(searchInput);
     }, debounceMs);
     return () => window.clearTimeout(id);
   }, [searchInput, debounceMs, searchEnabled]);
@@ -251,12 +261,27 @@ export const useTable = <TItem>(
   const perPage =
     parsed.perPage ?? Number(paramsOpt.initial?.[keys.perPage] ?? 15);
 
+  /**
+   * Fetch from the debounced local search, not the URL. The router can land an
+   * earlier keystroke after the user has already typed further; using `parsed.search`
+   * would request that stale term and fight the input.
+   *
+   * When the applied search is ahead of the URL, request page 1 immediately so we
+   * do not combine a new term with a stale page number while `replace` is in flight.
+   */
+  const appliedSearchTrimmed = appliedSearch.trim();
+  const urlSearchTrimmed = (parsed.search ?? '').trim();
+  const searchAheadOfUrl =
+    Boolean(syncUrl) &&
+    searchEnabled &&
+    appliedSearchTrimmed !== urlSearchTrimmed;
+
   const requestParams = useMemo(() => {
     if (!paramsEnabled) return {};
     return buildTableRequestParams({
-      page,
+      page: searchAheadOfUrl && paginationEnabled ? 1 : page,
       perPage,
-      search: searchEnabled ? (syncUrl ? parsed.search : appliedSearch) : null,
+      search: searchEnabled ? appliedSearch : null,
       extra: extraValues,
       paginationEnabled,
       searchEnabled,
@@ -265,12 +290,11 @@ export const useTable = <TItem>(
     paramsEnabled,
     page,
     perPage,
-    parsed.search,
     appliedSearch,
     extraValues,
     paginationEnabled,
     searchEnabled,
-    syncUrl,
+    searchAheadOfUrl,
   ]);
 
   const tanstack: TableTanstackOptions<TItem> = options.tanstack ?? {};
@@ -279,8 +303,10 @@ export const useTable = <TItem>(
     ...tanstack,
     placeholderData: tanstack.placeholderData ?? ((prev) => prev),
     queryKey: ['table', endpoint, requestParams],
-    queryFn: async () => {
-      const response = await fetchTablePage(endpoint, requestParams);
+    queryFn: async ({ signal }) => {
+      const response = await fetchTablePage(endpoint, requestParams, {
+        signal,
+      });
       if (response.status !== 'success') {
         throw new Error('Unexpected table API error shape.');
       }

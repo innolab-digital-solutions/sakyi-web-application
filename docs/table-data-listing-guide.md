@@ -53,7 +53,7 @@ const { rows, controls } = useTable<RowType>(ENDPOINT, {
     writeInitialToUrl: true,
     initial: { page: 1, per_page: 15 },
   },
-  search: { enabled: true, debounceMs: 300 },
+  search: { enabled: true, debounceMs: 500 },
   pagination: { enabled: true },
 });
 ```
@@ -68,7 +68,7 @@ const { rows, controls } = useTable<RowType>(ENDPOINT, {
 All three behaviors are independently configurable:
 
 - `options.pagination.enabled` (default: true)
-- `options.search.enabled` (default: true) and `options.search.debounceMs` (default: 300)
+- `options.search.enabled` (default: true) and `options.search.debounceMs` (default: 500)
 - `options.params.enabled` (default: true) and `options.params.sync` (default: false)
 
 Important: `params.enabled` is the master switch for table param mechanics. When `params.enabled === false`, `useTable` removes the search/pagination controls and stops deriving request params from the URL.
@@ -90,13 +90,14 @@ Core keys come from `TABLE_PARAM_KEYS` in `lib/table/constants.ts`.
 
 ### Search debounce and page reset
 
-`useTable` keeps a local `searchInput` for immediate typing and debounces into `appliedSearch`.
+`useTable` keeps a local `searchInput` for immediate typing and debounces into `appliedSearch` (default 500ms). The API request uses `appliedSearch`, not the URL, so a late `router.replace` for an earlier keystroke cannot fetch a stale term or overwrite the field.
 
 When URL sync is enabled:
 
-- Applied search is written to the URL
+- Applied search is written to the URL after the debounce pause
 - Page is reset to `1` when applied search changes due to typing
 - Back/forward navigation updates local search state without causing a page-reset loop
+- In-progress typing is never replaced by a delayed URL update for a previous keystroke
 
 ## Extra params (filters/facets)
 
