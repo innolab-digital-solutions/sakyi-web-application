@@ -283,7 +283,8 @@ describe('applyMealsTotalKcalToFormMetrics', () => {
       },
     });
     expect(cleared[0].daily_points[0].actual_value).toBeNull();
-    expect(cleared[0].actual_value).toBe(0);
+    // Period actual mirrors the daily grid: all-null days → null ("Not set"), not 0.
+    expect(cleared[0].actual_value).toBeNull();
   });
 });
 
