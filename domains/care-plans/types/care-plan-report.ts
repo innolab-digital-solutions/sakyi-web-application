@@ -9,6 +9,15 @@ export type CarePlanReportMediaRef = {
   [key: string]: unknown;
 };
 
+/**
+ * Client sleep-quality enum from mobile (evidence-only; not a metric).
+ */
+export type SleepQuality =
+  | 'very_good'
+  | 'good'
+  | 'poor'
+  | 'very_poor';
+
 export type CarePlanLogEvidence = {
   id: number;
   is_completed?: boolean;
@@ -17,6 +26,11 @@ export type CarePlanLogEvidence = {
   notes: string | null;
   meta?: Record<string, unknown> | null;
   media?: CarePlanReportMediaRef[];
+  /**
+   * Client-reported sleep quality for sleep-section logs.
+   * Prefer this over `meta.sleep_quality`. Absent / null means not logged.
+   */
+  sleep_quality?: SleepQuality | null;
 };
 
 /**
@@ -24,6 +38,16 @@ export type CarePlanLogEvidence = {
  * Shown only on report-workspace evidence; never counts as a log.
  */
 export type CarePlanTaskClientNote = {
+  id: number;
+  body: string;
+  updated_at: string | null;
+};
+
+/**
+ * Day-level gratitude journal (one per care-plan day).
+ * Shown next to day photos — not under Recovery or Sleep task cards.
+ */
+export type CarePlanReportDayJournal = {
   id: number;
   body: string;
   updated_at: string | null;
@@ -60,6 +84,8 @@ export type CarePlanReportEvidenceDay = {
   day_number: number;
   target_date: string;
   photos: CarePlanReportDayPhoto[] | null;
+  /** Day-level journal; null when the client has not written one. */
+  journal?: CarePlanReportDayJournal | null;
   items: CarePlanReportEvidenceItem[];
 };
 

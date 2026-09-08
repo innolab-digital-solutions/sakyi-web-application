@@ -39,6 +39,7 @@ const evidenceDay: CarePlanReportEvidenceDay = {
   day_number: 1,
   target_date: '2026-11-01',
   photos: null,
+  journal: null,
   items: [
     {
       section: 'nutrition',
