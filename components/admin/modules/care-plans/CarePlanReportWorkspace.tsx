@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format, parse } from 'date-fns';
 import {
+  BookTextIcon,
   ChevronDownIcon,
   CircleAlert,
   ClipboardListIcon,
@@ -12,6 +13,7 @@ import {
   ImagesIcon,
   ListChecks,
   Loader2Icon,
+  MoonIcon,
   NotebookPenIcon,
   Save,
 } from 'lucide-react';
@@ -54,6 +56,7 @@ import {
   putNutritionActualCalories,
 } from '@/domains/care-plans/services';
 import type {
+  CarePlanReportDayJournal,
   CarePlanReportDayPhoto,
   CarePlanReportEvidenceDay,
   CarePlanReportEvidenceItem,
@@ -84,6 +87,11 @@ import {
   isPublishedClientReportStatus,
 } from '@/lib/care-plans/reportWorkspaceEditGating';
 import { resolveOperationalLogForReportWorkspace } from '@/lib/care-plans/resolveOperationalLogForReportWorkspace';
+import {
+  getSleepQualityDisplay,
+  isSleepEvidenceItem,
+  resolveSleepQualityFromLog,
+} from '@/lib/care-plans/sleepQuality';
 import {
   adminCarePlanBriefQueryKey,
   carePlanReportWorkspaceQueryKey,
@@ -1536,6 +1544,12 @@ function EvidenceLineItemCard({
   const clientNoteUpdatedAt = hasClientNote
     ? formatClientNoteUpdatedAt(item.client_note?.updated_at)
     : null;
+  const sleepQuality = isSleepEvidenceItem(item)
+    ? resolveSleepQualityFromLog(log)
+    : null;
+  const sleepQualityDisplay = sleepQuality
+    ? getSleepQualityDisplay(sleepQuality)
+    : null;
 
   return (
     <div className='border-border dark:bg-card space-y-2 rounded-md border bg-white px-3 pt-3 pb-4 sm:px-3.5 sm:pt-3.5 sm:pb-5'>
@@ -1588,6 +1602,26 @@ function EvidenceLineItemCard({
           )}
         </div>
       </div>
+
+      {sleepQualityDisplay ? (
+        <div className='w-full min-w-0 space-y-1 rounded-md border border-indigo-200/80 bg-indigo-50/70 px-2.5 py-2 sm:px-3 sm:py-2.5 dark:border-indigo-900/50 dark:bg-indigo-950/30'>
+          <div className='flex items-center gap-1.5'>
+            <MoonIcon
+              className='size-3 shrink-0 text-indigo-700 dark:text-indigo-300'
+              aria-hidden
+            />
+            <p className='text-[10px] font-semibold tracking-wide text-indigo-800 uppercase dark:text-indigo-300'>
+              Sleep quality
+            </p>
+          </div>
+          <p className='text-foreground/90 text-[11px] leading-snug font-semibold'>
+            {sleepQualityDisplay.shortLabel}
+          </p>
+          <p className='text-foreground/80 text-[11px] leading-relaxed font-medium wrap-break-word'>
+            {sleepQualityDisplay.description}
+          </p>
+        </div>
+      ) : null}
 
       {hasClientNote ? (
         <div className='w-full min-w-0 space-y-1 rounded-md border border-orange-200/80 bg-orange-50/70 px-2.5 py-2 sm:px-3 sm:py-2.5 dark:border-orange-900/50 dark:bg-orange-950/30'>
@@ -1732,6 +1766,45 @@ function DayPhotosGallery({
   );
 }
 
+/**
+ * Day-level gratitude journal (read-only). Same card chrome as day photos —
+ * never nested under Recovery or Sleep task evidence.
+ */
+function DayJournalCard({ journal }: { journal: CarePlanReportDayJournal }) {
+  const body = String(journal.body ?? '').trim();
+  if (!body) return null;
+  const updatedAt = formatClientNoteUpdatedAt(journal.updated_at);
+
+  return (
+    <div className='border-border dark:bg-card space-y-3 rounded-lg border bg-white p-3 sm:p-3.5'>
+      <div className='flex items-center justify-between gap-3'>
+        <div className='flex min-w-0 items-center gap-2'>
+          <span className='bg-muted text-foreground/70 flex size-6 shrink-0 items-center justify-center rounded-md'>
+            <BookTextIcon className='size-3.5' aria-hidden />
+          </span>
+          <p className='text-foreground/90 text-[11px] font-semibold tracking-wide uppercase'>
+            Journal
+          </p>
+        </div>
+        {updatedAt ? (
+          <p className='text-muted-foreground shrink-0 text-[10px] font-medium tabular-nums'>
+            {updatedAt}
+          </p>
+        ) : null}
+      </div>
+
+      <div className='space-y-1.5'>
+        <p className='text-muted-foreground text-[11px] leading-snug font-medium'>
+          What&apos;s your biggest gratitude today?
+        </p>
+        <p className='text-foreground text-[12.5px] leading-relaxed font-semibold wrap-break-word whitespace-pre-wrap'>
+          {body}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function EvidenceList({
   days,
   canEditNutritionActuals,
@@ -1767,6 +1840,9 @@ function EvidenceList({
         const sectionGroups = groupEvidenceItemsBySection(d.items);
         const { totalTasks, totalLogs } = getEvidenceDayTaskLogCounts(d.items);
         const dayPhotos = d.photos?.length ? d.photos : null;
+        const dayJournalBody = String(d.journal?.body ?? '').trim();
+        const dayJournal =
+          d.journal != null && dayJournalBody.length > 0 ? d.journal : null;
         const dayLabel = `Day ${d.day_index} — ${formatTargetDateLabel(d.target_date)}`;
         const dayIdResolved = resolveDayId(d.target_date, d.day_number) != null;
         return (
@@ -1860,6 +1936,7 @@ function EvidenceList({
                       onOpenImage={onOpenImage}
                     />
                   ) : null}
+                  {dayJournal ? <DayJournalCard journal={dayJournal} /> : null}
                   {sectionGroups.map(([sectionKey, items]) => (
                     <div
                       key={`${d.target_date}-${sectionKey}`}

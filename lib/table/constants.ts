@@ -15,6 +15,7 @@ export const TABLE_PARAM_KEYS: TableParamKeys = {
 
 /**
  * The default debounce time (in milliseconds) used for table search input.
- * Used to reduce the rate of search-triggering requests as a user types.
+ * Wait until typing has paused before applying search, writing the URL, and fetching.
+ * Short enough to feel responsive after a pause; long enough to avoid mid-word requests.
  */
-export const TABLE_DEFAULT_SEARCH_DEBOUNCE_MS = 300;
+export const TABLE_DEFAULT_SEARCH_DEBOUNCE_MS = 500;

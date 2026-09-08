@@ -39,6 +39,7 @@ const evidenceDay: CarePlanReportEvidenceDay = {
   day_number: 1,
   target_date: '2026-11-01',
   photos: null,
+  journal: null,
   items: [
     {
       section: 'nutrition',
@@ -283,7 +284,8 @@ describe('applyMealsTotalKcalToFormMetrics', () => {
       },
     });
     expect(cleared[0].daily_points[0].actual_value).toBeNull();
-    expect(cleared[0].actual_value).toBe(0);
+    // Period actual mirrors the daily grid: all-null days → null ("Not set"), not 0.
+    expect(cleared[0].actual_value).toBeNull();
   });
 });
 
