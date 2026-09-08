@@ -81,17 +81,17 @@ import {
 } from '@/lib/care-plans/operationalLogMetricsRollup';
 import { resolveReportAverageInputForDialog } from '@/lib/care-plans/reportGenerationAverageInputs';
 import {
-  getSleepQualityDisplay,
-  isSleepEvidenceItem,
-  resolveSleepQualityFromLog,
-} from '@/lib/care-plans/sleepQuality';
-import {
   canConfirmClientReportAuthoring,
   canEditReportWorkspaceMetrics,
   canShowSubmitOperationalLogForReview,
   isPublishedClientReportStatus,
 } from '@/lib/care-plans/reportWorkspaceEditGating';
 import { resolveOperationalLogForReportWorkspace } from '@/lib/care-plans/resolveOperationalLogForReportWorkspace';
+import {
+  getSleepQualityDisplay,
+  isSleepEvidenceItem,
+  resolveSleepQualityFromLog,
+} from '@/lib/care-plans/sleepQuality';
 import {
   adminCarePlanBriefQueryKey,
   carePlanReportWorkspaceQueryKey,

@@ -6,11 +6,11 @@ This guide explains how **sleep quality** and **day-level Journal** appear in th
 
 ## Summary
 
-| Data | Where in evidence | UI placement |
-|---|---|---|
-| Sleep hours (`log.actual_value`) | Sleep item under `evidence[].items[]` | Existing sleep task evidence |
-| Sleep quality (`log.sleep_quality`) | Same sleep item `log` | On the sleep task evidence row/card |
-| Journal | `evidence[].journal` (day-level) | Own day section, **like photos** — **not** under Recovery |
+| Data                                | Where in evidence                     | UI placement                                              |
+| ----------------------------------- | ------------------------------------- | --------------------------------------------------------- |
+| Sleep hours (`log.actual_value`)    | Sleep item under `evidence[].items[]` | Existing sleep task evidence                              |
+| Sleep quality (`log.sleep_quality`) | Same sleep item `log`                 | On the sleep task evidence row/card                       |
+| Journal                             | `evidence[].journal` (day-level)      | Own day section, **like photos** — **not** under Recovery |
 
 Endpoint (unchanged):
 
@@ -88,12 +88,12 @@ Each entry in `data.evidence[]`:
 
 ### Display labels (admin-owned copy)
 
-| Value | EN | MY |
-|---|---|---|
-| `very_good` | Very good — Slept well through the night and woke up feeling refreshed | အလွန်ကောင်း — ကောင်းကောင်းအိပ်ပျော်ခဲ့ပြီး မနက်နိုးလာချိန်မှာ လန်းဆန်းတယ် |
-| `good` | Good — Slept fairly well, with only minor sleep problems, and felt mostly rested | ကောင်း — အနည်းငယ် အိပ်ရေးပျက်တာရှိပေမယ့် အတော်အသင့် ကောင်းကောင်းအိပ်ပျော်ပြီး အနားရတယ်။ |
-| `poor` | Poor — Had trouble sleeping or woke up several times and did not feel well-rested | မကောင်း — အိပ်ပျော်ဖို့ခက်တာ၊ ညဘက် မကြာခဏနိုးတာတွေရှိပြီး အိပ်ရေးမဝဘူး။ |
-| `very_poor` | Very poor — Had major difficulty sleeping and woke up feeling very tired. | အလွန်မကောင်း — အိပ်ပျော်ဖို့ အရမ်းခက်ခဲခဲ့ပြီး အိပ်ရေးမဝသလို မနက်နိုးလာချိန်မှာ အရမ်းပင်ပန်းတယ်။ |
+| Value       | EN                                                                                | MY                                                                                               |
+| ----------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `very_good` | Very good — Slept well through the night and woke up feeling refreshed            | အလွန်ကောင်း — ကောင်းကောင်းအိပ်ပျော်ခဲ့ပြီး မနက်နိုးလာချိန်မှာ လန်းဆန်းတယ်                        |
+| `good`      | Good — Slept fairly well, with only minor sleep problems, and felt mostly rested  | ကောင်း — အနည်းငယ် အိပ်ရေးပျက်တာရှိပေမယ့် အတော်အသင့် ကောင်းကောင်းအိပ်ပျော်ပြီး အနားရတယ်။          |
+| `poor`      | Poor — Had trouble sleeping or woke up several times and did not feel well-rested | မကောင်း — အိပ်ပျော်ဖို့ခက်တာ၊ ညဘက် မကြာခဏနိုးတာတွေရှိပြီး အိပ်ရေးမဝဘူး။                          |
+| `very_poor` | Very poor — Had major difficulty sleeping and woke up feeling very tired.         | အလွန်မကောင်း — အိပ်ပျော်ဖို့ အရမ်းခက်ခဲခဲ့ပြီး အိပ်ရေးမဝသလို မနက်နိုးလာချိန်မှာ အရမ်းပင်ပန်းတယ်။ |
 
 Backend does not return localized labels or emoji. Admin UI should map the enum value to label/description (and optional icon).
 

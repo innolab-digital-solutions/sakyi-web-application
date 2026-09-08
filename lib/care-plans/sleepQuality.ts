@@ -25,8 +25,7 @@ type SleepQualityCopy = {
 export const SLEEP_QUALITY_COPY: Record<SleepQuality, SleepQualityCopy> = {
   very_good: {
     shortLabel: 'Very good',
-    descriptionEn:
-      'Slept well through the night and woke up feeling refreshed',
+    descriptionEn: 'Slept well through the night and woke up feeling refreshed',
     descriptionMy:
       'ကောင်းကောင်းအိပ်ပျော်ခဲ့ပြီး မနက်နိုးလာချိန်မှာ လန်းဆန်းတယ်',
   },

@@ -12,11 +12,7 @@ export type CarePlanReportMediaRef = {
 /**
  * Client sleep-quality enum from mobile (evidence-only; not a metric).
  */
-export type SleepQuality =
-  | 'very_good'
-  | 'good'
-  | 'poor'
-  | 'very_poor';
+export type SleepQuality = 'very_good' | 'good' | 'poor' | 'very_poor';
 
 export type CarePlanLogEvidence = {
   id: number;

@@ -2,13 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   TABLE_DEFAULT_SEARCH_DEBOUNCE_MS,
@@ -29,10 +23,7 @@ import type {
   UseTableOptions,
   UseTableReturn,
 } from './types';
-import {
-  shouldApplyUrlSearchToLocalState,
-  tableQueriesEqual,
-} from './utils';
+import { shouldApplyUrlSearchToLocalState, tableQueriesEqual } from './utils';
 
 /**
  * React hook for managing the state, controls, and data fetching of a table component.
@@ -170,12 +161,6 @@ export const useTable = <TItem>(
   const [searchInput, setSearchInput] = useState(initialSearchValue);
   const [appliedSearch, setAppliedSearch] = useState(initialSearchValue);
 
-  // Keep refs current during render so the URL-sync effect never reads a stale input.
-  const searchInputRef = useRef(searchInput);
-  const appliedSearchRef = useRef(appliedSearch);
-  searchInputRef.current = searchInput;
-  appliedSearchRef.current = appliedSearch;
-
   // Align local search state with URL changes (back/forward, external navigation).
   // Must not copy the URL into the field while the user is still typing, or when the
   // URL change is our own debounced write landing late — that is what made the box
@@ -184,17 +169,21 @@ export const useTable = <TItem>(
     if (!syncUrl) return;
     const shouldApply = shouldApplyUrlSearchToLocalState({
       urlSearch: initialSearchValue,
-      searchInput: searchInputRef.current,
-      appliedSearch: appliedSearchRef.current,
+      searchInput,
+      appliedSearch,
       hasPendingOwnWrite: lastWrittenQueryRef.current !== null,
     });
-    if (shouldApply) {
-      skipPageResetForUrlSyncRef.current =
-        initialSearchValue !== appliedSearchRef.current;
-      setSearchInput(initialSearchValue);
-      setAppliedSearch(initialSearchValue);
-    }
-  }, [syncUrl, initialSearchValue, searchParamsString]);
+    if (!shouldApply) return;
+    skipPageResetForUrlSyncRef.current = initialSearchValue !== appliedSearch;
+    setSearchInput(initialSearchValue);
+    setAppliedSearch(initialSearchValue);
+  }, [
+    syncUrl,
+    initialSearchValue,
+    searchParamsString,
+    searchInput,
+    appliedSearch,
+  ]);
 
   /**
    * Clear loop guard after the URL-sync effect has had a chance to ignore our own write.
@@ -212,18 +201,16 @@ export const useTable = <TItem>(
   }, [searchParamsString, syncUrl]);
 
   // Debounce applied search: wait until typing pauses before fetching / writing the URL.
+  // setState is always deferred via timer so we avoid synchronous setState-in-effect.
   useEffect(() => {
     if (!searchEnabled) return;
-    if (searchInput === appliedSearchRef.current) return;
-    if (debounceMs <= 0) {
-      setAppliedSearch(searchInput);
-      return;
-    }
+    if (searchInput === appliedSearch) return;
+    const waitMs = Math.max(0, debounceMs);
     const id = window.setTimeout(() => {
       setAppliedSearch(searchInput);
-    }, debounceMs);
+    }, waitMs);
     return () => window.clearTimeout(id);
-  }, [searchInput, debounceMs, searchEnabled]);
+  }, [searchInput, appliedSearch, debounceMs, searchEnabled]);
 
   // Write applied search and reset page in one URL update to prevent stale-closure races
   // where two separate effects overwrite each other's changes.

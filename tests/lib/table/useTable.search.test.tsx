@@ -56,6 +56,7 @@ function emptyPageResponse() {
     status: 'success' as const,
     message: 'ok',
     data: [],
+    meta: { version: 'v1' },
   };
 }
 
