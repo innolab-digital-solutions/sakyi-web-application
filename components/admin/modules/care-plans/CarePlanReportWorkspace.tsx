@@ -1767,8 +1767,8 @@ function DayPhotosGallery({
 }
 
 /**
- * Day-level gratitude journal (read-only). Placed with day photos — never
- * nested under Recovery or Sleep task evidence.
+ * Day-level gratitude journal (read-only). Same card chrome as day photos —
+ * never nested under Recovery or Sleep task evidence.
  */
 function DayJournalCard({ journal }: { journal: CarePlanReportDayJournal }) {
   const body = String(journal.body ?? '').trim();
@@ -1776,9 +1776,9 @@ function DayJournalCard({ journal }: { journal: CarePlanReportDayJournal }) {
   const updatedAt = formatClientNoteUpdatedAt(journal.updated_at);
 
   return (
-    <div className='border-border dark:bg-card space-y-2.5 rounded-lg border bg-white p-3 sm:p-3.5'>
-      <div className='flex flex-wrap items-center justify-between gap-x-2 gap-y-1'>
-        <div className='flex items-center gap-2'>
+    <div className='border-border dark:bg-card space-y-3 rounded-lg border bg-white p-3 sm:p-3.5'>
+      <div className='flex items-center justify-between gap-3'>
+        <div className='flex min-w-0 items-center gap-2'>
           <span className='bg-muted text-foreground/70 flex size-6 shrink-0 items-center justify-center rounded-md'>
             <BookTextIcon className='size-3.5' aria-hidden />
           </span>
@@ -1787,17 +1787,20 @@ function DayJournalCard({ journal }: { journal: CarePlanReportDayJournal }) {
           </p>
         </div>
         {updatedAt ? (
-          <p className='text-muted-foreground text-[10px] font-medium'>
+          <p className='text-muted-foreground shrink-0 text-[10px] font-medium tabular-nums'>
             {updatedAt}
           </p>
         ) : null}
       </div>
-      <p className='text-muted-foreground text-[10px] leading-snug font-medium'>
-        What&apos;s your biggest gratitude today?
-      </p>
-      <p className='text-foreground/90 text-[12px] leading-relaxed font-medium wrap-break-word whitespace-pre-wrap'>
-        {body}
-      </p>
+
+      <div className='space-y-1.5'>
+        <p className='text-muted-foreground text-[11px] leading-snug font-medium'>
+          What&apos;s your biggest gratitude today?
+        </p>
+        <p className='text-foreground text-[12.5px] leading-relaxed font-semibold wrap-break-word whitespace-pre-wrap'>
+          {body}
+        </p>
+      </div>
     </div>
   );
 }
