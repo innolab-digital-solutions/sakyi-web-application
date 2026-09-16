@@ -66,6 +66,10 @@ export function cloneCarePlanSectionItem(
           ? String(item.target_unit_id)
           : '',
     target_unit_id: item.target_unit_id ?? null,
+    eating_window:
+      typeof item.eating_window === 'string'
+        ? item.eating_window
+        : (item.eating_window ?? ''),
     movement_exercise_id:
       item.movement_exercise_id ??
       item.exercise_id ??

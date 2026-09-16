@@ -27,6 +27,11 @@ export type CarePlanLogEvidence = {
    * Prefer this over `meta.sleep_quality`. Absent / null means not logged.
    */
   sleep_quality?: SleepQuality | null;
+  /**
+   * Client-logged eat time for nutrition logs (`HH:mm`).
+   * Prefer this over `meta.eaten_at`. Absent / null means not logged.
+   */
+  eaten_at?: string | null;
 };
 
 /**
@@ -55,6 +60,11 @@ export type CarePlanReportEvidenceItem = {
   item_id: number;
   title: string;
   guidance: string | null;
+  /**
+   * Planned meal clock time from the care plan (`HH:mm`) for nutrition items.
+   * Null / omitted when not set or non-nutrition.
+   */
+  eating_window?: string | null;
   target: {
     value: number | string | null;
     unit: string | null;

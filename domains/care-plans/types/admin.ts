@@ -66,6 +66,11 @@ export type CarePlanSectionItem = {
   target_value?: number | string | null;
   target_unit?: string | null;
   target_unit_id?: number | string | null;
+  /**
+   * Planned meal clock time for nutrition tasks (`HH:mm`). Null / omitted on
+   * other sections. Optional.
+   */
+  eating_window?: string | null;
   movement_exercise_id?: number | string | null;
   exercise_id?: number | string | null;
   exercises?: Array<CarePlanMovementExercisePrescription> | null;

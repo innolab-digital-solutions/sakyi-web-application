@@ -82,6 +82,11 @@ import {
   dayHasClientLoggedItems,
 } from '@/lib/care-plans/cloneCarePlanDayContent';
 import {
+  eatingWindowForSavePayload,
+  isValidEatingWindowInput,
+  normalizeEatingWindowHHmm,
+} from '@/lib/care-plans/eatingWindow';
+import {
   buildMovementExerciseSavePayload,
   isMovementPrescriptionMeaningful,
   isPrescriptionProfile,
@@ -240,6 +245,7 @@ function toEditableSectionItems(
             .map((id) => normalizeValue(id))
             .filter((id) => id !== '')
         : [],
+    eating_window: normalizeEatingWindowHHmm(item.eating_window),
   }));
 }
 
@@ -249,6 +255,7 @@ function createEmptySectionItem(): CarePlanSectionItem {
     guidance: '',
     target_value: '',
     target_unit: '',
+    eating_window: '',
     movement_exercise_id: '',
     exercises: [],
     nutrition_item_ids: [],
@@ -261,6 +268,7 @@ type NormalizedSectionItem = {
   guidance: string;
   target_value: string;
   target_unit: string;
+  eating_window: string;
   movement_exercise_id: string;
   exercises: MovementExercisePrescriptionInput[];
   nutrition_item_ids: string[];
@@ -313,6 +321,10 @@ function normalizeSectionItemsForSave(
               ),
             )
           : [];
+      const eatingWindow =
+        section === 'nutrition'
+          ? normalizeEatingWindowHHmm(item?.eating_window)
+          : '';
 
       return {
         id: item?.id,
@@ -320,6 +332,7 @@ function normalizeSectionItemsForSave(
         guidance,
         target_value: targetValue,
         target_unit: targetUnit,
+        eating_window: eatingWindow,
         movement_exercise_id: movementExerciseId,
         exercises: meaningfulExercises,
         nutrition_item_ids: nutritionItemIds,
@@ -346,6 +359,7 @@ function normalizeSectionItemsForSave(
           item.guidance ||
           item.target_value ||
           item.target_unit ||
+          item.eating_window ||
           item.nutrition_item_ids.length > 0,
         );
       }
@@ -403,6 +417,7 @@ function toSectionSavePayload(
         planStatus === 'active' && item.has_client_logs;
 
       baseItem.target_unit_id = resolvedTargetUnitId;
+      baseItem.eating_window = eatingWindowForSavePayload(item.eating_window);
       if (!omitNutritionItemsOnActiveLoggedItem) {
         baseItem.nutrition_items = Array.from(
           new Set(
@@ -440,6 +455,7 @@ function isMeaningfulNormalizedItem(item: NormalizedSectionItem): boolean {
     item.title ||
     item.guidance ||
     item.target_value ||
+    item.eating_window ||
     item.movement_exercise_id ||
     item.exercises.length > 0 ||
     item.nutrition_item_ids.length > 0,
@@ -451,6 +467,7 @@ type CarePlanItemFieldErrors = {
   guidance?: string;
   target_value?: string;
   target_unit?: string;
+  eating_window?: string;
   nutrition_items?: string;
 };
 
@@ -546,6 +563,13 @@ function parseCarePlanSectionItemsApiErrors(
     if (tvM) {
       const i = Number(tvM[1]);
       itemFields[i] = { ...itemFields[i], target_value: msg };
+      continue;
+    }
+
+    const ewM = /^items\.(\d+)\.eating_window$/i.exec(key);
+    if (ewM) {
+      const i = Number(ewM[1]);
+      itemFields[i] = { ...itemFields[i], eating_window: msg };
       continue;
     }
 
@@ -1986,6 +2010,7 @@ export default function CarePlanBuilder({
       const guidance = normalizeValue(item.guidance);
       const targetValue = normalizeValue(item.target_value);
       const targetUnit = normalizeValue(item.target_unit);
+      const eatingWindow = normalizeEatingWindowHHmm(item.eating_window);
       const movementId = normalizeValue(
         item.movement_exercise_id || item.exercise_id,
       );
@@ -2004,6 +2029,20 @@ export default function CarePlanBuilder({
           targetUnit ||
           movementId ||
           hasMeaningfulExercise,
+        );
+      }
+
+      if (sectionToValidate === 'nutrition') {
+        const nutritionIds = Array.isArray(item.nutrition_item_ids)
+          ? item.nutrition_item_ids
+          : [];
+        return Boolean(
+          title ||
+          guidance ||
+          targetValue ||
+          targetUnit ||
+          eatingWindow ||
+          nutritionIds.length > 0,
         );
       }
 
@@ -2053,6 +2092,15 @@ export default function CarePlanBuilder({
           itemFieldErrs[itemIndex] = {
             ...itemFieldErrs[itemIndex],
             target_unit: 'Select a unit when a target value is set.',
+          };
+        }
+        if (
+          sectionToValidate === 'nutrition' &&
+          !isValidEatingWindowInput(item?.eating_window)
+        ) {
+          itemFieldErrs[itemIndex] = {
+            ...itemFieldErrs[itemIndex],
+            eating_window: 'Use 24-hour time as HH:mm (e.g. 11:00).',
           };
         }
       }
@@ -2204,6 +2252,7 @@ export default function CarePlanBuilder({
       | 'guidance'
       | 'target_value'
       | 'target_unit'
+      | 'eating_window'
       | 'movement_exercise_id'
       | 'exercise_id',
     value: string,
@@ -2217,6 +2266,7 @@ export default function CarePlanBuilder({
     if (field === 'guidance') clearItemFieldError(index, 'guidance');
     if (field === 'target_value') clearItemFieldError(index, 'target_value');
     if (field === 'target_unit') clearItemFieldError(index, 'target_unit');
+    if (field === 'eating_window') clearItemFieldError(index, 'eating_window');
   };
 
   const setNutritionItemIds = (index: number, ids: string[]) => {
@@ -3299,6 +3349,28 @@ export default function CarePlanBuilder({
                                         disabled={!editable}
                                       />
                                     </div>
+                                    {activeSection === 'nutrition' ? (
+                                      <TextField
+                                        label='Eating window'
+                                        type='time'
+                                        step={60}
+                                        placeholder='HH:mm'
+                                        value={normalizeEatingWindowHHmm(
+                                          item.eating_window,
+                                        )}
+                                        onChange={(event) =>
+                                          setItemField(
+                                            index,
+                                            'eating_window',
+                                            event.target.value,
+                                          )
+                                        }
+                                        error={
+                                          itemFieldErrors[index]?.eating_window
+                                        }
+                                        disabled={!editable}
+                                      />
+                                    ) : null}
                                     {activeSection === 'nutrition' ? (
                                       <div className='space-y-2'>
                                         {item.has_client_logs && editable ? (

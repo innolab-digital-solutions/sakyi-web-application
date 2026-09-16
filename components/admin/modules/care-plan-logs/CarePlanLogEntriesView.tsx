@@ -36,6 +36,10 @@ import {
   getCarePlanLogSummary,
   listCarePlanLogEntries,
 } from '@/domains/care-plans/services';
+import {
+  formatLoggedEatenAtLabel,
+  formatPlannedEatingWindowLabel,
+} from '@/lib/care-plans/eatingWindow';
 import { getInitials } from '@/lib/utils/string';
 
 type Props = {
@@ -408,6 +412,14 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
                       entry.actual?.value,
                       entry.actual?.unit,
                     );
+                    const plannedEat = formatPlannedEatingWindowLabel(
+                      entry.eating_window,
+                    );
+                    const loggedEat = formatLoggedEatenAtLabel(entry.eaten_at);
+                    const mealTimeLine =
+                      plannedEat || loggedEat
+                        ? [plannedEat, loggedEat].filter(Boolean).join(' · ')
+                        : null;
                     return (
                       <TableRow key={entry.id}>
                         <TableCell>
@@ -439,14 +451,24 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
                           )}
                         </TableCell>
                         <TableCell>
-                          <p
-                            className='max-w-60 truncate text-sm font-medium'
-                            title={entry.item_title ?? ''}
-                          >
-                            {entry.item_title?.trim() || (
-                              <TableCellEmpty label='No task title' />
-                            )}
-                          </p>
+                          <div className='max-w-60 space-y-0.5'>
+                            <p
+                              className='truncate text-sm font-medium'
+                              title={entry.item_title ?? ''}
+                            >
+                              {entry.item_title?.trim() || (
+                                <TableCellEmpty label='No task title' />
+                              )}
+                            </p>
+                            {mealTimeLine ? (
+                              <p
+                                className='text-muted-foreground truncate text-xs font-medium'
+                                title={mealTimeLine}
+                              >
+                                {mealTimeLine}
+                              </p>
+                            ) : null}
+                          </div>
                         </TableCell>
                         <TableCell>
                           {targetLabel === '—' ? (
