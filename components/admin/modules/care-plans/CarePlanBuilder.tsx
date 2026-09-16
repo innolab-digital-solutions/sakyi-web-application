@@ -1530,9 +1530,7 @@ export default function CarePlanBuilder({
         payload,
       );
       if (response.status === 'error') {
-        if (
-          promptEnterEditModeIfRequired(response.errors, response.message)
-        ) {
+        if (promptEnterEditModeIfRequired(response.errors, response.message)) {
           throw new Error(
             firstCarePlanFieldErrorMessage(response.errors) ??
               response.message ??
@@ -1571,9 +1569,7 @@ export default function CarePlanBuilder({
         payload,
       );
       if (response.status === 'error') {
-        if (
-          promptEnterEditModeIfRequired(response.errors, response.message)
-        ) {
+        if (promptEnterEditModeIfRequired(response.errors, response.message)) {
           throw new Error(
             firstCarePlanFieldErrorMessage(response.errors) ??
               response.message ??
@@ -2043,9 +2039,7 @@ export default function CarePlanBuilder({
         payload.items,
       );
       if (response.status === 'error') {
-        if (
-          promptEnterEditModeIfRequired(response.errors, response.message)
-        ) {
+        if (promptEnterEditModeIfRequired(response.errors, response.message)) {
           throw new Error(
             firstCarePlanFieldErrorMessage(response.errors) ??
               response.message ??
@@ -2635,9 +2629,7 @@ export default function CarePlanBuilder({
               <p className='text-[12.5px] font-medium text-amber-900/90'>
                 Exit edit mode when finished so the client can log again.
                 {pausedSinceLabel ? ` Paused since ${pausedSinceLabel}.` : ''}
-                {isDetailMode
-                  ? ' Open the workspace to exit edit mode.'
-                  : ''}
+                {isDetailMode ? ' Open the workspace to exit edit mode.' : ''}
               </p>
             </div>
           </div>
@@ -2664,9 +2656,7 @@ export default function CarePlanBuilder({
               disabled={exitEditModeMutation.isPending}
               onClick={() => exitEditModeMutation.mutate()}
             >
-              {exitEditModeMutation.isPending
-                ? 'Exiting…'
-                : 'Exit edit mode'}
+              {exitEditModeMutation.isPending ? 'Exiting…' : 'Exit edit mode'}
             </Button>
           )}
         </div>

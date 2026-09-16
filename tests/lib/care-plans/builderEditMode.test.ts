@@ -79,24 +79,24 @@ describe('canEditCarePlanDayContent', () => {
 
 describe('canEditCarePlanTimeline', () => {
   it('allows_only_draft_and_scheduled_in_edit_mode', () => {
-    expect(
-      canEditCarePlanTimeline({ mode: 'edit', status: 'draft' }),
-    ).toBe(true);
-    expect(
-      canEditCarePlanTimeline({ mode: 'edit', status: 'scheduled' }),
-    ).toBe(true);
+    expect(canEditCarePlanTimeline({ mode: 'edit', status: 'draft' })).toBe(
+      true,
+    );
+    expect(canEditCarePlanTimeline({ mode: 'edit', status: 'scheduled' })).toBe(
+      true,
+    );
   });
 
   it('blocks_active_timeline_even_when_content_edit_mode_is_on', () => {
-    expect(
-      canEditCarePlanTimeline({ mode: 'edit', status: 'active' }),
-    ).toBe(false);
+    expect(canEditCarePlanTimeline({ mode: 'edit', status: 'active' })).toBe(
+      false,
+    );
   });
 
   it('blocks_timeline_in_detail_mode', () => {
-    expect(
-      canEditCarePlanTimeline({ mode: 'detail', status: 'draft' }),
-    ).toBe(false);
+    expect(canEditCarePlanTimeline({ mode: 'detail', status: 'draft' })).toBe(
+      false,
+    );
   });
 });
 

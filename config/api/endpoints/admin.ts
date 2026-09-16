@@ -130,8 +130,7 @@ export const ADMIN_ENDPOINTS = {
       ENTER_EDIT_MODE: (id: string) =>
         `${BASE}/care-plans/${id}/enter-edit-mode`,
       /** Resume mobile logging after ACTIVE content edits. */
-      EXIT_EDIT_MODE: (id: string) =>
-        `${BASE}/care-plans/${id}/exit-edit-mode`,
+      EXIT_EDIT_MODE: (id: string) => `${BASE}/care-plans/${id}/exit-edit-mode`,
       DAY_NOTES_UPDATE: (id: string, dayId: string) =>
         `${BASE}/care-plans/${id}/days/${dayId}/notes`,
       DAY_MOTIVATION_UPDATE: (id: string, dayId: string) =>

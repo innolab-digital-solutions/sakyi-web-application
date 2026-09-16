@@ -9,9 +9,7 @@ const HH_MM_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
  * Normalizes a clock time to `HH:mm`, or returns empty string when absent /
  * invalid. Accepts `HH:mm` and `HH:mm:ss` (seconds are dropped).
  */
-export function normalizeEatingWindowHHmm(
-  value: unknown,
-): string {
+export function normalizeEatingWindowHHmm(value: unknown): string {
   if (value == null) return '';
   const raw = String(value).trim();
   if (!raw) return '';
@@ -39,9 +37,7 @@ export function isValidEatingWindowInput(value: unknown): boolean {
  * Formats `HH:mm` for admin display (e.g. `13:00` → `1:00 PM`).
  * Returns null when the value is missing or invalid — never invents a default.
  */
-export function formatClockTimeLabel(
-  value: unknown,
-): string | null {
+export function formatClockTimeLabel(value: unknown): string | null {
   const hhmm = normalizeEatingWindowHHmm(value);
   if (!hhmm) return null;
   const parsed = parse(hhmm, 'HH:mm', new Date(2000, 0, 1));
@@ -52,9 +48,7 @@ export function formatClockTimeLabel(
 /**
  * Payload value for nutrition upsert: `HH:mm` or `null` to clear.
  */
-export function eatingWindowForSavePayload(
-  value: unknown,
-): string | null {
+export function eatingWindowForSavePayload(value: unknown): string | null {
   const hhmm = normalizeEatingWindowHHmm(value);
   return hhmm || null;
 }
