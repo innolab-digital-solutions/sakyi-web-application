@@ -126,6 +126,12 @@ export const ADMIN_ENDPOINTS = {
       ACTIVATE: (id: string) => `${BASE}/care-plans/${id}/activate`,
       CANCEL: (id: string) => `${BASE}/care-plans/${id}/cancel`,
       REVISION: (id: string) => `${BASE}/care-plans/${id}/revision`,
+      /** Pause mobile logging so ACTIVE day content can be edited in place. */
+      ENTER_EDIT_MODE: (id: string) =>
+        `${BASE}/care-plans/${id}/enter-edit-mode`,
+      /** Resume mobile logging after ACTIVE content edits. */
+      EXIT_EDIT_MODE: (id: string) =>
+        `${BASE}/care-plans/${id}/exit-edit-mode`,
       DAY_NOTES_UPDATE: (id: string, dayId: string) =>
         `${BASE}/care-plans/${id}/days/${dayId}/notes`,
       DAY_MOTIVATION_UPDATE: (id: string, dayId: string) =>
