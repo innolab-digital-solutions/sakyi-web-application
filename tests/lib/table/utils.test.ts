@@ -68,4 +68,15 @@ describe('shouldApplyUrlSearchToLocalState', () => {
       }),
     ).toBe(true);
   });
+
+  it('does_not_clear_a_settled_paste_while_own_url_write_is_pending', () => {
+    expect(
+      shouldApplyUrlSearchToLocalState({
+        urlSearch: '',
+        searchInput: 'shadowking11870@gmail.com',
+        appliedSearch: 'shadowking11870@gmail.com',
+        hasPendingOwnWrite: true,
+      }),
+    ).toBe(false);
+  });
 });

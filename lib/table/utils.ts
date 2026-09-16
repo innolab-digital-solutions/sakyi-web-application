@@ -47,6 +47,9 @@ export type UrlSearchSyncDecisionInput = {
  * `router.replace` for an earlier keystroke must not reset the input, and a write
  * we initiated must not be treated as back/forward navigation.
  *
+ * Comparisons use trimmed strings so URL writes (which trim) do not fight trailing
+ * spaces still present in the local field.
+ *
  * Back/forward (and shared links) still apply when the user is not mid-keystroke
  * and no own URL write is waiting to land.
  *
@@ -59,15 +62,16 @@ export const shouldApplyUrlSearchToLocalState = (
 ): boolean => {
   if (input.hasPendingOwnWrite) return false;
 
-  if (
-    input.searchInput === input.urlSearch &&
-    input.appliedSearch === input.urlSearch
-  ) {
+  const urlSearch = input.urlSearch.trim();
+  const searchInput = input.searchInput.trim();
+  const appliedSearch = input.appliedSearch.trim();
+
+  if (searchInput === urlSearch && appliedSearch === urlSearch) {
     return false;
   }
 
   const isTyping = input.searchInput !== input.appliedSearch;
   if (isTyping) return false;
 
-  return input.urlSearch !== input.appliedSearch;
+  return urlSearch !== appliedSearch;
 };
