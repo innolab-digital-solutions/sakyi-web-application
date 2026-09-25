@@ -15,8 +15,12 @@ const MobileAppSection = () => {
   const { language, translate } = useLanguage();
 
   const isMyanmar = language === 'my';
-  const mockup1Src = isMyanmar ? '/images/mockup5.png' : '/images/mockup4.png';
-  const mockup2Src = isMyanmar ? '/images/mockup2.png' : '/images/mockup3.png';
+  const mockup1Src = isMyanmar
+    ? '/images/mockup_1_myan.png'
+    : '/images/mockup_1_eng.png';
+  const mockup2Src = isMyanmar
+    ? '/images/mockup_2_my.png'
+    : '/images/mockup_2_en.png';
 
   return (
     <SectionContainer id='mobile-app-section' className='bg-background'>
