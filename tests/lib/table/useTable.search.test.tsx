@@ -197,6 +197,32 @@ describe('useTable search debounce', () => {
     expect(result.current.controls.search?.value).toBe('abc');
   });
 
+  it('keeps_a_pasted_search_value_after_debounce_commits_before_the_url_lands', async () => {
+    const { result } = await renderUseTable(400);
+    const pasted = 'shadowking11870@gmail.com';
+
+    act(() => {
+      result.current.controls.search?.onChange(pasted);
+    });
+    expect(result.current.controls.search?.value).toBe(pasted);
+
+    await act(async () => {
+      vi.advanceTimersByTime(400);
+      await Promise.resolve();
+    });
+
+    // Debounce has committed and scheduled a URL write, but the router has not
+    // applied it yet. The input must still show the pasted term (regression:
+    // URL-sync used to re-run on appliedSearch and clear the box against '').
+    expect(result.current.controls.search?.value).toBe(pasted);
+    expect(lastReplaceQuery()).toContain('search=shadowking11870');
+
+    act(() => {
+      applyLastReplace();
+    });
+    expect(result.current.controls.search?.value).toBe(pasted);
+  });
+
   it('clears_the_applied_search_after_debounce_when_the_box_is_emptied', async () => {
     const { result } = await renderUseTable(400);
 

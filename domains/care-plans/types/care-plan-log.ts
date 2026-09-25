@@ -79,6 +79,13 @@ export type CarePlanLogEntry = {
     | undefined;
   notes: string | null;
   meta?: unknown;
+  /**
+   * Planned meal clock time from the nutrition care-plan item (`HH:mm`).
+   * Null for non-nutrition sections.
+   */
+  eating_window?: string | null;
+  /** Client-logged eat time (`HH:mm`) when present. */
+  eaten_at?: string | null;
   media_count: number | null;
   media?: Array<{
     id: number;

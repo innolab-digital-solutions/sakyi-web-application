@@ -76,6 +76,11 @@ import { getCarePlanSectionTab } from '@/lib/care-plans/carePlanSectionTabs';
 import { buildAverageInputsAndManualHighlights } from '@/lib/care-plans/clientReportNarrativePayload';
 import { diffReportRunMetrics } from '@/lib/care-plans/diffReportRunMetrics';
 import {
+  formatClockTimeLabel,
+  isNutritionEvidenceItem,
+  resolveEatenAtFromLog,
+} from '@/lib/care-plans/eatingWindow';
+import {
   cloneReportRunMetrics,
   rollUpMetricFromDailyPoints,
 } from '@/lib/care-plans/operationalLogMetricsRollup';
@@ -1550,6 +1555,13 @@ function EvidenceLineItemCard({
   const sleepQualityDisplay = sleepQuality
     ? getSleepQualityDisplay(sleepQuality)
     : null;
+  const isNutrition = isNutritionEvidenceItem(item);
+  const plannedEatingLabel = isNutrition
+    ? formatClockTimeLabel(item.eating_window)
+    : null;
+  const loggedEatenLabel = isNutrition
+    ? formatClockTimeLabel(resolveEatenAtFromLog(log))
+    : null;
 
   return (
     <div className='border-border dark:bg-card space-y-2 rounded-md border bg-white px-3 pt-3 pb-4 sm:px-3.5 sm:pt-3.5 sm:pb-5'>
@@ -1602,6 +1614,27 @@ function EvidenceLineItemCard({
           )}
         </div>
       </div>
+
+      {isNutrition ? (
+        <div className='grid grid-cols-1 gap-2 md:grid-cols-2'>
+          <div className='bg-muted/15 border-border space-y-1 rounded-md border px-2.5 py-2'>
+            <p className='text-[10px] font-semibold tracking-wide text-amber-800 uppercase dark:text-amber-400'>
+              Eating window
+            </p>
+            <p className='text-foreground/90 text-[11px] leading-snug font-medium'>
+              {plannedEatingLabel ?? 'Not set'}
+            </p>
+          </div>
+          <div className='bg-muted/15 border-border space-y-1 rounded-md border px-2.5 py-2'>
+            <p className='text-[10px] font-semibold tracking-wide text-orange-800 uppercase dark:text-orange-300'>
+              Eaten at
+            </p>
+            <p className='text-foreground/90 text-[11px] leading-snug font-medium'>
+              {loggedEatenLabel ?? 'Not logged'}
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       {sleepQualityDisplay ? (
         <div className='w-full min-w-0 space-y-1 rounded-md border border-indigo-200/80 bg-indigo-50/70 px-2.5 py-2 sm:px-3 sm:py-2.5 dark:border-indigo-900/50 dark:bg-indigo-950/30'>
