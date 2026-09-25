@@ -22,6 +22,11 @@ export interface AdminCarePlan {
   starts_on: string | null;
   ends_on: string | null;
   cancellation_note?: string | null;
+  /**
+   * True while an ACTIVE plan is in admin edit mode (mobile logging paused).
+   * Absent or false outside that mode.
+   */
+  client_logging_paused?: boolean;
   counts?: {
     days?: number | null;
   };
@@ -34,6 +39,7 @@ export interface AdminCarePlan {
     scheduled_at?: string | null;
     activated_at?: string | null;
     completed_at?: string | null;
+    client_logging_paused_at?: string | null;
   };
 }
 
@@ -66,6 +72,11 @@ export type CarePlanSectionItem = {
   target_value?: number | string | null;
   target_unit?: string | null;
   target_unit_id?: number | string | null;
+  /**
+   * Planned meal clock time for nutrition tasks (`HH:mm`). Null / omitted on
+   * other sections. Optional.
+   */
+  eating_window?: string | null;
   movement_exercise_id?: number | string | null;
   exercise_id?: number | string | null;
   exercises?: Array<CarePlanMovementExercisePrescription> | null;
@@ -120,12 +131,19 @@ export interface AdminCarePlanBuilder {
   scheduled_at?: string | null;
   activated_at?: string | null;
   cancellation_note?: string | null;
+  /**
+   * True while this ACTIVE plan is in admin edit mode. Mobile daily logs are
+   * rejected with 409 until exit-edit-mode. Draft/scheduled ignore this gate.
+   */
+  client_logging_paused?: boolean;
+  client_logging_paused_at?: string | null;
   timestamps?: {
     created_at: string | null;
     updated_at: string | null;
     scheduled_at?: string | null;
     activated_at?: string | null;
     completed_at?: string | null;
+    client_logging_paused_at?: string | null;
   };
   client?: CarePlanBuilderClient | null;
   program?: CarePlanBuilderProgram | null;

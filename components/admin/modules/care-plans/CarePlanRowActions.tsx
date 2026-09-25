@@ -37,13 +37,16 @@ import { ROUTES } from '@/config/routes';
 import {
   postCarePlanActivate,
   postCarePlanCancel,
+  postCarePlanEnterEditMode,
   postCarePlanOperationalLogDraft,
   postCarePlanRevision,
 } from '@/domains/care-plans/services';
 import type {
   AdminCarePlan,
+  AdminCarePlanBuilder,
   CarePlanStatus,
 } from '@/domains/care-plans/types/admin';
+import { firstCarePlanFieldErrorMessage } from '@/lib/care-plans/builderEditMode';
 
 const LIST_QUERY_KEY = [
   'table',
@@ -132,7 +135,8 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
     void queryClient.invalidateQueries({ queryKey: [...LIST_QUERY_KEY] });
   }, [queryClient]);
 
-  const canEdit = status === 'draft' || status === 'scheduled';
+  const canEdit =
+    status === 'draft' || status === 'scheduled' || status === 'active';
   const canActivate = status === 'draft';
   const canCancel =
     status === 'draft' || status === 'scheduled' || status === 'active';
@@ -186,6 +190,48 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
     },
     onError: (error: Error) => {
       toast.error(error.message ?? 'Could not create revision.');
+    },
+  });
+
+  const { mutate: openCarePlanForEdit, isPending: editPending } = useMutation({
+    mutationFn: async () => {
+      let enteredEditMode = false;
+      let builder: AdminCarePlanBuilder | null = null;
+
+      if (status === 'active' && row.client_logging_paused !== true) {
+        const response = await postCarePlanEnterEditMode(row.id);
+        if (response.status === 'error') {
+          throw new Error(
+            firstCarePlanFieldErrorMessage(response.errors) ??
+              response.message ??
+              'Could not enter edit mode.',
+          );
+        }
+        enteredEditMode = true;
+        builder = response.data ?? null;
+      }
+      return { id: row.id, enteredEditMode, builder };
+    },
+    onSuccess: ({ id, enteredEditMode, builder }) => {
+      // Seed workspace cache so CarePlanBuilder sees paused=true immediately
+      // (without this, a stale builder cache still shows "Enter edit mode").
+      if (builder) {
+        queryClient.setQueryData(['care-plan', id, 'builder'], builder);
+      } else {
+        void queryClient.invalidateQueries({
+          queryKey: ['care-plan', id, 'builder'],
+        });
+      }
+      invalidateList();
+      if (enteredEditMode) {
+        toast.success(
+          'Edit mode enabled. Client logging is paused until you exit edit mode.',
+        );
+      }
+      router.push(ROUTES.ADMIN.MODULES.CARE_PLANS.WORKSPACE(String(id)));
+    },
+    onError: (error: Error) => {
+      toast.error(error.message ?? 'Could not open care plan for editing.');
     },
   });
 
@@ -353,16 +399,13 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
                   </DropdownMenuItem>
                 ) : null}
                 {canEdit ? (
-                  <DropdownMenuItem asChild className='cursor-pointer'>
-                    <Link
-                      className='flex w-full cursor-pointer items-center gap-2 text-[13px]! font-medium'
-                      href={ROUTES.ADMIN.MODULES.CARE_PLANS.WORKSPACE(
-                        String(row.id),
-                      )}
-                    >
-                      <FilePenLineIcon className='size-3.5 shrink-0' />
-                      Edit care plan
-                    </Link>
+                  <DropdownMenuItem
+                    disabled={editPending}
+                    className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
+                    onClick={() => openCarePlanForEdit()}
+                  >
+                    <FilePenLineIcon className='size-3.5 shrink-0' />
+                    {editPending ? 'Opening…' : 'Edit care plan'}
                   </DropdownMenuItem>
                 ) : null}
                 {canActivate ? (

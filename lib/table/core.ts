@@ -161,29 +161,33 @@ export const useTable = <TItem>(
   const [searchInput, setSearchInput] = useState(initialSearchValue);
   const [appliedSearch, setAppliedSearch] = useState(initialSearchValue);
 
+  // Mirror local search into refs for the URL→local effect. That effect must only
+  // depend on URL changes — if it also depended on appliedSearch, committing a
+  // debounced paste would re-run it against a still-stale URL and clear the box.
+  const searchInputRef = useRef(searchInput);
+  const appliedSearchRef = useRef(appliedSearch);
+  useEffect(() => {
+    searchInputRef.current = searchInput;
+    appliedSearchRef.current = appliedSearch;
+  }, [searchInput, appliedSearch]);
+
   // Align local search state with URL changes (back/forward, external navigation).
-  // Must not copy the URL into the field while the user is still typing, or when the
-  // URL change is our own debounced write landing late — that is what made the box
-  // look like it was backspacing.
+  // Intentionally omits searchInput/appliedSearch from deps so debounce commits do
+  // not treat the pre-navigation URL as an external clear.
   useEffect(() => {
     if (!syncUrl) return;
     const shouldApply = shouldApplyUrlSearchToLocalState({
       urlSearch: initialSearchValue,
-      searchInput,
-      appliedSearch,
+      searchInput: searchInputRef.current,
+      appliedSearch: appliedSearchRef.current,
       hasPendingOwnWrite: lastWrittenQueryRef.current !== null,
     });
     if (!shouldApply) return;
-    skipPageResetForUrlSyncRef.current = initialSearchValue !== appliedSearch;
+    skipPageResetForUrlSyncRef.current =
+      initialSearchValue !== appliedSearchRef.current;
     setSearchInput(initialSearchValue);
     setAppliedSearch(initialSearchValue);
-  }, [
-    syncUrl,
-    initialSearchValue,
-    searchParamsString,
-    searchInput,
-    appliedSearch,
-  ]);
+  }, [syncUrl, initialSearchValue, searchParamsString]);
 
   /**
    * Clear loop guard after the URL-sync effect has had a chance to ignore our own write.
@@ -225,6 +229,8 @@ export const useTable = <TItem>(
     // First mount: only sync search value, page is already correct.
     if (isFirstAppliedSearchEffect.current) {
       isFirstAppliedSearchEffect.current = false;
+      // Skip a no-op write when the URL already matches (avoids replace churn).
+      if (trimmed === (parsed.search ?? '').trim()) return;
       setUrlParams(patch);
       return;
     }

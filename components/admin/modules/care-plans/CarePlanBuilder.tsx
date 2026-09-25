@@ -11,12 +11,14 @@ import {
   CopyPlusIcon,
   FilePlus2Icon,
   FileTextIcon,
+  PauseCircleIcon,
   PencilLineIcon,
   PlusIcon,
   RefreshCwIcon,
   SparklesIcon,
   Trash2Icon,
 } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
@@ -36,6 +38,16 @@ import ComboboxField, {
 import { type SelectFieldOption } from '@/components/shared/form/SelectField';
 import TextAreaField from '@/components/shared/form/TextAreaField';
 import TextField from '@/components/shared/form/TextField';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -52,12 +64,14 @@ import {
   getCarePlanBuilderById,
   patchCarePlanDayMotivation,
   patchCarePlanDayNotes,
+  postCarePlanEnterEditMode,
+  postCarePlanExitEditMode,
   postCarePlanGenerateDays,
-  postCarePlanRevision,
   postCarePlanValidate,
   putCarePlanSectionItems,
 } from '@/domains/care-plans/services';
 import type {
+  AdminCarePlanBuilder,
   CarePlanSectionItem,
   CarePlanSectionKey,
   CarePlanStatus,
@@ -76,11 +90,23 @@ import {
   type NutritionItemLookup,
 } from '@/domains/nutrition-items/services';
 import { getUnitsLookup } from '@/domains/units/services';
+import {
+  canEditCarePlanDayContent,
+  canEditCarePlanTimeline,
+  firstCarePlanFieldErrorMessage,
+  isClientLoggingPaused,
+  isEnterEditModeRequiredError,
+} from '@/lib/care-plans/builderEditMode';
 import { CARE_PLAN_SECTION_TABS } from '@/lib/care-plans/carePlanSectionTabs';
 import {
   cloneCarePlanDayContent,
   dayHasClientLoggedItems,
 } from '@/lib/care-plans/cloneCarePlanDayContent';
+import {
+  eatingWindowForSavePayload,
+  isValidEatingWindowInput,
+  normalizeEatingWindowHHmm,
+} from '@/lib/care-plans/eatingWindow';
 import {
   buildMovementExerciseSavePayload,
   isMovementPrescriptionMeaningful,
@@ -240,6 +266,7 @@ function toEditableSectionItems(
             .map((id) => normalizeValue(id))
             .filter((id) => id !== '')
         : [],
+    eating_window: normalizeEatingWindowHHmm(item.eating_window),
   }));
 }
 
@@ -249,6 +276,7 @@ function createEmptySectionItem(): CarePlanSectionItem {
     guidance: '',
     target_value: '',
     target_unit: '',
+    eating_window: '',
     movement_exercise_id: '',
     exercises: [],
     nutrition_item_ids: [],
@@ -261,6 +289,7 @@ type NormalizedSectionItem = {
   guidance: string;
   target_value: string;
   target_unit: string;
+  eating_window: string;
   movement_exercise_id: string;
   exercises: MovementExercisePrescriptionInput[];
   nutrition_item_ids: string[];
@@ -313,6 +342,10 @@ function normalizeSectionItemsForSave(
               ),
             )
           : [];
+      const eatingWindow =
+        section === 'nutrition'
+          ? normalizeEatingWindowHHmm(item?.eating_window)
+          : '';
 
       return {
         id: item?.id,
@@ -320,6 +353,7 @@ function normalizeSectionItemsForSave(
         guidance,
         target_value: targetValue,
         target_unit: targetUnit,
+        eating_window: eatingWindow,
         movement_exercise_id: movementExerciseId,
         exercises: meaningfulExercises,
         nutrition_item_ids: nutritionItemIds,
@@ -346,6 +380,7 @@ function normalizeSectionItemsForSave(
           item.guidance ||
           item.target_value ||
           item.target_unit ||
+          item.eating_window ||
           item.nutrition_item_ids.length > 0,
         );
       }
@@ -403,6 +438,7 @@ function toSectionSavePayload(
         planStatus === 'active' && item.has_client_logs;
 
       baseItem.target_unit_id = resolvedTargetUnitId;
+      baseItem.eating_window = eatingWindowForSavePayload(item.eating_window);
       if (!omitNutritionItemsOnActiveLoggedItem) {
         baseItem.nutrition_items = Array.from(
           new Set(
@@ -440,6 +476,7 @@ function isMeaningfulNormalizedItem(item: NormalizedSectionItem): boolean {
     item.title ||
     item.guidance ||
     item.target_value ||
+    item.eating_window ||
     item.movement_exercise_id ||
     item.exercises.length > 0 ||
     item.nutrition_item_ids.length > 0,
@@ -451,6 +488,7 @@ type CarePlanItemFieldErrors = {
   guidance?: string;
   target_value?: string;
   target_unit?: string;
+  eating_window?: string;
   nutrition_items?: string;
 };
 
@@ -546,6 +584,13 @@ function parseCarePlanSectionItemsApiErrors(
     if (tvM) {
       const i = Number(tvM[1]);
       itemFields[i] = { ...itemFields[i], target_value: msg };
+      continue;
+    }
+
+    const ewM = /^items\.(\d+)\.eating_window$/i.exec(key);
+    if (ewM) {
+      const i = Number(ewM[1]);
+      itemFields[i] = { ...itemFields[i], eating_window: msg };
       continue;
     }
 
@@ -754,6 +799,8 @@ export default function CarePlanBuilder({
   const [generateReplaceStrategy, setGenerateReplaceStrategy] = React.useState<
     'preserve_overlap' | 'full'
   >('preserve_overlap');
+  const [enterEditModePromptOpen, setEnterEditModePromptOpen] =
+    React.useState(false);
   const [generateDayModalErrors, setGenerateDayModalErrors] = React.useState<{
     starts_on?: string;
     ends_on?: string;
@@ -1062,9 +1109,19 @@ export default function CarePlanBuilder({
 
   const builder = builderQuery.data;
   const normalizedStatus = normalizeStatus(builder?.status);
-  const editable =
-    !isDetailMode &&
-    (normalizedStatus === 'draft' || normalizedStatus === 'scheduled');
+  const clientLoggingPaused = isClientLoggingPaused(
+    builder?.client_logging_paused,
+  );
+  const editable = canEditCarePlanDayContent({
+    mode,
+    status: normalizedStatus,
+    clientLoggingPaused,
+  });
+  const timelineEditable = canEditCarePlanTimeline({
+    mode,
+    status: normalizedStatus,
+  });
+  const isActivePlan = normalizedStatus === 'active';
   const hasGeneratedDays = (builder?.days.length ?? 0) > 0;
   const generateDayButtonLabel = hasGeneratedDays
     ? 'Change Timeline'
@@ -1296,6 +1353,45 @@ export default function CarePlanBuilder({
     });
   }, [carePlanId, queryClient]);
 
+  const applyBuilderData = React.useCallback(
+    (next: AdminCarePlanBuilder | null | undefined) => {
+      if (!next) {
+        invalidateBuilder();
+        return;
+      }
+      queryClient.setQueryData(['care-plan', carePlanId, 'builder'], next);
+      void queryClient.invalidateQueries({
+        queryKey: ['table', '/web/admin/care-plans'],
+      });
+    },
+    [carePlanId, invalidateBuilder, queryClient],
+  );
+
+  React.useEffect(() => {
+    if (!clientLoggingPaused || isDetailMode) return;
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [clientLoggingPaused, isDetailMode]);
+
+  const promptEnterEditModeIfRequired = React.useCallback(
+    (errors: Record<string, unknown> | undefined, message?: string | null) => {
+      if (
+        !isActivePlan ||
+        clientLoggingPaused ||
+        !isEnterEditModeRequiredError({ errors, message })
+      ) {
+        return false;
+      }
+      setEnterEditModePromptOpen(true);
+      return true;
+    },
+    [clientLoggingPaused, isActivePlan],
+  );
+
   const scrollToFirstInvalidField = React.useCallback(() => {
     const root = sectionItemsRootRef.current;
     if (!root) return;
@@ -1434,6 +1530,13 @@ export default function CarePlanBuilder({
         payload,
       );
       if (response.status === 'error') {
+        if (promptEnterEditModeIfRequired(response.errors, response.message)) {
+          throw new Error(
+            firstCarePlanFieldErrorMessage(response.errors) ??
+              response.message ??
+              'Enter edit mode first to edit this active care plan.',
+          );
+        }
         const fieldError = firstApiValidationMessage(
           response.errors?.general_notes,
         );
@@ -1466,6 +1569,13 @@ export default function CarePlanBuilder({
         payload,
       );
       if (response.status === 'error') {
+        if (promptEnterEditModeIfRequired(response.errors, response.message)) {
+          throw new Error(
+            firstCarePlanFieldErrorMessage(response.errors) ??
+              response.message ??
+              'Enter edit mode first to edit this active care plan.',
+          );
+        }
         const fieldError = firstApiValidationMessage(
           response.errors?.daily_motivation,
         );
@@ -1929,6 +2039,13 @@ export default function CarePlanBuilder({
         payload.items,
       );
       if (response.status === 'error') {
+        if (promptEnterEditModeIfRequired(response.errors, response.message)) {
+          throw new Error(
+            firstCarePlanFieldErrorMessage(response.errors) ??
+              response.message ??
+              'Enter edit mode first to edit this active care plan.',
+          );
+        }
         const parsed = parseCarePlanSectionItemsApiErrors(response.errors);
         if (hasCarePlanSectionItemsFieldErrors(parsed)) {
           throw new CarePlanSectionItemsValidationError(
@@ -1940,14 +2057,14 @@ export default function CarePlanBuilder({
       }
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setItemFieldErrors({});
       setMovementRowErrors({});
       setSectionSaveError(undefined);
       toast.success(
         `The ${SECTIONS.find((x) => x.key === activeSection)?.label?.toLowerCase() ?? ''} section has been saved successfully.`,
       );
-      invalidateBuilder();
+      applyBuilderData(data);
     },
     onError: (error: Error) => {
       if (error instanceof CarePlanSectionItemsValidationError) {
@@ -1960,6 +2077,51 @@ export default function CarePlanBuilder({
         return;
       }
       toast.error(error.message ?? 'Could not save section items.');
+    },
+  });
+
+  const enterEditModeMutation = useMutation({
+    mutationFn: async () => {
+      const response = await postCarePlanEnterEditMode(carePlanId);
+      if (response.status === 'error') {
+        throw new Error(
+          firstCarePlanFieldErrorMessage(response.errors) ??
+            response.message ??
+            'Could not enter edit mode.',
+        );
+      }
+      return response.data;
+    },
+    onSuccess: (data) => {
+      setEnterEditModePromptOpen(false);
+      applyBuilderData(data);
+      toast.success(
+        'Edit mode enabled. Client logging is paused until you exit edit mode.',
+      );
+    },
+    onError: (error: Error) => {
+      toast.error(error.message ?? 'Could not enter edit mode.');
+    },
+  });
+
+  const exitEditModeMutation = useMutation({
+    mutationFn: async () => {
+      const response = await postCarePlanExitEditMode(carePlanId);
+      if (response.status === 'error') {
+        throw new Error(
+          firstCarePlanFieldErrorMessage(response.errors) ??
+            response.message ??
+            'Could not exit edit mode.',
+        );
+      }
+      return response.data;
+    },
+    onSuccess: (data) => {
+      applyBuilderData(data);
+      toast.success('Edit mode ended. Client logging is resumed.');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message ?? 'Could not exit edit mode.');
     },
   });
 
@@ -1986,6 +2148,7 @@ export default function CarePlanBuilder({
       const guidance = normalizeValue(item.guidance);
       const targetValue = normalizeValue(item.target_value);
       const targetUnit = normalizeValue(item.target_unit);
+      const eatingWindow = normalizeEatingWindowHHmm(item.eating_window);
       const movementId = normalizeValue(
         item.movement_exercise_id || item.exercise_id,
       );
@@ -2004,6 +2167,20 @@ export default function CarePlanBuilder({
           targetUnit ||
           movementId ||
           hasMeaningfulExercise,
+        );
+      }
+
+      if (sectionToValidate === 'nutrition') {
+        const nutritionIds = Array.isArray(item.nutrition_item_ids)
+          ? item.nutrition_item_ids
+          : [];
+        return Boolean(
+          title ||
+          guidance ||
+          targetValue ||
+          targetUnit ||
+          eatingWindow ||
+          nutritionIds.length > 0,
         );
       }
 
@@ -2053,6 +2230,15 @@ export default function CarePlanBuilder({
           itemFieldErrs[itemIndex] = {
             ...itemFieldErrs[itemIndex],
             target_unit: 'Select a unit when a target value is set.',
+          };
+        }
+        if (
+          sectionToValidate === 'nutrition' &&
+          !isValidEatingWindowInput(item?.eating_window)
+        ) {
+          itemFieldErrs[itemIndex] = {
+            ...itemFieldErrs[itemIndex],
+            eating_window: 'Use 24-hour time as HH:mm (e.g. 11:00).',
           };
         }
       }
@@ -2143,27 +2329,6 @@ export default function CarePlanBuilder({
     if (moveForward) moveToNextStep();
   };
 
-  const revisionMutation = useMutation({
-    mutationFn: async () => {
-      const response = await postCarePlanRevision(carePlanId);
-      if (response.status === 'error') {
-        throw new Error(
-          response.message ?? 'Could not create care plan revision.',
-        );
-      }
-      return response.data;
-    },
-    onSuccess: (data) => {
-      toast.success('The care plan revision has been created successfully.');
-      if (data?.id != null) {
-        router.push(ROUTES.ADMIN.MODULES.CARE_PLANS.WORKSPACE(String(data.id)));
-      }
-    },
-    onError: (error: Error) => {
-      toast.error(error.message ?? 'Could not create care plan revision.');
-    },
-  });
-
   const validateMutation = useMutation({
     mutationFn: async () => {
       const response = await postCarePlanValidate(carePlanId);
@@ -2204,6 +2369,7 @@ export default function CarePlanBuilder({
       | 'guidance'
       | 'target_value'
       | 'target_unit'
+      | 'eating_window'
       | 'movement_exercise_id'
       | 'exercise_id',
     value: string,
@@ -2217,6 +2383,7 @@ export default function CarePlanBuilder({
     if (field === 'guidance') clearItemFieldError(index, 'guidance');
     if (field === 'target_value') clearItemFieldError(index, 'target_value');
     if (field === 'target_unit') clearItemFieldError(index, 'target_unit');
+    if (field === 'eating_window') clearItemFieldError(index, 'eating_window');
   };
 
   const setNutritionItemIds = (index: number, ids: string[]) => {
@@ -2429,9 +2596,72 @@ export default function CarePlanBuilder({
     normalizedStatus === 'cancelled' ||
     Boolean(builder.cancellation_note?.trim()) ||
     Boolean(cancelledAt?.trim());
+  const pausedAtRaw =
+    builder.client_logging_paused_at?.trim() ||
+    builder.timestamps?.client_logging_paused_at?.trim() ||
+    null;
+  const pausedSinceLabel = pausedAtRaw
+    ? (() => {
+        try {
+          return format(parseISO(pausedAtRaw), 'dd-MMM-yyyy HH:mm');
+        } catch {
+          return pausedAtRaw;
+        }
+      })()
+    : null;
 
   return (
     <div className='space-y-6'>
+      {clientLoggingPaused ? (
+        <div
+          role='status'
+          className='flex flex-col gap-3 rounded-md border border-amber-200/90 bg-amber-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between'
+        >
+          <div className='flex min-w-0 items-start gap-2.5'>
+            <PauseCircleIcon
+              className='mt-0.5 size-4 shrink-0 text-amber-800'
+              aria-hidden
+            />
+            <div className='min-w-0 space-y-0.5'>
+              <p className='text-[13px] font-semibold text-amber-950'>
+                Edit mode on — client logging is paused
+              </p>
+              <p className='text-[12.5px] font-medium text-amber-900/90'>
+                Exit edit mode when finished so the client can log again.
+                {pausedSinceLabel ? ` Paused since ${pausedSinceLabel}.` : ''}
+                {isDetailMode ? ' Open the workspace to exit edit mode.' : ''}
+              </p>
+            </div>
+          </div>
+          {isDetailMode ? (
+            <Button
+              type='button'
+              variant='outline'
+              className='h-9 shrink-0 border-amber-300 bg-white px-3 text-[13px]! font-semibold text-amber-950 hover:bg-amber-100/60'
+              asChild
+            >
+              <Link
+                href={ROUTES.ADMIN.MODULES.CARE_PLANS.WORKSPACE(
+                  String(builder.id),
+                )}
+              >
+                Open workspace
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              type='button'
+              variant='outline'
+              className='h-9 shrink-0 border-amber-300 bg-white px-3 text-[13px]! font-semibold text-amber-950 hover:bg-amber-100/60'
+              disabled={exitEditModeMutation.isPending}
+              onClick={() => exitEditModeMutation.mutate()}
+            >
+              {exitEditModeMutation.isPending ? 'Exiting…' : 'Exit edit mode'}
+            </Button>
+          )}
+        </div>
+      ) : null}
+
       <section className='border-border max-w-full min-w-0 space-y-5 rounded-md border bg-white p-4 shadow-xs sm:p-5 lg:p-6'>
         <div className='space-y-4'>
           <div className='flex flex-wrap items-start justify-between gap-4'>
@@ -2444,7 +2674,7 @@ export default function CarePlanBuilder({
               </p>
             </div>
             <div className='flex flex-wrap items-center gap-2'>
-              {editable ? (
+              {timelineEditable ? (
                 <Button
                   type='button'
                   className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
@@ -2458,21 +2688,43 @@ export default function CarePlanBuilder({
                   )}
                   {generateDayButtonLabel}
                 </Button>
-              ) : !isDetailMode ? (
+              ) : null}
+              {!isDetailMode && isActivePlan && !clientLoggingPaused ? (
+                <Button
+                  type='button'
+                  className='h-10 shrink-0 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
+                  disabled={enterEditModeMutation.isPending}
+                  onClick={() => enterEditModeMutation.mutate()}
+                >
+                  <PencilLineIcon className='size-3.5' />
+                  {enterEditModeMutation.isPending
+                    ? 'Entering…'
+                    : 'Enter edit mode'}
+                </Button>
+              ) : null}
+              {!isDetailMode && isActivePlan && clientLoggingPaused ? (
                 <Button
                   type='button'
                   variant='outline'
-                  className='h-10 shrink-0 rounded-md px-3 text-[13px]! font-semibold'
-                  disabled={revisionMutation.isPending}
-                  onClick={() => revisionMutation.mutate()}
+                  className='h-10 shrink-0 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
+                  disabled={exitEditModeMutation.isPending}
+                  onClick={() => exitEditModeMutation.mutate()}
                 >
-                  {revisionMutation.isPending
-                    ? 'Creating revision…'
-                    : 'Create revision'}
+                  {exitEditModeMutation.isPending
+                    ? 'Exiting…'
+                    : 'Exit edit mode'}
                 </Button>
               ) : null}
             </div>
           </div>
+
+          {isActivePlan && !isDetailMode ? (
+            <p className='text-muted-foreground text-[12.5px] font-medium'>
+              {clientLoggingPaused
+                ? 'Day content can be edited while logging is paused. For date or day-structure changes, use Create revision from the care plans list.'
+                : 'To fix meals, guidance, notes, or motivation on this live plan, enter edit mode first. For date or day-structure changes, use Create revision from the care plans list.'}
+            </p>
+          ) : null}
 
           <div className='border-border/70 border-t' />
 
@@ -2617,7 +2869,7 @@ export default function CarePlanBuilder({
                 Set the care timeline first, then add tasks to each day across
                 nutrition, exercise, activity, hydration, sleep, and recovery.
               </p>
-              {editable ? (
+              {timelineEditable ? (
                 <Button
                   type='button'
                   className='mt-4 h-10 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
@@ -2631,6 +2883,11 @@ export default function CarePlanBuilder({
                   )}
                   {generateDayButtonLabel}
                 </Button>
+              ) : isActivePlan && !isDetailMode ? (
+                <p className='text-muted-foreground mt-3 text-[12.5px] font-medium'>
+                  Active plans cannot regenerate days here. Use Create revision
+                  from the care plans list for date or day-structure changes.
+                </p>
               ) : null}
             </div>
           </div>
@@ -3300,6 +3557,28 @@ export default function CarePlanBuilder({
                                       />
                                     </div>
                                     {activeSection === 'nutrition' ? (
+                                      <TextField
+                                        label='Eating window'
+                                        type='time'
+                                        step={60}
+                                        placeholder='HH:mm'
+                                        value={normalizeEatingWindowHHmm(
+                                          item.eating_window,
+                                        )}
+                                        onChange={(event) =>
+                                          setItemField(
+                                            index,
+                                            'eating_window',
+                                            event.target.value,
+                                          )
+                                        }
+                                        error={
+                                          itemFieldErrors[index]?.eating_window
+                                        }
+                                        disabled={!editable}
+                                      />
+                                    ) : null}
+                                    {activeSection === 'nutrition' ? (
                                       <div className='space-y-2'>
                                         {item.has_client_logs && editable ? (
                                           <p className='rounded-md border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-[12px] font-medium text-amber-950'>
@@ -3520,6 +3799,47 @@ export default function CarePlanBuilder({
         onValidate={() => validateMutation.mutate()}
         onFinalize={() => void handleFinalizeFromModal()}
       />
+
+      <AlertDialog
+        open={enterEditModePromptOpen}
+        onOpenChange={setEnterEditModePromptOpen}
+      >
+        <AlertDialogContent className='gap-0 overflow-hidden p-0 sm:max-w-md'>
+          <AlertDialogHeader className='border-border border-b p-6'>
+            <div className='flex items-start gap-3'>
+              <div className='bg-primary/10 text-primary mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-md'>
+                <PencilLineIcon className='size-4' aria-hidden />
+              </div>
+              <div className='space-y-1.5'>
+                <AlertDialogTitle className='text-foreground/90 text-sm font-bold'>
+                  Enter edit mode?
+                </AlertDialogTitle>
+                <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
+                  This active care plan requires edit mode before content can be
+                  saved. Entering pauses client logging until you exit.
+                </AlertDialogDescription>
+              </div>
+            </div>
+          </AlertDialogHeader>
+          <AlertDialogFooter className='bg-muted/30 border-border gap-2 border-t p-4 sm:justify-end'>
+            <AlertDialogCancel className='h-10 rounded-md px-3 text-[13px]! font-semibold'>
+              Not now
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className='h-10 rounded-md px-3 text-[13px]! font-semibold'
+              disabled={enterEditModeMutation.isPending}
+              onClick={(event) => {
+                event.preventDefault();
+                enterEditModeMutation.mutate();
+              }}
+            >
+              {enterEditModeMutation.isPending
+                ? 'Entering…'
+                : 'Enter edit mode'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

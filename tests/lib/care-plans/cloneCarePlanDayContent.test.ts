@@ -29,6 +29,7 @@ describe('cloneCarePlanSectionItem', () => {
         target_value: '500',
         target_unit: 'kcal',
         target_unit_id: 7,
+        eating_window: '11:00',
         has_client_logs: true,
         actions: { exercises_editable: false },
         nutrition_item_ids: ['n-1', '  ', 'n-2'],
@@ -48,6 +49,7 @@ describe('cloneCarePlanSectionItem', () => {
       expect(cloned.target_value).toBe('500');
       expect(cloned.target_unit).toBe('kcal');
       expect(cloned.target_unit_id).toBe(7);
+      expect(cloned.eating_window).toBe('11:00');
       expect(cloned.nutrition_item_ids).toEqual(['n-1', 'n-2']);
       expect(cloned.nutrition_items).toEqual([
         { nutrition_item_id: 'n-1' },

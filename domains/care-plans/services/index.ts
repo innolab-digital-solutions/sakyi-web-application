@@ -54,6 +54,8 @@ export {
   patchCarePlanDayNotes,
   postCarePlanActivate,
   postCarePlanCancel,
+  postCarePlanEnterEditMode,
+  postCarePlanExitEditMode,
   postCarePlanGenerateDays,
   postCarePlanOperationalLog,
   postCarePlanOperationalLogDraft,

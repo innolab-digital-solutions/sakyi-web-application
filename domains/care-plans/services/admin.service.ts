@@ -88,6 +88,33 @@ export async function postCarePlanCancel(
   );
 }
 
+/**
+ * Enters ACTIVE-plan edit mode (pauses client logging). Idempotent when already paused.
+ * Draft/scheduled/cancelled/completed return 422.
+ */
+export async function postCarePlanEnterEditMode(
+  id: number,
+): Promise<ApiResponse<AdminCarePlanBuilder>> {
+  return http.post<AdminCarePlanBuilder>(
+    ENDPOINTS.ADMIN.MODULES.CARE_PLANS.ENTER_EDIT_MODE(String(id)),
+    {},
+    { throwOnError: false },
+  );
+}
+
+/**
+ * Exits ACTIVE-plan edit mode (resumes client logging). Idempotent when not paused.
+ */
+export async function postCarePlanExitEditMode(
+  id: number,
+): Promise<ApiResponse<AdminCarePlanBuilder>> {
+  return http.post<AdminCarePlanBuilder>(
+    ENDPOINTS.ADMIN.MODULES.CARE_PLANS.EXIT_EDIT_MODE(String(id)),
+    {},
+    { throwOnError: false },
+  );
+}
+
 export async function postCreateCarePlan(
   body: CreateCarePlanPayload,
 ): Promise<ApiResponse<AdminCarePlan>> {
@@ -464,6 +491,7 @@ export async function putCarePlanSectionItems(
       section,
     ),
     { items },
+    { throwOnError: false },
   );
 }
 
@@ -487,6 +515,7 @@ export async function patchCarePlanDayNotes(
       String(dayId),
     ),
     body,
+    { throwOnError: false },
   );
 }
 
@@ -505,5 +534,6 @@ export async function patchCarePlanDayMotivation(
       String(dayId),
     ),
     body,
+    { throwOnError: false },
   );
 }

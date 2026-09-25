@@ -519,18 +519,26 @@ export default function CarePlanListTable() {
                   ) : null}
                   {showColumn('status') ? (
                     <TableCell>
-                      {lifecycle && statusStyle && StatusIcon ? (
-                        <span
-                          className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
-                        >
-                          <StatusIcon className='size-3.5 shrink-0' />
-                          {STATUS_LABEL[lifecycle]}
-                        </span>
-                      ) : (
-                        <span className='border-border bg-muted/60 text-foreground inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold'>
-                          {(row.status ?? 'unknown').trim() || '—'}
-                        </span>
-                      )}
+                      <div className='flex flex-col items-start gap-1'>
+                        {lifecycle && statusStyle && StatusIcon ? (
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
+                          >
+                            <StatusIcon className='size-3.5 shrink-0' />
+                            {STATUS_LABEL[lifecycle]}
+                          </span>
+                        ) : (
+                          <span className='border-border bg-muted/60 text-foreground inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold'>
+                            {(row.status ?? 'unknown').trim() || '—'}
+                          </span>
+                        )}
+                        {lifecycle === 'active' &&
+                        row.client_logging_paused === true ? (
+                          <span className='inline-flex items-center rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-950'>
+                            Logging paused
+                          </span>
+                        ) : null}
+                      </div>
                     </TableCell>
                   ) : null}
                   {showColumn('startsOn') ? (
