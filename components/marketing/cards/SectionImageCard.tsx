@@ -78,24 +78,37 @@ const SectionImageCard = ({
       <div className='absolute inset-0 bg-linear-to-br from-slate-900/20 to-slate-800/10 transition-opacity duration-300 group-hover:opacity-0' />
       <div className='from-brand/5 to-brand-deep/5 absolute inset-0 bg-linear-to-br' />
       {(title || subtitle) && (
+        // Bounded on both sides so long captions wrap instead of spreading
+        // across the photo, and stepped down on small screens where these
+        // cards are only half the grid wide.
         <div
           className={cn(
-            'absolute left-4 font-sans text-white',
-            isLarge ? 'bottom-4' : 'bottom-3 left-3',
+            'absolute font-sans text-white',
+            isLarge
+              ? 'right-3 bottom-3 left-3 sm:right-4 sm:bottom-4 sm:left-4'
+              : 'right-2 bottom-2 left-2 sm:right-3 sm:bottom-3 sm:left-3',
           )}
         >
           {title && (
             <div
-              className={isLarge ? 'text-lg font-bold' : 'text-sm font-bold'}
+              className={cn(
+                'font-bold',
+                isLarge
+                  ? 'text-sm sm:text-base lg:text-lg'
+                  : 'text-xs sm:text-sm',
+              )}
             >
               {title}
             </div>
           )}
           {subtitle && (
             <div
-              className={
-                isLarge ? 'text-sm text-white/90' : 'text-xs text-white/90'
-              }
+              className={cn(
+                'text-white/90',
+                isLarge
+                  ? 'text-[11px] sm:text-xs lg:text-sm'
+                  : 'text-[10px] sm:text-xs',
+              )}
             >
               {subtitle}
             </div>

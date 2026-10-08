@@ -151,7 +151,7 @@ const OurApproachSection = () => {
         <div className='relative min-w-0' data-aos='fade-left'>
           <div className='relative'>
             <DecorativeImage
-              src='/images/our-approach.jpg'
+              src='/images/about-approach.JPG'
               alt='SaKyi Wellness Approach - Holistic Health Methodology'
               width={600}
               height={600}
