@@ -12,7 +12,7 @@ import HowItWorksStepCard from '@/components/marketing/cards/HowItWorksStepCard'
 import SectionBadge from '@/components/marketing/SectionBadge';
 import SectionContainer from '@/components/marketing/SectionContainer';
 import Body1 from '@/components/shared/typography/Body1';
-import Heading1 from '@/components/shared/typography/Heading1';
+import Heading2 from '@/components/shared/typography/Heading2';
 import { useLanguage } from '@/context/LanguageContext';
 
 const HowItWorks = () => {
@@ -28,7 +28,7 @@ const HowItWorks = () => {
         'marketing.pages.programs.how-it-works.steps.initial-consultation.description',
       ),
       icon: MessageSquare,
-      color: 'from-[#35bec5] to-[#4bc4db]',
+      color: 'from-brand to-brand-light',
     },
     {
       number: '02',
@@ -39,7 +39,7 @@ const HowItWorks = () => {
         'marketing.pages.programs.how-it-works.steps.health-and-body-assessment.description',
       ),
       icon: ScanLine,
-      color: 'from-[#4bc4db] to-[#0c96c4]',
+      color: 'from-brand-light to-brand-deep',
     },
     {
       number: '03',
@@ -50,7 +50,7 @@ const HowItWorks = () => {
         'marketing.pages.programs.how-it-works.steps.smart-tracking-program-design.description',
       ),
       icon: LayoutDashboard,
-      color: 'from-[#35bec5] to-[#0c96c4]',
+      color: 'from-brand to-brand-deep',
     },
     {
       number: '04',
@@ -61,7 +61,7 @@ const HowItWorks = () => {
         'marketing.pages.programs.how-it-works.steps.program-launch-support.description',
       ),
       icon: Rocket,
-      color: 'from-[#4bc4db] to-[#35bec5]',
+      color: 'from-brand-light to-brand',
     },
   ];
 
@@ -76,7 +76,7 @@ const HowItWorks = () => {
           text={translate('marketing.pages.programs.how-it-works.badge')}
         />
 
-        <Heading1 lang={language} className='mx-auto text-center'>
+        <Heading2 lang={language} className='mx-auto text-center'>
           <span className='text-foreground'>
             {translate(
               'marketing.pages.programs.how-it-works.title.black',
@@ -85,7 +85,7 @@ const HowItWorks = () => {
           <span className='text-brand-gradient bg-clip-text text-transparent'>
             {translate('marketing.pages.programs.how-it-works.title.gradient')}
           </span>
-        </Heading1>
+        </Heading2>
 
         <Body1
           lang={language}

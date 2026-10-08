@@ -42,9 +42,9 @@ const LanguageDropdown = ({ className }: LanguageDropdownProps) => {
       <DropdownMenuTrigger
         className={cn(
           'group inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium transition-all duration-200 outline-none',
-          'text-slate-600 hover:border-[#35bec5]/40 hover:bg-[#35bec5]/5 hover:text-slate-900',
-          'data-[state=open]:border-[#35bec5]/50 data-[state=open]:bg-[#35bec5]/5 data-[state=open]:text-slate-900',
-          'focus-visible:ring-2 focus-visible:ring-[#35bec5]/40 focus-visible:ring-offset-2',
+          'hover:border-brand/40 hover:bg-brand/5 text-slate-600 hover:text-slate-900',
+          'data-[state=open]:border-brand/50 data-[state=open]:bg-brand/5 data-[state=open]:text-slate-900',
+          'focus-visible:ring-brand/40 focus-visible:ring-2 focus-visible:ring-offset-2',
           'shadow-sm hover:shadow-md',
           className,
         )}
@@ -76,7 +76,7 @@ const LanguageDropdown = ({ className }: LanguageDropdownProps) => {
               className={cn(
                 'flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-150',
                 isSelected
-                  ? 'bg-gradient-to-r from-[#35bec5]/10 to-[#0c96c4]/10 font-medium text-slate-900'
+                  ? 'from-brand/10 to-brand-deep/10 bg-gradient-to-r font-medium text-slate-900'
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
               )}
             >
@@ -91,7 +91,7 @@ const LanguageDropdown = ({ className }: LanguageDropdownProps) => {
               </span>
               {isSelected && (
                 <Check
-                  className='h-3.5 w-3.5 shrink-0 text-[#35bec5]'
+                  className='text-brand h-3.5 w-3.5 shrink-0'
                   strokeWidth={2.5}
                 />
               )}

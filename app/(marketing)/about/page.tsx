@@ -2,10 +2,10 @@ import type { Metadata } from 'next';
 
 import AboutIntroSection from '@/components/marketing/sections/about/AboutIntroSection';
 import BeyondWeightLossSection from '@/components/marketing/sections/about/BeyondWeightLossSection';
-import CallToActionSection from '@/components/marketing/sections/about/CallToActionSection';
 import MissionAndPhilosophySection from '@/components/marketing/sections/about/MissionAndPhilosophySection';
 import OurApproachSection from '@/components/marketing/sections/about/OurApproachSection';
 import OurExpertTeamSection from '@/components/marketing/sections/about/OurExpertTeamSection';
+import CallToActionSection from '@/components/marketing/sections/CallToActionSection';
 
 export const metadata: Metadata = {
   title: 'About SaKyi Health & Wellness',
@@ -26,7 +26,10 @@ export default function AboutPage() {
 
       <BeyondWeightLossSection />
 
-      <CallToActionSection />
+      <CallToActionSection
+        id='about-cta-section'
+        translationPrefix='marketing.pages.about.call-to-action'
+      />
     </>
   );
 }

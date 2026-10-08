@@ -51,10 +51,11 @@ const MissionAndPhilosophySection = () => {
         <div className='relative min-w-0' data-aos='fade-right'>
           <div className='relative'>
             <DecorativeImage
-              src='/images/about-mission.jpg'
+              src='/images/about-our-mission.JPG'
               alt='SaKyi Mission & Philosophy - Holistic Wellness Approach'
-              width={600}
-              height={600}
+              width={1200}
+              height={800}
+              aspectClassName='aspect-3/2 lg:aspect-square'
             />
 
             <FloatingCard
@@ -66,7 +67,7 @@ const MissionAndPhilosophySection = () => {
                 'marketing.pages.about.our-mission.floating-cards.mission.description',
               )}
               className='-top-6 -left-2 sm:-left-4 lg:-top-4 lg:-left-6'
-              iconClassName='bg-linear-to-r from-[#35bec5] to-[#4bc4db]'
+              iconClassName='bg-linear-to-r from-brand to-brand-light'
             />
 
             <FloatingCard
@@ -78,7 +79,7 @@ const MissionAndPhilosophySection = () => {
                 'marketing.pages.about.our-mission.floating-cards.holistic.description',
               )}
               className='-right-2 -bottom-6 sm:-right-4 lg:-right-6'
-              iconClassName='bg-linear-to-r from-[#4bc4db] to-[#0c96c4]'
+              iconClassName='bg-linear-to-r from-brand-light to-brand-deep'
             />
           </div>
         </div>

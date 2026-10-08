@@ -81,7 +81,7 @@ export default function ProgramCard({
       <div className='pt-1'>
         <Link
           href={`/programs/${program.slug}`}
-          className='group/link inline-flex items-center text-sm font-medium text-[#35bec5] transition-all duration-300 hover:text-[#0c96c4]'
+          className='group/link text-brand hover:text-brand-deep inline-flex items-center text-sm font-medium transition-all duration-300'
           style={{ fontFamily: 'Inter, sans-serif' }}
         >
           <span>{translate('marketing.pages.programs.program-card.cta')}</span>

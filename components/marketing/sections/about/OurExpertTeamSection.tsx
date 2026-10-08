@@ -17,7 +17,7 @@ const OurExpertTeamSection = () => {
       name: translate('marketing.pages.about.our-team.members.founder.name'),
       role: translate('marketing.pages.about.our-team.members.founder.role'),
       bio: translate('marketing.pages.about.our-team.members.founder.bio'),
-      image: '/images/founder-kyawhtin.jpg',
+      image: '/images/kyaw-htin-avatar.jpg',
       quote: translate('marketing.pages.about.our-team.members.founder.quote'),
       socials: {
         linkedin: 'https://www.linkedin.com/in/kyaw-htin-86b0ba144/',
@@ -40,10 +40,10 @@ const OurExpertTeamSection = () => {
       quote: translate(
         'marketing.pages.about.our-team.members.technical-director.quote',
       ),
-      image: '/images/technical-swamhtet.jpg',
+      image: '/images/swam-avatar.jpg',
       socials: {
-        linkedin: 'www.linkedin.com/in/swam-htet-830b71129',
-        email: 'drswamhtet@sakyihealthandwellness.com ',
+        linkedin: 'https://www.linkedin.com/in/swam-htet-830b71129',
+        email: 'drswamhtet@sakyihealthandwellness.com',
       },
     },
 
@@ -60,7 +60,7 @@ const OurExpertTeamSection = () => {
       quote: translate(
         'marketing.pages.about.our-team.members.operations-director.quote',
       ),
-      image: '/images/founder-maphoo.jpg',
+      image: '/images/ma-phoo-avatar.jpg',
       socials: {
         facebook: 'https://www.facebook.com/share/1CfUg3DzMW/?mibextid=wwXIfr',
         tiktok: 'https://www.tiktok.com/@phothitnwe7?_r=1&_t=ZS-92poyHOmwwy',
@@ -105,12 +105,12 @@ const OurExpertTeamSection = () => {
             >
               {/* Profile Image */}
               <div className='mb-6 flex justify-center'>
-                <div className='relative h-32 w-32 overflow-hidden rounded-full shadow-xl ring-4 ring-white'>
+                <div className='relative h-50 w-50 overflow-hidden rounded-full shadow-xl ring-4 ring-white'>
                   <Image
                     src={member.image}
                     alt={member.name}
-                    width={300}
-                    height={300}
+                    width={400}
+                    height={400}
                     className='h-full w-full object-cover transition-transform duration-300 group-hover:scale-105'
                     quality={90}
                   />
@@ -129,7 +129,7 @@ const OurExpertTeamSection = () => {
                     {member.name}
                   </h3>
                   <p
-                    className='mt-1 text-sm font-semibold text-[#35bec5]'
+                    className='text-brand mt-1 text-sm font-semibold'
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   >
                     {member.role}
@@ -155,9 +155,10 @@ const OurExpertTeamSection = () => {
                   {member.socials.linkedin && (
                     <a
                       href={member.socials.linkedin}
+                      aria-label={`${member.name} on LinkedIn`}
                       target='_blank'
                       rel='noopener noreferrer'
-                      className='flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all duration-300 hover:scale-110 hover:bg-[#35bec5] hover:text-white'
+                      className='hover:bg-brand flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all duration-300 hover:scale-110 hover:text-white'
                     >
                       <Linkedin className='h-4 w-4' />
                     </a>
@@ -165,7 +166,8 @@ const OurExpertTeamSection = () => {
                   {member.socials.email && (
                     <a
                       href={`mailto:${member.socials.email}`}
-                      className='flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all duration-300 hover:scale-110 hover:bg-[#35bec5] hover:text-white'
+                      aria-label={`Email ${member.name}`}
+                      className='hover:bg-brand flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all duration-300 hover:scale-110 hover:text-white'
                     >
                       <Mail className='h-4 w-4' />
                     </a>
@@ -173,9 +175,10 @@ const OurExpertTeamSection = () => {
                   {member.socials.facebook && (
                     <a
                       href={member.socials.facebook}
+                      aria-label={`${member.name} on Facebook`}
                       target='_blank'
                       rel='noopener noreferrer'
-                      className='flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all duration-300 hover:scale-110 hover:bg-[#35bec5] hover:text-white'
+                      className='hover:bg-brand flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all duration-300 hover:scale-110 hover:text-white'
                     >
                       <Facebook className='h-4 w-4' />
                     </a>
@@ -183,9 +186,10 @@ const OurExpertTeamSection = () => {
                   {member.socials.youtube && (
                     <a
                       href={member.socials.youtube}
+                      aria-label={`${member.name} on YouTube`}
                       target='_blank'
                       rel='noopener noreferrer'
-                      className='flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all duration-300 hover:scale-110 hover:bg-[#35bec5] hover:text-white'
+                      className='hover:bg-brand flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all duration-300 hover:scale-110 hover:text-white'
                     >
                       <Youtube className='h-4 w-4' />
                     </a>
@@ -193,9 +197,10 @@ const OurExpertTeamSection = () => {
                   {member.socials.tiktok && (
                     <a
                       href={member.socials.tiktok}
+                      aria-label={`${member.name} on TikTok`}
                       target='_blank'
                       rel='noopener noreferrer'
-                      className='flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all duration-300 hover:scale-110 hover:bg-[#35bec5] hover:text-white'
+                      className='hover:bg-brand flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all duration-300 hover:scale-110 hover:text-white'
                     >
                       <Music2 className='h-4 w-4' />
                     </a>

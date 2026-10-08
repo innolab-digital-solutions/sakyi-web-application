@@ -1,3 +1,5 @@
+'use client';
+
 import { Smartphone } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 

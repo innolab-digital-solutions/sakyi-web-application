@@ -54,7 +54,7 @@ const AboutOverviewSection = () => {
         <div className='relative min-w-0' data-aos='fade-right'>
           <div className='relative'>
             <DecorativeImage
-              src='/images/home-about1.jpg'
+              src='/images/home-about-2.png'
               alt='Doctor video consultation with patient at home on laptop'
               width={600}
               height={600}
@@ -70,7 +70,7 @@ const AboutOverviewSection = () => {
                 'marketing.pages.home.about-overview.floating-cards.lives-transformed.description',
               )}
               className='-top-6 -left-2 sm:-left-4 lg:-top-4 lg:-left-6'
-              iconClassName='bg-linear-to-r from-[#4bc4db] to-[#0c96c4]'
+              iconClassName='bg-linear-to-r from-brand-light to-brand-deep'
             />
             <FloatingCard
               icon={<Users className='h-5 w-5' />}
@@ -81,7 +81,7 @@ const AboutOverviewSection = () => {
                 'marketing.pages.home.about-overview.floating-cards.success-rate.description',
               )}
               className='-right-2 -bottom-6 sm:-right-4 lg:-right-6'
-              iconClassName='bg-linear-to-r from-[#35bec5] to-[#4bc4db]'
+              iconClassName='bg-linear-to-r from-brand to-brand-light'
             />
             {/* Floating card: success rate */}
           </div>

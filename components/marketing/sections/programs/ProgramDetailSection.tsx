@@ -17,6 +17,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 import { Skeleton } from '@/components/ui/skeleton';
+import { ROUTES } from '@/config/routes';
 import { useLanguage } from '@/context/LanguageContext';
 import { getProgramBySlug } from '@/domains/programs/services';
 import type { Program } from '@/domains/programs/types';
@@ -59,17 +60,17 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
       {/* Hero Section */}
       <section className='relative flex min-h-screen items-center overflow-hidden bg-slate-50'>
         <div className='absolute inset-0 overflow-hidden'>
-          <div className='absolute -top-40 -right-40 h-80 w-80 rounded-full bg-linear-to-br from-[#35bec5]/10 to-[#4bc4db]/10 blur-3xl' />
-          <div className='absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-linear-to-br from-[#4bc4db]/10 to-[#0c96c4]/10 blur-3xl' />
-          <div className='absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-linear-to-br from-[#35bec5]/5 to-[#0c96c4]/5 blur-3xl' />
+          <div className='from-brand/10 to-brand-light/10 absolute -top-40 -right-40 h-80 w-80 rounded-full bg-linear-to-br blur-3xl' />
+          <div className='from-brand-light/10 to-brand-deep/10 absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-linear-to-br blur-3xl' />
+          <div className='from-brand/5 to-brand-deep/5 absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-linear-to-br blur-3xl' />
         </div>
 
         <div className='relative mx-auto max-w-7xl px-4 pt-24 pb-20 sm:px-6 lg:px-8'>
           {/* Back Button */}
           <div className='mb-8' data-aos='fade-up'>
             <Link
-              href='/programs'
-              className='group inline-flex items-center gap-2 font-medium text-slate-600 transition-colors duration-300 hover:text-[#35bec5]'
+              href={ROUTES.MARKETING.PROGRAMS}
+              className='group hover:text-brand inline-flex items-center gap-2 font-medium text-slate-600 transition-colors duration-300'
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               <svg
@@ -97,7 +98,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                 <Skeleton className='h-8 w-40 rounded-full' />
               ) : (
                 program?.tagline && (
-                  <div className='inline-flex items-center gap-2 rounded-full bg-linear-to-r from-[#35bec5]/10 to-[#0c96c4]/10 px-4 py-2 text-sm font-medium text-[#35bec5]'>
+                  <div className='from-brand/10 to-brand-deep/10 text-brand inline-flex items-center gap-2 rounded-full bg-linear-to-r px-4 py-2 text-sm font-medium'>
                     <Zap className='h-4 w-4' />
                     <span style={{ fontFamily: 'Inter, sans-serif' }}>
                       {program.tagline}
@@ -137,8 +138,8 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                 <Skeleton className='h-10 w-32' />
               ) : (
                 <div className='flex items-center gap-3'>
-                  <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-r from-[#35bec5]/10 to-[#0c96c4]/10'>
-                    <Clock className='h-5 w-5 text-[#35bec5]' />
+                  <div className='from-brand/10 to-brand-deep/10 flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-r'>
+                    <Clock className='text-brand h-5 w-5' />
                   </div>
                   <div>
                     <div
@@ -160,8 +161,8 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
               {/* Price */}
               {!isLoading && program?.price?.amount != null && (
                 <div className='flex items-center gap-3'>
-                  <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-r from-[#35bec5]/10 to-[#0c96c4]/10'>
-                    <DollarSign className='h-5 w-5 text-[#35bec5]' />
+                  <div className='from-brand/10 to-brand-deep/10 flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-r'>
+                    <DollarSign className='text-brand h-5 w-5' />
                   </div>
                   <div>
                     <div
@@ -184,7 +185,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
               {/* CTA Buttons */}
               <div className='flex flex-col gap-4 sm:flex-row'>
                 <Link
-                  href='/contact'
+                  href={ROUTES.MARKETING.CONTACT}
                   className='group bg-brand-gradient inline-flex items-center justify-center rounded-full px-6 py-3 text-base font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl'
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
@@ -194,8 +195,8 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                 </Link>
 
                 <Link
-                  href='/programs'
-                  className='group inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-6 py-3 text-base font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:scale-105 hover:border-[#35bec5] hover:text-[#35bec5] hover:shadow-lg'
+                  href={ROUTES.MARKETING.PROGRAMS}
+                  className='group hover:border-brand hover:text-brand inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-6 py-3 text-base font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-lg'
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
                   <Grid3X3 className='mr-2 h-5 w-5' />
@@ -255,7 +256,7 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
               </h2>
             )}
             <div
-              className='mt-6 max-w-4xl text-lg leading-relaxed text-slate-600 [&_a]:text-[#35bec5] [&_a]:underline [&_a]:underline-offset-2 [&_a:hover]:text-[#2aa0a7] [&_blockquote]:mb-6 [&_blockquote]:border-l-4 [&_blockquote]:border-[#35bec5] [&_blockquote]:bg-slate-50 [&_blockquote]:py-4 [&_blockquote]:pl-6 [&_blockquote]:text-slate-700 [&_blockquote]:italic [&_h1]:mb-4 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:tracking-tight [&_h1]:text-slate-900 [&_h2]:mb-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-slate-900 [&_h3]:mb-2 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-slate-900 [&_hr]:my-6 [&_hr]:border-t [&_hr]:border-slate-200 [&_li]:mb-1 [&_li]:leading-relaxed [&_ol]:mb-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:text-slate-600 [&_p]:mb-4 [&_p]:leading-relaxed [&_p]:text-slate-600 [&_strong]:text-slate-900 [&_ul]:mb-4 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:text-slate-600'
+              className='[&_a]:text-brand [&_a:hover]:text-brand-hover [&_blockquote]:border-brand mt-6 max-w-4xl text-lg leading-relaxed text-slate-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:mb-6 [&_blockquote]:border-l-4 [&_blockquote]:bg-slate-50 [&_blockquote]:py-4 [&_blockquote]:pl-6 [&_blockquote]:text-slate-700 [&_blockquote]:italic [&_h1]:mb-4 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:tracking-tight [&_h1]:text-slate-900 [&_h2]:mb-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-slate-900 [&_h3]:mb-2 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-slate-900 [&_hr]:my-6 [&_hr]:border-t [&_hr]:border-slate-200 [&_li]:mb-1 [&_li]:leading-relaxed [&_ol]:mb-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:text-slate-600 [&_p]:mb-4 [&_p]:leading-relaxed [&_p]:text-slate-600 [&_strong]:text-slate-900 [&_ul]:mb-4 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:text-slate-600'
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               {isLoading ? (
@@ -296,8 +297,8 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                     ))
                   : program?.features?.map((feature, index) => (
                       <div key={index} className='flex items-center gap-4'>
-                        <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-r from-[#35bec5]/10 to-[#0c96c4]/10'>
-                          <CheckCircle className='h-5 w-5 text-[#35bec5]' />
+                        <div className='from-brand/10 to-brand-deep/10 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-r'>
+                          <CheckCircle className='text-brand h-5 w-5' />
                         </div>
                         <p
                           className='text-slate-600'
@@ -334,8 +335,8 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                     ))
                   : program?.ideals?.map((item, index) => (
                       <div key={index} className='flex items-center gap-4'>
-                        <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-r from-[#35bec5]/10 to-[#0c96c4]/10'>
-                          <CheckCircle className='h-5 w-5 text-[#35bec5]' />
+                        <div className='from-brand/10 to-brand-deep/10 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-r'>
+                          <CheckCircle className='text-brand h-5 w-5' />
                         </div>
                         <p
                           className='text-slate-600'
@@ -354,8 +355,8 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
       {/* Expected Results */}
       <section className='relative overflow-hidden bg-slate-50 py-24'>
         <div className='absolute inset-0 overflow-hidden'>
-          <div className='absolute top-1/4 -right-32 h-64 w-64 rounded-full bg-linear-to-br from-[#35bec5]/5 to-[#0c96c4]/5 blur-3xl' />
-          <div className='absolute bottom-1/4 -left-32 h-64 w-64 rounded-full bg-linear-to-br from-[#4bc4db]/5 to-[#35bec5]/5 blur-3xl' />
+          <div className='from-brand/5 to-brand-deep/5 absolute top-1/4 -right-32 h-64 w-64 rounded-full bg-linear-to-br blur-3xl' />
+          <div className='from-brand-light/5 to-brand/5 absolute bottom-1/4 -left-32 h-64 w-64 rounded-full bg-linear-to-br blur-3xl' />
         </div>
 
         <div className='relative mx-auto max-w-7xl px-6 lg:px-8'>
@@ -385,9 +386,9 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                     key={index}
                     data-aos='fade-up'
                     data-aos-delay={`${index * 100}`}
-                    className='group flex items-start gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:border-[#35bec5]/50 hover:shadow-lg'
+                    className='group hover:border-brand/50 flex items-start gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg'
                   >
-                    <div className='flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-linear-to-r from-[#35bec5] to-[#0c96c4] transition-all duration-300 group-hover:scale-105'>
+                    <div className='from-brand to-brand-deep flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-linear-to-r transition-all duration-300 group-hover:scale-105'>
                       <CheckCircle className='h-6 w-6 text-white' />
                     </div>
                     <div className='space-y-1'>
@@ -441,15 +442,15 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
                     key={index}
                     data-aos='fade-up'
                     data-aos-delay={`${index * 100}`}
-                    className='group flex items-start gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:border-[#35bec5]/50 hover:shadow-lg sm:p-8'
+                    className='group hover:border-brand/50 flex items-start gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg sm:p-8'
                   >
-                    <div className='flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-linear-to-r from-[#35bec5] to-[#0c96c4] font-bold text-white transition-all duration-300 group-hover:scale-105'>
+                    <div className='from-brand to-brand-deep flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-linear-to-r font-bold text-white transition-all duration-300 group-hover:scale-105'>
                       {index + 1}
                     </div>
                     <div className='space-y-1'>
                       {phase.period && (
                         <p
-                          className='text-sm font-medium text-[#35bec5]'
+                          className='text-brand text-sm font-medium'
                           style={{ fontFamily: 'Inter, sans-serif' }}
                         >
                           {phase.period}
@@ -497,8 +498,8 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
           </p>
           <div className='mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row'>
             <Link
-              href='/contact'
-              className='group inline-flex items-center gap-2 rounded-full border-2 border-white bg-white px-8 py-4 font-semibold text-[#35bec5] transition-all duration-300 hover:scale-105 hover:bg-slate-50 hover:shadow-lg'
+              href={ROUTES.MARKETING.CONTACT}
+              className='group text-brand inline-flex items-center gap-2 rounded-full border-2 border-white bg-white px-8 py-4 font-semibold transition-all duration-300 hover:scale-105 hover:bg-slate-50 hover:shadow-lg'
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               <Heart className='mr-2 h-5 w-5' />
@@ -507,8 +508,8 @@ const ProgramDetailSection = ({ slug }: ProgramDetailSectionProps) => {
             </Link>
 
             <Link
-              href='/programs'
-              className='group inline-flex items-center gap-2 rounded-full border-2 border-white px-8 py-4 font-semibold text-white transition-all duration-300 hover:scale-105 hover:bg-white hover:text-[#35bec5] hover:shadow-lg'
+              href={ROUTES.MARKETING.PROGRAMS}
+              className='group hover:text-brand inline-flex items-center gap-2 rounded-full border-2 border-white px-8 py-4 font-semibold text-white transition-all duration-300 hover:scale-105 hover:bg-white hover:shadow-lg'
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               Explore All Programs

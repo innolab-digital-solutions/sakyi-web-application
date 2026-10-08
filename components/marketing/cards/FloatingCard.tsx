@@ -13,7 +13,7 @@ const FloatingCard = ({
   title,
   description,
   className = '',
-  iconClassName = 'bg-linear-to-r from-[#35bec5] to-[#4bc4db]',
+  iconClassName = 'bg-linear-to-r from-brand to-brand-light',
 }: FloatingCardProps) => {
   const baseClasses =
     'absolute animate-pulse rounded-2xl border border-slate-200/50 bg-white/90 p-4 shadow-xl backdrop-blur-sm hover:animate-bounce';

@@ -85,8 +85,8 @@ const SendUsMessageSection = () => {
             <div className='space-y-8'>
               {/* Form Header */}
               <div className='text-center'>
-                <div className='mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-r from-[#35bec5]/10 to-[#0c96c4]/10'>
-                  <Send className='h-8 w-8 text-[#35bec5]' />
+                <div className='from-brand/10 to-brand-deep/10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-r'>
+                  <Send className='text-brand h-8 w-8' />
                 </div>
                 <h3
                   className='text-2xl font-bold text-slate-900'

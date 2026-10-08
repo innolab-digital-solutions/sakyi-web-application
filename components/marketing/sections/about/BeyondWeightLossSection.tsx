@@ -68,7 +68,7 @@ const BeyondWeightLossSection = () => {
         <div className='relative min-w-0' data-aos='fade-right'>
           <div className='relative'>
             <DecorativeImage
-              src='/images/our-impact.jpg'
+              src='/images/results.JPG'
               alt='SaKyi Mission & Philosophy - Holistic Wellness Approach'
               width={600}
               height={600}
@@ -83,7 +83,7 @@ const BeyondWeightLossSection = () => {
                 'marketing.pages.about.beyond-weight-loss.floating-cards.proven-results.description',
               )}
               className='-top-6 -left-2 sm:-left-4 lg:-top-4 lg:-left-6'
-              iconClassName='bg-linear-to-r from-[#35bec5] to-[#4bc4db]'
+              iconClassName='bg-linear-to-r from-brand to-brand-light'
             />
 
             <FloatingCard
@@ -95,7 +95,7 @@ const BeyondWeightLossSection = () => {
                 'marketing.pages.about.beyond-weight-loss.floating-cards.holistic-care.description',
               )}
               className='-right-2 -bottom-6 sm:-right-4 lg:-right-6'
-              iconClassName='bg-linear-to-r from-[#4bc4db] to-[#0c96c4]'
+              iconClassName='bg-linear-to-r from-brand-light to-brand-deep'
             />
           </div>
         </div>

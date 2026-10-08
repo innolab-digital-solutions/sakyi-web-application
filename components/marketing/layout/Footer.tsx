@@ -42,14 +42,17 @@ const Footer = () => {
             <SocialButton
               icon={<Facebook className='h-4 w-4' />}
               href='https://www.facebook.com/share/1AZkhgRBMS/?mibextid=wwXIfr'
+              label='SaKyi Health & Wellness on Facebook'
             />
             <SocialButton
               icon={<Instagram className='h-4 w-4' />}
               href='https://www.instagram.com/sakyihealthandwellness/'
+              label='SaKyi Health & Wellness on Instagram'
             />
             <SocialButton
               icon={<Mail className='h-4 w-4' />}
-              href={`mailto:customerservice@sakyihealthandwellness.com`}
+              href='mailto:customerservice@sakyihealthandwellness.com'
+              label='Email SaKyi Health & Wellness'
             />
           </div>
         </div>
@@ -73,7 +76,10 @@ const Footer = () => {
             </div>
             <div className='text-muted-foreground flex items-center space-x-2 font-sans text-sm font-medium'>
               <Copyright className='h-4 w-4' />
-              <span>2026 SaKyi Health & Wellness. All rights reserved.</span>
+              <span>
+                {new Date().getFullYear()} SaKyi Health &amp; Wellness. All
+                rights reserved.
+              </span>
             </div>
           </div>
         </div>

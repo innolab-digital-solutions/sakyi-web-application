@@ -110,7 +110,7 @@ const OurApproachSection = () => {
           {/* Stats Row */}
           <div className='grid grid-cols-3 gap-4 border-t border-slate-200/60 pt-8'>
             <div className='group flex flex-col items-center gap-2 text-center'>
-              <CheckCircle className='h-5 w-5 text-[#35bec5]' />
+              <CheckCircle className='text-brand h-5 w-5' />
               <p
                 className='text-sm font-medium text-slate-600 transition-colors duration-200 group-hover:text-slate-900'
                 style={{ fontFamily: 'Inter, sans-serif' }}
@@ -122,7 +122,7 @@ const OurApproachSection = () => {
             </div>
 
             <div className='group flex flex-col items-center gap-2 border-x border-slate-200/60 text-center'>
-              <Heart className='h-5 w-5 text-[#35bec5]' />
+              <Heart className='text-brand h-5 w-5' />
               <p
                 className='text-sm font-medium text-slate-600 transition-colors duration-200 group-hover:text-slate-900'
                 style={{ fontFamily: 'Inter, sans-serif' }}
@@ -134,7 +134,7 @@ const OurApproachSection = () => {
             </div>
 
             <div className='group flex flex-col items-center gap-2 text-center'>
-              <Star className='h-5 w-5 text-[#35bec5]' />
+              <Star className='text-brand h-5 w-5' />
               <p
                 className='text-sm font-medium text-slate-600 transition-colors duration-200 group-hover:text-slate-900'
                 style={{ fontFamily: 'Inter, sans-serif' }}
@@ -166,7 +166,7 @@ const OurApproachSection = () => {
                 'marketing.pages.programs.personalized-care.floating-cards.proven-results.description',
               )}
               className='-top-6 -left-2 sm:-left-4 lg:-top-4 lg:-left-6'
-              iconClassName='bg-gradient-to-r from-[#35bec5] to-[#4bc4db]'
+              iconClassName='bg-gradient-to-r from-brand to-brand-light'
             />
 
             <FloatingCard
@@ -178,7 +178,7 @@ const OurApproachSection = () => {
                 'marketing.pages.programs.personalized-care.floating-cards.holistic-care.description',
               )}
               className='-right-2 -bottom-6 sm:-right-4 lg:-right-6'
-              iconClassName='bg-gradient-to-r from-[#4bc4db] to-[#0c96c4]'
+              iconClassName='bg-gradient-to-r from-brand-light to-brand-deep'
             />
           </div>
         </div>

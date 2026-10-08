@@ -7,10 +7,10 @@ type SectionImageCardProps = {
   src: string;
   /** Alt text for the image */
   alt: string;
-  /** Overlay title (e.g. "Our Expert Team") */
-  title: string;
-  /** Overlay subtitle (e.g. "Certified Medical Professionals") */
-  subtitle: string;
+  /** Optional overlay title (e.g. "Our Expert Team") */
+  title?: string;
+  /** Optional overlay subtitle (e.g. "Certified Medical Professionals") */
+  subtitle?: string;
   /** large = prominent card (e.g. top of grid); small = compact card */
   variant: 'large' | 'small';
   /** Optional grid placement (e.g. col-span-2 row-span-2) and other layout classes */
@@ -24,8 +24,12 @@ type SectionImageCardProps = {
 };
 
 /**
- * Reusable image card with overlay gradient and caption. Used for about hero
- * and similar section image grids. Supports large (feature) and small variants.
+ * Reusable image card with an overlay gradient and an optional caption. Used for
+ * the about hero and similar section image grids. Supports large (feature) and
+ * small variants.
+ *
+ * `title` and `subtitle` are optional and render independently: pass either,
+ * both, or neither. With neither, no caption element is rendered at all.
  */
 const SectionImageCard = ({
   src,
@@ -72,24 +76,32 @@ const SectionImageCard = ({
         />
       </div>
       <div className='absolute inset-0 bg-linear-to-br from-slate-900/20 to-slate-800/10 transition-opacity duration-300 group-hover:opacity-0' />
-      <div className='absolute inset-0 bg-linear-to-br from-[#35bec5]/5 to-[#0c96c4]/5' />
-      <div
-        className={cn(
-          'absolute left-4 font-sans text-white',
-          isLarge ? 'bottom-4' : 'bottom-3 left-3',
-        )}
-      >
-        <div className={isLarge ? 'text-lg font-bold' : 'text-sm font-bold'}>
-          {title}
-        </div>
+      <div className='from-brand/5 to-brand-deep/5 absolute inset-0 bg-linear-to-br' />
+      {(title || subtitle) && (
         <div
-          className={
-            isLarge ? 'text-sm text-white/90' : 'text-xs text-white/90'
-          }
+          className={cn(
+            'absolute left-4 font-sans text-white',
+            isLarge ? 'bottom-4' : 'bottom-3 left-3',
+          )}
         >
-          {subtitle}
+          {title && (
+            <div
+              className={isLarge ? 'text-lg font-bold' : 'text-sm font-bold'}
+            >
+              {title}
+            </div>
+          )}
+          {subtitle && (
+            <div
+              className={
+                isLarge ? 'text-sm text-white/90' : 'text-xs text-white/90'
+              }
+            >
+              {subtitle}
+            </div>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 };

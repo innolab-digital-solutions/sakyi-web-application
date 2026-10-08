@@ -280,7 +280,7 @@ export default function TermsOfServicePage() {
         {/* Bottom contact card */}
         <div className='bg-brand-gradient mt-10 rounded-2xl p-px'>
           <div className='rounded-2xl bg-white p-6 text-center'>
-            <Scale className='mx-auto mb-3 h-8 w-8 text-[#35bec5]' />
+            <Scale className='mx-auto mb-3 h-8 w-8 text-brand' />
             <h3 className='text-foreground mb-1 font-sans text-base font-semibold'>
               Questions about these terms?
             </h3>

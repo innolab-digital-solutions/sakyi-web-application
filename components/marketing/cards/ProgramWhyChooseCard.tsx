@@ -17,7 +17,7 @@ const FeatureCard = ({
 }: FeatureCardProperties) => {
   return (
     <div
-      className='group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-8 shadow-sm transition-all duration-300 hover:border-[#35bec5]/50 hover:shadow-lg'
+      className='group hover:border-brand/50 relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-8 shadow-sm transition-all duration-300 hover:shadow-lg'
       data-aos='fade-up'
       data-aos-delay={`${index * 200}`}
       data-aos-duration='800'
@@ -49,7 +49,7 @@ const FeatureCard = ({
       </div>
 
       {/* Hover Effect */}
-      <div className='absolute inset-0 rounded-2xl bg-linear-to-r from-[#35bec5]/5 to-[#0c96c4]/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
+      <div className='from-brand/5 to-brand-deep/5 absolute inset-0 rounded-2xl bg-linear-to-r opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
     </div>
   );
 };

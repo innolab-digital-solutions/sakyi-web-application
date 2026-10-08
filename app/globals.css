@@ -39,6 +39,23 @@
   --sidebar-accent-foreground: oklch(0.3018 0.0541 229.6954);
   --sidebar-border: oklch(0.5492 0.1067 229.5659);
   --sidebar-ring: oklch(1 0 0);
+
+  /* Brand palette — single source of truth for the SaKyi teal/blue identity.
+     `brand` is the primary teal, `brand-light` and `brand-deep` are the other
+     two gradient stops, and `brand-hover` is the darker teal used for link
+     hover states. Exposed to Tailwind below as `brand`, `brand-light`,
+     `brand-deep` and `brand-hover` (e.g. `text-brand`, `from-brand/10`). */
+  --brand: #35bec5;
+  --brand-light: #4bc4db;
+  --brand-deep: #0c96c4;
+  --brand-hover: #2aa0a7;
+  --brand-gradient: linear-gradient(
+    to right,
+    var(--brand),
+    var(--brand-light),
+    var(--brand-deep)
+  );
+
   --font-sans:
     var(--font-inter), var(--font-noto-sans-myanmar), ui-sans-serif, system-ui,
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
@@ -118,6 +135,11 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-brand: var(--brand);
+  --color-brand-light: var(--brand-light);
+  --color-brand-deep: var(--brand-deep);
+  --color-brand-hover: var(--brand-hover);
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
@@ -288,12 +310,12 @@ body {
 
 /* Brand Gradient Classes */
 .bg-brand-gradient {
-  background: linear-gradient(to right, #35bec5, #4bc4db, #0c96c4);
+  background: var(--brand-gradient);
 }
 
 /* Vertical padding prevents clipping of diacritics (e.g. Myanmar) with background-clip: text */
 .text-brand-gradient {
-  background: linear-gradient(to right, #35bec5, #4bc4db, #0c96c4);
+  background: var(--brand-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -302,15 +324,15 @@ body {
 }
 
 .border-brand-gradient {
-  border-image: linear-gradient(to right, #35bec5, #4bc4db, #0c96c4) 1;
+  border-image: var(--brand-gradient) 1;
 }
 
 .hover-brand-gradient:hover {
-  background: linear-gradient(to right, #35bec5, #4bc4db, #0c96c4);
+  background: var(--brand-gradient);
 }
 
 .hover-text-brand-gradient:hover {
-  background: linear-gradient(to right, #35bec5, #4bc4db, #0c96c4);
+  background: var(--brand-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

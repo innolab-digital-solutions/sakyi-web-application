@@ -17,7 +17,7 @@ const FeatureList = ({ icon, title, description }: FeatureListProps) => {
 
   return (
     <div className='group flex min-w-0 items-start space-x-3 rounded-lg p-3 transition-all duration-300'>
-      <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-linear-to-r from-[#35bec5] to-[#0c96c4] text-white shadow-lg'>
+      <div className='from-brand to-brand-deep flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-linear-to-r text-white shadow-lg'>
         {icon}
       </div>
       <div className='min-w-0 flex-1'>
