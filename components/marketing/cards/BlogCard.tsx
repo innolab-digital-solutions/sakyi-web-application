@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
+import { ROUTES } from '@/config/routes';
 import { useLanguage } from '@/context/LanguageContext';
 import type { BlogPost } from '@/domains/blogs/types';
 import { resolveApiImageUrl } from '@/lib/utils/url';
@@ -79,7 +80,7 @@ const BlogCard = ({ post, index = 0, className = '' }: BlogCardProps) => {
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               {new Date(post.timestamps.published_at).toLocaleDateString(
-                'en-US',
+                language === 'my' ? 'my-MM' : 'en-US',
                 {
                   year: 'numeric',
                   month: 'long',
@@ -109,8 +110,8 @@ const BlogCard = ({ post, index = 0, className = '' }: BlogCardProps) => {
         {/* CTA */}
         <div className='pt-2'>
           <Link
-            href={`/blog/${post.slug}`}
-            className='group/link inline-flex items-center text-base font-medium text-slate-900 transition-all duration-300 hover:text-[#35bec5]'
+            href={ROUTES.MARKETING.BLOG_POST(post.slug)}
+            className='group/link hover:text-brand inline-flex items-center text-base font-medium text-slate-900 transition-all duration-300'
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
             <span>Read more</span>

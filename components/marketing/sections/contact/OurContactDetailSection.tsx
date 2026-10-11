@@ -12,31 +12,39 @@ import { useLanguage } from '@/context/LanguageContext';
 const OurContactDetailSection = () => {
   const { language, translate } = useLanguage();
 
+  const t = (key: string) =>
+    translate(`marketing.pages.contact.contact-details.details.${key}`);
+
+  // Copy comes from the dictionary so it follows the active language; the link
+  // targets are fixed addresses, so they live here rather than being translated.
   const contactDetails = [
     {
       icon: <Mail className='h-6 w-6 text-white' />,
-      title: 'Email Support',
-      description: 'Get personalized assistance from our wellness experts',
-      value: 'customerservice@sakyihealthandwellness.com',
+      title: t('email.title'),
+      description: t('email.description'),
+      value: t('email.value'),
+      href: 'mailto:customerservice@sakyihealthandwellness.com',
     },
     {
       icon: <Phone className='h-6 w-6 text-white' />,
-      title: 'Phone Support',
-      description: 'For program-related inquiries and client support',
-      value: '+959 250357339',
+      title: t('phone.title'),
+      description: t('phone.description'),
+      value: t('phone.value'),
+      href: 'tel:+959250357339',
     },
     {
       icon: <Globe className='h-6 w-6 text-white' />,
-      title: 'Online & Remote Care',
-      description: 'Access our services from anywhere',
-      value: 'www.sakyihealthandwellness.com',
+      title: t('remote-care.title'),
+      description: t('remote-care.description'),
+      value: t('remote-care.value'),
+      href: 'https://www.sakyihealthandwellness.com',
     },
     {
       icon: <Clock className='h-6 w-6 text-white' />,
-      title: 'Support Hours (Online Service)',
-      description: '24/7 support for your wellness journey',
-      value:
-        'Monday - Friday: 9:00 AM - 5:00 PM, Saturday - Sunday: 10:00 AM - 2:00 PM',
+      title: t('support-hours.title'),
+      description: t('support-hours.description'),
+      value: t('support-hours.value'),
+      // Opening hours aren't actionable, so no link.
     },
   ];
   return (
@@ -72,14 +80,20 @@ const OurContactDetailSection = () => {
         </Body1>
       </div>
 
-      <div className='mt-12 grid min-w-0 gap-6 lg:mt-16 lg:grid-cols-2 lg:gap-8'>
+      <div className='mt-12 grid min-w-0 gap-6 lg:mt-16 lg:auto-rows-fr lg:grid-cols-2 lg:gap-8'>
         {contactDetails.map((detail, index) => (
-          <div key={index} data-aos='fade-up' data-aos-delay={`${index * 100}`}>
+          <div
+            key={index}
+            className='h-full min-w-0'
+            data-aos='fade-up'
+            data-aos-delay={`${index * 100}`}
+          >
             <ContactCard
               title={detail.title}
               description={detail.description}
               icon={detail.icon}
               value={detail.value}
+              href={detail.href}
             />
           </div>
         ))}

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import CallToActionSection from '@/components/marketing/sections/programs/CallToActionSection';
+import CallToActionSection from '@/components/marketing/sections/CallToActionSection';
 import ExploreProgramsSection from '@/components/marketing/sections/programs/ExploreProgramsSection';
 import FAQSection from '@/components/marketing/sections/programs/FAQSection';
 import HowItWorks from '@/components/marketing/sections/programs/HowItWorks';
@@ -32,7 +32,10 @@ export default function ProgramsPage() {
 
       <FAQSection />
 
-      <CallToActionSection />
+      <CallToActionSection
+        id='programs-cta-section'
+        translationPrefix='marketing.pages.programs.call-to-action'
+      />
     </>
   );
 }

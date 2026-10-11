@@ -9,7 +9,7 @@ import ProgramCard from '@/components/marketing/cards/ProgramCard';
 import SectionBadge from '@/components/marketing/SectionBadge';
 import SectionContainer from '@/components/marketing/SectionContainer';
 import Body1 from '@/components/shared/typography/Body1';
-import Heading1 from '@/components/shared/typography/Heading1';
+import Heading2 from '@/components/shared/typography/Heading2';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/context/LanguageContext';
 import { getMarketingPrograms } from '@/domains/programs/services';
@@ -48,7 +48,7 @@ const ExploreProgramsSection = () => {
           text={translate('marketing.pages.programs.explore-programs.badge')}
         />
 
-        <Heading1 lang={language} className='mx-auto text-center'>
+        <Heading2 lang={language} className='mx-auto text-center'>
           <span className='text-foreground'>
             {translate(
               'marketing.pages.programs.explore-programs.title.black',
@@ -59,7 +59,7 @@ const ExploreProgramsSection = () => {
               'marketing.pages.programs.explore-programs.title.gradient',
             )}
           </span>
-        </Heading1>
+        </Heading2>
 
         <Body1
           lang={language}

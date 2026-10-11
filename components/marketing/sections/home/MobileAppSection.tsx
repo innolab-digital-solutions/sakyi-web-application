@@ -78,7 +78,7 @@ const MobileAppSection = () => {
             {/* First Phone Mockup */}
             <div className='group relative z-10 shrink-0'>
               {/* Glow effect */}
-              <div className='absolute inset-0 -z-10 rotate-12 transform rounded-[2.5rem] bg-linear-to-br from-[#35bec5]/30 to-[#0c96c4]/30 blur-2xl'></div>
+              <div className='from-brand/30 to-brand-deep/30 absolute inset-0 -z-10 rotate-12 transform rounded-[2.5rem] bg-linear-to-br blur-2xl'></div>
               {/* Phone body */}
               <div className='relative h-88 w-44 rotate-12 transform rounded-[2.5rem] bg-gray-800 p-1.5 shadow-2xl sm:h-104 sm:w-52 lg:h-120 lg:w-56'>
                 {/* Volume buttons */}
@@ -102,7 +102,7 @@ const MobileAppSection = () => {
             {/* Second Phone Mockup */}
             <div className='group relative z-0 shrink-0 -translate-y-8 sm:-translate-y-10 lg:-translate-y-12'>
               {/* Glow effect */}
-              <div className='absolute inset-0 -z-10 -rotate-12 transform rounded-[2.5rem] bg-linear-to-br from-[#4bc4db]/30 to-[#35bec5]/30 blur-2xl'></div>
+              <div className='from-brand-light/30 to-brand/30 absolute inset-0 -z-10 -rotate-12 transform rounded-[2.5rem] bg-linear-to-br blur-2xl'></div>
               {/* Phone body */}
               <div className='relative h-88 w-44 -rotate-12 transform rounded-[2.5rem] bg-gray-800 p-1.5 shadow-2xl sm:h-104 sm:w-52 lg:h-120 lg:w-56'>
                 {/* Volume buttons */}

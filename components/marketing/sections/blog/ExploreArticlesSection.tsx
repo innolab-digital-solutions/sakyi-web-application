@@ -8,7 +8,7 @@ import BlogCard from '@/components/marketing/cards/BlogCard';
 import ContentEmptyState from '@/components/marketing/cards/ContentEmptyState';
 import SectionContainer from '@/components/marketing/SectionContainer';
 import Body1 from '@/components/shared/typography/Body1';
-import Heading1 from '@/components/shared/typography/Heading1';
+import Heading2 from '@/components/shared/typography/Heading2';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/context/LanguageContext';
 import { getBlogCategories, getBlogPosts } from '@/domains/blogs/services';
@@ -99,14 +99,14 @@ const ExploreArticlesSection = () => {
           text={translate('marketing.pages.blog.articles.badge')}
         />
 
-        <Heading1 lang={language} className='mx-auto text-center'>
+        <Heading2 lang={language} className='mx-auto text-center'>
           <span className='text-foreground'>
             {translate('marketing.pages.blog.articles.title.black')}{' '}
           </span>
           <span className='text-brand-gradient bg-clip-text text-transparent'>
             {translate('marketing.pages.blog.articles.title.gradient')}
           </span>
-        </Heading1>
+        </Heading2>
 
         <Body1
           lang={language}
@@ -143,7 +143,7 @@ const ExploreArticlesSection = () => {
                 className={`shrink-0 rounded-full px-5 py-2 text-sm font-medium transition-all duration-200 ${
                   selectedCategory === null
                     ? 'bg-brand-gradient text-white shadow-md'
-                    : 'border border-slate-200 bg-white text-slate-600 hover:border-[#35bec5] hover:text-[#35bec5]'
+                    : 'hover:border-brand hover:text-brand border border-slate-200 bg-white text-slate-600'
                 }`}
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
@@ -161,7 +161,7 @@ const ExploreArticlesSection = () => {
                   className={`shrink-0 cursor-pointer rounded-full px-5 py-2 text-sm font-medium transition-all duration-200 ${
                     selectedCategory === category.slug
                       ? 'bg-brand-gradient text-white shadow-md'
-                      : 'border border-slate-200 bg-white text-slate-600 hover:border-[#35bec5] hover:text-[#35bec5]'
+                      : 'hover:border-brand hover:text-brand border border-slate-200 bg-white text-slate-600'
                   }`}
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
@@ -210,7 +210,7 @@ const ExploreArticlesSection = () => {
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={!canPrev}
-            className='flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition-all duration-200 hover:border-[#35bec5] hover:text-[#35bec5] disabled:pointer-events-none disabled:opacity-40'
+            className='hover:border-brand hover:text-brand flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition-all duration-200 disabled:pointer-events-none disabled:opacity-40'
             aria-label='Previous page cursor-pointer'
           >
             <ChevronLeft className='h-4 w-4' />
@@ -223,7 +223,7 @@ const ExploreArticlesSection = () => {
               className={`h-10 w-10 cursor-pointer rounded-full text-sm font-medium transition-all duration-200 ${
                 n === currentPage
                   ? 'bg-brand-gradient text-white shadow-md'
-                  : 'border border-slate-200 bg-white text-slate-600 hover:border-[#35bec5] hover:text-[#35bec5]'
+                  : 'hover:border-brand hover:text-brand border border-slate-200 bg-white text-slate-600'
               }`}
               style={{ fontFamily: 'Inter, sans-serif' }}
               aria-label={`Page ${n}`}
@@ -236,7 +236,7 @@ const ExploreArticlesSection = () => {
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={!canNext}
-            className='flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition-all duration-200 hover:border-[#35bec5] hover:text-[#35bec5] disabled:pointer-events-none disabled:opacity-40'
+            className='hover:border-brand hover:text-brand flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition-all duration-200 disabled:pointer-events-none disabled:opacity-40'
             aria-label='Next page'
           >
             <ChevronRight className='h-4 w-4' />

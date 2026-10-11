@@ -8,7 +8,30 @@ type ContactCardProps = {
   description: string;
   icon: React.ReactNode;
   value: string;
+  /**
+   * Where the value links to (`mailto:`, `tel:`, `https://`). Omit it for
+   * information that isn't actionable, such as opening hours, and the value
+   * renders as plain text.
+   */
+  href?: string;
   className?: string;
+};
+
+/**
+ * Offers a line-break opportunity right after the `@` in an email address, so a
+ * narrow card wraps it as `name@` / `domain.com` rather than mid-word.
+ * `wrap-anywhere` on the element remains the fallback if a part still won't fit.
+ */
+const withEmailBreak = (value: string) => {
+  const at = value.indexOf('@');
+  if (at === -1) return value;
+  return (
+    <>
+      {value.slice(0, at + 1)}
+      <wbr />
+      {value.slice(at + 1)}
+    </>
+  );
 };
 
 const ContactCard = ({
@@ -16,6 +39,7 @@ const ContactCard = ({
   description,
   icon,
   value,
+  href,
   className,
 }: ContactCardProps) => {
   const { language } = useLanguage();
@@ -23,13 +47,13 @@ const ContactCard = ({
   return (
     <div
       className={cn(
-        'group border-border relative min-w-0 overflow-hidden rounded-2xl border bg-white p-6 text-center shadow-sm transition-all duration-300 hover:border-[#35bec5]/50 hover:shadow-lg sm:p-8',
+        'group border-border hover:border-brand/50 relative h-full min-w-0 overflow-hidden rounded-2xl border bg-white p-6 text-center shadow-sm transition-all duration-300 hover:shadow-lg sm:p-8',
         className,
       )}
     >
       <div className='mb-6 flex items-center justify-center'>
         <div className='flex h-24 w-24 items-center justify-center rounded-3xl bg-sky-50 shadow-sm transition-all duration-500 group-hover:shadow-lg'>
-          <div className='flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-r from-[#4bc4db] to-[#0c96c4]'>
+          <div className='from-brand-light to-brand-deep flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-r'>
             {icon}
           </div>
         </div>
@@ -42,9 +66,21 @@ const ContactCard = ({
 
         <Body3 lang={language}>{description}</Body3>
 
-        <a href={`mailto:${value}`} className='text-brand-gradient'>
-          {value}
-        </a>
+        {href ? (
+          <a
+            href={href}
+            className='text-brand-gradient wrap-anywhere whitespace-pre-line'
+            {...(href.startsWith('http')
+              ? { target: '_blank', rel: 'noopener noreferrer' }
+              : {})}
+          >
+            {withEmailBreak(value)}
+          </a>
+        ) : (
+          <p className='text-brand-gradient wrap-anywhere whitespace-pre-line'>
+            {value}
+          </p>
+        )}
       </div>
     </div>
   );

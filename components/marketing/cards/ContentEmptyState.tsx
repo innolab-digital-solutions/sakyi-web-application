@@ -17,7 +17,7 @@ const ContentEmptyState = ({
     <div
       className={`rounded-3xl border border-dashed border-slate-200 bg-slate-50/60 p-12 text-center ${className}`.trim()}
     >
-      <div className='mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-r from-[#35bec5] to-[#0c96c4] text-white'>
+      <div className='from-brand to-brand-deep mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-r text-white'>
         <FileQuestion className='h-8 w-8' />
       </div>
       <h3

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
+import { ROUTES } from '@/config/routes';
 import { useLanguage } from '@/context/LanguageContext';
 import type { BlogPost } from '@/domains/blogs/types';
 import { resolveApiImageUrl } from '@/lib/utils/url';
@@ -33,16 +34,16 @@ const BlogDetailHeroSection = ({ post }: BlogDetailHeroSectionProps) => {
   return (
     <section className='relative overflow-hidden bg-slate-50 py-16'>
       <div className='absolute inset-0 overflow-hidden'>
-        <div className='absolute top-1/4 -right-32 h-64 w-64 rounded-full bg-linear-to-br from-[#35bec5]/5 to-[#0c96c4]/5 blur-3xl' />
-        <div className='absolute bottom-1/4 -left-32 h-64 w-64 rounded-full bg-linear-to-br from-[#4bc4db]/5 to-[#35bec5]/5 blur-3xl' />
+        <div className='from-brand/5 to-brand-deep/5 absolute top-1/4 -right-32 h-64 w-64 rounded-full bg-linear-to-br blur-3xl' />
+        <div className='from-brand-light/5 to-brand/5 absolute bottom-1/4 -left-32 h-64 w-64 rounded-full bg-linear-to-br blur-3xl' />
       </div>
 
       <div className='relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8'>
         {/* Back Button */}
         <div className='mb-8' data-aos='fade-up'>
           <Link
-            href='/blog'
-            className='group inline-flex items-center gap-2 font-medium text-slate-600 transition-colors duration-300 hover:text-[#35bec5]'
+            href={ROUTES.MARKETING.BLOG}
+            className='group hover:text-brand inline-flex items-center gap-2 font-medium text-slate-600 transition-colors duration-300'
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
             <svg
@@ -106,7 +107,7 @@ const BlogDetailHeroSection = ({ post }: BlogDetailHeroSectionProps) => {
 
             <button
               onClick={handleShare}
-              className='flex cursor-pointer items-center gap-2 transition-colors duration-300 hover:text-[#35bec5]'
+              className='hover:text-brand flex cursor-pointer items-center gap-2 transition-colors duration-300'
             >
               <Share2 className='h-4 w-4' />
               <span style={{ fontFamily: 'Inter, sans-serif' }}>Share</span>

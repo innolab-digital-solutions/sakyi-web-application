@@ -14,7 +14,7 @@ import FeatureCard from '@/components/marketing/cards/ProgramWhyChooseCard';
 import SectionBadge from '@/components/marketing/SectionBadge';
 import SectionContainer from '@/components/marketing/SectionContainer';
 import Body1 from '@/components/shared/typography/Body1';
-import Heading1 from '@/components/shared/typography/Heading1';
+import Heading2 from '@/components/shared/typography/Heading2';
 import { useLanguage } from '@/context/LanguageContext';
 
 const WhyChooseSaKyiSection = () => {
@@ -29,7 +29,7 @@ const WhyChooseSaKyiSection = () => {
       description: translate(
         'marketing.pages.programs.why-choose-sakyi.features.medical-expertise.description',
       ),
-      color: 'from-[#35bec5] to-[#4bc4db]',
+      color: 'from-brand to-brand-light',
     },
     {
       icon: Heart,
@@ -39,7 +39,7 @@ const WhyChooseSaKyiSection = () => {
       description: translate(
         'marketing.pages.programs.why-choose-sakyi.features.personalized-approach.description',
       ),
-      color: 'from-[#4bc4db] to-[#0c96c4]',
+      color: 'from-brand-light to-brand-deep',
     },
     {
       icon: TrendingUp,
@@ -49,7 +49,7 @@ const WhyChooseSaKyiSection = () => {
       description: translate(
         'marketing.pages.programs.why-choose-sakyi.features.trusted-outcomes.description',
       ),
-      color: 'from-[#35bec5] to-[#0c96c4]',
+      color: 'from-brand to-brand-deep',
     },
     {
       icon: FlaskConical,
@@ -59,7 +59,7 @@ const WhyChooseSaKyiSection = () => {
       description: translate(
         'marketing.pages.programs.why-choose-sakyi.features.science-based-methods.description',
       ),
-      color: 'from-[#4bc4db] to-[#35bec5]',
+      color: 'from-brand-light to-brand',
     },
     {
       icon: HandHeart,
@@ -69,7 +69,7 @@ const WhyChooseSaKyiSection = () => {
       description: translate(
         'marketing.pages.programs.why-choose-sakyi.features.comprehensive-support.description',
       ),
-      color: 'from-[#4bc4db] to-[#35bec5]',
+      color: 'from-brand-light to-brand',
     },
     {
       icon: Infinity,
@@ -79,7 +79,7 @@ const WhyChooseSaKyiSection = () => {
       description: translate(
         'marketing.pages.programs.why-choose-sakyi.features.lifetime-access.description',
       ),
-      color: 'from-[#4bc4db] to-[#0c96c4]',
+      color: 'from-brand-light to-brand-deep',
     },
   ];
   return (
@@ -93,7 +93,7 @@ const WhyChooseSaKyiSection = () => {
           text={translate('marketing.pages.programs.why-choose-sakyi.badge')}
         />
 
-        <Heading1 lang={language} className='mx-auto text-center'>
+        <Heading2 lang={language} className='mx-auto text-center'>
           <span className='text-foreground'>
             {translate(
               'marketing.pages.programs.why-choose-sakyi.title.black',
@@ -104,7 +104,7 @@ const WhyChooseSaKyiSection = () => {
               'marketing.pages.programs.why-choose-sakyi.title.gradient',
             )}
           </span>
-        </Heading1>
+        </Heading2>
 
         <Body1
           lang={language}

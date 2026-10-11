@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 
 import BlogDetailSection from '@/components/marketing/sections/blog/BlogDetailSection';
 import { base } from '@/config/api/base';
+import { MARKETING_ENDPOINTS } from '@/config/api/endpoints';
+import { DEFAULT_LANGUAGE } from '@/config/languages';
 import type { BlogPost } from '@/domains/blogs/types';
 import { resolveApiImageUrl } from '@/lib/utils/url';
 
@@ -11,7 +13,12 @@ type BlogDetailPageProps = {
 
 async function fetchPostForMetadata(slug: string): Promise<BlogPost | null> {
   try {
-    const endpoint = `${base.versionEndpoint}/blog-posts/${slug}?locale=en`;
+    // Server-side metadata fetch: the `http` client cannot opt into Next's
+    // fetch cache, and the viewer's language preference lives in localStorage,
+    // so this renders tags in the default language.
+    const endpoint = `${base.versionEndpoint}${MARKETING_ENDPOINTS.BLOGS.DETAIL(
+      encodeURIComponent(slug),
+    )}?locale=${DEFAULT_LANGUAGE}`;
     const res = await fetch(endpoint, { next: { revalidate: 3600 } });
     if (!res.ok) return null;
     const json = await res.json();

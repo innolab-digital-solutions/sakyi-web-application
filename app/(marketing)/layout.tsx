@@ -10,9 +10,11 @@ export default function SiteLayout({ children }: PropsWithChildren) {
   return (
     <AOSInitializer>
       <Navbar />
-      <PageTransition effect='fade' durationMs={480}>
-        {children}
-      </PageTransition>
+      <main id='main-content' className='marketing-copy'>
+        <PageTransition effect='fade' durationMs={480}>
+          {children}
+        </PageTransition>
+      </main>
       <Footer />
       <TawkToWidget />
     </AOSInitializer>

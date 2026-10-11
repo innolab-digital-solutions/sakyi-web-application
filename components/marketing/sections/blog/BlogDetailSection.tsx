@@ -5,6 +5,7 @@ import { ArrowRight, BookOpen, FileQuestion } from 'lucide-react';
 import Link from 'next/link';
 
 import { Skeleton } from '@/components/ui/skeleton';
+import { ROUTES } from '@/config/routes';
 import { useLanguage } from '@/context/LanguageContext';
 import { getBlogPostBySlug } from '@/domains/blogs/services';
 import type { BlogPost } from '@/domains/blogs/types';
@@ -61,7 +62,7 @@ const BlogDetailSection = ({ slug }: BlogDetailSectionProps) => {
             removed.
           </p>
           <Link
-            href='/blog'
+            href={ROUTES.MARKETING.BLOG}
             className='bg-brand-gradient inline-flex items-center gap-2 rounded-full px-6 py-3 text-base font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl'
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
@@ -96,8 +97,8 @@ const BlogDetailSection = ({ slug }: BlogDetailSectionProps) => {
           </p>
           <div className='mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row'>
             <Link
-              href='/programs'
-              className='group inline-flex items-center gap-2 rounded-full border-2 border-white bg-white px-8 py-4 font-semibold text-[#35bec5] transition-all duration-300 hover:scale-105 hover:bg-slate-50 hover:shadow-lg'
+              href={ROUTES.MARKETING.PROGRAMS}
+              className='group text-brand inline-flex items-center gap-2 rounded-full border-2 border-white bg-white px-8 py-4 font-semibold transition-all duration-300 hover:scale-105 hover:bg-slate-50 hover:shadow-lg'
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               <BookOpen className='mr-2 h-5 w-5' />
@@ -105,8 +106,8 @@ const BlogDetailSection = ({ slug }: BlogDetailSectionProps) => {
             </Link>
 
             <Link
-              href='/contact'
-              className='group inline-flex items-center gap-2 rounded-full border-2 border-white px-8 py-4 font-semibold text-white transition-all duration-300 hover:scale-105 hover:bg-white hover:text-[#35bec5] hover:shadow-lg'
+              href={ROUTES.MARKETING.CONTACT}
+              className='group hover:text-brand inline-flex items-center gap-2 rounded-full border-2 border-white px-8 py-4 font-semibold text-white transition-all duration-300 hover:scale-105 hover:bg-white hover:shadow-lg'
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               Discuss This Article

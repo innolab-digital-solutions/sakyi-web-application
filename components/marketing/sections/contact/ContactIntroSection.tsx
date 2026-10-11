@@ -80,7 +80,7 @@ const ContactIntroSection = () => {
         <div className='relative min-w-0' data-aos='fade-left'>
           {/* Hero decorative image */}
           <DecorativeImage
-            src='/images/contact-hero.jpg'
+            src='/images/contact.jpg'
             alt='Smiling woman on headset waving during online wellness consultation over video call'
             width={600}
             height={600}
@@ -92,7 +92,7 @@ const ContactIntroSection = () => {
             title='Quick Response'
             description='We reply within 24 hours'
             className='right-6 bottom-6 left-6'
-            iconClassName='bg-linear-to-r from-[#35bec5] to-[#4bc4db]'
+            iconClassName='bg-linear-to-r from-brand to-brand-light'
           />
         </div>
       </div>

@@ -42,38 +42,20 @@ const AboutIntroSection = () => {
         <div className='relative min-w-0' data-aos='fade-left'>
           <div className='grid grid-cols-2 gap-4'>
             <SectionImageCard
-              src='/images/about-hero-2.jpg'
+              src='/images/about-hero2.jpg'
               alt='SaKyi Wellness Team - Holistic Health Approach'
-              title={translate(
-                'marketing.pages.about.hero.images.expert-team.title',
-              )}
-              subtitle={translate(
-                'marketing.pages.about.hero.images.expert-team.subtitle',
-              )}
               variant='large'
               className='col-span-2 row-span-2'
               priority
             />
             <SectionImageCard
-              src='/images/about-hero-1.jpg'
+              src='/images/about-hero-1.png'
               alt='Wellness Consultation - Personalized Care'
-              title={translate(
-                'marketing.pages.about.hero.images.personalized-care.title',
-              )}
-              subtitle={translate(
-                'marketing.pages.about.hero.images.personalized-care.subtitle',
-              )}
               variant='small'
             />
             <SectionImageCard
               src='/images/about-hero-3.jpg'
               alt='Holistic Wellness Approach - Mind, Body, Spirit'
-              title={translate(
-                'marketing.pages.about.hero.images.holistic-approach.title',
-              )}
-              subtitle={translate(
-                'marketing.pages.about.hero.images.holistic-approach.subtitle',
-              )}
               variant='small'
             />
           </div>

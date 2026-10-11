@@ -1,14 +1,18 @@
 type SocialButtonProps = {
   icon: React.ReactNode;
   href: string;
+  /** Accessible name for the icon-only link. */
+  label: string;
 };
 
-const SocialButton = ({ icon, href }: SocialButtonProps) => {
+const SocialButton = ({ icon, href, label }: SocialButtonProps) => {
   return (
     <a
       target='_blank'
+      rel='noopener noreferrer'
       href={href}
-      className='group rounded-full border border-slate-300 bg-white p-3 shadow-sm transition-all duration-300 hover:border-[#4bc4db] hover:bg-[#4bc4db] hover:text-white hover:shadow-md'
+      aria-label={label}
+      className='group hover:border-brand-light hover:bg-brand-light rounded-full border border-slate-300 bg-white p-3 shadow-sm transition-all duration-300 hover:text-white hover:shadow-md'
     >
       {icon}
     </a>

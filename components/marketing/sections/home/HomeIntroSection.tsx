@@ -8,6 +8,7 @@ import {
   Shield,
   Sparkles,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import PrimaryButton from '@/components/marketing/buttons/PrimaryButton';
 import SecondaryButton from '@/components/marketing/buttons/SecondaryButton';
@@ -24,6 +25,7 @@ import { scrollToElement } from '@/lib/utils/scroll';
 
 const HomeIntroSection = () => {
   const { language, translate } = useLanguage();
+  const router = useRouter();
 
   return (
     <SectionContainer id='hero-section' className='bg-background'>
@@ -75,9 +77,7 @@ const HomeIntroSection = () => {
 
             <SecondaryButton
               className='w-full min-w-0 sm:w-auto'
-              onClick={() => {
-                window.location.href = ROUTES.MARKETING.ABOUT;
-              }}
+              onClick={() => router.push(ROUTES.MARKETING.ABOUT)}
             >
               <Brain className='h-5 w-5' />
               <span>
@@ -96,6 +96,7 @@ const HomeIntroSection = () => {
             alt='Group of adults doing outdoor stretching and exercise in a park for wellness and health'
             width={600}
             height={600}
+            priority
           />
 
           {/* Floating card: Personalized Plans */}
@@ -108,7 +109,7 @@ const HomeIntroSection = () => {
               'marketing.pages.home.hero.floating-cards.personalized-plans.description',
             )}
             className='-top-6 -left-2 sm:-left-4 lg:-top-4 lg:-left-6'
-            iconClassName='bg-linear-to-r from-[#35bec5] to-[#4bc4db]'
+            iconClassName='bg-linear-to-r from-brand to-brand-light'
           />
 
           {/* Floating card: Doctor Guided */}
@@ -121,7 +122,7 @@ const HomeIntroSection = () => {
               'marketing.pages.home.hero.floating-cards.doctor-guided.description',
             )}
             className='-right-2 -bottom-6 sm:-right-4 lg:-right-6'
-            iconClassName='bg-linear-to-r from-[#4bc4db] to-[#0c96c4]'
+            iconClassName='bg-linear-to-r from-brand-light to-brand-deep'
           />
         </div>
       </div>

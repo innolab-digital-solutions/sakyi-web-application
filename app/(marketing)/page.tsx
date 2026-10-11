@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
+import CallToActionSection from '@/components/marketing/sections/CallToActionSection';
 import AboutOverviewSection from '@/components/marketing/sections/home/AboutOverviewSection';
-import CallToActionSection from '@/components/marketing/sections/home/CallToActionSection';
 import HomeIntroSection from '@/components/marketing/sections/home/HomeIntroSection';
 import HowItWorksSection from '@/components/marketing/sections/home/HowItWorksSection';
 import LatestArticlesSection from '@/components/marketing/sections/home/LatestArticlesSection';
@@ -32,7 +32,10 @@ export default function HomePage() {
 
       <LatestArticlesSection />
 
-      <CallToActionSection />
+      <CallToActionSection
+        id='home-cta-section'
+        translationPrefix='marketing.pages.home.call-to-action'
+      />
     </>
   );
 }

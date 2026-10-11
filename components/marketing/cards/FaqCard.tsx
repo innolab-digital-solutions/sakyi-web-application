@@ -24,7 +24,7 @@ const FAQCard = ({ question, answer, delayMs = 0 }: FAQCardProps) => {
       >
         <CollapsibleTrigger className='flex w-full cursor-pointer items-center justify-between bg-slate-50 p-6 text-left transition-colors duration-300'>
           <h3
-            className='text-lg font-semibold text-slate-900 transition-colors duration-300 group-hover:text-[#35bec5]'
+            className='group-hover:text-brand text-lg font-semibold text-slate-900 transition-colors duration-300'
             style={{ fontFamily: 'Poppins, sans-serif' }}
           >
             {question}
