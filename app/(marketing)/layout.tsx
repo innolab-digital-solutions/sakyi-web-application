@@ -10,7 +10,7 @@ export default function SiteLayout({ children }: PropsWithChildren) {
   return (
     <AOSInitializer>
       <Navbar />
-      <main id='main-content'>
+      <main id='main-content' className='marketing-copy'>
         <PageTransition effect='fade' durationMs={480}>
           {children}
         </PageTransition>

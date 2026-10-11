@@ -12,7 +12,7 @@ const Footer = () => {
   const { translate } = useLanguage();
 
   return (
-    <footer className='mx-auto max-w-7xl overflow-hidden py-24 sm:px-6 lg:px-8'>
+    <footer className='marketing-copy mx-auto max-w-7xl overflow-hidden py-24 sm:px-6 lg:px-8'>
       <div className='flex flex-col items-center text-center'>
         {/* Logo and Brand */}
         <div className='mb-8'>

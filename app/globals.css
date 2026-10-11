@@ -308,6 +308,26 @@ body {
   line-height: 1.6;
 }
 
+/* Myanmar long-form copy is set justified so line endings align on the right.
+   `:where()` keeps the whole selector at zero specificity, so any explicit
+   Tailwind alignment utility still wins. Scoped to the marketing subtree via
+   `.marketing-copy`; the admin dashboard is unaffected. */
+:where([lang='my'] .marketing-copy) :where(p, li, blockquote, .rich-text) {
+  text-align: justify;
+}
+
+/* ...but centred blocks stay centred. Section intros are centred either on the
+   paragraph itself or on a wrapper, and because the rule above sets text-align
+   directly on the paragraph it would otherwise beat the inherited value. Both
+   rules are specificity-zero, so this one wins purely by coming second. */
+:where([lang='my'] .marketing-copy)
+  :where(.text-center)
+  :where(p, li, blockquote, .rich-text),
+:where([lang='my'] .marketing-copy)
+  :where(p, li, blockquote, .rich-text):where(.text-center) {
+  text-align: center;
+}
+
 /* Brand Gradient Classes */
 .bg-brand-gradient {
   background: var(--brand-gradient);

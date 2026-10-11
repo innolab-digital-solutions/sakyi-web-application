@@ -137,13 +137,13 @@ const OurExpertTeamSection = () => {
                 </div>
 
                 <div
-                  className='text-left text-sm leading-relaxed text-slate-600'
+                  className='rich-text text-sm leading-relaxed text-slate-600'
                   style={{ fontFamily: 'Inter, sans-serif' }}
                   dangerouslySetInnerHTML={{ __html: member.bio }}
                 />
 
                 <div
-                  className='strong text-left text-sm leading-relaxed text-slate-600 italic'
+                  className='rich-text text-sm leading-relaxed text-slate-600 italic'
                   style={{ fontFamily: 'Inter, sans-serif' }}
                   dangerouslySetInnerHTML={{
                     __html: `\u201C<strong>${member.quote}</strong>\u201D`,
