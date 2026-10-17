@@ -97,6 +97,7 @@ import {
   isClientLoggingPaused,
   isEnterEditModeRequiredError,
 } from '@/lib/care-plans/builderEditMode';
+import { alignMovementExercisesInBuilder } from '@/lib/care-plans/alignMovementExercisesInBuilder';
 import { CARE_PLAN_SECTION_TABS } from '@/lib/care-plans/carePlanSectionTabs';
 import {
   cloneCarePlanDayContent,
@@ -2118,14 +2119,22 @@ export default function CarePlanBuilder({
       }
       return response.data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       setItemFieldErrors({});
       setMovementRowErrors({});
       setSectionSaveError(undefined);
       toast.success(
         `The ${SECTIONS.find((x) => x.key === activeSection)?.label?.toLowerCase() ?? ''} section has been saved successfully.`,
       );
-      applyBuilderData(data);
+      const nextBuilder =
+        activeSection === 'movement' && data
+          ? alignMovementExercisesInBuilder(
+              data,
+              variables.dayId,
+              variables.items,
+            )
+          : data;
+      applyBuilderData(nextBuilder);
     },
     onError: (error: Error) => {
       if (error instanceof CarePlanSectionItemsValidationError) {
@@ -3409,7 +3418,7 @@ export default function CarePlanBuilder({
                                             );
                                           return (
                                             <div
-                                              key={`${exerciseId || 'new'}-${exerciseIndex}`}
+                                              key={`${normalizedExercise.id ?? 'new'}-${exerciseId || 'row'}-${exerciseIndex}`}
                                               data-care-plan-exercise-row
                                               data-item-index={index}
                                               className='border-border space-y-3 rounded-md border p-5'

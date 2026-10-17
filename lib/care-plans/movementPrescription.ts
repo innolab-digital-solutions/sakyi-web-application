@@ -334,6 +334,12 @@ export function buildMovementExerciseSavePayload(
     movement_exercise_id: toNullableInteger(exercise.movement_exercise_id),
   };
 
+  // Keep link-row ids so the API can update existing rows; order is still the
+  // exercises[] array index (do not send sort_order).
+  if (exercise.id != null && String(exercise.id).trim() !== '') {
+    payload.id = exercise.id;
+  }
+
   if (!profile) return payload;
 
   return {
@@ -363,4 +369,81 @@ export function buildMovementExerciseSavePayload(
       ? toNullableInteger(exercise.equipment_weight_unit_id)
       : null,
   };
+}
+
+function exerciseIdentityKey(
+  exercise: {
+    id?: string | number | null;
+    movement_exercise_id?: string | number | null;
+  },
+  preferId: boolean,
+): string | null {
+  if (preferId) {
+    const id = normalizePrescriptionValue(exercise.id);
+    if (id) return `id:${id}`;
+  }
+  const movementExerciseId = normalizePrescriptionValue(
+    exercise.movement_exercise_id,
+  );
+  return movementExerciseId ? `me:${movementExerciseId}` : null;
+}
+
+/**
+ * Reorders response exercise rows to match the upsert payload array order.
+ *
+ * The API persists order from `exercises[]` index. Prefer matching by link-row
+ * `id`, then by `movement_exercise_id`, so newly created rows still line up with
+ * the order the coach saved. Never sorts by id alone.
+ */
+export function alignExercisesToRequestedOrder(
+  responseExercises:
+    | Array<CarePlanMovementExercisePrescription>
+    | null
+    | undefined,
+  requestedExercises:
+    | Array<CarePlanMovementExercisePrescription>
+    | null
+    | undefined,
+): CarePlanMovementExercisePrescription[] {
+  const response = Array.isArray(responseExercises)
+    ? [...responseExercises]
+    : [];
+  const requested = Array.isArray(requestedExercises) ? requestedExercises : [];
+
+  if (requested.length === 0 || response.length === 0) {
+    return response;
+  }
+
+  const used = new Set<number>();
+  const ordered: CarePlanMovementExercisePrescription[] = [];
+
+  for (const req of requested) {
+    const reqIdKey = exerciseIdentityKey(req, true);
+    const reqMeKey = exerciseIdentityKey(req, false);
+
+    let matchIndex = -1;
+    if (reqIdKey) {
+      matchIndex = response.findIndex(
+        (exercise, index) =>
+          !used.has(index) && exerciseIdentityKey(exercise, true) === reqIdKey,
+      );
+    }
+    if (matchIndex < 0 && reqMeKey) {
+      matchIndex = response.findIndex(
+        (exercise, index) =>
+          !used.has(index) && exerciseIdentityKey(exercise, false) === reqMeKey,
+      );
+    }
+
+    if (matchIndex >= 0) {
+      used.add(matchIndex);
+      ordered.push(response[matchIndex]!);
+    }
+  }
+
+  response.forEach((exercise, index) => {
+    if (!used.has(index)) ordered.push(exercise);
+  });
+
+  return ordered;
 }
