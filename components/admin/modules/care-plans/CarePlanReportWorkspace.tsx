@@ -1300,8 +1300,8 @@ export default function CarePlanReportWorkspace({
                   <p className='text-muted-foreground text-[13px] leading-relaxed font-medium'>
                     No suggested metrics for this range. You can still create an
                     operational log when targets exist in range, or adjust the
-                    plan to include nutrition, activity, or recovery items in
-                    this period.
+                    plan to include nutrition, activity, recovery, or walking
+                    items in this period.
                   </p>
                 ) : null}
                 <div className='space-y-6'>

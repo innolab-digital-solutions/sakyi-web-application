@@ -6,7 +6,8 @@ export type CarePlanLogSection =
   | 'activity'
   | 'hydration'
   | 'sleep'
-  | 'recovery';
+  | 'recovery'
+  | 'walking';
 
 export type CarePlanLogCompletionSignal = {
   window_days_total: number | null;
