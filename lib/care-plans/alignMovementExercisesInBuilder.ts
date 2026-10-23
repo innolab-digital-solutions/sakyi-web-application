@@ -2,7 +2,6 @@ import type {
   AdminCarePlanBuilder,
   CarePlanSectionItem,
 } from '@/domains/care-plans/types/admin';
-
 import { alignExercisesToRequestedOrder } from '@/lib/care-plans/movementPrescription';
 
 /**

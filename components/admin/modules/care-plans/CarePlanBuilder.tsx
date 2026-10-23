@@ -90,6 +90,7 @@ import {
   type NutritionItemLookup,
 } from '@/domains/nutrition-items/services';
 import { getUnitsLookup } from '@/domains/units/services';
+import { alignMovementExercisesInBuilder } from '@/lib/care-plans/alignMovementExercisesInBuilder';
 import {
   canEditCarePlanDayContent,
   canEditCarePlanTimeline,
@@ -97,7 +98,6 @@ import {
   isClientLoggingPaused,
   isEnterEditModeRequiredError,
 } from '@/lib/care-plans/builderEditMode';
-import { alignMovementExercisesInBuilder } from '@/lib/care-plans/alignMovementExercisesInBuilder';
 import { CARE_PLAN_SECTION_TABS } from '@/lib/care-plans/carePlanSectionTabs';
 import {
   cloneCarePlanDayContent,
