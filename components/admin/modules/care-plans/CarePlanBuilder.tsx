@@ -90,6 +90,7 @@ import {
   type NutritionItemLookup,
 } from '@/domains/nutrition-items/services';
 import { getUnitsLookup } from '@/domains/units/services';
+import { alignMovementExercisesInBuilder } from '@/lib/care-plans/alignMovementExercisesInBuilder';
 import {
   canEditCarePlanDayContent,
   canEditCarePlanTimeline,
@@ -125,13 +126,15 @@ const SECTION_GUIDANCE: Record<CarePlanSectionKey, string> = {
   movement:
     'List the exercises the client should complete. Prescription fields adapt to each exercise profile (sets/reps, timed holds, cardio, load, and intervals).',
   activity:
-    'Add everyday activities the client should aim for (walking, stretching, errands, etc.) with a clear target and simple wording they can follow on their own.',
+    'Add everyday activities the client should aim for (stretching, errands, light chores, etc.) with a clear target and simple wording they can follow on their own.',
   hydration:
     'Set daily fluid goals the client should track (water, electrolytes, etc.) with a clear target volume and simple guidance they can follow throughout the day.',
   sleep:
     'Set sleep goals the client should aim for each night, including target duration and simple bedtime guidance they can follow independently.',
   recovery:
     'Describe rest, wind-down, and recovery habits for the client, including sleep windows, light mobility, breathing, or relaxation, so they can recover well between harder days.',
+  walking:
+    'Set a daily step target the client should aim for, with optional guidance so they can track consistent walking throughout the day.',
 };
 
 const SECTION_ADD_LABEL: Record<CarePlanSectionKey, string> = {
@@ -141,6 +144,7 @@ const SECTION_ADD_LABEL: Record<CarePlanSectionKey, string> = {
   hydration: 'Add Hydration',
   sleep: 'Add Sleep',
   recovery: 'Add Recovery',
+  walking: 'Add Walking',
 };
 
 type CarePlanBuilderProps = {
@@ -669,6 +673,30 @@ function isHydrationLiterUnit(row: {
   );
 }
 
+/**
+ * Prefers the seeded “Steps” count unit for walking targets.
+ */
+function isWalkingStepsUnit(row: {
+  abbreviation: string;
+  name: string;
+  type?: string | null;
+}): boolean {
+  const abbreviation = toLookupToken(row.abbreviation);
+  const name = toLookupToken(row.name);
+  const type = toLookupToken(row.type);
+
+  return (
+    abbreviation === 'steps' ||
+    abbreviation === 'step' ||
+    name === 'steps' ||
+    name === 'step' ||
+    (type === 'count' &&
+      (abbreviation === 'steps' ||
+        abbreviation === 'step' ||
+        name.includes('step')))
+  );
+}
+
 function hasCarePlanSectionItemsFieldErrors(parsed: {
   itemFields: CarePlanItemFieldErrorsState;
   movementRows: CarePlanMovementRowErrorsState;
@@ -723,7 +751,7 @@ class CarePlanDayMotivationValidationError extends Error {
 function formatDayTaskValidationMessage(message: string): string {
   return message
     .replace(
-      /at least one item(?:\s+in)?\s+(nutrition,\s*movement,\s*activity(?:,\s*hydration(?:,\s*sleep)?)?,?\s*or\s*recovery)/i,
+      /at least one item(?:\s+in)?\s+(nutrition,\s*movement,\s*activity(?:,\s*hydration(?:,\s*sleep(?:,\s*recovery)?)?)?,?\s*or\s*(?:recovery|walking))/i,
       'at least one task in any section ($1)',
     )
     .replace(/\bitem\b/gi, 'task')
@@ -735,7 +763,7 @@ function extractValidationIssuesByDay(
 ): Record<number, string> {
   const dayIssueMessages: Record<number, string> = {};
   const defaultDayTaskMessage =
-    'Add at least one task in any section (nutrition, exercise, activity, hydration, sleep, or recovery).';
+    'Add at least one task in any section (nutrition, exercise, activity, hydration, sleep, recovery, or walking).';
 
   for (const issue of issues) {
     const field = String(issue?.field ?? '').trim();
@@ -955,6 +983,19 @@ export default function CarePlanBuilder({
     if (!sleepHourUnitValue) return [];
     return unitOptions.filter((option) => option.value === sleepHourUnitValue);
   }, [sleepHourUnitValue, unitOptions]);
+
+  const walkingStepsUnitValue = React.useMemo<string | null>(() => {
+    const rows = unitsLookupQuery.data ?? [];
+    const stepsRow = rows.find((row) => isWalkingStepsUnit(row));
+    return stepsRow ? String(stepsRow.id) : null;
+  }, [unitsLookupQuery.data]);
+
+  const walkingUnitOptions = React.useMemo<ComboboxOption[]>(() => {
+    if (!walkingStepsUnitValue) return [];
+    return unitOptions.filter(
+      (option) => option.value === walkingStepsUnitValue,
+    );
+  }, [unitOptions, walkingStepsUnitValue]);
 
   const unitIdByToken = React.useMemo(() => {
     const map = new Map<string, number>();
@@ -1283,6 +1324,26 @@ export default function CarePlanBuilder({
         );
         return;
       }
+      if (activeSection === 'walking') {
+        if (editable && sectionItems.length === 0) {
+          setLocalItems([
+            {
+              ...createEmptySectionItem(),
+              title: 'Daily steps',
+              target_unit: walkingStepsUnitValue ?? '',
+            },
+          ]);
+          return;
+        }
+        setLocalItems(
+          sectionItems.map((item) => ({
+            ...item,
+            target_unit:
+              normalizeValue(item.target_unit) || walkingStepsUnitValue || '',
+          })),
+        );
+        return;
+      }
       if (editable && sectionItems.length === 0) {
         setLocalItems([createEmptySectionItem()]);
         return;
@@ -1297,6 +1358,7 @@ export default function CarePlanBuilder({
     nutritionKcalUnitValue,
     sectionItems,
     sleepHourUnitValue,
+    walkingStepsUnitValue,
   ]);
 
   React.useEffect(() => {
@@ -2057,14 +2119,22 @@ export default function CarePlanBuilder({
       }
       return response.data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       setItemFieldErrors({});
       setMovementRowErrors({});
       setSectionSaveError(undefined);
       toast.success(
         `The ${SECTIONS.find((x) => x.key === activeSection)?.label?.toLowerCase() ?? ''} section has been saved successfully.`,
       );
-      applyBuilderData(data);
+      const nextBuilder =
+        activeSection === 'movement' && data
+          ? alignMovementExercisesInBuilder(
+              data,
+              variables.dayId,
+              variables.items,
+            )
+          : data;
+      applyBuilderData(nextBuilder);
     },
     onError: (error: Error) => {
       if (error instanceof CarePlanSectionItemsValidationError) {
@@ -2867,7 +2937,8 @@ export default function CarePlanBuilder({
               </p>
               <p className='text-muted-foreground mt-1 text-[13px] font-medium'>
                 Set the care timeline first, then add tasks to each day across
-                nutrition, exercise, activity, hydration, sleep, and recovery.
+                nutrition, exercise, activity, hydration, sleep, recovery, and
+                walking.
               </p>
               {timelineEditable ? (
                 <Button
@@ -3235,12 +3306,14 @@ export default function CarePlanBuilder({
                                         : activeSection === 'movement'
                                           ? 'Enter a task name (e.g. Strength Training Session)'
                                           : activeSection === 'activity'
-                                            ? 'Enter a task name (e.g. Morning walk)'
+                                            ? 'Enter a task name (e.g. Light stretching)'
                                             : activeSection === 'hydration'
                                               ? 'Enter a task name (e.g. Water intake)'
                                               : activeSection === 'sleep'
                                                 ? 'Enter a task name (e.g. Night sleep)'
-                                                : 'Enter a task name (e.g. Evening wind-down)'
+                                                : activeSection === 'walking'
+                                                  ? 'Enter a task name (e.g. Daily steps)'
+                                                  : 'Enter a task name (e.g. Evening wind-down)'
                                     }
                                     value={String(item.title ?? '')}
                                     onChange={(event) =>
@@ -3345,7 +3418,7 @@ export default function CarePlanBuilder({
                                             );
                                           return (
                                             <div
-                                              key={`${exerciseId || 'new'}-${exerciseIndex}`}
+                                              key={`${normalizedExercise.id ?? 'new'}-${exerciseId || 'row'}-${exerciseIndex}`}
                                               data-care-plan-exercise-row
                                               data-item-index={index}
                                               className='border-border space-y-3 rounded-md border p-5'
@@ -3493,7 +3566,9 @@ export default function CarePlanBuilder({
                                               ? 'L'
                                               : activeSection === 'sleep'
                                                 ? 'h'
-                                                : 'Please select a measurement unit…'
+                                                : activeSection === 'walking'
+                                                  ? 'steps'
+                                                  : 'Please select a measurement unit…'
                                         }
                                         searchPlaceholder='Search measurement unit…'
                                         emptyMessage={
@@ -3503,7 +3578,9 @@ export default function CarePlanBuilder({
                                               ? 'Liter unit is not available.'
                                               : activeSection === 'sleep'
                                                 ? 'Hour unit is not available.'
-                                                : 'No measurement units found.'
+                                                : activeSection === 'walking'
+                                                  ? 'Steps unit is not available.'
+                                                  : 'No measurement units found.'
                                         }
                                         options={
                                           activeSection === 'nutrition'
@@ -3512,7 +3589,9 @@ export default function CarePlanBuilder({
                                               ? hydrationUnitOptions
                                               : activeSection === 'sleep'
                                                 ? sleepUnitOptions
-                                                : unitOptions
+                                                : activeSection === 'walking'
+                                                  ? walkingUnitOptions
+                                                  : unitOptions
                                         }
                                         value={
                                           activeSection === 'nutrition'
@@ -3521,9 +3600,11 @@ export default function CarePlanBuilder({
                                               ? hydrationLiterUnitValue
                                               : activeSection === 'sleep'
                                                 ? sleepHourUnitValue
-                                                : resolveUnitComboboxValue(
-                                                    item.target_unit,
-                                                  )
+                                                : activeSection === 'walking'
+                                                  ? walkingStepsUnitValue
+                                                  : resolveUnitComboboxValue(
+                                                      item.target_unit,
+                                                    )
                                         }
                                         onChange={(value) =>
                                           setItemField(
@@ -3536,7 +3617,10 @@ export default function CarePlanBuilder({
                                                   '')
                                                 : activeSection === 'sleep'
                                                   ? (sleepHourUnitValue ?? '')
-                                                  : (value ?? ''),
+                                                  : activeSection === 'walking'
+                                                    ? (walkingStepsUnitValue ??
+                                                      '')
+                                                    : (value ?? ''),
                                           )
                                         }
                                         error={
@@ -3551,6 +3635,9 @@ export default function CarePlanBuilder({
                                             editable) ||
                                           (activeSection === 'sleep' &&
                                             sleepHourUnitValue != null &&
+                                            editable) ||
+                                          (activeSection === 'walking' &&
+                                            walkingStepsUnitValue != null &&
                                             editable)
                                         }
                                         disabled={!editable}
@@ -3634,7 +3721,8 @@ export default function CarePlanBuilder({
                               <div className='flex flex-wrap items-center justify-between gap-3'>
                                 <div className='flex flex-wrap items-center gap-2'>
                                   {activeSection !== 'hydration' &&
-                                  activeSection !== 'sleep' ? (
+                                  activeSection !== 'sleep' &&
+                                  activeSection !== 'walking' ? (
                                     <Button
                                       type='button'
                                       variant='outline'

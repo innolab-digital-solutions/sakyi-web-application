@@ -49,7 +49,8 @@ export type CarePlanSectionKey =
   | 'activity'
   | 'hydration'
   | 'sleep'
-  | 'recovery';
+  | 'recovery'
+  | 'walking';
 
 /**
  * Link row between a care plan nutrition task and a nutrition library item.

@@ -36,6 +36,7 @@ import {
   getCarePlanLogSummary,
   listCarePlanLogEntries,
 } from '@/domains/care-plans/services';
+import { getCarePlanSectionTab } from '@/lib/care-plans/carePlanSectionTabs';
 import {
   formatLoggedEatenAtLabel,
   formatPlannedEatingWindowLabel,
@@ -445,7 +446,10 @@ export default function CarePlanLogEntriesView({ carePlanId }: Props) {
                         </TableCell>
                         <TableCell>
                           {entry.section ? (
-                            <span className='capitalize'>{entry.section}</span>
+                            <span>
+                              {getCarePlanSectionTab(entry.section)?.label ??
+                                entry.section}
+                            </span>
                           ) : (
                             <TableCellEmpty label='No section' />
                           )}

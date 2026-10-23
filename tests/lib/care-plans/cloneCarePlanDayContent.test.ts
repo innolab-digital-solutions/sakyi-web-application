@@ -183,6 +183,36 @@ describe('cloneCarePlanDayContent', () => {
       expect(cloned.sections.sleep).toEqual([]);
       expect(cloned.sections.activity).toEqual([]);
       expect(cloned.sections.recovery).toEqual([]);
+      expect(cloned.sections.walking).toEqual([]);
+    });
+
+    it('clones walking section items without row ids', () => {
+      const sections = emptySections();
+      sections.walking = [
+        {
+          id: 3,
+          title: 'Daily steps',
+          guidance: 'Aim for consistent walking',
+          target_value: 8000,
+          target_unit: 'steps',
+          target_unit_id: 42,
+          has_client_logs: true,
+        },
+      ];
+
+      const cloned = cloneCarePlanDayContent({
+        sections,
+        general_notes: null,
+        daily_motivation: null,
+      });
+
+      expect(cloned.sections.walking).toHaveLength(1);
+      expect(cloned.sections.walking[0]).not.toHaveProperty('id');
+      expect(cloned.sections.walking[0]).not.toHaveProperty('has_client_logs');
+      expect(cloned.sections.walking[0]?.title).toBe('Daily steps');
+      expect(cloned.sections.walking[0]?.target_value).toBe(8000);
+      expect(cloned.sections.walking[0]?.target_unit).toBe('steps');
+      expect(cloned.sections.walking[0]?.target_unit_id).toBe(42);
     });
   });
 
