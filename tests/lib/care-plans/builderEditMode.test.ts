@@ -106,7 +106,7 @@ describe('isEnterEditModeRequiredError', () => {
       isEnterEditModeRequiredError({
         errors: {
           care_plan:
-            'Enter edit mode first to pause client logging, then edit this active care plan. Use revision for date or day-structure changes.',
+            'Enter edit mode first to pause client logging, then edit this active care plan.',
         },
       }),
     ).toBe(true);

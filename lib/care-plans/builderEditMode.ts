@@ -30,7 +30,8 @@ export function canEditCarePlanDayContent(args: {
 
 /**
  * Whether start/end dates and day regeneration may change. Always blocked for
- * ACTIVE plans — even while logging is paused — use revision instead.
+ * ACTIVE plans — even while logging is paused. For date or day-structure
+ * changes, create a new draft care plan for the enrollment instead.
  */
 export function canEditCarePlanTimeline(args: {
   mode: 'edit' | 'detail';

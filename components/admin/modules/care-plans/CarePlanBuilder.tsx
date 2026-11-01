@@ -2791,8 +2791,8 @@ export default function CarePlanBuilder({
           {isActivePlan && !isDetailMode ? (
             <p className='text-muted-foreground text-[12.5px] font-medium'>
               {clientLoggingPaused
-                ? 'Day content can be edited while logging is paused. For date or day-structure changes, use Create revision from the care plans list.'
-                : 'To fix meals, guidance, notes, or motivation on this live plan, enter edit mode first. For date or day-structure changes, use Create revision from the care plans list.'}
+                ? 'Day content can be edited while logging is paused. For date or day-structure changes, create a new care plan for this enrollment from the care plans list.'
+                : 'To fix meals, guidance, notes, or motivation on this live plan, enter edit mode first. For date or day-structure changes, create a new care plan for this enrollment from the care plans list.'}
             </p>
           ) : null}
 
@@ -2956,8 +2956,9 @@ export default function CarePlanBuilder({
                 </Button>
               ) : isActivePlan && !isDetailMode ? (
                 <p className='text-muted-foreground mt-3 text-[12.5px] font-medium'>
-                  Active plans cannot regenerate days here. Use Create revision
-                  from the care plans list for date or day-structure changes.
+                  Active plans cannot regenerate days here. Create a new care
+                  plan for this enrollment from the care plans list for date or
+                  day-structure changes.
                 </p>
               ) : null}
             </div>
@@ -3362,7 +3363,8 @@ export default function CarePlanBuilder({
                                         This task already has client logs. You
                                         can edit the task title and guidance,
                                         but exercise prescriptions are locked.
-                                        Create a revision to change exercises.
+                                        Create a new care plan to change
+                                        exercises.
                                       </p>
                                     ) : null}
                                     <div className='space-y-3'>
@@ -3673,7 +3675,7 @@ export default function CarePlanBuilder({
                                             You can edit the task title,
                                             guidance, and target, but linked
                                             nutrition items are locked. Create a
-                                            revision to change them.
+                                            new care plan to change them.
                                           </p>
                                         ) : null}
                                         <ComboboxField

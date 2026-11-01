@@ -125,7 +125,6 @@ export const ADMIN_ENDPOINTS = {
       VALIDATE: (id: string) => `${BASE}/care-plans/${id}/validate`,
       ACTIVATE: (id: string) => `${BASE}/care-plans/${id}/activate`,
       CANCEL: (id: string) => `${BASE}/care-plans/${id}/cancel`,
-      REVISION: (id: string) => `${BASE}/care-plans/${id}/revision`,
       /** Pause mobile logging so ACTIVE day content can be edited in place. */
       ENTER_EDIT_MODE: (id: string) =>
         `${BASE}/care-plans/${id}/enter-edit-mode`,
