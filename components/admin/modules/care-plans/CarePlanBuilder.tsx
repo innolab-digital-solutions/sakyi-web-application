@@ -98,10 +98,6 @@ import {
   isClientLoggingPaused,
   isEnterEditModeRequiredError,
 } from '@/lib/care-plans/builderEditMode';
-import {
-  filterBlankDraftSectionItems,
-  shouldRequireSectionItemTitle,
-} from '@/lib/care-plans/sectionItemDrafts';
 import { CARE_PLAN_SECTION_TABS } from '@/lib/care-plans/carePlanSectionTabs';
 import {
   cloneCarePlanDayContent,
@@ -120,6 +116,10 @@ import {
   normalizeMovementExercisePrescription,
   resetPrescriptionOnExerciseChange,
 } from '@/lib/care-plans/movementPrescription';
+import {
+  filterBlankDraftSectionItems,
+  shouldRequireSectionItemTitle,
+} from '@/lib/care-plans/sectionItemDrafts';
 import { cn } from '@/lib/utils/styles';
 
 const SECTIONS = CARE_PLAN_SECTION_TABS;
