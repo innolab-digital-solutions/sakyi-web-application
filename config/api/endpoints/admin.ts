@@ -184,7 +184,11 @@ export const ADMIN_ENDPOINTS = {
       CREATE: `${BASE}/users`,
       DETAIL: (id: string) => `${BASE}/users/${id}`,
       UPDATE: (id: string) => `${BASE}/users/${id}`,
+      /** Soft delete (history kept; restorable). */
       DELETE: (id: string) => `${BASE}/users/${id}`,
+      RESTORE: (id: string) => `${BASE}/users/${id}/restore`,
+      /** Permanent delete for already soft-deleted accounts. */
+      FORCE_DELETE: (id: string) => `${BASE}/users/${id}/force`,
     },
     INTAKE_ASSESSMENTS: {
       TEMPLATE: (version: number) => `${BASE}/onboarding/templates/${version}`,

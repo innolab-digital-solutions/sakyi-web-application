@@ -43,13 +43,12 @@ export default function RemoveUserConfirmation({
                 Remove this user account?
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
-                This will permanently remove{' '}
+                This will soft-delete{' '}
                 <strong className='text-destructive font-semibold'>
                   {displayName}
-                </strong>{' '}
-                from the system and permanently delete related enrollment
-                history and other linked user records. This action cannot be
-                undone.
+                </strong>
+                . The account can be restored later. Linked care history is
+                kept.
               </AlertDialogDescription>
             </div>
           </div>
