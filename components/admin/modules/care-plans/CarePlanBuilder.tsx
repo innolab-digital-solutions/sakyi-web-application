@@ -98,6 +98,10 @@ import {
   isClientLoggingPaused,
   isEnterEditModeRequiredError,
 } from '@/lib/care-plans/builderEditMode';
+import {
+  filterBlankDraftSectionItems,
+  shouldRequireSectionItemTitle,
+} from '@/lib/care-plans/sectionItemDrafts';
 import { CARE_PLAN_SECTION_TABS } from '@/lib/care-plans/carePlanSectionTabs';
 import {
   cloneCarePlanDayContent,
@@ -750,10 +754,6 @@ class CarePlanDayMotivationValidationError extends Error {
 
 function formatDayTaskValidationMessage(message: string): string {
   return message
-    .replace(
-      /at least one item(?:\s+in)?\s+(nutrition,\s*movement,\s*activity(?:,\s*hydration(?:,\s*sleep(?:,\s*recovery)?)?)?,?\s*or\s*(?:recovery|walking))/i,
-      'at least one task in any section ($1)',
-    )
     .replace(/\bitem\b/gi, 'task')
     .replace(/\bmovement\b/gi, 'exercise');
 }
@@ -762,8 +762,7 @@ function extractValidationIssuesByDay(
   issues: CarePlanValidationIssue[],
 ): Record<number, string> {
   const dayIssueMessages: Record<number, string> = {};
-  const defaultDayTaskMessage =
-    'Add at least one task in any section (nutrition, exercise, activity, hydration, sleep, recovery, or walking).';
+  const defaultDayIssueMessage = 'Review this day before activation.';
 
   for (const issue of issues) {
     const field = String(issue?.field ?? '').trim();
@@ -775,7 +774,7 @@ function extractValidationIssuesByDay(
       if (Number.isInteger(fieldDayNumber) && fieldDayNumber > 0) {
         dayIssueMessages[fieldDayNumber] = message
           ? formatDayTaskValidationMessage(message)
-          : defaultDayTaskMessage;
+          : defaultDayIssueMessage;
       }
     }
 
@@ -786,22 +785,13 @@ function extractValidationIssuesByDay(
         if (!dayIssueMessages[messageDayNumber]) {
           dayIssueMessages[messageDayNumber] = message
             ? formatDayTaskValidationMessage(message)
-            : defaultDayTaskMessage;
+            : defaultDayIssueMessage;
         }
       }
     }
   }
 
   return dayIssueMessages;
-}
-
-function dayHasAnyTask(
-  sections: Record<CarePlanSectionKey, CarePlanSectionItem[]>,
-): boolean {
-  return SECTIONS.some((section) => {
-    const items = toEditableSectionItems(sections[section.key] ?? []);
-    return normalizeSectionItemsForSave(items, section.key).length > 0;
-  });
 }
 
 export default function CarePlanBuilder({
@@ -1329,7 +1319,6 @@ export default function CarePlanBuilder({
           setLocalItems([
             {
               ...createEmptySectionItem(),
-              title: 'Daily steps',
               target_unit: walkingStepsUnitValue ?? '',
             },
           ]);
@@ -1897,21 +1886,23 @@ export default function CarePlanBuilder({
 
         for (const sectionTab of SECTIONS) {
           const sectionKey = sectionTab.key;
-          const normalized = normalizeSectionItemsForSave(
-            toEditableSectionItems(cloned.sections[sectionKey] ?? []),
-            sectionKey,
+          const normalized = filterBlankDraftSectionItems(
+            normalizeSectionItemsForSave(
+              toEditableSectionItems(cloned.sections[sectionKey] ?? []),
+              sectionKey,
+            ),
           );
-          // Backend rejects empty `items` (`"The items field is required."`).
-          // Mirror normal section save, which also skips empty payloads.
-          if (normalized.length === 0) continue;
-
-          const payload = toSectionSavePayload(
-            normalized,
-            sectionKey,
-            resolveUnitId,
-            resolveExerciseProfile,
-            normalizedStatus,
-          );
+          // Empty source section → clear target with `items: []` (allowed).
+          const payload =
+            normalized.length === 0
+              ? []
+              : toSectionSavePayload(
+                  normalized,
+                  sectionKey,
+                  resolveUnitId,
+                  resolveExerciseProfile,
+                  normalizedStatus,
+                );
           const response = await putCarePlanSectionItems(
             carePlanId,
             target.id,
@@ -2210,56 +2201,26 @@ export default function CarePlanBuilder({
 
     const sectionToValidate = activeSection;
 
-    const isItemMeaningful = (
-      item: CarePlanSectionItem | undefined,
-    ): boolean => {
-      if (!item) return false;
-      const title = normalizeValue(item.title);
-      const guidance = normalizeValue(item.guidance);
-      const targetValue = normalizeValue(item.target_value);
-      const targetUnit = normalizeValue(item.target_unit);
-      const eatingWindow = normalizeEatingWindowHHmm(item.eating_window);
-      const movementId = normalizeValue(
-        item.movement_exercise_id || item.exercise_id,
-      );
-
-      if (sectionToValidate === 'movement') {
-        const exercises = Array.isArray(item.exercises) ? item.exercises : [];
-        const hasMeaningfulExercise = exercises.some((exercise) =>
-          isMovementPrescriptionMeaningful(
-            normalizeMovementExercisePrescription(exercise),
-          ),
-        );
-        return Boolean(
-          title ||
-          guidance ||
-          targetValue ||
-          targetUnit ||
-          movementId ||
-          hasMeaningfulExercise,
-        );
-      }
-
-      if (sectionToValidate === 'nutrition') {
-        const nutritionIds = Array.isArray(item.nutrition_item_ids)
-          ? item.nutrition_item_ids
-          : [];
-        return Boolean(
-          title ||
-          guidance ||
-          targetValue ||
-          targetUnit ||
-          eatingWindow ||
-          nutritionIds.length > 0,
-        );
-      }
-
-      return Boolean(title || guidance || targetValue || targetUnit);
-    };
-
     for (let itemIndex = 0; itemIndex < localItems.length; itemIndex++) {
       const item = localItems[itemIndex];
-      if (!isItemMeaningful(item)) continue;
+      const normalizedRows = item
+        ? normalizeSectionItemsForSave([item], sectionToValidate)
+        : [];
+      const normalized = normalizedRows[0];
+      if (!normalized) continue;
+
+      const hasStartedContent = isMeaningfulNormalizedItem(normalized);
+      // Unit-only / fully empty cards are placeholders — skip and save as [].
+      // Started/persisted rows still need a title (backend drops untitled drafts).
+      if (
+        !shouldRequireSectionItemTitle({
+          id: normalized.id,
+          title: item?.title,
+          hasStartedContent,
+        })
+      ) {
+        continue;
+      }
 
       const title = normalizeValue(item?.title);
       if (!title) {
@@ -2362,13 +2323,17 @@ export default function CarePlanBuilder({
   const saveCurrentSectionIfNeeded = async (): Promise<number | null> => {
     const dayId = validateSectionBeforeSave();
     if (!dayId) return null;
-    const normalizedLocalItems = normalizeSectionItemsForSave(
-      localItems,
-      activeSection,
+    // Prefer `items: []` for empty/skip sections; omit blank draft cards.
+    const normalizedLocalItems = filterBlankDraftSectionItems(
+      normalizeSectionItemsForSave(localItems, activeSection),
     );
-    const skipSave =
-      normalizedLocalItems.length === 0 ||
-      areNormalizedItemsEqual(normalizedLocalItems, normalizedSectionItems);
+    const normalizedSavedItems = filterBlankDraftSectionItems(
+      normalizedSectionItems,
+    );
+    const skipSave = areNormalizedItemsEqual(
+      normalizedLocalItems,
+      normalizedSavedItems,
+    );
 
     if (!skipSave) {
       await sectionSaveMutation.mutateAsync({
@@ -2988,9 +2953,9 @@ export default function CarePlanBuilder({
                           const isSelected = selectedDayId === day.id;
                           const dayValidationMessage =
                             validationIssuesByDay[day.day_number];
-                          const hasAnyTaskInDay = dayHasAnyTask(day.sections);
+                          // Empty task days are valid; show only backend-reported issues.
                           const hasDayValidationIssue =
-                            Boolean(dayValidationMessage) && !hasAnyTaskInDay;
+                            Boolean(dayValidationMessage);
                           return (
                             <li key={day.id} className='relative'>
                               <div className='relative w-full min-w-0'>
