@@ -22,10 +22,12 @@ import Heading1 from '@/components/shared/typography/Heading1';
 import { ROUTES } from '@/config/routes';
 import { useLanguage } from '@/context/LanguageContext';
 import { scrollToElement } from '@/lib/utils/scroll';
+import { cn } from '@/lib/utils/styles';
 
 const HomeIntroSection = () => {
   const { language, translate } = useLanguage();
   const router = useRouter();
+  const isMyanmar = language === 'my';
 
   return (
     <SectionContainer id='hero-section' className='bg-background'>
@@ -38,14 +40,39 @@ const HomeIntroSection = () => {
             text={translate('marketing.pages.home.hero.badge')}
           />
 
-          <div className='space-y-6'>
+          <div className='min-w-0 space-y-6'>
             {/* Main hero title (with gradient highlight) */}
-            <div className='space-y-2'>
-              <Heading1 lang={language}>
-                <span className='text-foreground block font-sans'>
+            <div className='min-w-0 space-y-2'>
+              <Heading1
+                lang={language}
+                className={cn(
+                  // Myanmar glyphs are wider than Latin. Keep equal 50/50 columns
+                  // (same image side as English) and step the hero size down so
+                  // the dark phrase fits one line without spilling under the image.
+                  // Avoid leading-tight — it clips marks and hollows gradient text.
+                  isMyanmar &&
+                    'text-3xl leading-relaxed tracking-normal sm:text-4xl lg:text-[1.875rem] xl:text-[2.25rem]',
+                )}
+              >
+                <span
+                  className={cn(
+                    'text-foreground block font-sans',
+                    // Same structure as English: dark phrase line 1, gradient line 2.
+                    isMyanmar && 'max-w-full whitespace-nowrap',
+                  )}
+                >
                   {translate('marketing.pages.home.hero.title.black')}
                 </span>
-                <span className='text-brand-gradient block bg-clip-text font-sans text-transparent'>
+                <span
+                  // Keep `text-brand-gradient` outside twMerge — it conflicts with
+                  // `text-transparent` (both look like text-color utilities) and gets dropped.
+                  className={`text-brand-gradient ${cn(
+                    // block + roomy leading keeps Myanmar diacritics visible with
+                    // background-clip:text (see globals.css .text-brand-gradient).
+                    'block max-w-full bg-clip-text font-sans text-transparent',
+                    isMyanmar && 'leading-relaxed whitespace-nowrap',
+                  )}`}
+                >
                   {translate('marketing.pages.home.hero.title.gradient')}
                 </span>
               </Heading1>
@@ -58,8 +85,8 @@ const HomeIntroSection = () => {
               </Body2>
             </div>
 
-            {/* Hero section description */}
-            <Body1 lang={language} className='max-w-2xl'>
+            {/* Hero section description — stay inside the text column, never under the image */}
+            <Body1 lang={language} className='max-w-full'>
               {translate('marketing.pages.home.hero.description')}
             </Body1>
           </div>
