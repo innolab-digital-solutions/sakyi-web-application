@@ -16,7 +16,14 @@ function userWithRole(role: User['role']): User {
       email_password: 'set',
       google: 'not_connected',
     },
-    actions: { deletable: false, delete_block_reason: null },
+    actions: {
+      deletable: false,
+      delete_block_reason: null,
+      restorable: false,
+      force_deletable: false,
+      force_delete_block_reason: null,
+      force_delete_blockers: null,
+    },
     last_login_at: null,
   };
 }

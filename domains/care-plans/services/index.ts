@@ -61,7 +61,6 @@ export {
   postCarePlanOperationalLogDraft,
   postCarePlanReportRun,
   postCarePlanReportRunPublish,
-  postCarePlanRevision,
   postCarePlanValidate,
   postCreateCarePlan,
   postOperationalLogSubmitForReview,

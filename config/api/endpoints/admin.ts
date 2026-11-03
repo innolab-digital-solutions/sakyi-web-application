@@ -125,7 +125,6 @@ export const ADMIN_ENDPOINTS = {
       VALIDATE: (id: string) => `${BASE}/care-plans/${id}/validate`,
       ACTIVATE: (id: string) => `${BASE}/care-plans/${id}/activate`,
       CANCEL: (id: string) => `${BASE}/care-plans/${id}/cancel`,
-      REVISION: (id: string) => `${BASE}/care-plans/${id}/revision`,
       /** Pause mobile logging so ACTIVE day content can be edited in place. */
       ENTER_EDIT_MODE: (id: string) =>
         `${BASE}/care-plans/${id}/enter-edit-mode`,
@@ -185,7 +184,11 @@ export const ADMIN_ENDPOINTS = {
       CREATE: `${BASE}/users`,
       DETAIL: (id: string) => `${BASE}/users/${id}`,
       UPDATE: (id: string) => `${BASE}/users/${id}`,
+      /** Soft delete (history kept; restorable). */
       DELETE: (id: string) => `${BASE}/users/${id}`,
+      RESTORE: (id: string) => `${BASE}/users/${id}/restore`,
+      /** Permanent delete for already soft-deleted accounts. */
+      FORCE_DELETE: (id: string) => `${BASE}/users/${id}/force`,
     },
     INTAKE_ASSESSMENTS: {
       TEMPLATE: (version: number) => `${BASE}/onboarding/templates/${version}`,

@@ -3,20 +3,26 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import {
+  ArchiveIcon,
+  BanIcon,
   CheckCircle2Icon,
   ClockIcon,
+  RotateCcwIcon,
   ShieldCheckIcon,
   SquarePenIcon,
   Trash2Icon,
   UserCheck2Icon,
   UserRoundIcon,
   UserSearchIcon,
+  UserXIcon,
 } from 'lucide-react';
 import { type ComponentType, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
+import ForceDeleteUserConfirmation from '@/components/admin/modules/users/ForceDeleteUserConfirmation';
 import RemoveUserConfirmation from '@/components/admin/modules/users/RemoveUserConfirmation';
+import RestoreUserConfirmation from '@/components/admin/modules/users/RestoreUserConfirmation';
 import UserFilters, {
   type UserStatusFilter,
 } from '@/components/admin/modules/users/UserFilters';
@@ -37,9 +43,19 @@ import {
 import TableCellEmpty from '@/components/ui/table-cell-empty';
 import { base } from '@/config/api/base';
 import { ENDPOINTS } from '@/config/api/endpoints';
-import { deleteUser } from '@/domains/user/services';
+import {
+  deleteUser,
+  forceDeleteUser,
+  restoreUser,
+} from '@/domains/user/services';
 import type { Status, User } from '@/domains/user/types';
 import { useTable } from '@/lib/table';
+import {
+  canForceDeleteUser,
+  canRestoreUser,
+  canSoftDeleteUser,
+  isSoftDeletedUser,
+} from '@/lib/user/softDeleteActions';
 import { getInitials } from '@/lib/utils/string';
 
 function resolveUserPictureSrc(
@@ -100,6 +116,9 @@ const SKELETON_WIDTHS = [
 const STATUS_LABEL: Record<Status, string> = {
   pending: 'Pending',
   active: 'Active',
+  suspended: 'Suspended',
+  archived: 'Archived',
+  deleted: 'Deleted',
 };
 
 const STATUS_STYLES: Record<
@@ -116,7 +135,30 @@ const STATUS_STYLES: Record<
     className:
       'border-emerald-300/80 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200',
   },
+  suspended: {
+    icon: BanIcon,
+    className:
+      'border-orange-300/80 bg-orange-50 text-orange-800 dark:border-orange-800 dark:bg-orange-950/40 dark:text-orange-200',
+  },
+  archived: {
+    icon: ArchiveIcon,
+    className:
+      'border-slate-300/80 bg-slate-50 text-slate-800 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-200',
+  },
+  deleted: {
+    icon: UserXIcon,
+    className:
+      'border-rose-300/80 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200',
+  },
 };
+
+const STATUS_FILTER_VALUES: Status[] = [
+  'pending',
+  'active',
+  'suspended',
+  'archived',
+  'deleted',
+];
 
 function formatDateCell(iso: string | null | undefined): string | null {
   if (!iso?.trim()) return null;
@@ -168,52 +210,129 @@ function isGoogleSignInConnected(user: User): boolean {
 }
 
 function statusFilterFromParams(raw: string | undefined): UserStatusFilter {
-  const valid: Status[] = ['pending', 'active'];
-  return valid.includes(raw as Status) ? (raw as Status) : 'all';
+  return STATUS_FILTER_VALUES.includes(raw as Status) ? (raw as Status) : 'all';
+}
+
+function resolveStatusStyle(status: Status | string | null | undefined) {
+  const key = (status ?? '').trim().toLowerCase() as Status;
+  return STATUS_STYLES[key] ?? STATUS_STYLES.pending;
+}
+
+function resolveStatusLabel(status: Status | string | null | undefined) {
+  const key = (status ?? '').trim().toLowerCase() as Status;
+  return STATUS_LABEL[key] ?? (status?.trim() || 'Unknown');
 }
 
 export default function UserListTable() {
   const queryClient = useQueryClient();
   const [editUser, setEditUser] = useState<User | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+  const [restoreTarget, setRestoreTarget] = useState<User | null>(null);
+  const [forceDeleteTarget, setForceDeleteTarget] = useState<User | null>(null);
   const [blockedDeleteTarget, setBlockedDeleteTarget] = useState<User | null>(
     null,
   );
 
-  const { mutateAsync: confirmDelete, isPending: isDeleting } = useMutation({
+  const invalidateUsersList = () => {
+    void queryClient.invalidateQueries({
+      queryKey: ['table', ENDPOINTS.ADMIN.MODULES.USERS.LIST],
+    });
+  };
+
+  const { mutateAsync: confirmSoftDelete, isPending: isSoftDeleting } =
+    useMutation({
+      mutationFn: async (id: number) => {
+        const response = await deleteUser(id);
+        if (response.status === 'error') {
+          throw new Error(response.message || 'Failed to remove user.');
+        }
+      },
+      onSuccess: () => {
+        toast.success('The user account has been removed successfully.');
+        invalidateUsersList();
+      },
+      onError: (error: Error) => {
+        toast.error(error.message ?? 'Failed to remove user.');
+      },
+    });
+
+  const { mutateAsync: confirmRestore, isPending: isRestoring } = useMutation({
     mutationFn: async (id: number) => {
-      const response = await deleteUser(id);
+      const response = await restoreUser(id);
       if (response.status === 'error') {
-        throw new Error(response.message || 'Failed to remove user.');
+        throw new Error(response.message || 'Failed to restore user.');
       }
+      return response.data;
     },
     onSuccess: () => {
-      toast.success('The user account has been removed successfully.');
-      queryClient.invalidateQueries({
-        queryKey: ['table', ENDPOINTS.ADMIN.MODULES.USERS.LIST],
-      });
+      toast.success('The user account has been restored successfully.');
+      invalidateUsersList();
     },
-    onError: (error) => {
-      toast.error(error.message ?? 'Failed to remove user.');
+    onError: (error: Error) => {
+      toast.error(error.message ?? 'Failed to restore user.');
     },
   });
 
-  const handleDelete = async () => {
+  const { mutateAsync: confirmForceDelete, isPending: isForceDeleting } =
+    useMutation({
+      mutationFn: async (id: number) => {
+        const response = await forceDeleteUser(id);
+        if (response.status === 'error') {
+          throw new Error(
+            response.message || 'Failed to permanently delete user.',
+          );
+        }
+      },
+      onSuccess: () => {
+        toast.success('The user account has been permanently deleted.');
+        invalidateUsersList();
+      },
+      onError: (error: Error) => {
+        toast.error(error.message ?? 'Failed to permanently delete user.');
+      },
+    });
+
+  const handleSoftDelete = async () => {
     if (!deleteTarget) return;
     try {
-      await confirmDelete(deleteTarget.id);
+      await confirmSoftDelete(deleteTarget.id);
       setDeleteTarget(null);
     } catch {
       // onError already toasts
     }
   };
 
-  const handleDeleteClick = (user: User) => {
-    if (user.actions.deletable) {
+  const handleRestore = async () => {
+    if (!restoreTarget) return;
+    try {
+      await confirmRestore(restoreTarget.id);
+      setRestoreTarget(null);
+    } catch {
+      // onError already toasts
+    }
+  };
+
+  const handleForceDelete = async () => {
+    if (!forceDeleteTarget) return;
+    try {
+      await confirmForceDelete(forceDeleteTarget.id);
+      setForceDeleteTarget(null);
+    } catch {
+      // onError already toasts
+    }
+  };
+
+  const handleSoftDeleteClick = (user: User) => {
+    if (canSoftDeleteUser(user)) {
       setDeleteTarget(user);
       return;
     }
     setBlockedDeleteTarget(user);
+  };
+
+  const handleForceDeleteClick = (user: User) => {
+    if (!canForceDeleteUser(user)) return;
+    setForceDeleteTarget(user);
   };
 
   const { rows, controls } = useTable<User>(
@@ -324,9 +443,9 @@ export default function UserListTable() {
               query.data?.status === 'success' &&
               rows.map((user) => {
                 const createdAt = formatDateCell(user.last_login_at);
-                const statusStyle = STATUS_STYLES[user.status];
+                const statusStyle = resolveStatusStyle(user.status);
                 const StatusIcon = statusStyle.icon;
-
+                const deleted = isSoftDeletedUser(user);
                 const pictureSrc = resolveUserPictureSrc(user.picture_url);
 
                 return (
@@ -381,7 +500,7 @@ export default function UserListTable() {
                         className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${statusStyle.className}`}
                       >
                         <StatusIcon className='size-3.5 shrink-0' />
-                        {STATUS_LABEL[user.status]}
+                        {resolveStatusLabel(user.status)}
                       </span>
                     </TableCell>
 
@@ -402,24 +521,51 @@ export default function UserListTable() {
                     </TableCell>
                     <TableCell>
                       <div className='flex flex-nowrap items-center justify-start gap-2'>
-                        <Button
-                          type='button'
-                          variant='outline'
-                          className='text-foreground bg-background hover:bg-muted h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
-                          onClick={() => setEditUser(user)}
-                        >
-                          <SquarePenIcon className='size-3.5' />
-                          Edit
-                        </Button>
-                        <Button
-                          type='button'
-                          variant='outline'
-                          className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
-                          onClick={() => handleDeleteClick(user)}
-                        >
-                          <Trash2Icon className='size-3.5' />
-                          Remove
-                        </Button>
+                        {deleted ? (
+                          <>
+                            {canRestoreUser(user) ? (
+                              <Button
+                                type='button'
+                                variant='outline'
+                                className='text-foreground bg-background hover:bg-muted h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+                                onClick={() => setRestoreTarget(user)}
+                              >
+                                <RotateCcwIcon className='size-3.5' />
+                                Restore
+                              </Button>
+                            ) : null}
+                            <Button
+                              type='button'
+                              variant='outline'
+                              className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                              onClick={() => handleForceDeleteClick(user)}
+                            >
+                              <Trash2Icon className='size-3.5' />
+                              Delete permanently
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              type='button'
+                              variant='outline'
+                              className='text-foreground bg-background hover:bg-muted h-9 shrink-0 gap-1.5 rounded-md border-neutral-300 px-2.5 text-[13px]! font-semibold'
+                              onClick={() => setEditUser(user)}
+                            >
+                              <SquarePenIcon className='size-3.5' />
+                              Edit
+                            </Button>
+                            <Button
+                              type='button'
+                              variant='outline'
+                              className='text-destructive hover:text-destructive border-destructive/35 bg-background hover:bg-destructive/10 h-9 shrink-0 cursor-pointer gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+                              onClick={() => handleSoftDeleteClick(user)}
+                            >
+                              <Trash2Icon className='size-3.5' />
+                              Remove
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -446,9 +592,30 @@ export default function UserListTable() {
           if (!o) setDeleteTarget(null);
         }}
         userName={deleteTarget?.name}
-        isRemoving={isDeleting}
-        onConfirm={handleDelete}
+        isRemoving={isSoftDeleting}
+        onConfirm={handleSoftDelete}
       />
+
+      <RestoreUserConfirmation
+        open={!!restoreTarget}
+        onOpenChange={(o) => {
+          if (!o) setRestoreTarget(null);
+        }}
+        userName={restoreTarget?.name}
+        isRestoring={isRestoring}
+        onConfirm={handleRestore}
+      />
+
+      <ForceDeleteUserConfirmation
+        open={!!forceDeleteTarget}
+        onOpenChange={(o) => {
+          if (!o) setForceDeleteTarget(null);
+        }}
+        userName={forceDeleteTarget?.name}
+        isDeleting={isForceDeleting}
+        onConfirm={handleForceDelete}
+      />
+
       <UserRemovalBlockedAlert
         open={!!blockedDeleteTarget}
         onOpenChange={(o) => {

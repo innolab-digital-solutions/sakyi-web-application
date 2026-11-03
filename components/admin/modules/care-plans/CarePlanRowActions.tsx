@@ -6,7 +6,6 @@ import {
   ClipboardCopyIcon,
   FilePenLineIcon,
   FileTextIcon,
-  GitBranchPlusIcon,
   MoreHorizontalIcon,
   NotebookPenIcon,
   XCircleIcon,
@@ -20,7 +19,6 @@ import CarePlanActivateActivePlanExistsDialog from '@/components/admin/modules/c
 import CarePlanActivateConfirmation from '@/components/admin/modules/care-plans/CarePlanActivateConfirmation';
 import CarePlanActivateEnrollmentPrerequisiteDialog from '@/components/admin/modules/care-plans/CarePlanActivateEnrollmentPrerequisiteDialog';
 import CarePlanCancelConfirmation from '@/components/admin/modules/care-plans/CarePlanCancelConfirmation';
-import CarePlanRevisionConfirmation from '@/components/admin/modules/care-plans/CarePlanRevisionConfirmation';
 import OperationalLogDraftConfirmation from '@/components/admin/modules/operational-logs/OperationalLogDraftConfirmation';
 import { buildOperationalLogWorkspaceHref } from '@/components/admin/modules/operational-logs/reportRunListHelpers';
 import { Button } from '@/components/ui/button';
@@ -39,7 +37,6 @@ import {
   postCarePlanCancel,
   postCarePlanEnterEditMode,
   postCarePlanOperationalLogDraft,
-  postCarePlanRevision,
 } from '@/domains/care-plans/services';
 import type {
   AdminCarePlan,
@@ -108,6 +105,20 @@ function getEnrollmentReferenceForRow(row: AdminCarePlan): string {
   return '';
 }
 
+function getEnrollmentIdForRow(row: AdminCarePlan): number | null {
+  const fromEnrollment = row.enrollment?.id;
+  if (typeof fromEnrollment === 'number' && Number.isFinite(fromEnrollment)) {
+    return fromEnrollment;
+  }
+  if (
+    typeof row.enrollment_id === 'number' &&
+    Number.isFinite(row.enrollment_id)
+  ) {
+    return row.enrollment_id;
+  }
+  return null;
+}
+
 export type CarePlanRowActionsProps = {
   row: AdminCarePlan;
 };
@@ -119,7 +130,6 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
   const [enrollmentPrerequisiteOpen, setEnrollmentPrerequisiteOpen] =
     React.useState(false);
   const [activePlanExistsOpen, setActivePlanExistsOpen] = React.useState(false);
-  const [revisionOpen, setRevisionOpen] = React.useState(false);
   const [cancelOpen, setCancelOpen] = React.useState(false);
   const [opLogDraftOpen, setOpLogDraftOpen] = React.useState(false);
   const [cancellationNote, setCancellationNote] = React.useState('');
@@ -128,7 +138,7 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
   >();
   const status = normalizeStatus(row.status);
   const reference = getReference(row);
-  const enrollmentId = row.enrollment?.id ?? row.enrollment_id;
+  const enrollmentId = getEnrollmentIdForRow(row);
   const enrollmentRefLabel = getEnrollmentReferenceForRow(row);
 
   const invalidateList = React.useCallback(() => {
@@ -140,17 +150,12 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
   const canActivate = status === 'draft';
   const canCancel =
     status === 'draft' || status === 'scheduled' || status === 'active';
-  const canCreateRevision = status === 'active' || status === 'cancelled';
   const canOpenOperationalLogs = status === 'active' || status === 'completed';
   const hasMenuAfterCopy =
-    canEdit ||
-    canActivate ||
-    canCreateRevision ||
-    canCancel ||
-    canOpenOperationalLogs;
+    canEdit || canActivate || canCancel || canOpenOperationalLogs;
 
   const hasNonCancelMenuItems =
-    canOpenOperationalLogs || canEdit || canActivate || canCreateRevision;
+    canOpenOperationalLogs || canEdit || canActivate;
   const showSepBeforeCancel = canCancel && hasNonCancelMenuItems;
 
   const { mutate: activatePlan, isPending: activatePending } = useMutation({
@@ -168,28 +173,6 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
     },
     onError: (error: Error) => {
       toast.error(error.message ?? 'Could not activate care plan.');
-    },
-  });
-
-  const { mutate: createRevision, isPending: revisionPending } = useMutation({
-    mutationFn: async () => {
-      const response = await postCarePlanRevision(row.id);
-      if (response.status === 'error') {
-        throw new Error(response.message ?? 'Could not create revision.');
-      }
-      return response.data;
-    },
-    onSuccess: (nextPlan) => {
-      toast.success('The care plan revision has been created successfully.');
-      invalidateList();
-      if (nextPlan?.id != null) {
-        router.push(
-          ROUTES.ADMIN.MODULES.CARE_PLANS.WORKSPACE(String(nextPlan.id)),
-        );
-      }
-    },
-    onError: (error: Error) => {
-      toast.error(error.message ?? 'Could not create revision.');
     },
   });
 
@@ -427,16 +410,6 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
                     Activate care plan
                   </DropdownMenuItem>
                 ) : null}
-                {canCreateRevision ? (
-                  <DropdownMenuItem
-                    disabled={revisionPending}
-                    className='flex cursor-pointer items-center gap-2 text-[13px]! font-medium'
-                    onClick={() => setRevisionOpen(true)}
-                  >
-                    <GitBranchPlusIcon className='size-3.5 shrink-0' />
-                    {revisionPending ? 'Creating revision…' : 'Create revision'}
-                  </DropdownMenuItem>
-                ) : null}
                 {showSepBeforeCancel ? <DropdownMenuSeparator /> : null}
                 {canCancel ? (
                   <DropdownMenuItem
@@ -478,14 +451,6 @@ export default function CarePlanRowActions({ row }: CarePlanRowActionsProps) {
         carePlanReference={reference}
         onOpenChange={setActivateOpen}
         onConfirm={() => activatePlan()}
-      />
-
-      <CarePlanRevisionConfirmation
-        open={revisionOpen}
-        isSubmitting={revisionPending}
-        carePlanReference={reference}
-        onOpenChange={setRevisionOpen}
-        onConfirm={() => createRevision()}
       />
 
       <CarePlanCancelConfirmation

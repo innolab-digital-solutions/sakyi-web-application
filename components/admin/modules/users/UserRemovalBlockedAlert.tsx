@@ -27,8 +27,7 @@ export default function UserRemovalBlockedAlert({
 }: UserRemovalBlockedAlertProps) {
   const displayName = userName?.trim() || 'This user account';
   const detail =
-    reason?.trim() ||
-    'This user account is currently referenced by active records and cannot be removed.';
+    reason?.trim() || 'This user account cannot be removed right now.';
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -40,7 +39,7 @@ export default function UserRemovalBlockedAlert({
             </div>
             <div className='space-y-1.5'>
               <AlertDialogTitle className='text-foreground text-sm font-bold capitalize'>
-                Account Removal Blocked
+                Account removal blocked
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
                 <strong className='font-semibold text-amber-600'>

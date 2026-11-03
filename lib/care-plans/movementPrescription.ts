@@ -259,6 +259,11 @@ export function getPrescriptionFieldHint(
   return hint || undefined;
 }
 
+/**
+ * True when an exercise prescription row has real content.
+ * A default mass unit alone does not count — empty Exercise cards seed
+ * `equipment_weight_unit_id` as a placeholder and must remain skippable.
+ */
 export function isMovementPrescriptionMeaningful(
   exercise: MovementExercisePrescriptionInput,
 ): boolean {
@@ -269,8 +274,7 @@ export function isMovementPrescriptionMeaningful(
     exercise.rest_seconds ||
     exercise.duration_seconds ||
     exercise.intensity ||
-    exercise.equipment_weight ||
-    exercise.equipment_weight_unit_id,
+    exercise.equipment_weight,
   );
 }
 

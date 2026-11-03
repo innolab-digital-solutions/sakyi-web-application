@@ -19,10 +19,13 @@ import type { Status } from '@/domains/user/types';
 export type UserStatusFilter = 'all' | Status;
 export type UserRoleFilter = 'all' | 'admin' | 'client' | 'prospect';
 
-const STATUS_LABELS: Record<Status, string> = {
+const STATUS_LABELS: Partial<Record<Status, string>> = {
   pending: 'Pending',
   active: 'Active',
+  deleted: 'Deleted',
 };
+
+const STATUS_FILTER_OPTIONS: Status[] = ['pending', 'active', 'deleted'];
 
 const ROLE_OPTIONS: { value: UserRoleFilter; label: string }[] = [
   { value: 'all', label: 'All roles' },
@@ -45,7 +48,7 @@ export default function UserFilters({
   onRoleChange,
 }: Props) {
   const statusLabel =
-    status === 'all' ? 'All' : STATUS_LABELS[status as Status];
+    status === 'all' ? 'All' : (STATUS_LABELS[status] ?? 'All');
   const roleLabel =
     role === 'all'
       ? 'All'
@@ -73,7 +76,7 @@ export default function UserFilters({
             All statuses
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          {(Object.keys(STATUS_LABELS) as Status[]).map((s) => (
+          {STATUS_FILTER_OPTIONS.map((s) => (
             <DropdownMenuItem
               key={s}
               className='cursor-pointer'

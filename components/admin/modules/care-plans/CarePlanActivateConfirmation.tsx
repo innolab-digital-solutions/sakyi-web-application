@@ -53,8 +53,8 @@ export default function CarePlanActivateConfirmation({
                 and auto-activated on the start date. If the start date is today
                 or earlier, it will become{' '}
                 <span className='text-foreground/90 font-semibold'>active</span>{' '}
-                immediately. After activation scheduling, major changes should
-                be made through revision mode to maintain a clear audit trail.
+                immediately. After activation, use edit mode for content tweaks,
+                or create a new care plan for date or day-structure changes.
               </AlertDialogDescription>
             </div>
           </div>

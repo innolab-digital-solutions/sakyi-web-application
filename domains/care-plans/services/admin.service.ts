@@ -69,15 +69,6 @@ export async function postCarePlanActivate(
   );
 }
 
-export async function postCarePlanRevision(
-  id: number,
-): Promise<ApiResponse<AdminCarePlan>> {
-  return http.post<AdminCarePlan>(
-    ENDPOINTS.ADMIN.MODULES.CARE_PLANS.REVISION(String(id)),
-    {},
-  );
-}
-
 export async function postCarePlanCancel(
   id: number,
   body: CancelCarePlanPayload,

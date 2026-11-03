@@ -1,10 +1,9 @@
 'use client';
 
-import { CircleQuestionMark, GitBranchPlusIcon } from 'lucide-react';
+import { CircleQuestionMark, RotateCcwIcon } from 'lucide-react';
 
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -12,22 +11,25 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 
-type CarePlanRevisionConfirmationProps = {
+export type RestoreUserConfirmationProps = {
   open: boolean;
-  isSubmitting: boolean;
-  carePlanReference?: string;
   onOpenChange: (open: boolean) => void;
+  userName: string | undefined;
+  isRestoring: boolean;
   onConfirm: () => void;
 };
 
-export default function CarePlanRevisionConfirmation({
+export default function RestoreUserConfirmation({
   open,
-  isSubmitting,
-  carePlanReference,
   onOpenChange,
+  userName,
+  isRestoring,
   onConfirm,
-}: CarePlanRevisionConfirmationProps) {
+}: RestoreUserConfirmationProps) {
+  const displayName = userName?.trim() || 'This user';
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className='gap-0 overflow-hidden p-0 sm:max-w-md'>
@@ -37,37 +39,39 @@ export default function CarePlanRevisionConfirmation({
               <CircleQuestionMark className='size-5' aria-hidden />
             </div>
             <div className='space-y-1.5'>
-              <AlertDialogTitle className='text-foreground/90 text-sm font-bold capitalize'>
-                Create care plan revision?
+              <AlertDialogTitle className='text-foreground text-sm font-bold capitalize'>
+                Restore this user account?
               </AlertDialogTitle>
               <AlertDialogDescription className='text-muted-foreground text-[13px] font-medium'>
-                Create a draft revision from{' '}
-                <span className='text-primary text-xs font-semibold'>
-                  {carePlanReference || 'this care plan'}
-                </span>{' '}
-                so updates can be prepared safely before activation.
+                Restore{' '}
+                <strong className='text-primary text-xs font-semibold'>
+                  {displayName}
+                </strong>{' '}
+                so they can sign in again. Enrollments and care history remain
+                as they were.
               </AlertDialogDescription>
             </div>
           </div>
         </AlertDialogHeader>
         <AlertDialogFooter className='bg-muted/30 border-border gap-2 border-t p-4 sm:justify-end'>
           <AlertDialogCancel
-            disabled={isSubmitting}
+            disabled={isRestoring}
             className='text-foreground bg-background hover:bg-muted h-10 gap-1.5 rounded-md border-neutral-300 px-3 text-[13px]! font-semibold'
           >
-            Not now
+            Cancel
           </AlertDialogCancel>
-          <AlertDialogAction
-            disabled={isSubmitting}
-            className='h-10 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
-            onClick={(event) => {
-              event.preventDefault();
+          <Button
+            type='button'
+            disabled={isRestoring}
+            className='h-10 cursor-pointer gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
+            onClick={(e) => {
+              e.preventDefault();
               onConfirm();
             }}
           >
-            <GitBranchPlusIcon className='size-3.5' aria-hidden />
-            {isSubmitting ? 'Creating revision…' : 'Create revision'}
-          </AlertDialogAction>
+            <RotateCcwIcon className='size-3.5' aria-hidden />
+            {isRestoring ? 'Restoring…' : 'Restore'}
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
