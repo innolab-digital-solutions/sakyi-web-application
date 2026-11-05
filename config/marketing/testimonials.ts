@@ -12,6 +12,8 @@
  *     `lib/localization/dictionaries/en/marketing/pages/home.json` and
  *     `.../my/marketing/pages/home.json`, each with `client-name`,
  *     `program-title` and `content`.
+ *  3. Optionally add a square photo to `public/images/testimonials` and list it
+ *     in {@link TESTIMONIAL_IMAGES}. Clients without one show their initials.
  *
  * A missing Myanmar entry falls back to English rather than breaking, and an
  * empty {@link TESTIMONIAL_IDS} hides the section entirely.
@@ -31,17 +33,31 @@ export const TESTIMONIALS_DICTIONARY_PREFIX =
  * carousel. Replace them with real, consented client quotes before launch.
  */
 export const TESTIMONIAL_IDS = [
-  'lin-nay-chi-kyaw',
   'ma-pan-nu',
-  'hnin-oo-yin',
-  'shin-thant',
   'ma-nay-chi-lin',
   'hsu-thiri-soe',
   'ma-ar-mee',
-  'khaing-su-lwin',
+  'ma-hnin-hnin-wai-han',
+  'ma-stella-zin',
+  'ma-nan-kham-myat-chu',
+  'ma-phyo-day-by-day',
 ] as const;
 
 export type TestimonialId = (typeof TESTIMONIAL_IDS)[number];
+
+/**
+ * Client photos, keyed by testimonial id. These are small head-and-shoulders
+ * crops, so the face stays recognisable inside the round avatar.
+ */
+export const TESTIMONIAL_IMAGES: Partial<Record<TestimonialId, string>> = {
+  'ma-pan-nu': '/images/testimonials/ma-pan-nu.jpg',
+  'hsu-thiri-soe': '/images/testimonials/hsu-thiri-soe.jpg',
+  'ma-ar-mee': '/images/testimonials/ma-ar-mee.jpg',
+  'ma-hnin-hnin-wai-han': '/images/testimonials/ma-hnin-hnin-wai-han.jpg',
+  'ma-stella-zin': '/images/testimonials/ma-stella-zin.jpg',
+  'ma-nan-kham-myat-chu': '/images/testimonials/ma-nan-kham-myat-chu.jpg',
+  'ma-phyo-day-by-day': '/images/testimonials/ma-phyo-day-by-day.jpg',
+};
 
 /** Dictionary key paths for a single testimonial's fields. */
 export const testimonialKeys = (id: TestimonialId) => ({
@@ -56,4 +72,5 @@ export const TESTIMONIAL_CONTROL_KEYS = {
   previous: `${TESTIMONIALS_DICTIONARY_PREFIX}.controls.previous`,
   next: `${TESTIMONIALS_DICTIONARY_PREFIX}.controls.next`,
   readMore: `${TESTIMONIALS_DICTIONARY_PREFIX}.controls.read-more`,
+  close: `${TESTIMONIALS_DICTIONARY_PREFIX}.controls.dialog-close`,
 } as const;

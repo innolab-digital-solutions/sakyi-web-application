@@ -1,13 +1,14 @@
 'use client';
 
-import { ArrowRight, Quote } from 'lucide-react';
+import { ArrowRight, Quote, X } from 'lucide-react';
+import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { TESTIMONIAL_CONTROL_KEYS } from '@/config/marketing/testimonials';
@@ -22,7 +23,7 @@ type TestimonialCardProps = {
   className?: string;
 };
 
-/** Initials shown in the avatar bubble, e.g. "Lin Nay Chi Kyaw" -> "LN". */
+/** Initials shown when a client has no photo, e.g. "Ma Pan Nu" -> "MP". */
 const getInitials = (name: string): string =>
   name
     .split(/\s+/)
@@ -32,6 +33,36 @@ const getInitials = (name: string): string =>
     .join('')
     .toUpperCase();
 
+/** Round client photo, falling back to initials when there is no photo. */
+const Avatar = ({
+  testimonial,
+  sizes,
+  className,
+}: {
+  testimonial: Testimonial;
+  sizes: string;
+  className?: string;
+}) => (
+  <div
+    className={cn(
+      'bg-brand-gradient relative flex shrink-0 items-center justify-center overflow-hidden rounded-full font-sans text-base font-semibold text-white',
+      className,
+    )}
+  >
+    {testimonial.image ? (
+      <Image
+        src={testimonial.image}
+        alt={testimonial.clientName}
+        fill
+        sizes={sizes}
+        className='object-cover'
+      />
+    ) : (
+      getInitials(testimonial.clientName)
+    )}
+  </div>
+);
+
 const Attribution = ({
   testimonial,
   className,
@@ -40,9 +71,11 @@ const Attribution = ({
   className?: string;
 }) => (
   <div className={cn('flex items-center gap-3', className)}>
-    <div className='bg-brand-gradient flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-sans text-sm font-semibold text-white shadow-sm'>
-      {getInitials(testimonial.clientName)}
-    </div>
+    <Avatar
+      testimonial={testimonial}
+      sizes='(min-width: 640px) 72px, 64px'
+      className='h-16 w-16 shadow-sm sm:h-18 sm:w-18'
+    />
     <div className='min-w-0 text-left'>
       <p className='truncate font-sans text-base font-semibold text-slate-900'>
         {testimonial.clientName}
@@ -137,21 +170,66 @@ const TestimonialCard = ({
       </figure>
 
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className='max-w-xl gap-0 sm:max-w-3xl [&_[data-slot=dialog-close]]:cursor-pointer'>
-          <DialogHeader className='space-y-4'>
-            <DialogTitle className='sr-only'>
-              {testimonial.clientName}
-            </DialogTitle>
-            <Attribution testimonial={testimonial} />
-          </DialogHeader>
+        <DialogContent
+          showCloseButton={false}
+          className='marketing-copy flex max-h-[85dvh] flex-col gap-0 overflow-hidden rounded-3xl border-0 bg-white p-0 shadow-2xl sm:max-w-[min(42rem,calc(100%-2rem))]'
+        >
+          {/* Brand band, with the quote mark as a watermark */}
+          <div className='bg-brand-gradient relative h-20 shrink-0 overflow-hidden sm:h-24'>
+            <div
+              aria-hidden='true'
+              className='absolute -top-12 -left-8 h-36 w-36 rounded-full bg-white/10'
+            />
+            <Quote
+              aria-hidden='true'
+              fill='currentColor'
+              strokeWidth={0}
+              className='absolute right-16 -bottom-5 h-28 w-28 text-white/20 sm:right-20 sm:h-32 sm:w-32'
+            />
+          </div>
 
-          <DialogDescription asChild>
-            <blockquote className='mt-6 max-h-[60vh] overflow-y-auto pr-1'>
-              <p className='font-sans text-base leading-relaxed whitespace-pre-line text-slate-600'>
-                {testimonial.content}
-              </p>
-            </blockquote>
-          </DialogDescription>
+          <DialogClose
+            aria-label={translate(TESTIMONIAL_CONTROL_KEYS.close)}
+            className='absolute top-4 right-4 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-white/20 text-white transition-colors duration-200 hover:bg-white/35 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none'
+          >
+            <X className='h-5 w-5' aria-hidden='true' />
+          </DialogClose>
+
+          {/* The photo overlaps the band, like a signature on a letterhead */}
+          <div className='flex shrink-0 items-start gap-4 px-6 sm:gap-5 sm:px-10'>
+            <Avatar
+              testimonial={testimonial}
+              sizes='(min-width: 640px) 96px, 80px'
+              className='-mt-10 h-20 w-20 text-xl shadow-lg ring-4 ring-white sm:-mt-12 sm:h-24 sm:w-24 sm:text-2xl'
+            />
+            <div className='min-w-0 space-y-1.5 pt-3 text-left sm:pt-4'>
+              <DialogTitle className='font-sans text-lg leading-snug font-semibold text-slate-900 sm:text-xl'>
+                {testimonial.clientName}
+              </DialogTitle>
+              <span className='bg-brand/10 text-brand-hover inline-block rounded-full px-3 py-1 font-sans text-xs font-semibold sm:text-sm'>
+                {testimonial.programTitle}
+              </span>
+            </div>
+          </div>
+
+          <div className='relative mt-5 flex min-h-0 flex-1 flex-col sm:mt-6'>
+            <DialogDescription asChild>
+              <blockquote className='min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-10 font-sans text-base leading-8 text-slate-700 sm:px-10 sm:text-[1.0625rem]'>
+                {testimonial.content
+                  .split('\n')
+                  .filter(Boolean)
+                  .map((paragraph, index) => (
+                    <p key={index}>{paragraph}</p>
+                  ))}
+              </blockquote>
+            </DialogDescription>
+
+            {/* Fades the text out at the bottom edge while there is more to read */}
+            <div
+              aria-hidden='true'
+              className='pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-linear-to-t from-white to-transparent'
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </>
