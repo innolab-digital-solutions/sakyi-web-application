@@ -50,8 +50,10 @@ const HomeIntroSection = () => {
                   // (same image side as English) and step the hero size down so
                   // the dark phrase fits one line without spilling under the image.
                   // Avoid leading-tight — it clips marks and hollows gradient text.
+                  // On phones the line is wider than the screen at text-3xl, so the
+                  // size scales with the viewport (minus the 2rem page gutter).
                   isMyanmar &&
-                    'text-3xl leading-relaxed tracking-normal sm:text-4xl lg:text-[1.875rem] xl:text-[2.25rem]',
+                    'text-[length:min(1.875rem,calc((100vw-2rem)*0.07))] leading-relaxed tracking-normal sm:text-4xl lg:text-[1.875rem] xl:text-[2.25rem]',
                 )}
               >
                 <span
