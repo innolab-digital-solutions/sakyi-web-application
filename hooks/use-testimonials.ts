@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { FALLBACK_LANGUAGE } from '@/config/languages';
 import {
   TESTIMONIAL_IDS,
+  TESTIMONIAL_IMAGES,
   type TestimonialId,
   testimonialKeys,
 } from '@/config/marketing/testimonials';
@@ -16,6 +17,8 @@ export type Testimonial = {
   clientName: string;
   programTitle: string;
   content: string;
+  /** Path to the client's photo; absent when only initials can be shown. */
+  image?: string;
 };
 
 /**
@@ -59,6 +62,7 @@ export const useTestimonials = (): Testimonial[] => {
           clientName: resolveField(translate, keys.clientName),
           programTitle: resolveField(translate, keys.programTitle),
           content: resolveField(translate, keys.content),
+          image: TESTIMONIAL_IMAGES[id],
         };
       }).filter((testimonial) => testimonial.content !== ''),
     [translate],
