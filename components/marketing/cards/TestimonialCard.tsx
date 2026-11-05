@@ -172,7 +172,7 @@ const TestimonialCard = ({
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent
           showCloseButton={false}
-          className='flex max-h-[85dvh] flex-col gap-0 overflow-hidden rounded-3xl border-0 bg-white p-0 shadow-2xl sm:max-w-[min(42rem,calc(100%-2rem))]'
+          className='marketing-copy flex max-h-[85dvh] flex-col gap-0 overflow-hidden rounded-3xl border-0 bg-white p-0 shadow-2xl sm:max-w-[min(42rem,calc(100%-2rem))]'
         >
           {/* Brand band, with the quote mark as a watermark */}
           <div className='bg-brand-gradient relative h-20 shrink-0 overflow-hidden sm:h-24'>
