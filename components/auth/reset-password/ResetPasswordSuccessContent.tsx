@@ -1,0 +1,74 @@
+'use client';
+
+import { CheckCircle2 } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { ROUTES } from '@/config/routes';
+
+import {
+  RESET_PASSWORD_SUCCESS_MARKER_KEY,
+  RESET_PASSWORD_SUCCESS_MARKER_MAX_AGE_MS,
+} from './constants';
+import { ResetPasswordSurface } from './ResetPasswordSurface';
+
+export default function ResetPasswordSuccessContent() {
+  const router = useRouter();
+  const [isAllowed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+
+    const raw = sessionStorage.getItem(RESET_PASSWORD_SUCCESS_MARKER_KEY);
+    if (!raw) return false;
+
+    const timestamp = Number(raw);
+    const isValid =
+      Number.isFinite(timestamp) &&
+      Date.now() - timestamp <= RESET_PASSWORD_SUCCESS_MARKER_MAX_AGE_MS;
+
+    sessionStorage.removeItem(RESET_PASSWORD_SUCCESS_MARKER_KEY);
+    return isValid;
+  });
+
+  useEffect(() => {
+    if (!isAllowed) {
+      router.replace('/error-status/404');
+    }
+  }, [isAllowed, router]);
+
+  if (!isAllowed) return null;
+
+  return (
+    <main className='bg-background relative flex min-h-screen items-center justify-center p-5'>
+      <div className='relative z-10 mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center px-4 py-16 sm:px-6'>
+        <ResetPasswordSurface>
+          <section className='flex flex-col items-center gap-6 text-center'>
+            <div className='bg-primary/12 text-primary flex size-14 items-center justify-center rounded-full'>
+              <CheckCircle2 className='size-7' aria-hidden />
+            </div>
+
+            <div className='space-y-2'>
+              <h1 className='text-foreground text-lg font-bold tracking-tight sm:text-xl'>
+                Password updated
+              </h1>
+              <p className='text-muted-foreground text-sm leading-relaxed font-medium'>
+                Your password has been reset successfully. Open the SaKyi Health
+                &amp; Wellness app on your device and sign in with your new
+                password to continue.
+              </p>
+            </div>
+
+            <Button
+              asChild
+              size='lg'
+              className='from-primary to-accent hover:from-primary/90 hover:to-accent/90 h-11 w-full bg-linear-to-r font-semibold text-white normal-case'
+            >
+              <Link href={ROUTES.MARKETING.HOME}>Done</Link>
+            </Button>
+          </section>
+        </ResetPasswordSurface>
+      </div>
+    </main>
+  );
+}

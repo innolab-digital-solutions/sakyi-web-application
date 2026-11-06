@@ -1,0 +1,163 @@
+import { AdminEnrollment } from '@/domains/enrollment-records/types/admin';
+import type { CarePlanMovementExercisePrescription } from '@/domains/movement-prescriptions/types';
+
+import type { CarePlanEmbeddedOperationalLog } from './operational-log-embed';
+
+export const CARE_PLAN_STATUSES = [
+  'draft',
+  'scheduled',
+  'active',
+  'completed',
+  'cancelled',
+] as const;
+
+export type CarePlanStatus = (typeof CARE_PLAN_STATUSES)[number];
+
+export interface AdminCarePlan {
+  id: number;
+  code: string | null;
+  enrollment_id: number | null;
+  cycle_number: number | null;
+  status: string;
+  starts_on: string | null;
+  ends_on: string | null;
+  cancellation_note?: string | null;
+  /**
+   * True while an ACTIVE plan is in admin edit mode (mobile logging paused).
+   * Absent or false outside that mode.
+   */
+  client_logging_paused?: boolean;
+  counts?: {
+    days?: number | null;
+  };
+  enrollment?: AdminEnrollment | null;
+  /** Present when the API loads the relation; at most one per care plan. */
+  operational_log?: CarePlanEmbeddedOperationalLog | null;
+  timestamps?: {
+    created_at: string | null;
+    updated_at: string | null;
+    scheduled_at?: string | null;
+    activated_at?: string | null;
+    completed_at?: string | null;
+    client_logging_paused_at?: string | null;
+  };
+}
+
+export type CarePlanSectionKey =
+  | 'nutrition'
+  | 'movement'
+  | 'activity'
+  | 'hydration'
+  | 'sleep'
+  | 'recovery'
+  | 'walking';
+
+/**
+ * Link row between a care plan nutrition task and a nutrition library item.
+ *
+ * Mirrors the movement `exercises` link. In admin responses `id` is the link
+ * row id and `nutrition_item_id` references the library item (resolve display
+ * details from the nutrition-items lookup list). On save only
+ * `nutrition_item_id` is sent per entry.
+ */
+export type CarePlanNutritionItemLink = {
+  id?: number | string;
+  nutrition_item_id: number | string | null;
+};
+
+export type CarePlanSectionItem = {
+  id?: number | string;
+  title?: string | null;
+  guidance?: string | null;
+  notes?: string | null;
+  target_value?: number | string | null;
+  target_unit?: string | null;
+  target_unit_id?: number | string | null;
+  /**
+   * Planned meal clock time for nutrition tasks (`HH:mm`). Null / omitted on
+   * other sections. Optional.
+   */
+  eating_window?: string | null;
+  movement_exercise_id?: number | string | null;
+  exercise_id?: number | string | null;
+  exercises?: Array<CarePlanMovementExercisePrescription> | null;
+  nutrition_items?: Array<CarePlanNutritionItemLink> | null;
+  /** Local editing helper: selected nutrition library item ids for the picker. */
+  nutrition_item_ids?: Array<number | string>;
+  has_client_logs?: boolean;
+  actions?: {
+    exercises_editable?: boolean;
+  };
+  [key: string]: unknown;
+};
+
+export interface AdminCarePlanDay {
+  id: number;
+  day_number: number;
+  target_date: string | null;
+  general_notes: string | null;
+  /** Client-facing tip shown on mobile home for this day. */
+  daily_motivation: string | null;
+  sections: Record<CarePlanSectionKey, CarePlanSectionItem[]>;
+}
+
+/** Builder `GET` payload — client/program/enrollment are included on the care-plan builder response. */
+export type CarePlanBuilderClient = {
+  id: number;
+  code: string | null;
+  name: string | null;
+  picture_url: string | null;
+};
+
+export type CarePlanBuilderProgram = {
+  id: number;
+  code: string | null;
+  name: string | null;
+};
+
+export type CarePlanBuilderEnrollmentRef = {
+  id: number;
+  code: string | null;
+};
+
+export interface AdminCarePlanBuilder {
+  id: number;
+  code: string | null;
+  status: string;
+  enrollment_id: number | null;
+  cycle_number: number | null;
+  starts_on: string | null;
+  ends_on: string | null;
+  cancelled_at?: string | null;
+  scheduled_at?: string | null;
+  activated_at?: string | null;
+  cancellation_note?: string | null;
+  /**
+   * True while this ACTIVE plan is in admin edit mode. Mobile daily logs are
+   * rejected with 409 until exit-edit-mode. Draft/scheduled ignore this gate.
+   */
+  client_logging_paused?: boolean;
+  client_logging_paused_at?: string | null;
+  timestamps?: {
+    created_at: string | null;
+    updated_at: string | null;
+    scheduled_at?: string | null;
+    activated_at?: string | null;
+    completed_at?: string | null;
+    client_logging_paused_at?: string | null;
+  };
+  client?: CarePlanBuilderClient | null;
+  program?: CarePlanBuilderProgram | null;
+  enrollment?: CarePlanBuilderEnrollmentRef | null;
+  days: AdminCarePlanDay[];
+}
+
+export type CarePlanValidationIssue = {
+  field: string;
+  message: string;
+};
+
+export type CarePlanValidationResult = {
+  is_valid: boolean;
+  issues: CarePlanValidationIssue[];
+};

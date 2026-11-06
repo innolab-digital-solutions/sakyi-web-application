@@ -1,0 +1,40 @@
+{
+  "array": "The :attribute field must be an array.",
+  "boolean": "The :attribute field must be true or false.",
+  "confirmed": "The :attribute field confirmation does not match.",
+  "date": "The :attribute field must be a valid date.",
+  "decimal": "The :attribute field must have :decimal decimal places.",
+  "email": "The :attribute field must be a valid email address.",
+  "enum": "The selected :attribute is invalid.",
+  "exists": "The selected :attribute is invalid.",
+  "extensions": "The :attribute field must have one of the following extensions: :values.",
+  "file": "The :attribute field must be a file.",
+  "filled": "The :attribute field must have a value.",
+  "image": "The :attribute field must be an image.",
+  "in": "The selected :attribute is invalid.",
+  "lowercase": "The :attribute field must be lowercase.",
+  "mimes": "The :attribute field must be a file of type: :values.",
+  "numeric": "The :attribute field must be a number.",
+  "max": {
+    "array": "The :attribute field must not have more than :max items.",
+    "file": "The :attribute field must not be greater than :max kilobytes.",
+    "numeric": "The :attribute field must not be greater than :max.",
+    "string": "The :attribute field must not be greater than :max characters."
+  },
+  "min": {
+    "array": "The :attribute field must have at least :min items.",
+    "file": "The :attribute field must be at least :min kilobytes.",
+    "numeric": "The :attribute field must be at least :min.",
+    "string": "The :attribute field must be at least :min characters."
+  },
+  "password": {
+    "letters": "The :attribute field must contain at least one letter.",
+    "mixed": "The :attribute field must contain at least one uppercase and one lowercase letter.",
+    "numbers": "The :attribute field must contain at least one number.",
+    "symbols": "The :attribute field must contain at least one symbol."
+  },
+  "required": "The :attribute field is required.",
+  "string": "The :attribute field must be a string.",
+  "unique": "The :attribute has already been taken.",
+  "uppercase": "The :attribute field must be uppercase."
+}

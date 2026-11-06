@@ -1,0 +1,402 @@
+'use client';
+
+import { useQuery } from '@tanstack/react-query';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import {
+  TABLE_DEFAULT_SEARCH_DEBOUNCE_MS,
+  TABLE_PARAM_KEYS,
+} from './constants';
+import { fetchTablePage } from './fetch';
+import { normalizeTableResponse } from './normalize';
+import {
+  applyUrlParamPatch,
+  buildTableRequestParams,
+  ensureTableUrlDefaults,
+  parseTableUrlParams,
+} from './params';
+import type {
+  TablePaginationMeta,
+  TableQueryResponse,
+  TableTanstackOptions,
+  UseTableOptions,
+  UseTableReturn,
+} from './types';
+import { shouldApplyUrlSearchToLocalState, tableQueriesEqual } from './utils';
+
+/**
+ * React hook for managing the state, controls, and data fetching of a table component.
+ *
+ * Handles pagination, search (with debounce), and synchronizes state with the URL for deep-linking and navigation.
+ * Designed for Next.js apps with React Query and navigation utilities.
+ *
+ * Typical usage:
+ *
+ * ```tsx
+ * const { rows, controls } = useTable('/api/items', {
+ *   params: { enabled: true, sync: true, initial: { page: 1, perPage: 10 } },
+ *   pagination: { enabled: true },
+ *   search: { enabled: true, debounceMs: 500 },
+ * });
+ * ```
+ *
+ * @template TItem The shape of items in the returned table rows.
+ * @param endpoint API endpoint for fetching table data.
+ * @param options Configuration options for search, pagination, params, and fetch/query behavior.
+ * @returns {UseTableReturn<TItem>}
+ */
+export const useTable = <TItem>(
+  endpoint: string,
+  options: UseTableOptions<TItem> = {},
+): UseTableReturn<TItem> => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const searchParamsString = searchParams.toString();
+
+  const paramsOpt = options.params ?? {};
+  const paramsEnabled = paramsOpt.enabled !== false;
+  const syncUrl = paramsEnabled && paramsOpt.sync === true;
+  const writeDefaultsToUrl = syncUrl && (paramsOpt.writeInitialToUrl ?? true);
+  const history = paramsOpt.history ?? 'replace';
+  const keys = TABLE_PARAM_KEYS;
+
+  const paginationEnabledRaw = options.pagination?.enabled !== false;
+  const searchEnabledRaw = options.search?.enabled !== false;
+  /**
+   * `params.enabled` is a master switch for table param mechanics.
+   * When disabled, search/pagination controls are removed and request params are not derived from URL.
+   */
+  const paginationEnabled = paramsEnabled && paginationEnabledRaw;
+  const searchEnabled = paramsEnabled && searchEnabledRaw;
+  const debounceMs =
+    options.search?.debounceMs ?? TABLE_DEFAULT_SEARCH_DEBOUNCE_MS;
+
+  const extraMode = paramsOpt.extra?.mode ?? 'passthrough';
+  const extraAllowlist = useMemo(
+    () => paramsOpt.extra?.allowlist ?? [],
+    [paramsOpt.extra?.allowlist],
+  );
+  const resetPageOnChange = paramsOpt.extra?.resetPageOnChange ?? true;
+  const cleanExtra = paramsOpt.extra?.clean;
+
+  /** Skips the URL→state sync when the URL change came from our own navigation. */
+  const lastWrittenQueryRef = useRef<string | null>(null);
+  /** Skips resetting to page 1 when applied search changes due to URL sync. */
+  const skipPageResetForUrlSyncRef = useRef(false);
+
+  const navigateToQuery = useCallback(
+    (nextQuery: string) => {
+      if (typeof window === 'undefined') return;
+      const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
+      const currentUrl = `${window.location.pathname}${window.location.search}`;
+      if (nextUrl === currentUrl) return;
+
+      lastWrittenQueryRef.current = nextQuery;
+      const navigate =
+        history === 'push'
+          ? router.push.bind(router)
+          : router.replace.bind(router);
+      navigate(nextUrl, { scroll: false });
+    },
+    [history, pathname, router],
+  );
+
+  const setUrlParams = useCallback(
+    (patch: Record<string, unknown>) => {
+      if (!syncUrl) return;
+      const cleaned = cleanExtra ? cleanExtra(patch) : patch;
+      const current = new URLSearchParams(searchParamsString);
+      const next = applyUrlParamPatch(current, cleaned);
+      navigateToQuery(next.toString());
+    },
+    [syncUrl, cleanExtra, searchParamsString, navigateToQuery],
+  );
+
+  /**
+   * If URL sync is enabled, materialize defaults into the URL when missing so URL===request.
+   */
+  useEffect(() => {
+    if (!syncUrl || !writeDefaultsToUrl) return;
+    const current = new URLSearchParams(searchParamsString);
+    const { next, changed } = ensureTableUrlDefaults({
+      current,
+      paginationEnabled,
+      searchEnabled,
+      initial: paramsOpt.initial,
+    });
+    if (!changed) return;
+    navigateToQuery(next.toString());
+  }, [
+    syncUrl,
+    writeDefaultsToUrl,
+    searchParamsString,
+    keys,
+    paginationEnabled,
+    searchEnabled,
+    paramsOpt.initial,
+    navigateToQuery,
+  ]);
+
+  const parsed = useMemo(() => {
+    return parseTableUrlParams(new URLSearchParams(searchParamsString));
+  }, [searchParamsString]);
+
+  const extraValues = useMemo(() => {
+    if (!syncUrl) return {};
+    if (extraMode === 'allowlist') {
+      const out: Record<string, string> = {};
+      for (const k of extraAllowlist) {
+        const v = parsed.extra[k];
+        if (v) out[k] = v;
+      }
+      return out;
+    }
+    return parsed.extra;
+  }, [syncUrl, parsed.extra, extraMode, extraAllowlist]);
+
+  // Local search input for debounce (URL remains source of truth when syncUrl enabled).
+  const initialSearchValue = parsed.search ?? '';
+  const [searchInput, setSearchInput] = useState(initialSearchValue);
+  const [appliedSearch, setAppliedSearch] = useState(initialSearchValue);
+
+  // Mirror local search into refs for the URL→local effect. That effect must only
+  // depend on URL changes — if it also depended on appliedSearch, committing a
+  // debounced paste would re-run it against a still-stale URL and clear the box.
+  const searchInputRef = useRef(searchInput);
+  const appliedSearchRef = useRef(appliedSearch);
+  useEffect(() => {
+    searchInputRef.current = searchInput;
+    appliedSearchRef.current = appliedSearch;
+  }, [searchInput, appliedSearch]);
+
+  // Align local search state with URL changes (back/forward, external navigation).
+  // Intentionally omits searchInput/appliedSearch from deps so debounce commits do
+  // not treat the pre-navigation URL as an external clear.
+  useEffect(() => {
+    if (!syncUrl) return;
+    const shouldApply = shouldApplyUrlSearchToLocalState({
+      urlSearch: initialSearchValue,
+      searchInput: searchInputRef.current,
+      appliedSearch: appliedSearchRef.current,
+      hasPendingOwnWrite: lastWrittenQueryRef.current !== null,
+    });
+    if (!shouldApply) return;
+    skipPageResetForUrlSyncRef.current =
+      initialSearchValue !== appliedSearchRef.current;
+    setSearchInput(initialSearchValue);
+    setAppliedSearch(initialSearchValue);
+  }, [syncUrl, initialSearchValue, searchParamsString]);
+
+  /**
+   * Clear loop guard after the URL-sync effect has had a chance to ignore our own write.
+   * This effect must stay below the URL-sync effect so lastWrittenQueryRef is still set
+   * when deciding whether to clobber the input.
+   */
+  useEffect(() => {
+    if (!syncUrl) return;
+    if (
+      lastWrittenQueryRef.current !== null &&
+      tableQueriesEqual(lastWrittenQueryRef.current, searchParamsString)
+    ) {
+      lastWrittenQueryRef.current = null;
+    }
+  }, [searchParamsString, syncUrl]);
+
+  // Debounce applied search: wait until typing pauses before fetching / writing the URL.
+  // setState is always deferred via timer so we avoid synchronous setState-in-effect.
+  useEffect(() => {
+    if (!searchEnabled) return;
+    if (searchInput === appliedSearch) return;
+    const waitMs = Math.max(0, debounceMs);
+    const id = window.setTimeout(() => {
+      setAppliedSearch(searchInput);
+    }, waitMs);
+    return () => window.clearTimeout(id);
+  }, [searchInput, appliedSearch, debounceMs, searchEnabled]);
+
+  // Write applied search and reset page in one URL update to prevent stale-closure races
+  // where two separate effects overwrite each other's changes.
+  const isFirstAppliedSearchEffect = useRef(true);
+  useEffect(() => {
+    if (!syncUrl || !searchEnabled) return;
+    const trimmed = appliedSearch.trim();
+    const patch: Record<string, unknown> = {
+      [keys.search]: trimmed || null,
+    };
+
+    // First mount: only sync search value, page is already correct.
+    if (isFirstAppliedSearchEffect.current) {
+      isFirstAppliedSearchEffect.current = false;
+      // Skip a no-op write when the URL already matches (avoids replace churn).
+      if (trimmed === (parsed.search ?? '').trim()) return;
+      setUrlParams(patch);
+      return;
+    }
+
+    // URL-sync triggered change (back/forward nav): update search without resetting page.
+    if (skipPageResetForUrlSyncRef.current) {
+      skipPageResetForUrlSyncRef.current = false;
+      setUrlParams(patch);
+      return;
+    }
+
+    // User typed: reset page to 1 together with search in one write so neither is lost.
+    if (paginationEnabled) {
+      patch[keys.page] = 1;
+    }
+    setUrlParams(patch);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appliedSearch]);
+
+  const page = parsed.page ?? Number(paramsOpt.initial?.[keys.page] ?? 1);
+  const perPage =
+    parsed.perPage ?? Number(paramsOpt.initial?.[keys.perPage] ?? 15);
+
+  /**
+   * Fetch from the debounced local search, not the URL. The router can land an
+   * earlier keystroke after the user has already typed further; using `parsed.search`
+   * would request that stale term and fight the input.
+   *
+   * When the applied search is ahead of the URL, request page 1 immediately so we
+   * do not combine a new term with a stale page number while `replace` is in flight.
+   */
+  const appliedSearchTrimmed = appliedSearch.trim();
+  const urlSearchTrimmed = (parsed.search ?? '').trim();
+  const searchAheadOfUrl =
+    Boolean(syncUrl) &&
+    searchEnabled &&
+    appliedSearchTrimmed !== urlSearchTrimmed;
+
+  const requestParams = useMemo(() => {
+    if (!paramsEnabled) return {};
+    return buildTableRequestParams({
+      page: searchAheadOfUrl && paginationEnabled ? 1 : page,
+      perPage,
+      search: searchEnabled ? appliedSearch : null,
+      extra: extraValues,
+      paginationEnabled,
+      searchEnabled,
+    });
+  }, [
+    paramsEnabled,
+    page,
+    perPage,
+    appliedSearch,
+    extraValues,
+    paginationEnabled,
+    searchEnabled,
+    searchAheadOfUrl,
+  ]);
+
+  const tanstack: TableTanstackOptions<TItem> = options.tanstack ?? {};
+
+  const query = useQuery<TableQueryResponse<TItem>, Error>({
+    ...tanstack,
+    placeholderData: tanstack.placeholderData ?? ((prev) => prev),
+    queryKey: ['table', endpoint, requestParams],
+    queryFn: async ({ signal }) => {
+      const response = await fetchTablePage(endpoint, requestParams, {
+        signal,
+      });
+      if (response.status !== 'success') {
+        throw new Error('Unexpected table API error shape.');
+      }
+      return response as TableQueryResponse<TItem>;
+    },
+  });
+
+  const normalizer = options.response?.normalize ?? normalizeTableResponse;
+  const { rows, meta } = query.data
+    ? normalizer(query.data)
+    : { rows: [] as TItem[], meta: null };
+
+  /**
+   * When the API returns a bare array without `meta.pagination`, keep the footer usable
+   * using the current page slice as a single page.
+   */
+  const metaResolved: TablePaginationMeta | null =
+    meta ??
+    (query.isSuccess && query.data?.status === 'success'
+      ? {
+          current_page: page,
+          per_page: perPage,
+          last_page: 1,
+          total: rows.length,
+          from: rows.length > 0 ? 1 : 0,
+          to: rows.length,
+          has_more_pages: false,
+          path: pathname,
+          next_page_url: null,
+          prev_page_url: null,
+        }
+      : null);
+
+  const onPageChange = useCallback(
+    (nextPage: number) => {
+      if (!syncUrl || !paginationEnabled) return;
+      setUrlParams({ [keys.page]: nextPage });
+    },
+    [syncUrl, paginationEnabled, setUrlParams, keys.page],
+  );
+
+  const onPerPageChange = useCallback(
+    (nextPerPage: number) => {
+      if (!syncUrl || !paginationEnabled) return;
+      setUrlParams({ [keys.perPage]: nextPerPage, [keys.page]: 1 });
+    },
+    [syncUrl, paginationEnabled, setUrlParams, keys.perPage, keys.page],
+  );
+
+  const isDebouncing = debounceMs > 0 && searchInput !== appliedSearch;
+
+  return {
+    rows,
+    controls: {
+      search: searchEnabled
+        ? {
+            value: searchInput,
+            onChange: setSearchInput,
+            ...(debounceMs > 0 ? { isDebouncing } : {}),
+          }
+        : undefined,
+      pagination: paginationEnabled
+        ? {
+            page,
+            perPage,
+            onPageChange,
+            onPerPageChange,
+            meta: metaResolved,
+          }
+        : undefined,
+      params: {
+        values: extraValues,
+        set: (patch) => {
+          if (!syncUrl) return;
+          const nextPatch = { ...patch };
+          if (resetPageOnChange && paginationEnabled) {
+            nextPatch[keys.page] = 1;
+          }
+          if (extraMode === 'allowlist') {
+            for (const k of Object.keys(nextPatch)) {
+              const isOwned =
+                k === keys.page || k === keys.perPage || k === keys.search;
+              if (isOwned) continue;
+              if (!extraAllowlist.includes(k)) delete nextPatch[k];
+            }
+          }
+          setUrlParams(nextPatch);
+        },
+        clear: (keysToClear) => {
+          if (!syncUrl) return;
+          const patch: Record<string, unknown> = {};
+          for (const k of keysToClear) patch[k] = null;
+          if (resetPageOnChange && paginationEnabled) patch[keys.page] = 1;
+          setUrlParams(patch);
+        },
+      },
+      query,
+    },
+  };
+};

@@ -1,0 +1,27 @@
+import type { Metadata } from 'next';
+import { Suspense } from 'react';
+
+import { AdminTablePageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
+import PageHeader from '@/components/admin/layout/PageHeader';
+import EnrollmentRecordListTable from '@/components/admin/modules/enrollment-records/EnrollmentRecordListTable';
+
+export const metadata: Metadata = {
+  title: 'Enrollment Records | SaKyi Admin',
+  description:
+    'Browse and manage enrollment records with practical filters for client, status, and program so you can track lifecycle progress and resolve cases faster.',
+};
+
+export default function EnrollmentRecordsPage() {
+  return (
+    <div className='min-w-0 space-y-8'>
+      <PageHeader
+        title='Enrollment Records'
+        description='Browse and manage enrollment records with practical filters for client, status, and program so you can track lifecycle progress and resolve cases faster.'
+      />
+
+      <Suspense fallback={<AdminTablePageSkeleton />}>
+        <EnrollmentRecordListTable />
+      </Suspense>
+    </div>
+  );
+}

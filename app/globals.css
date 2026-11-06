@@ -1,26 +1,361 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@plugin 'tailwind-scrollbar';
+
+@custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: oklch(0.9842 0.0034 247.8575);
+  --foreground: oklch(0.2795 0.0368 260.031);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2795 0.0368 260.031);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2795 0.0368 260.031);
+  --primary: oklch(0.6301 0.1225 229.2615);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.9648 0.0187 213.4119);
+  --secondary-foreground: oklch(0.6301 0.1225 229.2615);
+  --muted: oklch(0.9683 0.0069 247.8956);
+  --muted-foreground: oklch(0.5544 0.0407 257.4166);
+  --accent: oklch(0.7621 0.1104 212.5636);
+  --accent-foreground: oklch(0.3018 0.0541 229.6954);
+  --destructive: oklch(0.5771 0.2152 27.325);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.9288 0.0126 255.5078);
+  --input: oklch(0.9288 0.0126 255.5078);
+  --ring: oklch(0.6301 0.1225 229.2615);
+  --chart-1: oklch(0.6301 0.1225 229.2615);
+  --chart-2: oklch(0.734 0.1128 200.1336);
+  --chart-3: oklch(0.7621 0.1104 212.5636);
+  --chart-4: oklch(0.5854 0.2041 277.1173);
+  --chart-5: oklch(0.7686 0.1647 70.0804);
+  --sidebar: oklch(0.6301 0.1225 229.2615);
+  --sidebar-foreground: oklch(0.9648 0.0187 213.4119);
+  --sidebar-primary: oklch(0.5758 0.1142 231.186);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.7621 0.1104 212.5636);
+  --sidebar-accent-foreground: oklch(0.3018 0.0541 229.6954);
+  --sidebar-border: oklch(0.5492 0.1067 229.5659);
+  --sidebar-ring: oklch(1 0 0);
+
+  /* Brand palette — single source of truth for the SaKyi teal/blue identity.
+     `brand` is the primary teal, `brand-light` and `brand-deep` are the other
+     two gradient stops, and `brand-hover` is the darker teal used for link
+     hover states. Exposed to Tailwind below as `brand`, `brand-light`,
+     `brand-deep` and `brand-hover` (e.g. `text-brand`, `from-brand/10`). */
+  --brand: #35bec5;
+  --brand-light: #4bc4db;
+  --brand-deep: #0c96c4;
+  --brand-hover: #2aa0a7;
+  --brand-gradient: linear-gradient(
+    to right,
+    var(--brand),
+    var(--brand-light),
+    var(--brand-deep)
+  );
+
+  --font-sans:
+    var(--font-inter), var(--font-noto-sans-myanmar), ui-sans-serif, system-ui,
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    'Noto Color Emoji';
+  --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+  --radius: 0.625rem;
+  --shadow-x: 0;
+  --shadow-y: 1px;
+  --shadow-blur: 3px;
+  --shadow-spread: 0px;
+  --shadow-opacity: 0.1;
+  --shadow-color: oklch(0 0 0);
+  --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+  --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+  --shadow-sm:
+    0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+  --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+  --shadow-md:
+    0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
+  --shadow-lg:
+    0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
+  --shadow-xl:
+    0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
+  --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+
+  /* Site typography scale: consistent titles, body, badges, cards (EN + Myanmar) */
+  --text-badge: 0.75rem; /* 12px – badge/pill labels */
+  --text-badge-sm: 0.875rem; /* 14px at sm+ */
+  --text-body: 1rem; /* 16px – body default */
+  --text-body-lg: 1.125rem; /* 18px at sm+ */
+  --text-lead: 1.125rem; /* 18px – intro/lead */
+  --text-feature-title: 1rem; /* 16px, 18px at sm+ */
+  --text-feature-desc: 0.875rem; /* 14px, 16px at sm+ – was too small */
+  --text-card-title: 0.875rem;
+  --text-card-desc: 0.875rem;
+  --text-section-title: clamp(1.5rem, 4vw, 2.25rem); /* ~24–36px */
+  --text-section-title-lg: clamp(1.875rem, 5vw, 3rem); /* ~30–48px */
+  --text-hero-title: clamp(1.875rem, 5vw, 3.75rem); /* ~30–60px */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-brand: var(--brand);
+  --color-brand-light: var(--brand-light);
+  --color-brand-deep: var(--brand-deep);
+  --color-brand-hover: var(--brand-hover);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-serif: var(--font-serif);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+
+  /* Collapsible: admin sidebar sub-nav, care plan evidence + daily breakdown (see components/ui/collapsible.tsx) */
+  --animate-admin-collapsible-down: admin-collapsible-down 340ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-admin-collapsible-up: admin-collapsible-up 280ms
+    cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer utilities {
+  /* Route enter animations: long enough to read as “new page” without feeling sluggish */
+  .route-transition {
+    animation-duration: var(--route-transition-duration, 420ms);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    animation-fill-mode: both;
+    will-change: opacity, transform;
+  }
+
+  .route-transition--fade {
+    animation-name: route-fade-in;
+  }
+
+  .route-transition--scale {
+    animation-name: route-scale-in;
+    transform-origin: center top;
+  }
+
+  .route-transition--slide {
+    animation-name: route-slide-up-in;
+  }
+
+  .route-transition--zoom {
+    animation-name: route-zoom-in-soft;
+    transform-origin: center center;
   }
 }
 
+@keyframes route-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes route-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.975);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes route-slide-up-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes route-zoom-in-soft {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/**
+ * Radix Collapsible: height from `--radix-collapsible-content-height` (Radix). Theme: `--animate-admin-collapsible-*` in @theme, applied in `components/ui/collapsible.tsx` via Tailwind `data-[state=...]:animate-...` (admin sidebar, care plan report).
+ */
+@keyframes admin-collapsible-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes admin-collapsible-up {
+  from {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-transition,
+  .route-transition--fade,
+  .route-transition--scale,
+  .route-transition--slide,
+  .route-transition--zoom {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  [data-slot='collapsible-content'] {
+    animation: none !important;
+  }
+
+  /* Route transitions are disabled here; AOS is also gated in JS to match. */
+  [data-aos] {
+    animation: none !important;
+    transition-duration: 0ms !important;
+    transition-delay: 0ms !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
+/*
+ * Prevent horizontal bleed with a single vertical scrollport.
+ * Avoid `overflow-x` on both html and body — paired overflow often yields two
+ * `overflow-y: auto` boxes (double scrollbars) and desyncs `window` scroll from
+ * what the user drags, which breaks AOS trigger math.
+ */
+html {
+  overflow-x: clip;
+  max-width: 100%;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  max-width: 100%;
+}
+
+/* Myanmar: prevent text cut-off and reduce excess spacing (lang set by LanguageContext) */
+[lang='my'] .font-sans {
+  letter-spacing: 0.01em;
+}
+[lang='my'] p {
+  line-height: 1.6;
+}
+
+/* Myanmar long-form copy is set justified so line endings align on the right.
+   `:where()` keeps the whole selector at zero specificity, so any explicit
+   Tailwind alignment utility still wins. Scoped to the marketing subtree via
+   `.marketing-copy`; the admin dashboard is unaffected. */
+:where([lang='my'] .marketing-copy) :where(p, li, blockquote, .rich-text) {
+  text-align: justify;
+}
+
+/* ...but centred blocks stay centred. Section intros are centred either on the
+   paragraph itself or on a wrapper, and because the rule above sets text-align
+   directly on the paragraph it would otherwise beat the inherited value. Both
+   rules are specificity-zero, so this one wins purely by coming second. */
+:where([lang='my'] .marketing-copy)
+  :where(.text-center)
+  :where(p, li, blockquote, .rich-text),
+:where([lang='my'] .marketing-copy)
+  :where(p, li, blockquote, .rich-text):where(.text-center) {
+  text-align: center;
+}
+
+/* Brand Gradient Classes */
+.bg-brand-gradient {
+  background: var(--brand-gradient);
+}
+
+/* Vertical padding prevents clipping of diacritics (e.g. Myanmar) with background-clip: text */
+.text-brand-gradient {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
+}
+
+.border-brand-gradient {
+  border-image: var(--brand-gradient) 1;
+}
+
+.hover-brand-gradient:hover {
+  background: var(--brand-gradient);
+}
+
+.hover-text-brand-gradient:hover {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
 }

@@ -1,0 +1,42 @@
+import { PlusIcon } from 'lucide-react';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Suspense } from 'react';
+
+import { AdminTablePageSkeleton } from '@/components/admin/layout/AdminLoadingSkeletons';
+import PageHeader from '@/components/admin/layout/PageHeader';
+import ProgramListTable from '@/components/admin/modules/programs/ProgramListTable';
+import { Button } from '@/components/ui/button';
+import { ROUTES } from '@/config/routes';
+
+export const metadata: Metadata = {
+  title: 'Care Programs | SaKyi Admin',
+  description:
+    'Manage the care program catalog with consistent pricing, goals, localized content, and publication status so listings stay accurate for internal and public use.',
+};
+
+export default function ProgramListsPage() {
+  return (
+    <div className='min-w-0 space-y-8'>
+      <PageHeader
+        title='Care Programs'
+        description='Manage the care program catalog with consistent pricing, goals, localized content, and publication status so listings stay accurate for internal and public use.'
+        actions={
+          <Button
+            asChild
+            className='h-10 shrink-0 gap-1.5 rounded-md px-2.5 text-[13px]! font-semibold'
+          >
+            <Link href={ROUTES.ADMIN.MODULES.PROGRAMS.CREATE}>
+              <PlusIcon className='size-3.5' />
+              Add Care Program
+            </Link>
+          </Button>
+        }
+      />
+
+      <Suspense fallback={<AdminTablePageSkeleton />}>
+        <ProgramListTable />
+      </Suspense>
+    </div>
+  );
+}

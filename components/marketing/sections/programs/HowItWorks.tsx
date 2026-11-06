@@ -1,0 +1,118 @@
+'use client';
+
+import {
+  LayoutDashboard,
+  MessageSquare,
+  Rocket,
+  ScanLine,
+  Settings,
+} from 'lucide-react';
+
+import HowItWorksStepCard from '@/components/marketing/cards/HowItWorksStepCard';
+import SectionBadge from '@/components/marketing/SectionBadge';
+import SectionContainer from '@/components/marketing/SectionContainer';
+import Body1 from '@/components/shared/typography/Body1';
+import Heading2 from '@/components/shared/typography/Heading2';
+import { useLanguage } from '@/context/LanguageContext';
+
+const HowItWorks = () => {
+  const { language, translate } = useLanguage();
+
+  const steps = [
+    {
+      number: '01',
+      title: translate(
+        'marketing.pages.programs.how-it-works.steps.initial-consultation.title',
+      ),
+      description: translate(
+        'marketing.pages.programs.how-it-works.steps.initial-consultation.description',
+      ),
+      icon: MessageSquare,
+      color: 'from-brand to-brand-light',
+    },
+    {
+      number: '02',
+      title: translate(
+        'marketing.pages.programs.how-it-works.steps.health-and-body-assessment.title',
+      ),
+      description: translate(
+        'marketing.pages.programs.how-it-works.steps.health-and-body-assessment.description',
+      ),
+      icon: ScanLine,
+      color: 'from-brand-light to-brand-deep',
+    },
+    {
+      number: '03',
+      title: translate(
+        'marketing.pages.programs.how-it-works.steps.smart-tracking-program-design.title',
+      ),
+      description: translate(
+        'marketing.pages.programs.how-it-works.steps.smart-tracking-program-design.description',
+      ),
+      icon: LayoutDashboard,
+      color: 'from-brand to-brand-deep',
+    },
+    {
+      number: '04',
+      title: translate(
+        'marketing.pages.programs.how-it-works.steps.program-launch-support.title',
+      ),
+      description: translate(
+        'marketing.pages.programs.how-it-works.steps.program-launch-support.description',
+      ),
+      icon: Rocket,
+      color: 'from-brand-light to-brand',
+    },
+  ];
+
+  return (
+    <SectionContainer id='program-process-section' className='bg-background'>
+      <div
+        className='flex min-w-0 flex-col items-center justify-center space-y-6 text-center'
+        data-aos='fade-up'
+      >
+        <SectionBadge
+          icon={<Settings className='h-4 w-4' />}
+          text={translate('marketing.pages.programs.how-it-works.badge')}
+        />
+
+        <Heading2 lang={language} className='mx-auto text-center'>
+          <span className='text-foreground'>
+            {translate(
+              'marketing.pages.programs.how-it-works.title.black',
+            )}{' '}
+          </span>
+          <span className='text-brand-gradient bg-clip-text text-transparent'>
+            {translate('marketing.pages.programs.how-it-works.title.gradient')}
+          </span>
+        </Heading2>
+
+        <Body1
+          lang={language}
+          className='mx-auto max-w-3xl text-center text-slate-600'
+        >
+          {translate('marketing.pages.programs.how-it-works.description')}
+        </Body1>
+      </div>
+
+      <div className='mt-12 grid gap-8 lg:grid-cols-2'>
+        {steps.map((step, index) => (
+          <div
+            key={step.number}
+            data-aos='fade-up'
+            data-aos-delay={`${index * 100}`}
+          >
+            <HowItWorksStepCard
+              step={step.number}
+              title={step.title}
+              description={step.description}
+              icon={<step.icon className='h-7 w-7 text-white' />}
+            />
+          </div>
+        ))}
+      </div>
+    </SectionContainer>
+  );
+};
+
+export default HowItWorks;

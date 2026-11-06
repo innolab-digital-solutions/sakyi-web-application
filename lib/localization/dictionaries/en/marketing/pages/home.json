@@ -1,0 +1,194 @@
+{
+  "hero": {
+    "badge": "Happy & Healthy, the SaKyi Way",
+    "title": {
+      "black": "A Smarter Way",
+      "gradient": "to Live Happy and Healthy,",
+      "subtitle": "Guided by SaKyi Team"
+    },
+    "description": "Begin your transformation for a happier, healthier you with Sa Kyi. Discover our tailored programs and let the Sa Kyi team help you systematically reshape your lifestyle today.",
+    "cta": {
+      "primary": "Start Your Journey",
+      "secondary": "Learn More"
+    },
+    "floating-cards": {
+      "personalized-plans": {
+        "title": "Personalized Plans",
+        "description": "Tailored to your needs"
+      },
+      "doctor-guided": {
+        "title": "Expert Guided",
+        "description": "Expert supervision"
+      }
+    }
+  },
+  "about-overview": {
+    "badge": "About SaKyi",
+    "title": {
+      "black": "Your Wellness",
+      "gradient": "Journey Starts Here"
+    },
+    "description": "At Sa Kyi, we combine medical expertise with personalized care to support safe, sustainable health transformation. Each program is designed by certified doctors and guided by our dedicated team ensuring clarity, support, and confidence at every step.",
+    "floating-cards": {
+      "lives-transformed": {
+        "title": "Transformed",
+        "description": "Real People Real Progress"
+      },
+      "success-rate": {
+        "title": "Proven",
+        "description": "Evidence-Informed Outcomes"
+      }
+    },
+    "features": {
+      "doctor-designed-programs": {
+        "title": "Doctor-Designed Programs",
+        "description": "Science-backed programs designed and supervised by certified doctors for safe, long-term health."
+      },
+      "personalized-approach": {
+        "title": "Personalized Approach",
+        "description": "Individually tailored plans that adapt to your unique lifestyle, health needs, and goals."
+      },
+      "continuous-support-reporting": {
+        "title": "Continuous Support & Reporting",
+        "description": "Daily guidance, structured monitoring, and clear progress updates from the Sa Kyi team."
+      },
+      "beyond-weight-loss": {
+        "title": "Beyond Weight Loss",
+        "description": "Supporting healthy weight management, medical concerns, and healthy aging in a positive, nurturing environment."
+      }
+    },
+    "cta": {
+      "primary": "Explore Our Programs"
+    }
+  },
+  "programs-overview": {
+    "badge": "Our Programs",
+    "title": {
+      "black": "Transform Your Life with",
+      "gradient": "Doctor-Designed Programs"
+    },
+    "description": "Discover our comprehensive range of wellness programs, each carefully crafted by certified medical professionals to help you achieve lasting health transformation with proven results.",
+    "cta": {
+      "primary": "Explore All Programs"
+    }
+  },
+  "how-it-works": {
+    "badge": "How It Works",
+    "title": {
+      "black": "Transform Your Health in",
+      "gradient": "Just 3 Steps"
+    },
+    "description": "Transform your lifestyle with Sa Kyi’s proven 3-step program. Receive personalized guidance from certified doctors and build lasting, healthy habits for long-term wellbeing.",
+    "steps": {
+      "initial-consultation": {
+        "title": "Talk with Our Experts",
+        "description": "Get professional guidance through an initial health consultation."
+      },
+      "program-selection": {
+        "title": "Find Your Best-Fit Program",
+        "description": "Choose a program tailored to your body and lifestyle needs."
+      },
+      "review-results-and-start": {
+        "title": "See Your Results & Begin Your Journey",
+        "description": "Review your InBody analysis and start your personalized wellness plan."
+      }
+    },
+    "cta": {
+      "primary": "Get Started Today"
+    }
+  },
+  "mobile-app": {
+    "badge": "Mobile App",
+    "title": {
+      "black": "Your Wellness Journey,",
+      "gradient": "Always With You"
+    },
+    "description": "Stay on track with Sa Kyi's mobile app receive your weekly doctor updates, complete daily tasks, and monitor your health progress anytime, anywhere.",
+    "availability": "Available on iOS and Android.",
+    "cta": {
+      "primary": "Coming Soon",
+      "secondary": "Download the App"
+    }
+  },
+  "testimonials": {
+    "badge": "Testimonials",
+    "title": {
+      "black": "What Our Clients Say",
+      "gradient": "About SaKyi"
+    },
+    "description": "Real stories from people who have transformed their lives through our wellness programs.",
+    "items": {
+      "ma-pan-nu": {
+        "client-name": "Ma Pan Nu",
+        "content": "When I first started this journey, I joined Sa Kyi wondering, “Will this really work for me?” And now, I can’t believe it’s already been a whole year~~~ I honestly never thought I would be able to stay this committed to myself for this long.\nI’m truly grateful to Sa Kyi for not only guiding me toward a healthy lifestyle based on my individual needs, but also for giving me so much mental and emotional support along the way. It really feels like I’ve found a place where I can feel safe, supported, and truly rely on. 🫶🏻\nWhenever I feel discouraged or want to give up, Sayar Swan has always encouraged me, guided me, and helped me get back on the right track.\nI’m also so thankful to Pho for introducing me to Sa Kyi, Chue for caring for me consistently from day one, and the entire Sa Kyi Team for always being there for me. 🫰🏻",
+        "program-title": "One On One Program"
+      },
+      "ma-nay-chi-lin": {
+        "client-name": "Ma Nay Chi Lin",
+        "content": "Choosing to start my journey with Sa Kyi was definitely the right decision for me.\nMy doctor and the entire team are so supportive, caring, and understanding. They’re always willing to listen and adjust things according to my needs, which makes the whole journey feel comfortable and stress-free.\nI’m really happy to see the changes in myself not only in my exercise routine, but also in the way I eat and live my daily life.\nI’m truly grateful to the entire Sa Kyi Team for all the care, support, and guidance throughout my journey. 🫶🏻",
+        "program-title": "Personalized Program"
+      },
+      "hsu-thiri-soe": {
+        "client-name": "Hsu Thiri Soe",
+        "content": "Since joining Sa Kyi, I’ve learned so much about how to take better care of myself and live a healthier lifestyle. It’s not just about losing weight anymore I’ve become much more aware of and focused on my overall health.\nMy doctor always reminds me that being healthy also includes taking care of our mental well-being, and I’ve learned a lot from that.\nI’m also really grateful to all the girls on the team for caring about me so much. They even worry about me when I’m feeling down and don’t feel like eating. The way they genuinely care and always check on me means so much to me. 🫶🏻\nI’ll definitely continue my journey with Sa Kyi until I achieve the body and healthy lifestyle I want. ❤️",
+        "program-title": "One On One Program"
+      },
+      "ma-ar-mee": {
+        "client-name": "Ma Ar Mee",
+        "content": "It’s been over two months since I joined Sakyi, and when I think about what has changed since then, there’s actually so much.\nBefore joining, I used to eat outside food about three times a week, along with snacks. But now, I rarely eat outside food or snacks. Instead of following a strict diet, I’ve learned how to eat healthier by simply paying more attention to my portions and plating.\nThe biggest change for me is that I’ve learned to stay active and feel lighter in my daily life. These days, I get at least 12,000 steps a day. Even my sleep is carefully monitored not just how long I sleep, but whether I’m actually getting good-quality rest.\nI also have a one-on-one discussion with my doctor every week. My doctor plans my workouts based on what I need to do that week, and the following week, we review whether I was able to follow the plan and what I can improve.\nSince my doctor is also a medical professional, I receive proper guidance not only about my health but also about mindfulness and how to practice it. Even when I feel stressed, I’ve learned how to manage it and get through it much better.\nI used to get sick quite often, but surprisingly, I haven’t even had a headache once in these past two months.\nOne thing my doctor always reminds me of is that if we want a healthy body and a healthy lifestyle, the number on the weighing scale shouldn’t be the main focus.\nNow, my clothes feel looser, I feel lighter and more comfortable, and I’ve gained so much more confidence.\nThe entire Sa Kyi Team is always there to encourage me and make me feel like I’m never alone on this journey. I’m truly grateful to my doctor and every single member of the team for all the support and encouragement. It really gives me the strength to keep going.\nNow that I’ve completed two months, I’ll continue this journey with Sakyi until I reach the goals I want to achieve.\nWishing the entire Sa Kyi Team even more growth and success in the future! 🫶🏻",
+        "program-title": "One On One Program"
+      },
+      "ma-hnin-hnin-wai-han": {
+        "client-name": "Ma Hnin Hnin Wai Han",
+        "program-title": "Senior Supply Officer",
+        "content": "I've just completed the two-month Optimal Body Composition Program with Sa Kyi Health & Wellness. ✨ I'm especially thankful to the coaches and the team, who cared for and guided me so carefully and systematically, from the day I received the scholarship until the end of the two months. What I liked most about this program were Personalized Exercise, Daily Tracking & Support, and Long-term Habit Formation. I'm deeply grateful to the entire Sa Kyi Health & Wellness Team for giving me this valuable scholarship opportunity for my health. 💜"
+      },
+      "ma-stella-zin": {
+        "client-name": "Ma Stella Zin",
+        "program-title": "Civil Engineer",
+        "content": "When I first wanted to join Sa Kyi, weight loss wasn't my main target. I wanted to understand my daily meal routine, how I was eating and whether it was right or wrong. As it happened, I received a scholarship, and that's how I came to join. Over the two months, I had weekly consultations with Dr Swan Htet, who shared knowledge with me so thoroughly, and the Sa Kyi team members looked after me every single day. They were truly two warm and healthy months, and I'm grateful to the Sa Kyi team."
+      },
+      "ma-nan-kham-myat-chu": {
+        "client-name": "Ma Nan Kham Myat Chu",
+        "program-title": "Swimming Instructor/Coach",
+        "content": "If I had to give Sa Kyi a review, it would be this: I have no regrets about joining. The whole team is warm, friendly and incredibly supportive. Because of Sa Kyi, my lifestyle has become healthy and mindful. They don't push you, but they guide you along so that your eating and exercise get onto the right path. I'm so grateful to my doctor and the entire team for all the effort they've put in from the very beginning until now. 🤍"
+      },
+      "ma-phyo-day-by-day": {
+        "client-name": "Ma Phyo day by day",
+        "program-title": "Influencer",
+        "content": "Thanks to Sa Kyi, my quality of life has improved so much. I now understand far better how the food I eat and the way I move affect me, and I've been able to build good habits for living a long, healthy life. My transformation hasn't only changed me, it has also had a positive effect on my family and the people around me. To me, Sa Kyi offers much more guidance than just a body transformation program. For that, I'm thankful to Sa Kyi. I've decided to stay with them for the long term."
+      },
+      "ma-shwe-yee-phyo": {
+        "client-name": "Ma Shwe Yee Phyo",
+        "program-title": "Personalized Program",
+        "content": "Since joining Sa Kyi, I've changed so much from the careless lifestyle I used to live. My eating and sleeping times have improved, and walking doesn't tire me out anymore. Sayar Swan, Pho and the younger assistants are all so patient and explain everything clearly. It doesn't feel like just being in a program. They talk to me sincerely, like my own friends and family, so I actually follow through more. I've tried many other methods before, but it was only after finding Sa Kyi that my habits really changed. More than a program, it gives you real awareness, which makes it so much easier to keep going in the long term. I'm so grateful to Sayar and Pho too. ❤️"
+      }
+    },
+    "controls": {
+      "label": "Client testimonials",
+      "previous": "Previous testimonial",
+      "next": "Next testimonial",
+      "read-more": "Read full story",
+      "dialog-close": "Close"
+    }
+  },
+  "latest-articles": {
+    "badge": "Wellness Insights",
+    "title": {
+      "black": "Expert Insights for",
+      "gradient": "Your Wellness Journey"
+    },
+    "description": "Discover evidence-based wellness tips, expert advice, and inspiring stories to support your health and wellness goals.",
+    "cta": {
+      "primary": "View All Articles"
+    }
+  },
+  "call-to-action": {
+    "title": "Ready to Transform Your Life?",
+    "description": "Join thousands of individuals who have already started their wellness journey with Sa Kyi. Get personalized guidance from certified doctors and achieve your health goals.",
+    "cta": {
+      "primary": "Start Your Journey",
+      "secondary": "Get Consultation"
+    }
+  }
+}

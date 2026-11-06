@@ -1,0 +1,194 @@
+import {
+  Activity,
+  ClipboardCheck,
+  Dumbbell,
+  Fish,
+  HeartHandshakeIcon,
+  LayoutDashboard,
+  NotebookPen,
+  Scale,
+  Server,
+  UserCog,
+} from 'lucide-react';
+
+import { absoluteLaravelDiagnosticUrl } from '@/config/api/laravel-backend-diagnostics';
+import { ADMIN_ROUTES } from '@/config/routes/admin';
+
+import type { NavItem } from './types';
+
+/**
+ * Sidebar navigation configuration for the Admin Dashboard.
+ *
+ * Each object represents a primary navigation item, including its display name, icon,
+ * target route, and any associated subitems (for dropdown or nested nav items).
+ *
+ * Important:
+ * - `path` should reference {@link ADMIN_ROUTES} for in-app destinations. Exceptions (e.g. backend
+ *   Laravel diagnostics) use absolute URLs produced from the API domain — see {@link createSuperAdminBackendObservabilityNav}.
+ *
+ * @see NavItem - Type definition for navigation items
+ * @see ADMIN_ROUTES - Centralized admin route definitions
+ *
+ * @example
+ * import { ADMIN_NAVIGATION } from '@/config/navigation/admin';
+ */
+export const ADMIN_NAVIGATION: NavItem[] = [
+  {
+    name: 'Overview',
+    icon: LayoutDashboard,
+    path: ADMIN_ROUTES.MODULES.OVERVIEW,
+    subitems: [],
+  },
+  {
+    name: 'User Accounts',
+    icon: UserCog,
+    path: ADMIN_ROUTES.MODULES.USERS.LIST,
+    subitems: [],
+  },
+  {
+    name: 'Enrollment Operations',
+    icon: ClipboardCheck,
+    path: '#',
+    subitems: [
+      {
+        name: 'Enrollment Requests',
+        path: ADMIN_ROUTES.MODULES.ENROLLMENT_REQUESTS.LIST,
+      },
+      {
+        name: 'Intake Assessments',
+        path: ADMIN_ROUTES.MODULES.INTAKE_ASSESSMENTS.LIST,
+      },
+      {
+        name: 'Contracts & E-Signatures',
+        path: ADMIN_ROUTES.MODULES.ENROLLMENT_CONTRACTS.LIST,
+      },
+      {
+        name: 'Enrollment Records',
+        path: ADMIN_ROUTES.MODULES.ENROLLMENT_RECORDS.LIST,
+      },
+    ],
+  },
+  {
+    name: 'Client Care',
+    icon: Activity,
+    path: '#',
+    subitems: [
+      {
+        name: 'Client Profiles',
+        path: ADMIN_ROUTES.MODULES.CLIENT_PROFILES.LIST,
+      },
+      {
+        name: 'Care Plans',
+        path: ADMIN_ROUTES.MODULES.CARE_PLANS.LIST,
+      },
+      {
+        name: 'Daily Task Logs',
+        path: ADMIN_ROUTES.MODULES.CARE_PLAN_LOGS.LIST,
+      },
+      {
+        name: 'Operational Logs',
+        path: ADMIN_ROUTES.MODULES.OPERATIONAL_LOGS.LIST,
+      },
+      {
+        name: 'Period Reports',
+        path: ADMIN_ROUTES.MODULES.PERIOD_REPORTS.LIST,
+      },
+    ],
+  },
+  {
+    name: 'Care Programs',
+    icon: HeartHandshakeIcon,
+    path: ADMIN_ROUTES.MODULES.PROGRAMS.LIST,
+    subitems: [],
+  },
+  {
+    name: 'Nutrition Library',
+    icon: Fish,
+    path: '#',
+    subitems: [
+      {
+        name: 'Food Categories',
+        path: ADMIN_ROUTES.MODULES.NUTRITION_CATEGORIES.LIST,
+      },
+      {
+        name: 'Food Items',
+        path: ADMIN_ROUTES.MODULES.NUTRITION_ITEMS.LIST,
+      },
+    ],
+  },
+  {
+    name: 'Exercise Library',
+    icon: Dumbbell,
+    path: '#',
+    subitems: [
+      {
+        name: 'Exercise Categories',
+        path: ADMIN_ROUTES.MODULES.MOVEMENT_CATEGORIES.LIST,
+      },
+      {
+        name: 'Exercises',
+        path: ADMIN_ROUTES.MODULES.MOVEMENT_EXERCISES.LIST,
+      },
+      {
+        name: 'Equipment',
+        path: ADMIN_ROUTES.MODULES.MOVEMENT_EQUIPMENT.LIST,
+      },
+    ],
+  },
+  {
+    name: 'Content & Education',
+    icon: NotebookPen,
+    path: '#',
+    subitems: [
+      {
+        name: 'Blog Categories',
+        path: ADMIN_ROUTES.MODULES.BLOG_CATEGORIES.LIST,
+      },
+      {
+        name: 'Blog Posts',
+        path: ADMIN_ROUTES.MODULES.BLOG_POSTS.LIST,
+      },
+    ],
+  },
+  {
+    name: 'Measurement Reference',
+    icon: Scale,
+    path: ADMIN_ROUTES.MODULES.UNITS.LIST,
+    subitems: [],
+  },
+] as const;
+
+/**
+ * Collapsible sidebar group linking to Laravel diagnostics (Telescope, Horizon, Pulse) on the API host.
+ *
+ * URLs are derived from `.env` via {@link absoluteLaravelDiagnosticUrl} (`NEXT_PUBLIC_API_DOMAIN_ENDPOINT`).
+ *
+ * Merge into the sidebar only when `user` satisfies `isSuperAdminUser` from `@/domains/user/roles`.
+ * Authorization remains enforced by the Laravel API — this navigation is UX only.
+ *
+ * Labels use operational language rather than vendor product names.
+ */
+export function createSuperAdminBackendObservabilityNav(): NavItem {
+  return {
+    name: 'Backend Observability',
+    icon: Server,
+    path: '#',
+    subitems: [
+      {
+        name: 'Application Debugging',
+        path: absoluteLaravelDiagnosticUrl('APPLICATION_DEBUGGING'),
+        external: true,
+      },
+      {
+        name: 'Queue Monitoring',
+        path: absoluteLaravelDiagnosticUrl('QUEUE_MONITORING'),
+        external: true,
+      },
+      {
+        name: 'Performance Monitoring',
+        path: absoluteLaravelDiagnosticUrl('APPLICATION_TELEMETRY'),
+        external: true,
+      },
+    ],
+  };
+}

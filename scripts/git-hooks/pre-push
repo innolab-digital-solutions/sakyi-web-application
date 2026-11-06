@@ -1,0 +1,33 @@
+#!/usr/bin/env sh
+
+set -e
+
+# Prevent direct pushes to protected branches and enforce ticket-based branch names.
+
+# Determine current branch name
+branch_name=$(git symbolic-ref --quiet --short HEAD || true)
+
+if [ -z "$branch_name" ]; then
+  echo "Error: Unable to determine current branch name."
+  exit 1
+fi
+
+# Block direct pushes to protected branches
+if [ "$branch_name" = "main" ] || [ "$branch_name" = "dev" ]; then
+  echo "Push to '$branch_name' is not allowed directly from a local branch."
+  echo "Use a feature branch and open a pull request into '$branch_name'."
+  echo "Example feature branch: SHW-123-implement-admin-crud-api"
+  exit 1
+fi
+
+# Enforce ticket-based branch naming convention: SHW-<number>-description
+if ! echo "$branch_name" | grep -Eq '^SHW-[0-9]+-'; then
+  echo "Invalid branch name: '$branch_name'"
+  echo "Branches must start with a ticket ID and a short description."
+  echo "Expected pattern: SHW-<number>-short-description"
+  echo "Example: SHW-233-fix-auth-redirect"
+  exit 1
+fi
+
+exit 0
+

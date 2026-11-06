@@ -1,0 +1,44 @@
+#!/usr/bin/env sh
+
+set -e
+
+commit_msg_file=$1
+commit_msg=$(cat "$commit_msg_file")
+
+# Determine branch name; if we cannot, do not block the commit based on this hook
+branch_name=$(git symbolic-ref --quiet --short HEAD || true)
+
+# Extract ticket from branch name (e.g. SHW-123 from SHW-123-something)
+ticket=$(echo "$branch_name" | grep -oE '^SHW-[0-9]+')
+
+# If no ticket is present in the branch name, do not enforce ticket-based format
+if [ -z "$ticket" ]; then
+  exit 0
+fi
+
+# Require commit message to start with the ticket and a space, followed by a meaningful description
+# Example: "SHW-123 Implement admin CRUD API"
+if ! echo "$commit_msg" | grep -Eq "^$ticket[[:space:]]+.+$"; then
+  echo "Invalid commit message format."
+  echo "Commit messages on ticket branches must start with the ticket ID and an action-oriented description."
+  echo "Expected format: $ticket Your concise, action-oriented message"
+  echo "Example: $ticket Implement admin CRUD API"
+  echo "Current message: $commit_msg"
+  echo "You can amend the commit message with: git commit --amend"
+  exit 1
+fi
+
+# Disallow hyphens or underscores in the commit message description.
+# Hyphens are allowed only inside the ticket ID itself (e.g. SHW-10), not in the description.
+# Strip off the first whitespace-separated token (the ticket) and inspect the rest.
+description_part=$(printf '%s\n' "$commit_msg" | sed -E 's/^[^[:space:]]+[[:space:]]+//')
+
+if echo "$description_part" | grep -Eq '[-_]'; then
+  echo "Invalid commit message: the description must not contain hyphens (-) or underscores (_)."
+  echo "Use only spaces between words in the description."
+  echo "Current message: $commit_msg"
+  echo "You can amend the commit message with: git commit --amend"
+  exit 1
+fi
+
+exit 0
