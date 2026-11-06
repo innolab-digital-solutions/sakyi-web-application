@@ -3,6 +3,7 @@ import { PropsWithChildren } from 'react';
 import AOSInitializer from '@/components/marketing/layout/AOSInitializer';
 import Footer from '@/components/marketing/layout/Footer';
 import Navbar from '@/components/marketing/layout/Navbar';
+import ScrollToTopButton from '@/components/marketing/ScrollToTopButton';
 import PageTransition from '@/components/shared/navigation/PageTransition';
 import TawkToWidget from '@/components/shared/TawkToWidget';
 
@@ -16,6 +17,7 @@ export default function SiteLayout({ children }: PropsWithChildren) {
         </PageTransition>
       </main>
       <Footer />
+      <ScrollToTopButton />
       <TawkToWidget />
     </AOSInitializer>
   );

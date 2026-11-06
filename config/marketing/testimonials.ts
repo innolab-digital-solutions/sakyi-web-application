@@ -41,6 +41,7 @@ export const TESTIMONIAL_IDS = [
   'ma-stella-zin',
   'ma-nan-kham-myat-chu',
   'ma-phyo-day-by-day',
+  'ma-shwe-yee-phyo',
 ] as const;
 
 export type TestimonialId = (typeof TESTIMONIAL_IDS)[number];
@@ -51,12 +52,14 @@ export type TestimonialId = (typeof TESTIMONIAL_IDS)[number];
  */
 export const TESTIMONIAL_IMAGES: Partial<Record<TestimonialId, string>> = {
   'ma-pan-nu': '/images/testimonials/ma-pan-nu.jpg',
+  'ma-nay-chi-lin': '/images/testimonials/ma-nay-chi-lin.jpg',
   'hsu-thiri-soe': '/images/testimonials/hsu-thiri-soe.jpg',
   'ma-ar-mee': '/images/testimonials/ma-ar-mee.jpg',
   'ma-hnin-hnin-wai-han': '/images/testimonials/ma-hnin-hnin-wai-han.jpg',
   'ma-stella-zin': '/images/testimonials/ma-stella-zin.jpg',
   'ma-nan-kham-myat-chu': '/images/testimonials/ma-nan-kham-myat-chu.jpg',
   'ma-phyo-day-by-day': '/images/testimonials/ma-phyo-day-by-day.jpg',
+  'ma-shwe-yee-phyo': '/images/testimonials/ma-shwe-yee-phyo.jpg',
 };
 
 /** Dictionary key paths for a single testimonial's fields. */
