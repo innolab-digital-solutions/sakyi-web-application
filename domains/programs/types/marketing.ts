@@ -7,6 +7,7 @@ export type Program = {
   about: string;
   /** Publication state for listing filters. */
   status: 'draft' | 'published' | 'archived';
+  published_at?: string | null;
   features: string[];
   ideals: string[];
   expectations: { title: string; description: string }[];

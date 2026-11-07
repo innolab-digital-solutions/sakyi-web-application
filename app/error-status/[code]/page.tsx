@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import ErrorStatusPage from '@/components/shared/ErrorStatusPage';
@@ -6,6 +7,11 @@ import {
   getErrorPresentation,
   isSupportedErrorStatus,
 } from '@/lib/errors/http-status';
+import { NOINDEX_ROBOTS } from '@/lib/seo/metadata';
+
+export const metadata: Metadata = {
+  robots: NOINDEX_ROBOTS,
+};
 
 type ErrorStatusRoutePageProps = {
   params: Promise<{ code: string }>;

@@ -3,11 +3,13 @@ import { notFound } from 'next/navigation';
 
 import ResetPasswordPanel from '@/components/auth/reset-password/ResetPasswordPanel';
 import { ResetPasswordSurface } from '@/components/auth/reset-password/ResetPasswordSurface';
+import { NOINDEX_ROBOTS } from '@/lib/seo/metadata';
 
 export const metadata: Metadata = {
   title: 'Reset password · SaKyi Health & Wellness',
   description:
     'Set a new password using the secure link from your email, then sign in again.',
+  robots: NOINDEX_ROBOTS,
 };
 
 function firstQueryString(

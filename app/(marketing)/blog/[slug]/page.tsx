@@ -1,75 +1,50 @@
 import type { Metadata } from 'next';
 
 import BlogDetailSection from '@/components/marketing/sections/blog/BlogDetailSection';
-import { base } from '@/config/api/base';
-import { MARKETING_ENDPOINTS } from '@/config/api/endpoints';
-import { DEFAULT_LANGUAGE } from '@/config/languages';
-import type { BlogPost } from '@/domains/blogs/types';
+import JsonLd from '@/components/shared/JsonLd';
+import { ROUTES } from '@/config/routes';
+import { getServerBlogPost } from '@/lib/api/server/marketing';
+import { buildPageMetadata } from '@/lib/seo/metadata';
+import { blogPostingJsonLd } from '@/lib/seo/structured-data';
 import { resolveApiImageUrl } from '@/lib/utils/url';
+
+const FALLBACK_DESCRIPTION =
+  'Read expert wellness insights from the SaKyi Health & Wellness blog.';
 
 type BlogDetailPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-async function fetchPostForMetadata(slug: string): Promise<BlogPost | null> {
-  try {
-    // Server-side metadata fetch: the `http` client cannot opt into Next's
-    // fetch cache, and the viewer's language preference lives in localStorage,
-    // so this renders tags in the default language.
-    const endpoint = `${base.versionEndpoint}${MARKETING_ENDPOINTS.BLOGS.DETAIL(
-      encodeURIComponent(slug),
-    )}?locale=${DEFAULT_LANGUAGE}`;
-    const res = await fetch(endpoint, { next: { revalidate: 3600 } });
-    if (!res.ok) return null;
-    const json = await res.json();
-    // API wraps in { status, data } — handle both shapes
-    return (json?.data ?? json) as BlogPost;
-  } catch {
-    return null;
-  }
-}
-
 export async function generateMetadata(
   props: BlogDetailPageProps,
 ): Promise<Metadata> {
   const { slug } = await props.params;
-  const post = await fetchPostForMetadata(slug);
+  const post = await getServerBlogPost(slug);
 
   if (!post) {
-    return {
-      title: 'Blog | SaKyi Health & Wellness',
-      description:
-        'Read expert wellness insights from the SaKyi Health & Wellness blog.',
-    };
+    return { title: 'Blog', description: FALLBACK_DESCRIPTION };
   }
 
-  const title = `${post.title} | SaKyi Health & Wellness`;
-  const description =
-    post.excerpt ??
-    'Read expert wellness insights from the SaKyi Health & Wellness blog.';
   const thumbnail = resolveApiImageUrl(post.thumbnail_url);
-  const images = thumbnail ? [{ url: thumbnail, alt: post.title }] : [];
 
-  return {
-    title,
-    description,
-    openGraph: {
-      type: 'article',
-      title,
-      description,
-      images,
-      publishedTime: post.timestamps?.published_at ?? undefined,
-    },
-    twitter: {
-      card: thumbnail ? 'summary_large_image' : 'summary',
-      title,
-      description,
-      images: thumbnail ? [thumbnail] : [],
-    },
-  };
+  return buildPageMetadata({
+    title: post.title,
+    description: post.excerpt ?? FALLBACK_DESCRIPTION,
+    path: ROUTES.MARKETING.BLOG_POST(post.slug),
+    type: 'article',
+    image: thumbnail ? { url: thumbnail, alt: post.title } : null,
+    publishedTime: post.published_at ?? undefined,
+  });
 }
 
 export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   const { slug } = await params;
-  return <BlogDetailSection slug={slug} />;
+  const post = await getServerBlogPost(slug);
+
+  return (
+    <>
+      {post && <JsonLd data={blogPostingJsonLd(post)} />}
+      <BlogDetailSection slug={slug} />
+    </>
+  );
 }
