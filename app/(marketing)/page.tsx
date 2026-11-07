@@ -8,12 +8,17 @@ import LatestArticlesSection from '@/components/marketing/sections/home/LatestAr
 import MobileAppSection from '@/components/marketing/sections/home/MobileAppSection';
 import OurProgramsSection from '@/components/marketing/sections/home/OurProgramsSection';
 import TestimonialsSection from '@/components/marketing/sections/home/TestimonialsSection';
+import { ROUTES } from '@/config/routes';
+import { buildPageMetadata } from '@/lib/seo/metadata';
 
-export const metadata: Metadata = {
-  title: 'SaKyi Health & Wellness | Personalized Wellness Programs',
+export const metadata: Metadata = buildPageMetadata({
+  title: {
+    absolute: 'SaKyi Health & Wellness | Personalized Wellness Programs',
+  },
   description:
     'Discover SaKyi Health & Wellness — personalized nutrition, movement, and lifestyle programs designed to support sustainable health and long-term wellbeing.',
-};
+  path: ROUTES.MARKETING.HOME,
+});
 
 export default function HomePage() {
   return (

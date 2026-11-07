@@ -7,12 +7,14 @@ import ContactIntroSection from '@/components/marketing/sections/contact/Contact
 import OurContactDetailSection from '@/components/marketing/sections/contact/OurContactDetailSection';
 import SendUsMessageSection from '@/components/marketing/sections/contact/SendUsMessageSection';
 import { ROUTES } from '@/config/routes';
+import { buildPageMetadata } from '@/lib/seo/metadata';
 
-export const metadata: Metadata = {
-  title: 'Contact SaKyi Health & Wellness',
+export const metadata: Metadata = buildPageMetadata({
+  title: { absolute: 'Contact SaKyi Health & Wellness' },
   description:
     'Get in touch with SaKyi Health & Wellness to ask questions, book consultations, or learn more about our personalized wellness programs.',
-};
+  path: ROUTES.MARKETING.CONTACT,
+});
 
 export default function ContactPage() {
   return (

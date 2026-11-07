@@ -8,12 +8,15 @@ import PersonalizedCareSection from '@/components/marketing/sections/programs/Pe
 import ProgramIntroSection from '@/components/marketing/sections/programs/ProgramIntroSection';
 import ProgramsHashScroll from '@/components/marketing/sections/programs/ProgramsHashScroll';
 import WhyChooseSaKyiSection from '@/components/marketing/sections/programs/WhyChooseSaKyiSection';
+import { ROUTES } from '@/config/routes';
+import { buildPageMetadata } from '@/lib/seo/metadata';
 
-export const metadata: Metadata = {
-  title: 'Wellness Programs | SaKyi Health & Wellness',
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Wellness Programs',
   description:
     'Explore SaKyi’s structured wellness programs, combining personalized assessments, smart tracking, and dedicated coaching to support safe, sustainable health changes.',
-};
+  path: ROUTES.MARKETING.PROGRAMS,
+});
 
 export default function ProgramsPage() {
   return (
