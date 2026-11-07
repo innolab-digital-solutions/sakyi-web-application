@@ -5,12 +5,15 @@ import SectionBadge from '@/components/marketing/SectionBadge';
 import SectionContainer from '@/components/marketing/SectionContainer';
 import Body1 from '@/components/shared/typography/Body1';
 import Heading1 from '@/components/shared/typography/Heading1';
+import { ROUTES } from '@/config/routes';
+import { buildPageMetadata } from '@/lib/seo/metadata';
 
-export const metadata: Metadata = {
-  title: 'Terms & Conditions | SaKyi Health & Wellness',
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Terms & Conditions',
   description:
     'Read the terms and conditions governing your access to and use of the Sa Kyi Health & Wellness mobile application.',
-};
+  path: ROUTES.MARKETING.TERMS_OF_SERVICE,
+});
 
 const sections = [
   {

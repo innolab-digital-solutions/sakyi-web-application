@@ -5,12 +5,15 @@ import SectionBadge from '@/components/marketing/SectionBadge';
 import SectionContainer from '@/components/marketing/SectionContainer';
 import Body1 from '@/components/shared/typography/Body1';
 import Heading1 from '@/components/shared/typography/Heading1';
+import { ROUTES } from '@/config/routes';
+import { buildPageMetadata } from '@/lib/seo/metadata';
 
-export const metadata: Metadata = {
-  title: 'Privacy Policy | SaKyi Health & Wellness',
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Privacy Policy',
   description:
     'Learn how SaKyi Health & Wellness collects, uses, and protects your personal information.',
-};
+  path: ROUTES.MARKETING.PRIVACY_POLICY,
+});
 
 const sections = [
   {
