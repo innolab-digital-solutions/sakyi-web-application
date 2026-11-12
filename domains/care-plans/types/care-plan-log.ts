@@ -3,6 +3,7 @@ import type { CarePlanEmbeddedOperationalLog } from './operational-log-embed';
 export type CarePlanLogSection =
   | 'nutrition'
   | 'movement'
+  | 'motiphysio'
   | 'activity'
   | 'hydration'
   | 'sleep'

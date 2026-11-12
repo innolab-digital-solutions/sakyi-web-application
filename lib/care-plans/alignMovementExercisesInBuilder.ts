@@ -1,26 +1,32 @@
 import type {
   AdminCarePlanBuilder,
   CarePlanSectionItem,
+  CarePlanSectionKey,
 } from '@/domains/care-plans/types/admin';
+import { isExercisePrescriptionSection } from '@/lib/care-plans/exercisePrescriptionSections';
 import { alignExercisesToRequestedOrder } from '@/lib/care-plans/movementPrescription';
 
 /**
- * After a movement section upsert, re-applies the submitted `exercises[]` order
- * onto the builder response for the saved day so the UI never briefly (or
- * permanently) shows exercises sorted by row id.
+ * After an exercise-prescription section upsert (movement / motiphysio),
+ * re-applies the submitted `exercises[]` order onto the builder response for
+ * the saved day so the UI never briefly (or permanently) shows exercises
+ * sorted by row id.
  */
 export function alignMovementExercisesInBuilder(
   builder: AdminCarePlanBuilder,
   dayId: number,
   savedItems: CarePlanSectionItem[],
+  section: CarePlanSectionKey = 'movement',
 ): AdminCarePlanBuilder {
+  if (!isExercisePrescriptionSection(section)) return builder;
+
   const days = Array.isArray(builder.days) ? builder.days : [];
   const dayIndex = days.findIndex((day) => day.id === dayId);
   if (dayIndex < 0) return builder;
 
   const day = days[dayIndex]!;
-  const responseItems = Array.isArray(day.sections?.movement)
-    ? day.sections.movement
+  const responseItems = Array.isArray(day.sections?.[section])
+    ? day.sections[section]
     : [];
 
   const unusedSavedIndexes = new Set(savedItems.map((_, index) => index));
@@ -74,7 +80,7 @@ export function alignMovementExercisesInBuilder(
           ...entry,
           sections: {
             ...entry.sections,
-            movement: alignedItems,
+            [section]: alignedItems,
           },
         }
       : entry,

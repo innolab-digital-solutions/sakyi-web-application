@@ -46,6 +46,7 @@ export interface AdminCarePlan {
 export type CarePlanSectionKey =
   | 'nutrition'
   | 'movement'
+  | 'motiphysio'
   | 'activity'
   | 'hydration'
   | 'sleep'

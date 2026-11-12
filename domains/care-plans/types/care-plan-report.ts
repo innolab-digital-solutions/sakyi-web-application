@@ -192,6 +192,7 @@ export type CarePlanReportWorkspace = {
     average_inputs?: {
       avg_intake?: { value: number | null; unit: string | null } | null;
       avg_burn?: { value: number | null; unit: string | null } | null;
+      avg_motiphysio_burn?: { value: number | null; unit: string | null } | null;
       avg_steps?: { value: number | null; unit: string | null } | null;
       avg_training_time?: { value: number | null; unit: string | null } | null;
     } | null;
@@ -244,6 +245,7 @@ export type SubmitOperationalLogForReviewPayload = {
   average_inputs?: {
     avg_intake?: number;
     avg_burn?: number;
+    avg_motiphysio_burn?: number;
     avg_steps?: number;
     avg_training_time?: number;
   };

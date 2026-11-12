@@ -179,6 +179,7 @@ describe('cloneCarePlanDayContent', () => {
       expect(cloned.sections.movement[0]?.exercises?.[0]).not.toHaveProperty(
         'id',
       );
+      expect(cloned.sections.motiphysio).toEqual([]);
       expect(cloned.sections.hydration).toEqual([]);
       expect(cloned.sections.sleep).toEqual([]);
       expect(cloned.sections.activity).toEqual([]);

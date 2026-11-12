@@ -11,6 +11,7 @@ describe('buildAverageInputsAndManualHighlights', () => {
     const result = buildAverageInputsAndManualHighlights({
       avgIntake: '1750',
       avgBurn: '400',
+      avgMotiphysioBurn: '120',
       avgSteps: '8000',
       avgTrainingTime: '45',
     });
@@ -18,19 +19,25 @@ describe('buildAverageInputsAndManualHighlights', () => {
     expect(result.averageInputs).toEqual({
       avg_intake: 1750,
       avg_burn: 400,
+      avg_motiphysio_burn: 120,
       avg_steps: 8000,
       avg_training_time: 45,
     });
-    expect(result.manualHighlights).toHaveLength(4);
+    expect(result.manualHighlights).toHaveLength(5);
     expect(result.manualHighlights.every((h) => h.is_visible_to_client)).toBe(
       true,
     );
+    expect(
+      result.manualHighlights.find((h) => h.metric_key === 'avg_motiphysio_burn')
+        ?.label,
+    ).toBe('Average Motiphysio burn');
   });
 
   it('skips empty, negative, and non-numeric values', () => {
     const result = buildAverageInputsAndManualHighlights({
       avgIntake: '',
       avgBurn: '-1',
+      avgMotiphysioBurn: 'abc',
       avgSteps: 'abc',
       avgTrainingTime: '30',
     });
