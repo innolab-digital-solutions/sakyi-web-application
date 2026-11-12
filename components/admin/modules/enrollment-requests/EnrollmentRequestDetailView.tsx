@@ -15,7 +15,9 @@ import { type ReactNode } from 'react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import EnrollmentIntakeConfirmation from '@/components/admin/modules/enrollment-requests/EnrollmentIntakeConfirmation';
+import EnrollmentIntakeConfirmation, {
+  type EnrollmentIntakePrefillChoice,
+} from '@/components/admin/modules/enrollment-requests/EnrollmentIntakeConfirmation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -374,7 +376,7 @@ export default function EnrollmentRequestDetailView({
     },
   });
   const { mutate: startIntake, isPending: isStartingIntake } = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (prefill: EnrollmentIntakePrefillChoice) => {
       const templateResponse = await getOnboardingTemplateByVersion(1);
       if (templateResponse.status === 'error') {
         throw new Error(templateResponse.message || 'Could not load template.');
@@ -383,17 +385,40 @@ export default function EnrollmentRequestDetailView({
       const createResponse = await createOnboardingIntake({
         enrollment_request_id: requestId,
         onboarding_template_id: templateResponse.data.id,
+        ...(prefill.prefill
+          ? {
+              prefill: true,
+              ...(prefill.prefill_from_intake_id != null
+                ? { prefill_from_intake_id: prefill.prefill_from_intake_id }
+                : {}),
+            }
+          : {}),
       });
 
       if (createResponse.status === 'error') {
         throw new Error(createResponse.message || 'Could not create intake.');
       }
 
-      return createResponse.data.id;
+      const copiedAnswers =
+        createResponse.status === 'success' &&
+        createResponse.meta &&
+        typeof createResponse.meta === 'object' &&
+        'prefill' in createResponse.meta &&
+        createResponse.meta.prefill &&
+        typeof createResponse.meta.prefill === 'object' &&
+        'copied_answers' in createResponse.meta.prefill
+          ? Number(createResponse.meta.prefill.copied_answers)
+          : null;
+
+      return { intakeId: createResponse.data.id, copiedAnswers };
     },
-    onSuccess: async (intakeId) => {
+    onSuccess: async ({ intakeId, copiedAnswers }) => {
       setShowStartIntakeConfirmation(false);
-      toast.success('The intake assessment has been created successfully.');
+      toast.success(
+        copiedAnswers != null && Number.isFinite(copiedAnswers) && copiedAnswers > 0
+          ? `The intake assessment has been created successfully (${copiedAnswers} answers prefilled).`
+          : 'The intake assessment has been created successfully.',
+      );
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: ['enrollment-request', requestId],
@@ -911,8 +936,17 @@ export default function EnrollmentRequestDetailView({
         open={showStartIntakeConfirmation}
         isSubmitting={isStartingIntake}
         requestReference={data.code?.trim() || `#${data.id}`}
+        client={
+          data.client?.id != null
+            ? {
+                id: data.client.id,
+                name: data.client.name,
+                client_code: data.client.client_code,
+              }
+            : null
+        }
         onOpenChange={setShowStartIntakeConfirmation}
-        onConfirm={() => startIntake()}
+        onConfirm={(prefill) => startIntake(prefill)}
       />
     </div>
   );

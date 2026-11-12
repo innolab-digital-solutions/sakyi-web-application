@@ -145,17 +145,23 @@ export type OnboardingIntake = {
 
 export type OnboardingIntakeData = OnboardingIntake;
 
+export type OnboardingIntakePrefillMeta = {
+  source_intake_id: number;
+  copied_answers: number;
+};
+
 export type OnboardingProgressMeta = {
   progress: {
     answered_required: number;
     total_required: number;
     completion_rate: number;
   };
+  prefill?: OnboardingIntakePrefillMeta;
 };
 
 export type OnboardingProgress = OnboardingProgressMeta['progress'];
 
-// endpoint: GET /onboarding/intakes/{id}, PUT section save, POST complete, POST cancel
+// endpoint: GET /onboarding/intakes/{id}, PUT section save, POST complete, POST cancel, POST prefill
 export type OnboardingIntakeResponse = ApiSuccess<
   OnboardingIntakeData,
   Partial<OnboardingProgressMeta>
@@ -192,6 +198,8 @@ export type OnboardingIntakeListStatusFilter = Extract<
 
 export type OnboardingListIntakesParams = {
   status?: OnboardingIntakeListStatusFilter;
+  /** Client name / code search for locating prior completed intakes. */
+  search?: string;
   per_page?: number;
   page?: number;
 };
@@ -200,6 +208,17 @@ export type CreateOnboardingIntakePayload = {
   enrollment_request_id: number;
   onboarding_template_id: number;
   notes?: string;
+  /**
+   * When true, copy answers from a completed same-template intake for this client.
+   * If `prefill_from_intake_id` is omitted, backend uses the latest compatible source.
+   */
+  prefill?: boolean;
+  prefill_from_intake_id?: number;
+};
+
+export type PrefillOnboardingIntakePayload = {
+  /** Explicit completed intake id. Omit to use latest same-template completed intake. */
+  prefill_from_intake_id?: number;
 };
 
 export type CancelOnboardingIntakePayload = {

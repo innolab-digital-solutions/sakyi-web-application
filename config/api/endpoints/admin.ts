@@ -199,6 +199,8 @@ export const ADMIN_ENDPOINTS = {
       DETAIL: (id: string) => `${BASE}/onboarding/intakes/${id}`,
       CANCEL: (id: string) => `${BASE}/onboarding/intakes/${id}/cancel`,
       COMPLETE: (id: string) => `${BASE}/onboarding/intakes/${id}/complete`,
+      /** Copy answers into an existing draft/in_progress intake. */
+      PREFILL: (id: string) => `${BASE}/onboarding/intakes/${id}/prefill`,
     },
     NOTIFICATIONS: {
       LIST: `${BASE}/notifications`,
