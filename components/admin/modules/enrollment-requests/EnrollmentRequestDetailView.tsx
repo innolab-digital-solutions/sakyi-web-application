@@ -415,7 +415,9 @@ export default function EnrollmentRequestDetailView({
     onSuccess: async ({ intakeId, copiedAnswers }) => {
       setShowStartIntakeConfirmation(false);
       toast.success(
-        copiedAnswers != null && Number.isFinite(copiedAnswers) && copiedAnswers > 0
+        copiedAnswers != null &&
+          Number.isFinite(copiedAnswers) &&
+          copiedAnswers > 0
           ? `The intake assessment has been created successfully (${copiedAnswers} answers prefilled).`
           : 'The intake assessment has been created successfully.',
       );

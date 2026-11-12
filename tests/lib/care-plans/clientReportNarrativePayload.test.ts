@@ -28,8 +28,9 @@ describe('buildAverageInputsAndManualHighlights', () => {
       true,
     );
     expect(
-      result.manualHighlights.find((h) => h.metric_key === 'avg_motiphysio_burn')
-        ?.label,
+      result.manualHighlights.find(
+        (h) => h.metric_key === 'avg_motiphysio_burn',
+      )?.label,
     ).toBe('Average Motiphysio burn');
   });
 

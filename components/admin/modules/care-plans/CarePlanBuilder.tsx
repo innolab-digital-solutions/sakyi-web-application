@@ -3193,7 +3193,7 @@ export default function CarePlanBuilder({
                       <div className='border-border bg-muted overflow-x-auto rounded-md border'>
                         <TabsList
                           variant='line'
-                          className='bg-muted! h-auto min-w-full w-max justify-start border-0'
+                          className='bg-muted! h-auto w-max min-w-full justify-start border-0'
                         >
                           {SECTIONS.map((section) => (
                             <TabsTrigger

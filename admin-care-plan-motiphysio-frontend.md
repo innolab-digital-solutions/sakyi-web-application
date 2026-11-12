@@ -20,15 +20,15 @@ This guide is enough to implement Motiphysio in the care-plan builder, operation
 
 Treat Motiphysio like Movement in the builder:
 
-| Concern | Behavior |
-| --- | --- |
-| Day item shape | `title`, optional `guidance`, optional `meta`, nested `exercises[]` |
-| Exercise link | `movement_exercise_id` → shared movement library |
+| Concern             | Behavior                                                                                                        |
+| ------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Day item shape      | `title`, optional `guidance`, optional `meta`, nested `exercises[]`                                             |
+| Exercise link       | `movement_exercise_id` → shared movement library                                                                |
 | Prescription fields | `sets`, `reps`, `rest_seconds`, `duration_seconds`, `intensity`, `equipment_weight`, `equipment_weight_unit_id` |
-| Order | Array order is the coach sequence; backend stores contiguous `sort_order` |
-| Activation | A day needs **at least one task in any section** (motiphysio counts) |
-| Measured targets | Motiphysio has **no** `target_value` / `target_unit_id` (unlike hydration/activity) |
-| Active-plan edits | Same rules as movement: cannot strip exercises from a logged item while active without edit mode |
+| Order               | Array order is the coach sequence; backend stores contiguous `sort_order`                                       |
+| Activation          | A day needs **at least one task in any section** (motiphysio counts)                                            |
+| Measured targets    | Motiphysio has **no** `target_value` / `target_unit_id` (unlike hydration/activity)                             |
+| Active-plan edits   | Same rules as movement: cannot strip exercises from a logged item while active without edit mode                |
 
 How it differs from other sections:
 
@@ -113,20 +113,20 @@ Use the **existing** movement library surfaces. Do **not** invent Motiphysio cat
 
 Admin CRUD (if the builder opens the full library manager):
 
-| Resource | Prefix |
-| --- | --- |
+| Resource   | Prefix                              |
+| ---------- | ----------------------------------- |
 | Categories | `/v1/web/admin/movement-categories` |
-| Equipment | `/v1/web/admin/movement-equipment` |
-| Exercises | `/v1/web/admin/movement-exercises` |
+| Equipment  | `/v1/web/admin/movement-equipment`  |
+| Exercises  | `/v1/web/admin/movement-exercises`  |
 
 Lookup (read-only pickers / prescription metadata):
 
-| Endpoint | Named route |
-| --- | --- |
-| `GET /v1/lookup/movement-categories` | `v1.lookup.movement-categories.index` |
-| `GET /v1/lookup/movement-equipment` | `v1.lookup.movement-equipment.index` |
-| `GET /v1/lookup/movement-exercises` | `v1.lookup.movement-exercises.index` |
-| `GET /v1/lookup/movement-prescription-profiles` | `v1.lookup.movement-prescription-profiles.index` |
+| Endpoint                                           | Named route                                         |
+| -------------------------------------------------- | --------------------------------------------------- |
+| `GET /v1/lookup/movement-categories`               | `v1.lookup.movement-categories.index`               |
+| `GET /v1/lookup/movement-equipment`                | `v1.lookup.movement-equipment.index`                |
+| `GET /v1/lookup/movement-exercises`                | `v1.lookup.movement-exercises.index`                |
+| `GET /v1/lookup/movement-prescription-profiles`    | `v1.lookup.movement-prescription-profiles.index`    |
 | `GET /v1/lookup/movement-prescription-intensities` | `v1.lookup.movement-prescription-intensities.index` |
 
 When attaching an exercise to a Motiphysio task, send that exercise’s `id` as `movement_exercise_id`.
@@ -147,10 +147,10 @@ UI should label the section **Motiphysio**, not Movement.
 
 When the workspace synthesizes suggested metrics and the plan has Motiphysio tasks:
 
-| Metric key | Section | Label |
-| --- | --- | --- |
+| Metric key                         | Section      | Label                            |
+| ---------------------------------- | ------------ | -------------------------------- |
 | `estimated_motiphysio_energy_burn` | `motiphysio` | Estimated Motiphysio Energy Burn |
-| `estimated_energy_burn` | `movement` | Estimated Movement Energy Burn |
+| `estimated_energy_burn`            | `movement`   | Estimated Movement Energy Burn   |
 
 Notes:
 
@@ -187,7 +187,11 @@ Evidence days also include Motiphysio items (`section: "motiphysio"`, `morph: "m
       "intensity": null,
       "equipment_weight": 8,
       "equipment_weight_unit_id": 3,
-      "equipment_weight_unit": { "id": 3, "name": "Kilogram", "abbreviation": "kg" },
+      "equipment_weight_unit": {
+        "id": 3,
+        "name": "Kilogram",
+        "abbreviation": "kg"
+      },
       "summary": "3 × 10 reps, 8 kg, 1 min rest"
     }
   ]

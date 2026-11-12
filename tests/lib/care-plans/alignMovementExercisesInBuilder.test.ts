@@ -141,9 +141,7 @@ describe('alignMovementExercisesInBuilder', () => {
     });
 
     it('aligns motiphysio exercises without touching movement', () => {
-      const builder = buildBuilder([
-        { id: 501, movement_exercise_id: 101 },
-      ]);
+      const builder = buildBuilder([{ id: 501, movement_exercise_id: 101 }]);
       builder.days[0]!.sections.motiphysio = [
         {
           id: 77,

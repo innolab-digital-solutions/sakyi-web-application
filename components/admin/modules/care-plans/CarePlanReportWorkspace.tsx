@@ -251,8 +251,10 @@ export default function CarePlanReportWorkspace({
     React.useState('');
   const [submitReviewAverageBurn, setSubmitReviewAverageBurn] =
     React.useState('');
-  const [submitReviewAverageMotiphysioBurn, setSubmitReviewAverageMotiphysioBurn] =
-    React.useState('');
+  const [
+    submitReviewAverageMotiphysioBurn,
+    setSubmitReviewAverageMotiphysioBurn,
+  ] = React.useState('');
   const [submitReviewAverageSteps, setSubmitReviewAverageSteps] =
     React.useState('');
   const [

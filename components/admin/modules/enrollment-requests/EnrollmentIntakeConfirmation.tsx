@@ -71,12 +71,16 @@ export default function EnrollmentIntakeConfirmation({
     string | undefined
   >(undefined);
 
-  React.useEffect(() => {
-    if (!open) {
-      setUsePreviousAssessment(false);
-      setSelectedSourceId(undefined);
-    }
-  }, [open]);
+  const handleOpenChange = React.useCallback(
+    (nextOpen: boolean) => {
+      if (!nextOpen) {
+        setUsePreviousAssessment(false);
+        setSelectedSourceId(undefined);
+      }
+      onOpenChange(nextOpen);
+    },
+    [onOpenChange],
+  );
 
   const templateQuery = useQuery({
     queryKey: ['onboarding', 'template', 'version', 1],
@@ -119,18 +123,22 @@ export default function EnrollmentIntakeConfirmation({
     },
   });
 
-  const priorIntakes = priorIntakesQuery.data ?? [];
+  const priorIntakes = React.useMemo(
+    () => priorIntakesQuery.data ?? [],
+    [priorIntakesQuery.data],
+  );
   const canPrefill = priorIntakes.length > 0;
+  const usePrefill = usePreviousAssessment && canPrefill;
 
-  React.useEffect(() => {
-    if (!canPrefill) {
-      setUsePreviousAssessment(false);
-      setSelectedSourceId(undefined);
-      return;
+  const effectiveSourceId = React.useMemo(() => {
+    if (!canPrefill) return undefined;
+    if (
+      selectedSourceId &&
+      priorIntakes.some((intake) => String(intake.id) === selectedSourceId)
+    ) {
+      return selectedSourceId;
     }
-    if (!selectedSourceId) {
-      setSelectedSourceId(String(priorIntakes[0].id));
-    }
+    return String(priorIntakes[0].id);
   }, [canPrefill, priorIntakes, selectedSourceId]);
 
   const sourceOptions = priorIntakes.map((intake) => {
@@ -145,12 +153,12 @@ export default function EnrollmentIntakeConfirmation({
   });
 
   const handleConfirm = () => {
-    if (!usePreviousAssessment || !canPrefill) {
+    if (!usePrefill) {
       onConfirm({});
       return;
     }
-    const sourceId = selectedSourceId
-      ? Number.parseInt(selectedSourceId, 10)
+    const sourceId = effectiveSourceId
+      ? Number.parseInt(effectiveSourceId, 10)
       : NaN;
     onConfirm({
       prefill: true,
@@ -161,7 +169,7 @@ export default function EnrollmentIntakeConfirmation({
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogContent className='gap-0 overflow-hidden p-0 sm:max-w-md'>
         <AlertDialogHeader className='border-border border-b p-6'>
           <div className='flex items-start gap-3'>
@@ -210,12 +218,12 @@ export default function EnrollmentIntakeConfirmation({
                 </p>
               </div>
             </div>
-            {usePreviousAssessment ? (
+            {usePrefill ? (
               <SelectField
                 label='Previous assessment'
                 placeholder='Select a completed intake…'
                 options={sourceOptions}
-                value={selectedSourceId}
+                value={effectiveSourceId}
                 onChange={(value) => setSelectedSourceId(value)}
                 disabled={isSubmitting}
               />
@@ -241,7 +249,7 @@ export default function EnrollmentIntakeConfirmation({
             disabled={
               isSubmitting ||
               (open && templateQuery.isPending) ||
-              (usePreviousAssessment && !selectedSourceId)
+              (usePrefill && !effectiveSourceId)
             }
             className='h-10 gap-1.5 rounded-md px-3 text-[13px]! font-semibold'
             onClick={(event) => {
@@ -252,7 +260,7 @@ export default function EnrollmentIntakeConfirmation({
             <ClipboardListIcon className='size-3.5' />
             {isSubmitting
               ? 'Creating intake...'
-              : usePreviousAssessment
+              : usePrefill
                 ? 'Create with prefill'
                 : 'Create and open interview'}
           </AlertDialogAction>

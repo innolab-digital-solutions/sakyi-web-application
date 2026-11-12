@@ -412,7 +412,9 @@ export default function EnrollmentRequestListTable() {
     onSuccess: async ({ intakeId, copiedAnswers }) => {
       setStartIntakeRequest(null);
       toast.success(
-        copiedAnswers != null && Number.isFinite(copiedAnswers) && copiedAnswers > 0
+        copiedAnswers != null &&
+          Number.isFinite(copiedAnswers) &&
+          copiedAnswers > 0
           ? `The intake assessment has been created successfully (${copiedAnswers} answers prefilled).`
           : 'The intake assessment has been created successfully.',
       );

@@ -32,8 +32,12 @@ export function filterCompatibleCompletedIntakes(args: {
   });
 
   return matched.sort((a, b) => {
-    const aTime = Date.parse(a.timestamps.completed_at ?? a.timestamps.updated_at ?? '') || 0;
-    const bTime = Date.parse(b.timestamps.completed_at ?? b.timestamps.updated_at ?? '') || 0;
+    const aTime =
+      Date.parse(a.timestamps.completed_at ?? a.timestamps.updated_at ?? '') ||
+      0;
+    const bTime =
+      Date.parse(b.timestamps.completed_at ?? b.timestamps.updated_at ?? '') ||
+      0;
     return bTime - aTime;
   });
 }
