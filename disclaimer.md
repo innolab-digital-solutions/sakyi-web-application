@@ -122,4 +122,3 @@ If you have questions about this Health & Wellness Disclaimer or our wellness pr
 **Sa Kyi Health & Wellness**  
 Email: contact@sakyihealthandwellness.com  
 Website: https://www.sakyihealthandwellness.com/
-

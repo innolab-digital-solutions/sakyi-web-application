@@ -126,36 +126,43 @@ During an active program, you may receive personalized care plans containing dai
 Depending on your assigned plan, we may collect:
 
 **Nutrition**
+
 - Meal information.
 - Breakfast, lunch, dinner, and snack records.
 - Meal photographs.
 - Nutrition-related notes.
 
 **Exercise**
+
 - Exercise completion records.
 - Workout information.
 - Exercise duration and related values.
 
 **Activity**
+
 - Walking and movement records.
 - Daily step counts.
 - Standing and other activity information.
 
 **Recovery**
+
 - Relaxation activities.
 - Wind-down routines.
 - Stretching and recovery records.
 
 **Sleep**
+
 - Sleep duration.
 - Sleep routines.
 - Sleep-related records.
 
 **Hydration**
+
 - Daily water-intake goals.
 - Actual water-consumption values.
 
 **Journals and Progress**
+
 - Personal journal entries.
 - Daily progress notes.
 - Uploaded progress photographs.
@@ -233,6 +240,7 @@ This information helps us maintain security, troubleshoot problems, and improve 
 We use personal information for the following purposes:
 
 ### 4.1 Account Management
+
 - Creating and maintaining accounts.
 - Authenticating users.
 - Managing profiles.
@@ -240,11 +248,13 @@ We use personal information for the following purposes:
 - Processing account-related requests.
 
 ### 4.2 Program Discovery
+
 - Displaying available programs.
 - Recommending programs based on your interests and goals.
 - Managing program inquiries and enrollment requests.
 
 ### 4.3 Enrollment and Onboarding
+
 - Contacting users who request enrollment.
 - Arranging consultations.
 - Recording relevant assessments.
@@ -253,6 +263,7 @@ We use personal information for the following purposes:
 - Activating approved enrollments.
 
 ### 4.4 Personalized Wellness Services
+
 - Preparing and delivering care plans.
 - Reviewing daily tracking submissions.
 - Monitoring program participation.

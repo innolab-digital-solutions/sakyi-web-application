@@ -2,8 +2,8 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
-  parseLegalMarkdown,
   type LegalDocumentModel,
+  parseLegalMarkdown,
 } from '@/lib/legal/parse-legal-markdown';
 
 export const LEGAL_MARKDOWN_FILES = {
