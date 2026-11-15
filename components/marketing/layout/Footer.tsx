@@ -51,7 +51,7 @@ const Footer = () => {
             />
             <SocialButton
               icon={<Mail className='h-4 w-4' />}
-              href='mailto:customerservice@sakyihealthandwellness.com'
+              href='mailto:contact@sakyihealthandwellness.com'
               label='Email SaKyi Health & Wellness'
             />
           </div>
@@ -60,7 +60,7 @@ const Footer = () => {
         {/* Divider, Legal Links and Copyright */}
         <div className='border-border w-full border-t pt-8'>
           <div className='flex flex-col items-center gap-4'>
-            <div className='flex items-center gap-6'>
+            <div className='flex flex-wrap items-center justify-center gap-x-6 gap-y-2'>
               <Link
                 href={ROUTES.MARKETING.PRIVACY_POLICY}
                 className='text-muted-foreground hover:text-foreground font-sans text-sm font-medium transition-colors'
@@ -72,6 +72,12 @@ const Footer = () => {
                 className='text-muted-foreground hover:text-foreground font-sans text-sm font-medium transition-colors'
               >
                 Terms of Service
+              </Link>
+              <Link
+                href={ROUTES.MARKETING.DISCLAIMER}
+                className='text-muted-foreground hover:text-foreground font-sans text-sm font-medium transition-colors'
+              >
+                Disclaimer
               </Link>
             </div>
             <div className='text-muted-foreground flex items-center space-x-2 font-sans text-sm font-medium'>

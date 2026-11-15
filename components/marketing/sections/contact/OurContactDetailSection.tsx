@@ -23,7 +23,7 @@ const OurContactDetailSection = () => {
       title: t('email.title'),
       description: t('email.description'),
       value: t('email.value'),
-      href: 'mailto:customerservice@sakyihealthandwellness.com',
+      href: 'mailto:contact@sakyihealthandwellness.com',
     },
     {
       icon: <Phone className='h-6 w-6 text-white' />,
