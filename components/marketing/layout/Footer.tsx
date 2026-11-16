@@ -1,6 +1,6 @@
 'use client';
 
-import { Copyright, Facebook, Instagram, Mail } from 'lucide-react';
+import { Copyright, Facebook, Music2, Youtube } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -41,18 +41,18 @@ const Footer = () => {
           <div className='flex justify-center space-x-3'>
             <SocialButton
               icon={<Facebook className='h-4 w-4' />}
-              href='https://www.facebook.com/share/1AZkhgRBMS/?mibextid=wwXIfr'
+              href='https://www.facebook.com/share/1UnrA6wTJu/'
               label='SaKyi Health & Wellness on Facebook'
             />
             <SocialButton
-              icon={<Instagram className='h-4 w-4' />}
-              href='https://www.instagram.com/sakyihealthandwellness/'
-              label='SaKyi Health & Wellness on Instagram'
+              icon={<Youtube className='h-4 w-4' />}
+              href='https://youtube.com/@sakyihealthandwellness3?si=j_O_nxiD-YUy9Wfo'
+              label='SaKyi Health & Wellness on YouTube'
             />
             <SocialButton
-              icon={<Mail className='h-4 w-4' />}
-              href='mailto:contact@sakyihealthandwellness.com'
-              label='Email SaKyi Health & Wellness'
+              icon={<Music2 className='h-4 w-4' />}
+              href='https://www.tiktok.com/@sakyihealthandwellness?_r=1&_t=ZS-9BRYkm5Mu0L'
+              label='SaKyi Health & Wellness on TikTok'
             />
           </div>
         </div>
