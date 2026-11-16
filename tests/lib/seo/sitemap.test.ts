@@ -12,7 +12,7 @@ vi.mock('@/lib/api/server/marketing', () => ({
   getServerPrograms: vi.fn(),
 }));
 
-const STATIC_PAGE_COUNT = 7;
+const STATIC_PAGE_COUNT = 8;
 
 describe('sitemap', () => {
   beforeEach(() => {

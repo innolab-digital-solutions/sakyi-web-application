@@ -6,6 +6,7 @@ import type {
 export const AVERAGE_HIGHLIGHT_METRIC_KEYS = [
   'avg_intake',
   'avg_burn',
+  'avg_motiphysio_burn',
   'avg_steps',
   'avg_training_time',
 ] as const;
@@ -28,6 +29,11 @@ const AVERAGE_HIGHLIGHT_SPECS: ReadonlyArray<{
     unit: 'Kilocalorie',
   },
   {
+    metric_key: 'avg_motiphysio_burn',
+    label: 'Average Motiphysio burn',
+    unit: 'Kilocalorie',
+  },
+  {
     metric_key: 'avg_steps',
     label: 'Average steps',
     unit: 'steps',
@@ -42,6 +48,7 @@ const AVERAGE_HIGHLIGHT_SPECS: ReadonlyArray<{
 export type AverageInputPayload = {
   avg_intake?: number;
   avg_burn?: number;
+  avg_motiphysio_burn?: number;
   avg_steps?: number;
   avg_training_time?: number;
 };
@@ -69,6 +76,7 @@ function parseNonNegativeNumber(raw: string): number | null {
 export function buildAverageInputsAndManualHighlights(args: {
   avgIntake: string;
   avgBurn: string;
+  avgMotiphysioBurn: string;
   avgSteps: string;
   avgTrainingTime: string;
 }): {
@@ -78,6 +86,7 @@ export function buildAverageInputsAndManualHighlights(args: {
   const values: Record<AverageHighlightMetricKey, string> = {
     avg_intake: args.avgIntake,
     avg_burn: args.avgBurn,
+    avg_motiphysio_burn: args.avgMotiphysioBurn,
     avg_steps: args.avgSteps,
     avg_training_time: args.avgTrainingTime,
   };

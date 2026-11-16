@@ -3,6 +3,22 @@ import { describe, expect, it } from 'vitest';
 import type { AdminCarePlanBuilder } from '@/domains/care-plans/types/admin';
 import { alignMovementExercisesInBuilder } from '@/lib/care-plans/alignMovementExercisesInBuilder';
 
+function emptySectionsExcept(overrides: {
+  movement?: AdminCarePlanBuilder['days'][number]['sections']['movement'];
+  motiphysio?: AdminCarePlanBuilder['days'][number]['sections']['motiphysio'];
+}): AdminCarePlanBuilder['days'][number]['sections'] {
+  return {
+    nutrition: [],
+    movement: overrides.movement ?? [],
+    motiphysio: overrides.motiphysio ?? [],
+    activity: [],
+    hydration: [],
+    sleep: [],
+    recovery: [],
+    walking: [],
+  };
+}
+
 function buildBuilder(
   movementExercises: Array<{
     id: number;
@@ -24,8 +40,7 @@ function buildBuilder(
         target_date: '2026-05-01',
         general_notes: null,
         daily_motivation: null,
-        sections: {
-          nutrition: [],
+        sections: emptySectionsExcept({
           movement: [
             {
               id: 99,
@@ -33,12 +48,7 @@ function buildBuilder(
               exercises: movementExercises,
             },
           ],
-          activity: [],
-          hydration: [],
-          sleep: [],
-          recovery: [],
-          walking: [],
-        },
+        }),
       },
     ],
   } as AdminCarePlanBuilder;
@@ -95,8 +105,7 @@ describe('alignMovementExercisesInBuilder', () => {
         target_date: '2026-05-02',
         general_notes: null,
         daily_motivation: null,
-        sections: {
-          nutrition: [],
+        sections: emptySectionsExcept({
           movement: [
             {
               id: 100,
@@ -104,12 +113,7 @@ describe('alignMovementExercisesInBuilder', () => {
               exercises: [{ id: 9, movement_exercise_id: 90 }],
             },
           ],
-          activity: [],
-          hydration: [],
-          sleep: [],
-          recovery: [],
-          walking: [],
-        },
+        }),
       });
 
       const aligned = alignMovementExercisesInBuilder(builder, 12, [
@@ -133,6 +137,48 @@ describe('alignMovementExercisesInBuilder', () => {
         ),
       ).toEqual([90]);
       expect(aligned.days[0]?.sections.walking).toEqual([]);
+      expect(aligned.days[0]?.sections.motiphysio).toEqual([]);
+    });
+
+    it('aligns motiphysio exercises without touching movement', () => {
+      const builder = buildBuilder([{ id: 501, movement_exercise_id: 101 }]);
+      builder.days[0]!.sections.motiphysio = [
+        {
+          id: 77,
+          title: 'Mobility flow',
+          exercises: [
+            { id: 802, movement_exercise_id: 202 },
+            { id: 801, movement_exercise_id: 201 },
+          ],
+        },
+      ];
+
+      const aligned = alignMovementExercisesInBuilder(
+        builder,
+        12,
+        [
+          {
+            id: 77,
+            title: 'Mobility flow',
+            exercises: [
+              { movement_exercise_id: 201 },
+              { movement_exercise_id: 202 },
+            ],
+          },
+        ],
+        'motiphysio',
+      );
+
+      expect(
+        aligned.days[0]?.sections.motiphysio[0]?.exercises?.map(
+          (row) => row.movement_exercise_id,
+        ),
+      ).toEqual([201, 202]);
+      expect(
+        aligned.days[0]?.sections.movement[0]?.exercises?.map(
+          (row) => row.movement_exercise_id,
+        ),
+      ).toEqual([101]);
     });
   });
 });

@@ -63,6 +63,18 @@ describe('resolveReportAverageInputForDialog', () => {
     ).toBe('2100');
   });
 
+  it('resolves avg_motiphysio_burn from generation defaults separately from avg_burn', () => {
+    expect(
+      resolveReportAverageInputForDialog({
+        metricKey: 'avg_motiphysio_burn',
+        highlights: [],
+        existingAverageInputs: { avg_burn: 500 },
+        generationDefault: { value: 150, unit: 'kcal' },
+        currentValue: '0',
+      }),
+    ).toBe('150');
+  });
+
   it('uses existing report average_inputs when present', () => {
     expect(
       resolveReportAverageInputForDialog({

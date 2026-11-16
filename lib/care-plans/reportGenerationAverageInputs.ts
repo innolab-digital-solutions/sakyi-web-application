@@ -34,8 +34,15 @@ export function formatAverageInputDisplay(
   return String(value);
 }
 
+export type ReportAverageInputMetricKey =
+  | 'avg_intake'
+  | 'avg_burn'
+  | 'avg_motiphysio_burn'
+  | 'avg_steps'
+  | 'avg_training_time';
+
 export type ResolveReportAverageInputParams = {
-  metricKey: 'avg_intake' | 'avg_burn' | 'avg_steps' | 'avg_training_time';
+  metricKey: ReportAverageInputMetricKey;
   highlights: ReportAverageHighlight[];
   /** Existing client-report `average_inputs` map, if any. */
   existingAverageInputs: Record<string, unknown> | null | undefined;

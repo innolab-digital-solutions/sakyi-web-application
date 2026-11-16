@@ -27,7 +27,7 @@ export const DEFAULT_OG_IMAGE = {
 export const SITE_LOGO_PATH = '/images/logo.png';
 
 export const SITE_CONTACT = {
-  email: 'customerservice@sakyihealthandwellness.com',
+  email: 'contact@sakyihealthandwellness.com',
   telephone: '+959250357339',
 } as const;
 

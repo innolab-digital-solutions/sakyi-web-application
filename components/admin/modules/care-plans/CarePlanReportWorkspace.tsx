@@ -251,6 +251,10 @@ export default function CarePlanReportWorkspace({
     React.useState('');
   const [submitReviewAverageBurn, setSubmitReviewAverageBurn] =
     React.useState('');
+  const [
+    submitReviewAverageMotiphysioBurn,
+    setSubmitReviewAverageMotiphysioBurn,
+  ] = React.useState('');
   const [submitReviewAverageSteps, setSubmitReviewAverageSteps] =
     React.useState('');
   const [
@@ -415,6 +419,7 @@ export default function CarePlanReportWorkspace({
   type ReportAverageInputs = {
     avg_intake?: { value: number | null } | number | null;
     avg_burn?: { value: number | null } | number | null;
+    avg_motiphysio_burn?: { value: number | null } | number | null;
     avg_steps?: { value: number | null } | number | null;
     avg_training_time?: { value: number | null } | number | null;
   };
@@ -449,7 +454,12 @@ export default function CarePlanReportWorkspace({
 
   const resolveAverageInputForDialog = React.useCallback(
     (
-      key: 'avg_intake' | 'avg_burn' | 'avg_steps' | 'avg_training_time',
+      key:
+        | 'avg_intake'
+        | 'avg_burn'
+        | 'avg_motiphysio_burn'
+        | 'avg_steps'
+        | 'avg_training_time',
       generationDefault: unknown,
       currentValue: string,
       overrides?: {
@@ -744,6 +754,7 @@ export default function CarePlanReportWorkspace({
         buildAverageInputsAndManualHighlights({
           avgIntake: submitReviewAverageIntake,
           avgBurn: submitReviewAverageBurn,
+          avgMotiphysioBurn: submitReviewAverageMotiphysioBurn,
           avgSteps: submitReviewAverageSteps,
           avgTrainingTime: submitReviewAverageTrainingMinutes,
         });
@@ -861,6 +872,14 @@ export default function CarePlanReportWorkspace({
         resolveAverageInputForDialog(
           'avg_burn',
           freshDefaults?.avg_burn,
+          '',
+          averageOverrides,
+        ),
+      );
+      setSubmitReviewAverageMotiphysioBurn(
+        resolveAverageInputForDialog(
+          'avg_motiphysio_burn',
+          freshDefaults?.avg_motiphysio_burn,
           '',
           averageOverrides,
         ),
@@ -1401,6 +1420,7 @@ export default function CarePlanReportWorkspace({
         feedback={submitReviewFeedback}
         avgIntake={submitReviewAverageIntake}
         avgBurn={submitReviewAverageBurn}
+        avgMotiphysioBurn={submitReviewAverageMotiphysioBurn}
         avgSteps={submitReviewAverageSteps}
         avgTrainingTime={submitReviewAverageTrainingMinutes}
         onOpenChange={setSubmitForReviewDialogOpen}
@@ -1408,6 +1428,7 @@ export default function CarePlanReportWorkspace({
         onFeedbackChange={setSubmitReviewFeedback}
         onAvgIntakeChange={setSubmitReviewAverageIntake}
         onAvgBurnChange={setSubmitReviewAverageBurn}
+        onAvgMotiphysioBurnChange={setSubmitReviewAverageMotiphysioBurn}
         onAvgStepsChange={setSubmitReviewAverageSteps}
         onAvgTrainingTimeChange={setSubmitReviewAverageTrainingMinutes}
         onSubmit={() => submitForReviewMutation.mutate()}

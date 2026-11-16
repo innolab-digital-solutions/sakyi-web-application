@@ -15,7 +15,9 @@ import { toast } from 'sonner';
 
 import TableListShell from '@/components/admin/layout/TableListShell';
 import EnrollmentContactedConfirmation from '@/components/admin/modules/enrollment-requests/EnrollmentContactedConfirmation';
-import EnrollmentIntakeConfirmation from '@/components/admin/modules/enrollment-requests/EnrollmentIntakeConfirmation';
+import EnrollmentIntakeConfirmation, {
+  type EnrollmentIntakePrefillChoice,
+} from '@/components/admin/modules/enrollment-requests/EnrollmentIntakeConfirmation';
 import EnrollmentRequestCancelConfirmation from '@/components/admin/modules/enrollment-requests/EnrollmentRequestCancelConfirmation';
 import EnrollmentRequestFilters from '@/components/admin/modules/enrollment-requests/EnrollmentRequestFilters';
 import EnrollmentRequestRowActions from '@/components/admin/modules/enrollment-requests/EnrollmentRequestRowActions';
@@ -363,9 +365,15 @@ export default function EnrollmentRequestListTable() {
   const {
     mutate: startIntake,
     isPending: isStartingIntake,
-    variables: startingIntakeRequest,
+    variables: startingIntakeVariables,
   } = useMutation({
-    mutationFn: async (request: EnrollmentRequestResource) => {
+    mutationFn: async ({
+      request,
+      prefill,
+    }: {
+      request: EnrollmentRequestResource;
+      prefill: EnrollmentIntakePrefillChoice;
+    }) => {
       const templateResponse = await getOnboardingTemplateByVersion(1);
       if (templateResponse.status === 'error') {
         throw new Error(templateResponse.message || 'Could not load template.');
@@ -374,17 +382,42 @@ export default function EnrollmentRequestListTable() {
       const createResponse = await createOnboardingIntake({
         enrollment_request_id: request.id,
         onboarding_template_id: templateResponse.data.id,
+        ...(prefill.prefill
+          ? {
+              prefill: true,
+              ...(prefill.prefill_from_intake_id != null
+                ? { prefill_from_intake_id: prefill.prefill_from_intake_id }
+                : {}),
+            }
+          : {}),
       });
 
       if (createResponse.status === 'error') {
         throw new Error(createResponse.message || 'Could not create intake.');
       }
 
-      return createResponse.data.id;
+      const copiedAnswers =
+        createResponse.status === 'success' &&
+        createResponse.meta &&
+        typeof createResponse.meta === 'object' &&
+        'prefill' in createResponse.meta &&
+        createResponse.meta.prefill &&
+        typeof createResponse.meta.prefill === 'object' &&
+        'copied_answers' in createResponse.meta.prefill
+          ? Number(createResponse.meta.prefill.copied_answers)
+          : null;
+
+      return { intakeId: createResponse.data.id, copiedAnswers };
     },
-    onSuccess: async (intakeId) => {
+    onSuccess: async ({ intakeId, copiedAnswers }) => {
       setStartIntakeRequest(null);
-      toast.success('The intake assessment has been created successfully.');
+      toast.success(
+        copiedAnswers != null &&
+          Number.isFinite(copiedAnswers) &&
+          copiedAnswers > 0
+          ? `The intake assessment has been created successfully (${copiedAnswers} answers prefilled).`
+          : 'The intake assessment has been created successfully.',
+      );
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: ['table', ENDPOINTS.ADMIN.MODULES.ENROLLMENT_REQUESTS.LIST],
@@ -401,6 +434,7 @@ export default function EnrollmentRequestListTable() {
       toast.error(error.message ?? 'Could not create intake assessment.');
     },
   });
+  const startingIntakeRequest = startingIntakeVariables?.request;
   const updatingId = isUpdatingStatus ? (variables?.id ?? null) : null;
   const isMarkingSelectedRequestAsContacted =
     markContactedRequest != null &&
@@ -669,12 +703,21 @@ export default function EnrollmentRequestListTable() {
             ? getRequestReference(startIntakeRequest)
             : undefined
         }
+        client={
+          startIntakeRequest?.client?.id != null
+            ? {
+                id: startIntakeRequest.client.id,
+                name: startIntakeRequest.client.name,
+                client_code: startIntakeRequest.client.client_code,
+              }
+            : null
+        }
         onOpenChange={(open) => {
           if (!open && !isStartingIntake) setStartIntakeRequest(null);
         }}
-        onConfirm={() => {
+        onConfirm={(prefill) => {
           if (!startIntakeRequest) return;
-          startIntake(startIntakeRequest);
+          startIntake({ request: startIntakeRequest, prefill });
         }}
       />
       <EnrollmentContactedConfirmation

@@ -108,6 +108,7 @@ import {
   isValidEatingWindowInput,
   normalizeEatingWindowHHmm,
 } from '@/lib/care-plans/eatingWindow';
+import { isExercisePrescriptionSection } from '@/lib/care-plans/exercisePrescriptionSections';
 import {
   buildMovementExerciseSavePayload,
   isMovementPrescriptionMeaningful,
@@ -129,6 +130,8 @@ const SECTION_GUIDANCE: Record<CarePlanSectionKey, string> = {
     'Document what the client should eat or drink for this day: meal timing, portions, and simple instructions they can follow at home. This plan is written for the enrolled client, as directed by their doctor.',
   movement:
     'List the exercises the client should complete. Prescription fields adapt to each exercise profile (sets/reps, timed holds, cardio, load, and intervals).',
+  motiphysio:
+    'List Motiphysio sessions for the client. Use the shared exercise library and prescription fields the same way as Exercise sessions.',
   activity:
     'Add everyday activities the client should aim for (stretching, errands, light chores, etc.) with a clear target and simple wording they can follow on their own.',
   hydration:
@@ -144,6 +147,7 @@ const SECTION_GUIDANCE: Record<CarePlanSectionKey, string> = {
 const SECTION_ADD_LABEL: Record<CarePlanSectionKey, string> = {
   nutrition: 'Add Nutrition',
   movement: 'Add Exercise Session',
+  motiphysio: 'Add Motiphysio Session',
   activity: 'Add Activity',
   hydration: 'Add Hydration',
   sleep: 'Add Sleep',
@@ -332,10 +336,9 @@ function normalizeSectionItemsForSave(
             normalizeMovementExercisePrescription(exercise),
           )
         : [];
-      const meaningfulExercises =
-        section === 'movement'
-          ? exercises.filter(isMovementPrescriptionMeaningful)
-          : [];
+      const meaningfulExercises = isExercisePrescriptionSection(section)
+        ? exercises.filter(isMovementPrescriptionMeaningful)
+        : [];
       const movementExerciseId =
         meaningfulExercises.length > 0
           ? meaningfulExercises[0].movement_exercise_id
@@ -371,7 +374,7 @@ function normalizeSectionItemsForSave(
       } satisfies NormalizedSectionItem;
     })
     .filter((item) => {
-      if (section === 'movement') {
+      if (isExercisePrescriptionSection(section)) {
         return Boolean(
           item.title ||
           item.guidance ||
@@ -408,7 +411,9 @@ function toSectionSavePayload(
 ): CarePlanSectionItem[] {
   return items.map((item) => {
     const omitExercisesOnActiveLoggedItem =
-      section === 'movement' && planStatus === 'active' && item.has_client_logs;
+      isExercisePrescriptionSection(section) &&
+      planStatus === 'active' &&
+      item.has_client_logs;
 
     const baseItem: CarePlanSectionItem = {
       title: item.title,
@@ -420,11 +425,14 @@ function toSectionSavePayload(
       baseItem.id = item.id;
     }
 
-    if (section === 'movement') {
+    if (isExercisePrescriptionSection(section)) {
       baseItem.movement_exercise_id = toNullableInteger(
         item.movement_exercise_id,
       );
-      baseItem.target_unit = item.target_unit;
+      // Motiphysio has no measured targets; keep payload parity with movement.
+      if (section === 'movement') {
+        baseItem.target_unit = item.target_unit;
+      }
       if (!omitExercisesOnActiveLoggedItem) {
         baseItem.exercises = item.exercises.map((exercise) => {
           const profile = resolveExerciseProfile?.(
@@ -1234,7 +1242,7 @@ export default function CarePlanBuilder({
       resetPrescriptionOnExerciseChange('', defaultMassUnitId);
 
     queueMicrotask(() => {
-      if (activeSection === 'movement') {
+      if (isExercisePrescriptionSection(activeSection)) {
         if (sectionItems.length === 0) {
           const baseItem = createEmptySectionItem();
           setLocalItems(
@@ -1245,14 +1253,14 @@ export default function CarePlanBuilder({
           return;
         }
         setLocalItems(
-          sectionItems.map((movementItem) => ({
-            ...movementItem,
+          sectionItems.map((prescriptionItem) => ({
+            ...prescriptionItem,
             exercises:
               editable &&
-              (!Array.isArray(movementItem.exercises) ||
-                movementItem.exercises.length === 0)
+              (!Array.isArray(prescriptionItem.exercises) ||
+                prescriptionItem.exercises.length === 0)
                 ? [createEmptyExerciseRow()]
-                : (movementItem.exercises ?? []),
+                : (prescriptionItem.exercises ?? []),
           })),
         );
         return;
@@ -2118,11 +2126,12 @@ export default function CarePlanBuilder({
         `The ${SECTIONS.find((x) => x.key === activeSection)?.label?.toLowerCase() ?? ''} section has been saved successfully.`,
       );
       const nextBuilder =
-        activeSection === 'movement' && data
+        isExercisePrescriptionSection(activeSection) && data
           ? alignMovementExercisesInBuilder(
               data,
               variables.dayId,
               variables.items,
+              activeSection,
             )
           : data;
       applyBuilderData(nextBuilder);
@@ -2230,7 +2239,7 @@ export default function CarePlanBuilder({
         };
       }
 
-      if (sectionToValidate === 'movement') {
+      if (isExercisePrescriptionSection(sectionToValidate)) {
         const exercises = Array.isArray(item?.exercises) ? item.exercises : [];
         const meaningfulExerciseRows = exercises
           .map((exercise, exerciseIndex) => ({
@@ -2575,7 +2584,7 @@ export default function CarePlanBuilder({
     selectedGenerateStartDate.getTime() <= startOfDay(new Date()).getTime();
 
   const addItem = () => {
-    if (activeSection === 'movement') {
+    if (isExercisePrescriptionSection(activeSection)) {
       setLocalItems((prev) => [
         ...prev,
         {
@@ -2902,8 +2911,8 @@ export default function CarePlanBuilder({
               </p>
               <p className='text-muted-foreground mt-1 text-[13px] font-medium'>
                 Set the care timeline first, then add tasks to each day across
-                nutrition, exercise, activity, hydration, sleep, recovery, and
-                walking.
+                nutrition, exercise, motiphysio, activity, hydration, sleep,
+                recovery, and walking.
               </p>
               {timelineEditable ? (
                 <Button
@@ -3181,21 +3190,23 @@ export default function CarePlanBuilder({
                         setActiveSection(value as CarePlanSectionKey)
                       }
                     >
-                      <TabsList
-                        variant='line'
-                        className='bg-muted! border-border w-full border'
-                      >
-                        {SECTIONS.map((section) => (
-                          <TabsTrigger
-                            key={section.key}
-                            value={section.key}
-                            className='flex-1 gap-1.5 text-[13px] font-semibold'
-                          >
-                            <section.icon className='size-3.5 shrink-0' />
-                            {section.label}
-                          </TabsTrigger>
-                        ))}
-                      </TabsList>
+                      <div className='border-border bg-muted overflow-x-auto rounded-md border'>
+                        <TabsList
+                          variant='line'
+                          className='bg-muted! h-auto w-max min-w-full justify-start border-0'
+                        >
+                          {SECTIONS.map((section) => (
+                            <TabsTrigger
+                              key={section.key}
+                              value={section.key}
+                              className='w-auto flex-none shrink-0 gap-1.5 px-3 text-[13px] font-semibold'
+                            >
+                              <section.icon className='size-3.5 shrink-0' />
+                              {section.label}
+                            </TabsTrigger>
+                          ))}
+                        </TabsList>
+                      </div>
 
                       {showReadOnlyDayNotes ? (
                         <div className='mt-3 space-y-3'>
@@ -3271,15 +3282,17 @@ export default function CarePlanBuilder({
                                         ? 'Enter a task name (e.g. Breakfast)'
                                         : activeSection === 'movement'
                                           ? 'Enter a task name (e.g. Strength Training Session)'
-                                          : activeSection === 'activity'
-                                            ? 'Enter a task name (e.g. Light stretching)'
-                                            : activeSection === 'hydration'
-                                              ? 'Enter a task name (e.g. Water intake)'
-                                              : activeSection === 'sleep'
-                                                ? 'Enter a task name (e.g. Night sleep)'
-                                                : activeSection === 'walking'
-                                                  ? 'Enter a task name (e.g. Daily steps)'
-                                                  : 'Enter a task name (e.g. Evening wind-down)'
+                                          : activeSection === 'motiphysio'
+                                            ? 'Enter a task name (e.g. Mobility flow)'
+                                            : activeSection === 'activity'
+                                              ? 'Enter a task name (e.g. Light stretching)'
+                                              : activeSection === 'hydration'
+                                                ? 'Enter a task name (e.g. Water intake)'
+                                                : activeSection === 'sleep'
+                                                  ? 'Enter a task name (e.g. Night sleep)'
+                                                  : activeSection === 'walking'
+                                                    ? 'Enter a task name (e.g. Daily steps)'
+                                                    : 'Enter a task name (e.g. Evening wind-down)'
                                     }
                                     value={String(item.title ?? '')}
                                     onChange={(event) =>
@@ -3321,7 +3334,9 @@ export default function CarePlanBuilder({
                                   error={itemFieldErrors[index]?.guidance}
                                   disabled={!editable}
                                 />
-                                {activeSection === 'movement' ? (
+                                {isExercisePrescriptionSection(
+                                  activeSection,
+                                ) ? (
                                   <>
                                     {item.has_client_logs && editable ? (
                                       <p className='rounded-md border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-[12px] font-medium text-amber-950'>

@@ -47,6 +47,7 @@ export type SubmitOperationalLogForReviewDialogProps = {
   feedback: ReportRunFeedback;
   avgIntake: string;
   avgBurn: string;
+  avgMotiphysioBurn: string;
   avgSteps: string;
   avgTrainingTime: string;
   onOpenChange: (open: boolean) => void;
@@ -54,6 +55,7 @@ export type SubmitOperationalLogForReviewDialogProps = {
   onFeedbackChange: (feedback: ReportRunFeedback) => void;
   onAvgIntakeChange: (value: string) => void;
   onAvgBurnChange: (value: string) => void;
+  onAvgMotiphysioBurnChange: (value: string) => void;
   onAvgStepsChange: (value: string) => void;
   onAvgTrainingTimeChange: (value: string) => void;
   onSubmit: () => void;
@@ -76,6 +78,7 @@ export default function SubmitOperationalLogForReviewDialog({
   feedback,
   avgIntake,
   avgBurn,
+  avgMotiphysioBurn,
   avgSteps,
   avgTrainingTime,
   onOpenChange,
@@ -83,6 +86,7 @@ export default function SubmitOperationalLogForReviewDialog({
   onFeedbackChange,
   onAvgIntakeChange,
   onAvgBurnChange,
+  onAvgMotiphysioBurnChange,
   onAvgStepsChange,
   onAvgTrainingTimeChange,
   onSubmit,
@@ -219,6 +223,18 @@ export default function SubmitOperationalLogForReviewDialog({
                     step='any'
                     value={avgBurn}
                     onChange={(event) => onAvgBurnChange(event.target.value)}
+                    className='text-[13px]'
+                  />
+                  <TextField
+                    id='submit-review-avg-motiphysio-burn'
+                    label='Average Motiphysio Burn (kcal)'
+                    type='number'
+                    min={0}
+                    step='any'
+                    value={avgMotiphysioBurn}
+                    onChange={(event) =>
+                      onAvgMotiphysioBurnChange(event.target.value)
+                    }
                     className='text-[13px]'
                   />
                   <TextField

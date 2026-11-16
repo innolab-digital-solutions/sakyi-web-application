@@ -5,5 +5,6 @@ export {
   getOnboardingIntakeById,
   getOnboardingIntakes,
   getOnboardingTemplateByVersion,
+  prefillOnboardingIntake,
   saveOnboardingIntakeSection,
 } from './admin.service';

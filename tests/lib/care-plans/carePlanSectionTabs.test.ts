@@ -16,6 +16,15 @@ describe('carePlanSectionTabs', () => {
       expect(walking?.label).toBe('Walking');
       expect(walking?.key).toBe('walking');
     });
+
+    it('places Motiphysio immediately after Exercise with its own label', () => {
+      const keys = CARE_PLAN_SECTION_TABS.map((tab) => tab.key);
+      expect(keys.indexOf('motiphysio')).toBe(keys.indexOf('movement') + 1);
+
+      const motiphysio = getCarePlanSectionTab('motiphysio');
+      expect(motiphysio?.label).toBe('Motiphysio');
+      expect(motiphysio?.key).toBe('motiphysio');
+    });
   });
 
   describe('failure / unknown keys', () => {
@@ -32,6 +41,7 @@ describe('carePlanSectionTabs', () => {
       expect(keys).toEqual([
         'nutrition',
         'movement',
+        'motiphysio',
         'activity',
         'hydration',
         'sleep',

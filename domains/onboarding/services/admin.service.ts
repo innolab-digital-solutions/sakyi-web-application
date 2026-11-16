@@ -11,6 +11,7 @@ import type {
   OnboardingIntakeResponse,
   OnboardingListIntakesParams,
   OnboardingTemplateData,
+  PrefillOnboardingIntakePayload,
   SaveOnboardingSectionPayload,
 } from '../types/admin';
 
@@ -33,6 +34,7 @@ export async function getOnboardingIntakes(
 ): Promise<OnboardingIntakeListResponse | ApiResponse<OnboardingIntakeData[]>> {
   const searchParams = new URLSearchParams();
   if (params.status) searchParams.set('status', params.status);
+  if (params.search?.trim()) searchParams.set('search', params.search.trim());
   if (params.per_page != null)
     searchParams.set('per_page', String(params.per_page));
   if (params.page != null) searchParams.set('page', String(params.page));
@@ -47,13 +49,29 @@ export async function getOnboardingIntakes(
 
 /**
  * Creates a new onboarding intake.
+ * Optional `prefill` copies answers from a completed same-template intake.
  */
 export async function createOnboardingIntake(
   payload: CreateOnboardingIntakePayload,
-): Promise<ApiResponse<OnboardingIntakeData>> {
+): Promise<OnboardingIntakeResponse | ApiResponse<OnboardingIntakeData>> {
   return http.post<OnboardingIntakeData>(
     ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.CREATE,
     payload,
+    { throwOnError: false },
+  );
+}
+
+/**
+ * Prefills an existing draft/in_progress intake from a completed same-template source.
+ */
+export async function prefillOnboardingIntake(
+  intakeId: number,
+  payload: PrefillOnboardingIntakePayload = {},
+): Promise<OnboardingIntakeResponse | ApiResponse<OnboardingIntakeData>> {
+  return http.post<OnboardingIntakeData>(
+    ENDPOINTS.ADMIN.MODULES.INTAKE_ASSESSMENTS.PREFILL(String(intakeId)),
+    payload,
+    { throwOnError: false },
   );
 }
 

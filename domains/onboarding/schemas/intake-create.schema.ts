@@ -11,6 +11,8 @@ export const OnboardingIntakeCreateSchema = z.object({
   enrollment_request_id: positiveIdString,
   onboarding_template_id: positiveIdString,
   notes: z.string().max(2000, 'Notes must be 2000 characters or less.'),
+  prefill: z.boolean().optional(),
+  prefill_from_intake_id: z.union([positiveIdString, z.literal('')]).optional(),
 });
 
 export type OnboardingIntakeCreateSchemaType = z.infer<
